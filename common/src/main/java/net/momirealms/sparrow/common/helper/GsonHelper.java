@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.common.helper;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
 
 public class GsonHelper {
 
@@ -22,5 +21,25 @@ public class GsonHelper {
 
     private static class SingletonHolder {
         private static final GsonHelper INSTANCE = new GsonHelper();
+    }
+
+    public static JsonObject parseJsonToJsonObject(String json) {
+        try {
+            return get().fromJson(
+                    json,
+                    JsonObject.class
+            );
+        } catch (JsonSyntaxException e) {
+            throw new RuntimeException("Invalid JSON response: " + json, e);
+        }
+    }
+
+    public static int getAsInt(JsonElement json, int defaultValue) {
+        if (json == null || json.isJsonNull()) return defaultValue;
+        try {
+            return json.getAsInt();
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 }
