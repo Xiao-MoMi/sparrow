@@ -40,7 +40,7 @@ public class TotemAdminCommand extends BukkitCommandFeature<CommandSender> {
                     MultiplePlayerSelector selector = commandContext.get(SparrowBukkitArgumentKeys.PLAYER_SELECTOR);
                     var players = selector.values();
                     ProtoItemStack itemStack = commandContext.get("item");
-                    ItemStack bukkitStack = itemStack.createItemStack(1, true);
+                    ItemStack bukkitStack = itemStack.createItemStack(1);
                     if (bukkitStack.getType() != Material.TOTEM_OF_UNDYING) {
                         handleFeedback(commandContext, MessageConstants.COMMANDS_ADMIN_TOTEM_FAILED);
                         return;

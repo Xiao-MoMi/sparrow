@@ -47,7 +47,7 @@ public class ToastAdminCommand extends BukkitCommandFeature<CommandSender> {
                     boolean legacy = commandContext.flags().hasFlag(SparrowFlagKeys.LEGACY_COLOR_FLAG);
                     var players = selector.values();
                     ProtoItemStack itemStack = commandContext.get("item");
-                    ItemStack bukkitStack = itemStack.createItemStack(1, true);
+                    ItemStack bukkitStack = itemStack.createItemStack(1);
                     String message = commandContext.get("message");
                     boolean parse = commandContext.flags().hasFlag(SparrowFlagKeys.PARSE_FLAG);
                     AdvancementType type = commandContext.get("type");
