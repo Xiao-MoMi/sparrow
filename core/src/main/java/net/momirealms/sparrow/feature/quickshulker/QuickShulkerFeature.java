@@ -1,7 +1,13 @@
 package net.momirealms.sparrow.feature.quickshulker;
 
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
+import net.momirealms.sparrow.ui.SparrowUI;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -33,11 +39,28 @@ public final class QuickShulkerFeature extends Feature<QuickShulkerSettings> imp
     @EventHandler
     public void onInteract(@NotNull PlayerInteractEvent event) {
         if (!this.enabled()) return;
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR) return;
+        Player player = event.getPlayer();
         QuickShulkerSettings config = this.config();
-        if (config.requireSneaking() && !event.getPlayer().isSneaking()) return;
-        if (!config.allowOffhand() && event.getHand() == EquipmentSlot.OFF_HAND) return;
-        if (config.disabledWorlds().contains(event.getPlayer().getWorld().getName())) return;
-        // TODO 打开潜影盒快捷菜单
+        if (config.requireSneaking() && !player.isSneaking()) return;
+        EquipmentSlot hand = event.getHand();
+        if (!config.allowOffhand() && hand == EquipmentSlot.OFF_HAND) return;
+        if (config.disabledWorlds().contains(player.getWorld().getName())) return;
+
+        Inventory playerInventory = ((CraftPlayer) player).getHandle().getInventory();
+        int selectedSlot = player.getInventory().getHeldItemSlot();
+        int sourceSlot = hand == EquipmentSlot.HAND ? selectedSlot : Inventory.SLOT_OFFHAND;
+        ItemStack shulker = playerInventory.getItem(sourceSlot);
+        if (!shulker.is(ItemTags.SHULKER_BOXES)) return;
+        event.setCancelled(true);
+
+        // 双手同时持有潜影盒时只处理主手事件.
+        if (hand == EquipmentSlot.OFF_HAND && playerInventory.getItem(selectedSlot).is(ItemTags.SHULKER_BOXES)) return;
+        QuickShulkerMenu.open(player, sourceSlot, config.title(), this.state())
+                .whenComplete((result, error) -> {
+                    if (error != null) {
+                        SparrowUI.getInstance().handleException("Failed to open quick shulker menu", error);
+                    }
+                });
     }
 }

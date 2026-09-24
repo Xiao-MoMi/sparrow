@@ -14,7 +14,7 @@ public abstract class Feature<C extends FeatureSettings> {
         this.id = id;
     }
 
-    /** 同步读取配置, 按开关安装并启动功能. */
+    // 同步读取配置, 按开关安装并启动功能.
     final void install() {
         if (this.installed) return;
         this.loadConfig();
@@ -30,7 +30,7 @@ public abstract class Feature<C extends FeatureSettings> {
         }
     }
 
-    /** 配置加载完成后同步启动已安装的功能. */
+    // 配置加载完成后同步启动已安装的功能.
     final void start() {
         FeatureState current = this.state.get();
         if (current == FeatureState.ENABLED) return;

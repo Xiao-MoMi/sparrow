@@ -9,7 +9,7 @@ import java.util.List;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class QuickShulkerSettings implements FeatureSettings {
-    private boolean enabled = false;
+    private boolean enabled = true;
 
     @Comment("Require sneaking when right-clicking to open the shulker box.")
     @Comment(lang = "zh", value = "是否需要潜行才能右键打开手持的潜影盒.")
@@ -19,9 +19,9 @@ public final class QuickShulkerSettings implements FeatureSettings {
     @Comment(lang = "zh", value = "是否允许右键打开副手持有的潜影盒.")
     private boolean allowOffhand = true;
 
-    @Comment("Container title. <arg:item_name> displays the name of the held shulker box.")
-    @Comment(lang = "zh", value = "容器标题, <arg:item_name> 表示手持潜影盒的物品名称.")
-    private String title = "<arg:item_name>";
+    @Comment("Container title. <arg:hover_name> displays the name of the held shulker box.")
+    @Comment(lang = "zh", value = "容器标题, <arg:hover_name> 表示手持潜影盒的物品名称.")
+    private String title = "<arg:hover_name>";
 
     @Comment("World names where quick shulker access is disabled. An empty list allows all worlds.")
     @Comment(lang = "zh", value = "禁用潜影盒快捷打开功能的世界名称, 空列表表示所有世界均可使用.")
