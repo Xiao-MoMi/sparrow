@@ -1,0 +1,122 @@
+import org.gradle.kotlin.dsl.buildConfigField
+import java.text.SimpleDateFormat
+import java.util.Date
+
+val projectName = rootProject.name
+val projectPackage = rootProject.group.toString()
+val projectId = projectPackage.substringAfterLast('.')
+val proxyJarName = "$projectName-proxy.jarinjar"
+
+// Plugin
+plugins {
+    id("sparrow.run-servers")
+    id("sparrow.run-spigot")
+    id("sparrow.run-velocity")
+    alias(libs.plugins.plugin.yml)
+    alias(libs.plugins.bukkit.plugin.yml)
+    alias(libs.plugins.buildconfig)
+}
+
+// Dependency
+dependencies {
+    paperweight.paperDevBundle(libs.versions.paper.api)
+
+    compileOnly(project(":bukkit-proxy"))
+    implementation(project(":common-files"))
+
+    compileOnly(libs.mojang.brigadier)
+    compileOnly(libs.cloud.core)
+    compileOnly(libs.cloud.paper)
+    compileOnly(libs.cloud.minecraft.extras)
+
+    compileOnly(libs.bundles.adventure)
+    implementation(libs.bundles.sparrow.nbt)
+    implementation(libs.sparrow.yaml)
+
+    compileOnly(libs.sparrow.reflection)
+    compileOnly(libs.datafixerupper)
+    compileOnly(libs.lettuce.core)
+    compileOnly(libs.mongodb.driver.sync)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platformLauncher)
+    testImplementation(libs.mockbukkit)
+    testImplementation(libs.test.paper.api)
+}
+
+// Version
+buildConfig {
+    packageName = "$projectPackage.plugin.dependency"
+    className = "DependencyVersions"
+
+    buildConfigField("PROJECT_PACKAGE", projectPackage)
+    buildConfigField("PROJECT_ID", projectId)
+    buildConfigField("PROXY_JAR_NAME", proxyJarName)
+    buildConfigField("ASM_CLASS_PREFIX", projectPackage.replace('.', '_'))
+    buildConfigField("COMPILE_TIME", SimpleDateFormat("yyyyMMdd_HHmm").format(Date()))
+    buildConfigField("CONFIG_VERSION", libs.versions.config.version.get())
+    buildConfigField("COMMANDS_CONFIG_VERSION", libs.versions.commands.config.version.get())
+    buildConfigField("LANG_VERSION", libs.versions.lang.version.get())
+    // ASM
+    buildConfigField("ASM", libs.versions.asm.get())
+    buildConfigField("ASM_COMMONS", libs.versions.asmcommons.get())
+    buildConfigField("JAR_RELOCATOR", libs.versions.jar.relocator.get())
+    // COMMON
+    buildConfigField("CAFFEINE", libs.versions.caffeine.get())
+    buildConfigField("MONGODB_DRIVER", libs.versions.mongodb.driver.get())
+    buildConfigField("REACTIVE_STREAMS", libs.versions.reactive.streams.get())
+    // LETTUCE
+    buildConfigField("LETTUCE", libs.versions.lettuce.get())
+    buildConfigField("JACKSON", libs.versions.jackson.core.get())
+    buildConfigField("JACKSON_ANNOTATIONS", libs.versions.jackson.annotations.get())
+    buildConfigField("JACKSON_DATATYPE", libs.versions.jackson.datatype.get())
+    buildConfigField("NETTY", libs.versions.netty.get())
+    buildConfigField("REACTOR", libs.versions.reactor.get())
+    // CLOUD
+    buildConfigField("GEANTYREF", libs.versions.geantyref.get())
+    buildConfigField("CLOUD_CORE", libs.versions.cloud.core.get())
+    buildConfigField("CLOUD_BRIGADIER", libs.versions.cloud.brigadier.get())
+    buildConfigField("CLOUD_SERVICES", libs.versions.cloud.services.get())
+    buildConfigField("CLOUD_BUKKIT", libs.versions.cloud.bukkit.get())
+    buildConfigField("CLOUD_PAPER", libs.versions.cloud.paper.get())
+    buildConfigField("CLOUD_MINECRAFT_EXTRAS", libs.versions.cloud.minecraft.extras.get())
+    // ADVENTURE
+    buildConfigField("ADVENTURE", libs.versions.adventure.get())
+    buildConfigField("OPTION", libs.versions.option.get())
+    buildConfigField("EXAMINATION_API", libs.versions.examination.api.get())
+}
+
+// Tasks
+tasks {
+    shadowJar {
+        mergeServiceFiles()
+        manifest {
+            attributes["paperweight-mappings-namespace"] = "mojang"
+        }
+        from(project(":bukkit-proxy").tasks.shadowJar.flatMap { it.archiveFile })
+        archiveFileName = "$projectName-${project.version}.jar"
+        destinationDirectory.set(file("$rootDir/target"))
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
+
+// plugin.yml
+bukkit {
+    name = projectName
+    main = "$projectPackage.plugin.SpigotJavaPlugin"
+    apiVersion = "26.2"
+    softDepend = listOf("PlaceholderAPI")
+}
+
+// paper-plugin.yml
+paper {
+    name = projectName
+    bootstrapper = "$projectPackage.plugin.PaperBootstrap"
+    main = "$projectPackage.plugin.PaperJavaPlugin"
+    apiVersion = "1.21.8"
+    foliaSupported = true
+}

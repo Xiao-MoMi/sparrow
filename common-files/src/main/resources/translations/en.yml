@@ -1,0 +1,29 @@
+exception.invalid_syntax: '<red>Invalid syntax. Correct syntax: <white><arg:0></white></red>'
+exception.invalid_argument: '<red>Invalid argument. Reason: <white><arg:0></white></red>'
+exception.invalid_sender: <red><arg:0> is not allowed to execute that command. Must be of type <arg:1></red>
+exception.unexpected: <red>An internal error occurred while attempting to perform this command</red>
+exception.no_permission: <red>I'm sorry, but you do not have permission to perform this command</red>
+argument.parse.failure.flag.unknown: <red>Unknown flag '<arg:0>'</red>
+argument.parse.failure.flag.duplicate_flag: <red>Duplicate flag '<arg:0>'</red>
+argument.parse.failure.flag.no_flag_started: <red>No flag started. Don't know what to do with '<arg:0>'</red>
+argument.parse.failure.flag.missing_argument: <red>Missing argument for '<arg:0>'</red>
+argument.parse.failure.flag.no_permission: <red>You don't have permission to use '<arg:0>'</red>
+command.reload.too_fast: <red>You are reloading the plugin too quickly; the previous reload has not yet completed
+command.reload.config.failure: <red>Failed to reload configs. Please check console logs
+command.reload.config.success: <dark_gray>» </dark_gray><gradient:#F4A460:#FFD700><b>${project_name}</b></gradient> <gray>•</gray> <white>Configs reloaded <gray>(<hover:show_text:'<gray>Async/Sync'><color:#FFD700><arg:1></color>/<color:#F4A460><arg:2></color></hover> ms)</gray>
+
+log.plugin.restart_at_runtime: 'Please do not restart plugins at runtime.'
+log.plugin.enable_failed: 'Failed to enable plugin. Please check the loading logs.'
+log.plugin.shutdown_after_failure: 'Shutting down the server because the plugin failed to load.'
+log.plugin.disable_at_runtime: 'Please do not disable plugins at runtime.'
+log.plugin.reload_failed: 'Failed to reload the plugin.'
+log.plugin.reload_submission_failed: 'Failed to submit the reload task.'
+log.plugin.initializing_proxies: 'Initializing ASM proxies...'
+log.compatibility.hooked: '[Compatibility] <arg:0> hooked'
+log.compatibility.hook_failed: 'Failed to hook <arg:0>'
+log.translation.default_load_failed: 'Failed to load the default translation file.'
+log.translation.default_syntax_error: 'YAML syntax error in the default translation file.'
+log.translation.invalid_file: 'Invalid translation file: <arg:0>'
+log.translation.read_failed: 'Failed to read translation file: <arg:0>'
+log.translation.directory_failed: 'Failed to load translation files from the translations directory.'
+log.translation.locale_missing: 'translations/<arg:0>.yml does not exist; using <arg:1>.yml as the default locale.'

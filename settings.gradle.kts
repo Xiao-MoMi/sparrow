@@ -1,6 +1,4 @@
-rootProject.name = "Sparrow"
-include("bukkit")
-include("loader")
-include("api")
-include("common")
-include("bukkit-loader")
+rootProject.name = providers.gradleProperty("projectName").get()
+include(":core")
+include(":bukkit-proxy")
+include(":common-files")

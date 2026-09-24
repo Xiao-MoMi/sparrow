@@ -1,0 +1,21 @@
+package net.momirealms.sparrow.locale;
+
+public final class LogConstants {
+    public static final String PLUGIN_RESTART_AT_RUNTIME = "log.plugin.restart_at_runtime";
+    public static final String PLUGIN_ENABLE_FAILED = "log.plugin.enable_failed";
+    public static final String PLUGIN_SHUTDOWN_AFTER_FAILURE = "log.plugin.shutdown_after_failure";
+    public static final String PLUGIN_DISABLE_AT_RUNTIME = "log.plugin.disable_at_runtime";
+    public static final String PLUGIN_RELOAD_FAILED = "log.plugin.reload_failed";
+    public static final String PLUGIN_RELOAD_SUBMISSION_FAILED = "log.plugin.reload_submission_failed";
+    public static final String PLUGIN_INITIALIZING_PROXIES = "log.plugin.initializing_proxies";
+    public static final String COMPATIBILITY_HOOKED = "log.compatibility.hooked";
+    public static final String COMPATIBILITY_HOOK_FAILED = "log.compatibility.hook_failed";
+    public static final String TRANSLATION_DEFAULT_LOAD_FAILED = "log.translation.default_load_failed";
+    public static final String TRANSLATION_DEFAULT_SYNTAX_ERROR = "log.translation.default_syntax_error";
+    public static final String TRANSLATION_INVALID_FILE = "log.translation.invalid_file";
+    public static final String TRANSLATION_READ_FAILED = "log.translation.read_failed";
+    public static final String TRANSLATION_DIRECTORY_FAILED = "log.translation.directory_failed";
+    public static final String TRANSLATION_LOCALE_MISSING = "log.translation.locale_missing";
+
+    private LogConstants() {}
+}

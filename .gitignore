@@ -12,6 +12,7 @@
 
 # Package Files #
 *.jar
+!/gradle/wrapper/gradle-wrapper.jar
 *.war
 *.nar
 *.ear
@@ -27,3 +28,7 @@ replay_pid*
 .gradle
 .vscode
 build
+/buildSrc/server-jars/*.jar
+/run/
+/target/
+/.kotlin/

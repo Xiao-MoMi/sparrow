@@ -1,0 +1,22 @@
+config-version = "2.8"
+bind = "0.0.0.0:25565"
+motd = "<#09add3>Plugin Proxy Test"
+show-max-players = 2
+online-mode = true
+force-key-authentication = true
+prevent-client-proxy-connections = false
+player-info-forwarding-mode = "legacy"
+forwarding-secret-file = "forwarding.secret"
+announce-forge = false
+kick-existing-players = false
+ping-passthrough = "DISABLED"
+enable-player-address-logging = true
+
+[servers]
+paper = "127.0.0.1:25566"
+folia = "127.0.0.1:25567"
+spigot = "127.0.0.1:25568"
+try = ["paper", "folia"]
+
+[forced-hosts]
+

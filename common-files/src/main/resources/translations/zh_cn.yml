@@ -1,0 +1,29 @@
+exception.invalid_syntax: <red>语法错误。正确语法：<white><arg:0></white></red>
+exception.invalid_argument: <red>参数无效。原因：<white><arg:0></white></red>
+exception.invalid_sender: <red><arg:0>不允许执行此命令。执行者必须是<arg:1></red>
+exception.unexpected: <red>执行此命令时发生内部错误</red>
+exception.no_permission: <red>抱歉，你没有权限执行此命令</red>
+argument.parse.failure.flag.unknown: <red>未知的“<arg:0>”标志</red>
+argument.parse.failure.flag.duplicate_flag: <red>重复的“<arg:0>”标志</red>
+argument.parse.failure.flag.no_flag_started: <red>无法识别的短标志组合“<arg:0>”</red>
+argument.parse.failure.flag.missing_argument: <red>缺少“<arg:0>”参数</red>
+argument.parse.failure.flag.no_permission: <red>你没有权限使用“<arg:0>”标志</red>
+command.reload.too_fast: <red>你重新加载插件的速度太快了，上一次的重新加载还没有完成</red>
+command.reload.config.failure: <red>无法重新加载配置。请检查控制台日志</red>
+command.reload.config.success: <dark_gray>» </dark_gray><gradient:#F4A460:#FFD700><b>${project_name}</b></gradient> <gray>•</gray> <white>配置文件已重新加载完成</white><gray>（<hover:show_text:'<gray>异步/同步'><color:#FFD700><arg:1></color>/<color:#F4A460><arg:2></color></hover>毫秒）</gray>
+
+log.plugin.restart_at_runtime: '请勿在服务器运行期间重新启用插件。'
+log.plugin.enable_failed: '插件启用失败，请检查加载阶段的日志。'
+log.plugin.shutdown_after_failure: '插件未能正确加载，正在关闭服务器。'
+log.plugin.disable_at_runtime: '请勿在服务器运行期间禁用插件。'
+log.plugin.reload_failed: '插件重载失败。'
+log.plugin.reload_submission_failed: '提交重载任务失败。'
+log.plugin.initializing_proxies: '正在初始化 ASM 代理...'
+log.compatibility.hooked: '[兼容] 已接入 <arg:0>'
+log.compatibility.hook_failed: '接入 <arg:0> 失败'
+log.translation.default_load_failed: '加载默认语言文件失败。'
+log.translation.default_syntax_error: '默认语言文件存在 YAML 语法错误。'
+log.translation.invalid_file: '无效的语言文件：<arg:0>'
+log.translation.read_failed: '读取语言文件失败：<arg:0>'
+log.translation.directory_failed: '从 translations 目录加载语言文件失败。'
+log.translation.locale_missing: 'translations/<arg:0>.yml 不存在，使用 <arg:1>.yml 作为默认语言。'
