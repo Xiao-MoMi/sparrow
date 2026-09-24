@@ -60,10 +60,10 @@ public final class FeatureListCommand extends BukkitCommandFeature {
             panel = panel.append(Component.newline()).append(this.tr("empty"));
         }
         panel = panel.append(Component.newline()).append(this.tr("navigation",
-                this.action(sender, "previous", "features", Integer.toString(page - 1), page == 1 ? "first_page" : null),
+                this.action(sender, "previous", "feature_list", Integer.toString(page - 1), page == 1 ? "first_page" : null),
                 Component.text(page), Component.text(pages),
-                this.action(sender, "next", "features", Integer.toString(page + 1), page == pages ? "last_page" : null),
-                this.action(sender, "refresh", "features", Integer.toString(page), null)));
+                this.action(sender, "next", "feature_list", Integer.toString(page + 1), page == pages ? "last_page" : null),
+                this.action(sender, "refresh", "feature_list", Integer.toString(page), null)));
         this.handleFeedback(sender, Component.translatable().key("command.features.message"), panel);
     }
 

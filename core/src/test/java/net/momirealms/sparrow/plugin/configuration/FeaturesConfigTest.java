@@ -83,8 +83,7 @@ class FeaturesConfigTest {
         assertEquals("custom.reload", commands.configDefinition().command("reload").getPermission());
         assertTrue(commands.configDefinition().command("feature_enable").isEnable());
         assertTrue(commands.configDefinition().command("feature_disable").isEnable());
-        assertTrue(commands.configDefinition().command("feature_status").isEnable());
-        assertTrue(commands.configDefinition().command("features").isEnable());
+        assertTrue(commands.configDefinition().command("feature_list").isEnable());
         YamlDocument document = SparrowYaml.builder().build().load(this.directory.resolve("commands.yml"));
         assertEquals(DependencyVersions.COMMANDS_CONFIG_VERSION, document.get(String.class, Route.from("__version__")));
         assertFalse(document.contains(Route.from("config-version")));

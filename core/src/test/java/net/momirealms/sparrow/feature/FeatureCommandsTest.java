@@ -16,7 +16,6 @@ import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.feature.FeatureEnableCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeatureDisableCommand;
-import net.momirealms.sparrow.plugin.command.feature.FeatureStatusCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeatureListCommand;
 import net.momirealms.sparrow.plugin.configuration.CommandsConfig;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
@@ -106,10 +105,10 @@ class FeatureCommandsTest {
         this.commands = new TestManager(this.plugin);
         this.commands.setFeedbackConsumer((sender, key, component) -> this.messages.add(component));
         for (CommandFeature command : List.of(new FeatureEnableCommand(this.commands, this.plugin),
-                new FeatureDisableCommand(this.commands, this.plugin), new FeatureStatusCommand(this.commands, this.plugin))) {
+                new FeatureDisableCommand(this.commands, this.plugin))) {
             this.commands.registerFeature(command, new CommandsConfig.ConfigDefinition().command(command.getFeatureID()));
         }
-        this.commands.registerFeature(new FeatureListCommand(this.commands, this.plugin), new CommandsConfig.ConfigDefinition().command("features"));
+        this.commands.registerFeature(new FeatureListCommand(this.commands, this.plugin), new CommandsConfig.ConfigDefinition().command("feature_list"));
     }
 
     @Test
@@ -117,7 +116,6 @@ class FeatureCommandsTest {
         CommandSender sender = this.sender(false, Set.of("sparrow.command.admin.feature"));
         assertEquals(List.of("quick-shulker"), this.suggestions(sender, "feature-enable"));
         assertTrue(this.suggestions(sender, "feature-disable").isEmpty());
-        assertEquals(Set.of("quick-shulker", "always-on"), Set.copyOf(this.suggestions(sender, "feature-status")));
         this.execute(sender, "sparrow feature-enable quick-shulker");
         assertTrue(this.features.feature("quick-shulker").enabled());
         assertTrue(this.configuration.featuresConfig().load().quickShulker().enabled());
@@ -127,19 +125,19 @@ class FeatureCommandsTest {
         assertFalse(this.features.feature("quick-shulker").enabled());
         assertFalse(this.configuration.featuresConfig().load().quickShulker().enabled());
         assertEquals(List.of("quick-shulker"), this.suggestions(sender, "feature-enable"));
-        this.execute(sender, "sparrow feature-status quick-shulker");
+        this.execute(sender, "sparrow feature-list");
         assertTrue(this.text().contains("Disabled"));
         assertThrows(Exception.class, () -> this.execute(sender, "sparrow feature quick-shulker on"));
     }
 
     @Test
-    void reloadBlocksSwitchesButAllowsStatus() throws Exception {
+    void reloadBlocksSwitchesButAllowsList() throws Exception {
         this.reloading.set(true);
         CommandSender sender = this.sender(false, Set.of("sparrow.command.admin.feature"));
         this.execute(sender, "sparrow feature-enable quick-shulker");
         assertFalse(this.features.feature("quick-shulker").enabled());
         assertTrue(this.text().contains("reload is in progress"));
-        this.execute(sender, "sparrow feature-status quick-shulker");
+        this.execute(sender, "sparrow feature-list");
         assertTrue(this.text().contains("Not installed"));
     }
 
@@ -158,22 +156,22 @@ class FeatureCommandsTest {
         FeatureEnableCommand enable = (FeatureEnableCommand) this.commands.features().value("feature_enable");
         enable.setCommandConfig(new CommandConfig(true, List.of("/custom start"), "custom.start"));
         this.commands.locale = Locale.SIMPLIFIED_CHINESE;
-        this.execute(this.sender(true, Set.of("sparrow.command.admin.feature", "custom.start")), "sparrow features");
+        this.execute(this.sender(true, Set.of("sparrow.command.admin.feature", "custom.start")), "sparrow feature-list");
         Component panel = this.messages.getLast();
         assertTrue(this.text().contains("模块管理"));
         assertTrue(this.text().contains("quick-shulker · 未安装 [启] [停] [查]"));
         assertTrue(hasClick(panel, "/custom start quick-shulker"));
         assertFalse(hasClick(panel, "/sparrow feature-disable quick-shulker"));
         assertFalse(hasClick(panel, "/custom start always-on"));
-        assertTrue(hasClick(panel, "/sparrow feature-status quick-shulker"));
-        assertTrue(hasClick(panel, "/sparrow features 1"));
+        assertFalse(hasClick(panel, "/sparrow feature-status quick-shulker"));
+        assertTrue(hasClick(panel, "/sparrow feature-list 1"));
         assertTranslated(panel);
 
         this.messages.clear();
-        this.execute(this.sender(true, Set.of("sparrow.command.admin.feature")), "sparrow features");
+        this.execute(this.sender(true, Set.of("sparrow.command.admin.feature")), "sparrow feature-list");
         assertFalse(hasClick(this.messages.getLast(), "/custom start quick-shulker"));
         enable.setCommandConfig(new CommandConfig(false, List.of("/custom start"), "custom.start"));
-        this.execute(this.sender(true, Set.of("sparrow.command.admin.feature", "custom.start")), "sparrow features");
+        this.execute(this.sender(true, Set.of("sparrow.command.admin.feature", "custom.start")), "sparrow feature-list");
         assertFalse(hasClick(this.messages.getLast(), "/custom start quick-shulker"));
     }
 
@@ -181,11 +179,11 @@ class FeatureCommandsTest {
     void panelReflectsEnabledStateAndConsoleShowsCommands() throws Exception {
         CommandSender player = this.sender(true, Set.of("sparrow.command.admin.feature"));
         this.execute(player, "sparrow feature-enable quick-shulker");
-        this.execute(player, "sparrow features");
+        this.execute(player, "sparrow feature-list");
         assertFalse(hasClick(this.messages.getLast(), "/sparrow feature-enable quick-shulker"));
         assertTrue(hasClick(this.messages.getLast(), "/sparrow feature-disable quick-shulker"));
         this.messages.clear();
-        this.execute(this.sender(false, Set.of("sparrow.command.admin.feature")), "sparrow features");
+        this.execute(this.sender(false, Set.of("sparrow.command.admin.feature")), "sparrow feature-list");
         assertTrue(this.text().contains("/sparrow feature-disable quick-shulker"));
         assertNoClicks(this.messages.getLast());
     }
@@ -196,18 +194,18 @@ class FeatureCommandsTest {
             this.features.register(new TestFeature("extra-" + i, false, true));
         }
         CommandSender sender = this.sender(true, Set.of("sparrow.command.admin.feature"));
-        this.execute(sender, "sparrow features");
+        this.execute(sender, "sparrow feature-list");
         assertTrue(this.text().contains("extra-4"));
         assertFalse(this.text().contains("extra-5"));
-        assertTrue(hasClick(this.messages.getLast(), "/sparrow features 2"));
+        assertTrue(hasClick(this.messages.getLast(), "/sparrow feature-list 2"));
         this.messages.clear();
-        this.execute(sender, "sparrow features 2147483647");
+        this.execute(sender, "sparrow feature-list 2147483647");
         assertTrue(this.text().contains("2/2"));
         assertFalse(this.text().contains("extra-4"));
         assertTrue(this.text().contains("extra-7"));
-        assertTrue(hasClick(this.messages.getLast(), "/sparrow features 1"));
-        assertFalse(hasClick(this.messages.getLast(), "/sparrow features 3"));
-        assertThrows(Exception.class, () -> this.execute(sender, "sparrow features 0"));
+        assertTrue(hasClick(this.messages.getLast(), "/sparrow feature-list 1"));
+        assertFalse(hasClick(this.messages.getLast(), "/sparrow feature-list 3"));
+        assertThrows(Exception.class, () -> this.execute(sender, "sparrow feature-list 0"));
     }
 
     private void execute(CommandSender sender, String command) throws Exception {

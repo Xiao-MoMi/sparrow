@@ -92,6 +92,33 @@ public final class CommandsConfig {
                 DependencyVersions.PROJECT_ID + ".command.admin.feature"
         );
 
+        @BlankLineBefore
+        CommandConfig workbench = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " workbench", "/workbench"), DependencyVersions.PROJECT_ID + ".command.workbench");
+
+        @BlankLineBefore
+        CommandConfig anvil = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " anvil", "/anvil"), DependencyVersions.PROJECT_ID + ".command.anvil");
+
+        @BlankLineBefore
+        CommandConfig grindstone = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"), DependencyVersions.PROJECT_ID + ".command.grindstone");
+
+        @BlankLineBefore
+        CommandConfig smithingtable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " smithingtable", "/smithingtable"), DependencyVersions.PROJECT_ID + ".command.smithingtable");
+
+        @BlankLineBefore
+        CommandConfig stonecutter = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " stonecutter", "/stonecutter"), DependencyVersions.PROJECT_ID + ".command.stonecutter");
+
+        @BlankLineBefore
+        CommandConfig cartographytable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " cartographytable", "/cartographytable"), DependencyVersions.PROJECT_ID + ".command.cartographytable");
+
+        @BlankLineBefore
+        CommandConfig loom = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " loom", "/loom"), DependencyVersions.PROJECT_ID + ".command.loom");
+
+        @BlankLineBefore
+        CommandConfig heal = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " heal", "/heal"), DependencyVersions.PROJECT_ID + ".command.heal");
+
+        @BlankLineBefore
+        CommandConfig feed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " feed", "/feed"), DependencyVersions.PROJECT_ID + ".command.feed");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -103,6 +130,15 @@ public final class CommandsConfig {
         public CommandConfig command(@NotNull String featureID) {
             return switch (featureID) {
                 case "reload" -> this.reload;
+                case "workbench" -> this.workbench;
+                case "anvil" -> this.anvil;
+                case "grindstone" -> this.grindstone;
+                case "smithingtable" -> this.smithingtable;
+                case "stonecutter" -> this.stonecutter;
+                case "cartographytable" -> this.cartographytable;
+                case "loom" -> this.loom;
+                case "heal" -> this.heal;
+                case "feed" -> this.feed;
                 case "feature_enable" -> this.featureEnable;
                 case "feature_disable" -> this.featureDisable;
                 case "feature_list" -> this.featureList;

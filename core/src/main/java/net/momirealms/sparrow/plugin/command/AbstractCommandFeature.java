@@ -52,9 +52,7 @@ public abstract class AbstractCommandFeature implements CommandFeature {
 
     @Override
     public void handleFeedback(CommandContext<?> context, TranslatableComponent.Builder key, Component... args) {
-        if (context.flags().hasFlag("silent")) {
-            return;
-        }
+        if (context.flags().hasFlag("silent")) return;
         commandManager.handleCommandFeedback((CommandSender) context.sender(), key, args);
     }
 

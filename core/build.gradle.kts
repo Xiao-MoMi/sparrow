@@ -46,6 +46,7 @@ dependencies {
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platformLauncher)
     testImplementation(libs.cloud.core)
+    testImplementation(libs.cloud.bukkit)
     testRuntimeOnly(libs.cloud.minecraft.extras)
     testImplementation(libs.mockbukkit)
     testImplementation(libs.test.paper.api)
