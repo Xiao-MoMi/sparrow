@@ -8,10 +8,6 @@ import net.momirealms.sparrow.bukkit.command.feature.item.*;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemCustomModelDataPlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemDisplayNamePlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemLorePlayerCommand;
-import net.momirealms.sparrow.bukkit.command.feature.message.ActionBarAdminCommand;
-import net.momirealms.sparrow.bukkit.command.feature.message.BroadcastAdminCommand;
-import net.momirealms.sparrow.bukkit.command.feature.message.TitleAdminCommand;
-import net.momirealms.sparrow.bukkit.command.feature.message.ToastAdminCommand;
 import net.momirealms.sparrow.bukkit.command.feature.misc.*;
 import net.momirealms.sparrow.bukkit.command.feature.player.*;
 import net.momirealms.sparrow.bukkit.command.feature.world.*;
@@ -42,14 +38,8 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new EnderChestAdminCommand(this),
             new WorldAdminCommand(this),
             new WorldPlayerCommand(this),
-            new FlyPlayerCommand(this),
-            new FlyAdminCommand(this),
-            new ActionBarAdminCommand(this),
             new EnchantAdminCommand(this),
-            new ToastAdminCommand(this),
-            new TitleAdminCommand(this),
             new PatrolAdminCommand(this),
-            new BroadcastAdminCommand(this),
             new ServerAdminCommand(this),
             new ServerPlayerCommand(this),
             new ColorPlayerCommand(this),
@@ -62,11 +52,6 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new HeadPlayerCommand(this),
             new MoreAdminCommand(this),
             new MorePlayerCommand(this),
-            new TotemAdminCommand(this),
-            new DemoAdminCommand(this),
-            new DemoPlayerCommand(this),
-            new CreditsAdminCommand(this),
-            new CreditsPlayerCommand(this),
             new EnchantmentTableAdminCommand(this),
             new EnchantmentTablePlayerCommand(this),
             new DistancePlayerCommand(this),
