@@ -1,3 +1,5 @@
+__version__: '${lang_version}'
+
 exception.invalid_syntax: '<red>Invalid syntax. Correct syntax: <white><arg:0></white></red>'
 exception.invalid_argument: '<red>Invalid argument. Reason: <white><arg:0></white></red>'
 exception.invalid_sender: <red><arg:0> is not allowed to execute that command. Must be of type <arg:1></red>
@@ -8,9 +10,21 @@ argument.parse.failure.flag.duplicate_flag: <red>Duplicate flag '<arg:0>'</red>
 argument.parse.failure.flag.no_flag_started: <red>No flag started. Don't know what to do with '<arg:0>'</red>
 argument.parse.failure.flag.missing_argument: <red>Missing argument for '<arg:0>'</red>
 argument.parse.failure.flag.no_permission: <red>You don't have permission to use '<arg:0>'</red>
-command.reload.too_fast: <red>You are reloading the plugin too quickly; the previous reload has not yet completed
+command.reload.too_fast: <red>A configuration reload is still running.</red>
 command.reload.config.failure: <red>Failed to reload configs. Please check console logs
 command.reload.config.success: <dark_gray>» </dark_gray><gradient:#F4A460:#FFD700><b>${project_name}</b></gradient> <gray>•</gray> <white>Configs reloaded <gray>(<hover:show_text:'<gray>Async/Sync'><color:#FFD700><arg:1></color>/<color:#F4A460><arg:2></color></hover> ms)</gray>
+
+command.feature.unknown: '<red>Unknown feature: <arg:0></red>'
+command.feature.busy: '<red>Features cannot be switched during a configuration reload.</red>'
+command.feature.restart_required: '<red><arg:0> requires a server restart to change its enabled state.</red>'
+command.feature.success: '<green><arg:0>: <arg:1>. The setting has been saved.</green>'
+command.feature.failure: '<red>Failed to switch <arg:0>. Check the console and use the feature command to check its current state.</red>'
+command.feature.status: '<gray><arg:0>: <white><arg:1></white></gray>'
+feature.state.uninstalled: 'Not installed'
+feature.state.unloaded: 'Uninstalled'
+feature.state.enabled: 'Enabled'
+feature.state.disabled: 'Disabled'
+feature.state.failed: 'Failed (restart required)'
 
 log.plugin.restart_at_runtime: 'Please do not restart plugins at runtime.'
 log.plugin.enable_failed: 'Failed to enable plugin. Please check the loading logs.'

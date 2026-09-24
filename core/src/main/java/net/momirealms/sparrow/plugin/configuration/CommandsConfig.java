@@ -27,7 +27,7 @@ public final class CommandsConfig {
     CommandsConfig(Path dataFolderPath, SparrowYaml sparrowYaml) {
         this.configFilePath = dataFolderPath.resolve(CONFIG_FILE);
         YamlUpgradePipeline upgradePipeline = YamlUpgradePipeline.builder()
-                .versionExtractor(new FieldVersionExtractor("config-version"))
+                .versionExtractor(new FieldVersionExtractor("__version__"))
                 .build();
         YamlMapperFactory mapperFactory = YamlMapperFactory.builder()
                 .backupOnUpgrade(true)
@@ -53,7 +53,7 @@ public final class CommandsConfig {
 
     @Configuration(naming = Configuration.Naming.SNAKE_CASE)
     public static class ConfigDefinition {
-        @YamlProperty("config-version")
+        @YamlProperty("__version__")
         @Comment("Do not modify this value")
         @Comment(lang = "zh", value = "配置版本, 请勿修改.")
         String configVersion = DependencyVersions.COMMANDS_CONFIG_VERSION;
@@ -71,6 +71,13 @@ public final class CommandsConfig {
                 DependencyVersions.PROJECT_ID + ".command.admin.reload"
         );
 
+        @BlankLineBefore
+        CommandConfig feature = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " feature"),
+                DependencyVersions.PROJECT_ID + ".command.admin.feature"
+        );
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -82,6 +89,7 @@ public final class CommandsConfig {
         public CommandConfig command(@NotNull String featureID) {
             return switch (featureID) {
                 case "reload" -> this.reload;
+                case "feature" -> this.feature;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }

@@ -1,0 +1,135 @@
+package net.momirealms.sparrow.feature;
+
+import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
+import net.momirealms.sparrow.util.ExceptionCollector;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+
+public final class FeatureManager {
+    private final FeaturesConfig config;
+    private final Executor asyncExecutor;
+    private final Executor platformExecutor;
+    private final Map<String, Feature<?>> features = new LinkedHashMap<>();
+    private volatile boolean closed;
+
+    FeatureManager(@NotNull FeaturesConfig config, @NotNull Executor asyncExecutor, @NotNull Executor platformExecutor) {
+        this.config = config;
+        this.asyncExecutor = asyncExecutor;
+        this.platformExecutor = platformExecutor;
+    }
+
+    @NotNull
+    public static FeatureManager create(@NotNull SparrowPlugin plugin) {
+        FeaturesConfig config = plugin.configurationManager().featuresConfig();
+        FeatureManager manager = new FeatureManager(config, plugin.scheduler().async(), plugin.scheduler().platform());
+        manager.register(new QuickShulkerFeature(plugin.javaPlugin(), config));
+        return manager;
+    }
+
+    void register(Feature<?> feature) {
+        this.features.put(feature.id(), feature);
+    }
+
+    public void onEnable() {
+        for (Feature<?> feature : this.features.values()) {
+            feature.install();
+        }
+    }
+
+    public void onReloadStart() {
+        this.requireOpen();
+        for (Feature<?> feature : this.features.values()) {
+            if (feature.hotToggleable()) {
+                feature.stop();
+            }
+        }
+    }
+
+    public void onReloadAsync() {
+        this.requireOpen();
+        for (Feature<?> feature : this.features.values()) {
+            if (feature.hotToggleable() && feature.installed()) {
+                feature.loadConfig();
+            }
+        }
+    }
+
+    public void onReloadFinish() {
+        this.requireOpen();
+        for (Feature<?> feature : this.features.values()) {
+            if (feature.hotToggleable()) {
+                if (!feature.installed()) {
+                    feature.install();
+                } else if (feature.config().enabled()) {
+                    feature.start();
+                }
+            }
+        }
+    }
+
+    public void onDisable() {
+        this.closed = true;
+        ExceptionCollector<RuntimeException> failures = new ExceptionCollector<>(RuntimeException.class);
+        for (Feature<?> feature : this.features.values()) {
+            try {
+                feature.uninstall();
+            } catch (RuntimeException exception) {
+                failures.add(exception);
+            }
+        }
+        failures.throwIfPresent();
+    }
+
+    @NotNull
+    public CompletableFuture<FeatureState> setEnabled(@NotNull String id, boolean enabled) {
+        this.requireOpen();
+        Feature<?> feature = this.features.get(id);
+        if (feature == null) {
+            throw new IllegalArgumentException("Unknown feature: " + id);
+        }
+        if (!feature.hotToggleable()) {
+            throw new IllegalArgumentException("Feature requires a restart: " + id);
+        }
+        this.config.saveEnabled(id, enabled);
+        if (!enabled) {
+            feature.stop();
+        } else if (!feature.installed()) {
+            feature.install();
+        } else if (!feature.enabled()) {
+            return CompletableFuture.runAsync(() -> {
+                this.requireOpen();
+                feature.loadConfig();
+            }, this.asyncExecutor).thenApplyAsync(ignored -> {
+                this.requireOpen();
+                feature.start();
+                return feature.state().get();
+            }, this.platformExecutor);
+        }
+        return CompletableFuture.completedFuture(feature.state().get());
+    }
+
+    private void requireOpen() {
+        if (this.closed) {
+            throw new IllegalStateException("Feature manager is shut down");
+        }
+    }
+
+    @Nullable
+    public Feature<?> feature(@NotNull String id) {
+        return this.features.get(id);
+    }
+
+    @NotNull
+    public Collection<String> ids() {
+        return Collections.unmodifiableSet(this.features.keySet());
+    }
+}

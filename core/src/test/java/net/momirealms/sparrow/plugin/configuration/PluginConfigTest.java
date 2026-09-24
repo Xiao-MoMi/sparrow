@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PluginConfigTest {
@@ -29,6 +30,8 @@ class PluginConfigTest {
         config.reload();
 
         String generated = Files.readString(this.directory.resolve("config.yml"));
+        assertTrue(generated.contains("__version__:"));
+        assertFalse(generated.contains("config-version:"));
         assertTrue(generated.contains("database:"));
         assertTrue(generated.contains("redis:"));
         assertTrue(generated.contains("jdbc:mariadb://localhost:3306/minecraft"));

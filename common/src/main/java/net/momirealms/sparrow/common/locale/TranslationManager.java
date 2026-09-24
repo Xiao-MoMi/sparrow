@@ -120,7 +120,7 @@ public class TranslationManager {
         Map<String, String> bundle = new HashMap<>();
         YamlDocument document = plugin.getConfigManager().loadConfig("translations" + "\\" + translationFile.getFileName(), '@');
         Map<String, Object> map = document.getStringRouteMappedValues(false);
-        map.remove("config-version");
+        map.remove("__version__");
         for (Map.Entry<String, Object> entry : map.entrySet()) {
             if (entry.getValue() instanceof List<?> list) {
                 List<String> strList = (List<String>) list;

@@ -2,8 +2,9 @@
 # Project
 project-version = "1.15"
 config-version = "2"
-commands-config-version = "1"
-lang-version = "2"
+commands-config-version = "2"
+features-config-version = "1"
+lang-version = "4"
 
 # Build
 run-task = "3.0.2"

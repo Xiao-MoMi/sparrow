@@ -293,7 +293,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                                 Map<String, String> langData = loadLangData(locLangDocument);
                                 if (langData.isEmpty()) return FileVisitResult.CONTINUE;
                                 // 更新
-                                String langVersion = locLangDocument.getOrDefault("", String.class, Route.from("lang-version"));
+                                String langVersion = locLangDocument.getOrDefault("", String.class, Route.from("__version__"));
                                 if (!TranslationManagerImpl.this.langVersion.equals(langVersion) && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
                                     langData = updateLangFile(langData, path);
                                     BasicFileAttributes updatedAttrs = Files.readAttributes(path, BasicFileAttributes.class);
@@ -319,7 +319,7 @@ public final class TranslationManagerImpl implements TranslationManager {
 
     /**
      * 更新旧版本语言文件并将结果重新写回磁盘.
-     * 算法步骤为读取插件内置同名语言模板, 写入新的 `lang-version`, 合并默认回退翻译, 合并内置新版语言内容, 最后再覆盖保留旧文件中的用户自定义值.
+     * 算法步骤为读取插件内置同名语言模板, 写入新的 `__version__`, 合并默认回退翻译, 合并内置新版语言内容, 最后再覆盖保留旧文件中的用户自定义值.
      * 这样既可以引入新版新增键, 又尽可能保留用户已有修改.
      *
      * @param previous 旧语言文件解析得到的键值对
@@ -339,11 +339,10 @@ public final class TranslationManagerImpl implements TranslationManager {
             YamlDocument newDocument = this.plugin.configurationManager().sparrowYaml().load(is);
             Map<String, String> newMap = loadLangData(newDocument);
 
-            newFileContents.put("lang-version", this.langVersion);
+            newFileContents.put("__version__", this.langVersion);
             newFileContents.putAll(this.translationFallback);
             newFileContents.putAll(newMap);
 
-            previous.remove("lang-version");
             for (String key : new ArrayList<>(newFileContents.keySet())) {
                 if (previous.containsKey(key)) {
                     newFileContents.put(key, previous.get(key));
@@ -356,6 +355,7 @@ public final class TranslationManagerImpl implements TranslationManager {
             }
             outputDocument.save(translationFile);
 
+            newFileContents.remove("__version__");
             return newFileContents;
         } catch (IOException e) {
             throw e;
@@ -427,6 +427,7 @@ public final class TranslationManagerImpl implements TranslationManager {
         LinkedHashMap<String, String> data = new LinkedHashMap<>();
         langDocument.value().forEach((key, node) -> {
             String langKey = key.toString();
+            if (langKey.equals("__version__") || langKey.equals("lang-version")) return;
             if (node.isSequence()) {
                 StringJoiner stringJoiner = new StringJoiner("<reset><newline>");
                 SequenceNode sequenceNode = (SequenceNode) node;

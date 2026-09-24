@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin;
 
 import net.momirealms.sparrow.player.PlayerManager;
+import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
@@ -65,6 +66,7 @@ public class SparrowPlugin implements Plugin {
 
     private CommandManager commandManager;
     private TranslationManager translationManager;
+    private FeatureManager featureManager;
 
     private JavaPlugin javaPlugin;
     private final AtomicBoolean reloading = new AtomicBoolean();
@@ -147,6 +149,8 @@ public class SparrowPlugin implements Plugin {
         this.playerManager.onEnable(this.javaPlugin);
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
+        this.featureManager = FeatureManager.create(this);
+        this.featureManager.onEnable();
         // 命令管理器
         this.commandManager = new BukkitCommandManager(this);
         this.commandManager.registerDefaultFeatures();
@@ -167,6 +171,7 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginDisable() {
+        if (this.featureManager != null) this.featureManager.onDisable();
         if (this.playerManager != null) this.playerManager.shutdown();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
@@ -201,8 +206,8 @@ public class SparrowPlugin implements Plugin {
     }
 
     /**
-     * 以异步和同步两阶段执行插件重载.
-     * 提交前占用重载状态, 异步阶段成功后才执行同步阶段; 阶段失败或任务提交被拒绝时释放状态并返回失败结果.
+     * 从平台线程发起重载: 同步停用功能, 异步加载配置, 再同步启用功能.
+     * 加载失败时功能保持停用; 阶段失败或任务提交被拒绝时释放重载状态并返回失败结果.
      *
      * @param asyncExecutor 异步任务执行器
      * @param syncExecutor 同步任务执行器
@@ -213,27 +218,35 @@ public class SparrowPlugin implements Plugin {
             return CompletableFuture.completedFuture(ReloadResult.failure());
         }
         try {
-            return CompletableFuture.supplyAsync(() -> {
-                long startTime = System.currentTimeMillis();
-                this.configurationManager.reload();
-                this.translationManager.reload();
-                // TODO 执行异步重载任务
-                return System.currentTimeMillis() - startTime;
-            }, asyncExecutor).thenApplyAsync(asyncTime -> {
-                long syncStartTime = System.currentTimeMillis();
-                // TODO 执行同步重载任务
-                long syncTime = System.currentTimeMillis() - syncStartTime;
-                return ReloadResult.success(asyncTime, syncTime, 0);
-            }, syncExecutor).handle((result, error) -> {
-                this.reloading.set(false);
-                if (error == null) return result;
-                Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-                this.logger().warn(TranslationManager.console(LogConstants.PLUGIN_RELOAD_FAILED), cause);
-                return ReloadResult.failure();
-            });
-        } catch (RuntimeException e) {
+            long disableStartTime = System.currentTimeMillis();
+            this.featureManager.onReloadStart();
+            long disableTime = System.currentTimeMillis() - disableStartTime;
+            return CompletableFuture
+                    .supplyAsync(() -> {
+                        // 执行异步重载任务
+                        long startTime = System.currentTimeMillis();
+                        this.configurationManager.reload();
+                        this.translationManager.reload();
+                        this.featureManager.onReloadAsync();
+                        return System.currentTimeMillis() - startTime;
+                    }, asyncExecutor
+                    ).thenApplyAsync(asyncTime -> {
+                        // 执行同步重载任务
+                        long syncStartTime = System.currentTimeMillis();
+                        this.featureManager.onReloadFinish();
+                        long syncTime = disableTime + System.currentTimeMillis() - syncStartTime;
+                        return ReloadResult.success(asyncTime, syncTime, 0);
+                    }, syncExecutor
+                    ).handle((result, error) -> {
+                        this.reloading.set(false);
+                        if (error == null) return result;
+                        Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+                        this.logger().warn(TranslationManager.console(LogConstants.PLUGIN_RELOAD_FAILED), cause);
+                        return ReloadResult.failure();
+                    });
+        } catch (RuntimeException exception) {
             this.reloading.set(false);
-            this.logger().warn(TranslationManager.console(LogConstants.PLUGIN_RELOAD_SUBMISSION_FAILED), e);
+            this.logger().warn(TranslationManager.console(LogConstants.PLUGIN_RELOAD_FAILED), exception);
             return CompletableFuture.completedFuture(ReloadResult.failure());
         }
     }
@@ -503,5 +516,11 @@ public class SparrowPlugin implements Plugin {
     @NotNull
     public PlayerManager playerManager() {
         return this.playerManager;
+    }
+
+    @Override
+    @NotNull
+    public FeatureManager featureManager() {
+        return this.featureManager;
     }
 }

@@ -45,6 +45,7 @@ dependencies {
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platformLauncher)
+    testRuntimeOnly(libs.cloud.core)
     testImplementation(libs.mockbukkit)
     testImplementation(libs.test.paper.api)
     testImplementation(libs.mongodb.driver.sync)
@@ -64,6 +65,7 @@ buildConfig {
     buildConfigField("COMPILE_TIME", SimpleDateFormat("yyyyMMdd_HHmm").format(Date()))
     buildConfigField("CONFIG_VERSION", libs.versions.config.version.get())
     buildConfigField("COMMANDS_CONFIG_VERSION", libs.versions.commands.config.version.get())
+    buildConfigField("FEATURES_CONFIG_VERSION", libs.versions.features.config.version.get())
     buildConfigField("LANG_VERSION", libs.versions.lang.version.get())
     // ASM
     buildConfigField("ASM", libs.versions.asm.get())

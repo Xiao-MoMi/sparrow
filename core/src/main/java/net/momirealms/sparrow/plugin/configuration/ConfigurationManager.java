@@ -8,6 +8,7 @@ public class ConfigurationManager {
     private final SparrowYaml sparrowYaml;
     private final CommandsConfig commandsConfig;
     private final PluginConfig pluginConfig;
+    private final FeaturesConfig featuresConfig;
 
     /**
      * 创建共享 YAML 环境并初始化插件配置.
@@ -19,6 +20,7 @@ public class ConfigurationManager {
                 .build();
         this.pluginConfig = new PluginConfig(plugin, this.sparrowYaml);
         this.commandsConfig = new CommandsConfig(plugin.dataFolderPath(), this.sparrowYaml);
+        this.featuresConfig = new FeaturesConfig(plugin.dataFolderPath(), this.sparrowYaml);
     }
 
     /**
@@ -26,6 +28,7 @@ public class ConfigurationManager {
      */
     public void reload() {
         this.pluginConfig.reload();
+        this.featuresConfig.reload();
     }
 
     @NotNull
@@ -35,5 +38,10 @@ public class ConfigurationManager {
 
     public CommandsConfig commandsConfig() {
         return this.commandsConfig;
+    }
+
+    @NotNull
+    public FeaturesConfig featuresConfig() {
+        return this.featuresConfig;
     }
 }

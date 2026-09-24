@@ -18,7 +18,8 @@ tasks {
         filteringCharset = "UTF-8"
         filesMatching("translations/*.yml") {
             expand(
-                "project_name" to projectName
+                "project_name" to projectName,
+                "lang_version" to libs.versions.lang.version.get()
             )
         }
     }

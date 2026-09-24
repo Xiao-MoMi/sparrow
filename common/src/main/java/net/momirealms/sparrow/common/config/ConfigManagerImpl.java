@@ -72,7 +72,7 @@ public class ConfigManagerImpl implements ConfigManager {
                     DumperSettings.DEFAULT,
                     UpdaterSettings
                             .builder()
-                            .setVersioning(new BasicVersioning("config-version"))
+                            .setVersioning(new BasicVersioning("__version__"))
                             .build()
             );
         } catch (IOException e) {

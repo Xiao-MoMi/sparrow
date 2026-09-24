@@ -1,3 +1,5 @@
+__version__: '${lang_version}'
+
 exception.invalid_syntax: <red>语法错误。正确语法：<white><arg:0></white></red>
 exception.invalid_argument: <red>参数无效。原因：<white><arg:0></white></red>
 exception.invalid_sender: <red><arg:0>不允许执行此命令。执行者必须是<arg:1></red>
@@ -8,9 +10,21 @@ argument.parse.failure.flag.duplicate_flag: <red>重复的“<arg:0>”标志</r
 argument.parse.failure.flag.no_flag_started: <red>无法识别的短标志组合“<arg:0>”</red>
 argument.parse.failure.flag.missing_argument: <red>缺少“<arg:0>”参数</red>
 argument.parse.failure.flag.no_permission: <red>你没有权限使用“<arg:0>”标志</red>
-command.reload.too_fast: <red>你重新加载插件的速度太快了，上一次的重新加载还没有完成</red>
+command.reload.too_fast: <red>上一次配置重载尚未完成。</red>
 command.reload.config.failure: <red>无法重新加载配置。请检查控制台日志</red>
 command.reload.config.success: <dark_gray>» </dark_gray><gradient:#F4A460:#FFD700><b>${project_name}</b></gradient> <gray>•</gray> <white>配置文件已重新加载完成</white><gray>（<hover:show_text:'<gray>异步/同步'><color:#FFD700><arg:1></color>/<color:#F4A460><arg:2></color></hover>毫秒）</gray>
+
+command.feature.unknown: '<red>未知功能：<arg:0></red>'
+command.feature.busy: '<red>配置重载期间无法切换功能。</red>'
+command.feature.restart_required: '<red><arg:0> 的启用状态需要重启服务器才能更改。</red>'
+command.feature.success: '<green><arg:0>：<arg:1>，设置已保存。</green>'
+command.feature.failure: '<red><arg:0> 切换失败，请检查控制台日志，并使用 feature 命令查询实际状态。</red>'
+command.feature.status: '<gray><arg:0>：<white><arg:1></white></gray>'
+feature.state.uninstalled: '未安装'
+feature.state.unloaded: '已卸载'
+feature.state.enabled: '已启用'
+feature.state.disabled: '已停用'
+feature.state.failed: '发生错误，需要重启'
 
 log.plugin.restart_at_runtime: '请勿在服务器运行期间重新启用插件。'
 log.plugin.enable_failed: '插件启用失败，请检查加载阶段的日志。'

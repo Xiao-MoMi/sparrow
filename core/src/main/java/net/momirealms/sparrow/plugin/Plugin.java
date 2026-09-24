@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin;
 
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
+import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.database.DatabaseManager;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
@@ -78,4 +79,6 @@ public interface Plugin {
     TranslationManager translationManager();
 
     PlayerManager playerManager();
+
+    FeatureManager featureManager();
 }

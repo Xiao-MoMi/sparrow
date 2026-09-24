@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.command;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
+import net.momirealms.sparrow.plugin.command.feature.FeatureCommand;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -29,7 +30,8 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         // 初始化命令索引
         this.plugin = plugin;
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
-                new ReloadCommand(this, plugin)
+                new ReloadCommand(this, plugin),
+                new FeatureCommand(this, plugin)
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
         // 开启 ALLOW_UNSAFE_REGISTRATION, 以允许在部分运行环境中完成命令注册.

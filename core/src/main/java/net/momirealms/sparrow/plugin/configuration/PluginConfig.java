@@ -10,6 +10,7 @@ import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
+import net.momirealms.sparrow.yaml.serializer.auto.annotation.YamlProperty;
 import net.momirealms.sparrow.yaml.upgrade.YamlUpgradePipeline;
 import net.momirealms.sparrow.yaml.upgrade.version.FieldVersionExtractor;
 
@@ -30,7 +31,7 @@ public final class PluginConfig {
     PluginConfig(Plugin plugin, SparrowYaml sparrowYaml) {
         this.configFilePath = plugin.dataFolderPath().resolve(CONFIG_FILE);
         YamlUpgradePipeline upgradePipeline = YamlUpgradePipeline.builder()
-                .versionExtractor(new FieldVersionExtractor("config-version"))
+                .versionExtractor(new FieldVersionExtractor("__version__"))
                 .build();
         YamlMapperFactory mapperFactory = YamlMapperFactory.builder()
                 .backupOnUpgrade(true)
@@ -59,6 +60,7 @@ public final class PluginConfig {
     // 配置文件
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class ConfigDefinition {
+        @YamlProperty("__version__")
         @Comment("Do not modify this value")
         @Comment(lang = "zh", value = "配置版本, 请勿修改.")
         String configVersion = DependencyVersions.CONFIG_VERSION;
