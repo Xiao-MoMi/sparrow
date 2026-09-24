@@ -1,9 +1,0 @@
-_version: 30
-proxies:
-  bungee-cord:
-    online-mode: true
-  proxy-protocol: false
-  velocity:
-    enabled: false
-    online-mode: true
-    secret: 'template-local-proxy-forwarding-secret'

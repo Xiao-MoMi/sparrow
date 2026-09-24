@@ -10,7 +10,7 @@ run-task = "3.0.2"
 paperweight = "2.0.0-beta.21"
 
 # Platform
-paper-api = "1.21.8-R0.1-SNAPSHOT"
+paper-api = "1.21.11-R0.1-SNAPSHOT"
 datafixerupper = "8.0.16"
 jetbrains-annotations = "26.0.2"
 

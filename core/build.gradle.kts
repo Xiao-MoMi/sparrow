@@ -1,4 +1,5 @@
 import org.gradle.kotlin.dsl.buildConfigField
+import net.minecrell.pluginyml.paper.PaperPluginDescription
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -108,8 +109,11 @@ tasks {
 bukkit {
     name = projectName
     main = "$projectPackage.plugin.SpigotJavaPlugin"
-    apiVersion = "26.2"
+    apiVersion = "1.21.11"
+    authors = listOf("XiaoMoMi")
+    contributors = listOf("g2213swo", "jhqwqmc")
     softDepend = listOf("PlaceholderAPI")
+    foliaSupported = true
 }
 
 // paper-plugin.yml
@@ -117,6 +121,15 @@ paper {
     name = projectName
     bootstrapper = "$projectPackage.plugin.PaperBootstrap"
     main = "$projectPackage.plugin.PaperJavaPlugin"
-    apiVersion = "1.21.8"
+    apiVersion = "1.21.11"
+    authors = listOf("XiaoMoMi")
+    contributors = listOf("g2213swo", "jhqwqmc")
     foliaSupported = true
+    serverDependencies {
+        register("PlaceholderAPI") {
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            required = false
+            joinClasspath = false
+        }
+    }
 }

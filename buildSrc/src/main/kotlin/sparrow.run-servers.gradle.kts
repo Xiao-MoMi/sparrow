@@ -29,17 +29,6 @@ val java25 = javaToolchains.launcherFor {
 fun javaLauncherFor(minecraftVersion: String): Provider<JavaLauncher> =
     if (minecraftVersion.startsWith("26.")) java25 else java21
 
-// 给运行的不同版本的 Paper/Folia 映射 paper-global.yml 的配置版本.
-val paperConfigurationVersions = mapOf(
-    "1.21.8" to "30",
-    "1.21.10" to "31",
-    "1.21.11" to "31",
-    "26.1.2" to "31",
-    "26.2" to "31"
-)
-
-
-
 /**
  * 配置和注册后端服务器测试.
  */
@@ -50,11 +39,13 @@ tasks.withType<RunServer>().configureEach {
     }
 }
 
-val minecraftVersions = listOf("1.21.8", "1.21.10", "1.21.11", "26.1.2", "26.2")
+val minecraftVersions = listOf("1.21.11", "26.1.2", "26.2")
 val projectJar = tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
 val extraPluginJars = rootProject.fileTree("buildSrc/plugin") {
     include("*.jar")
 }
+val commonBackendTemplates = runTemplatesDirectory.dir("backend/common")
+val versionBackendTemplates = runTemplatesDirectory.dir("backend/versions/31")
 fun RunServer.configureServer(
     display: String,
     minecraftVersion: String,
@@ -94,10 +85,6 @@ for (minecraftVersion in minecraftVersions) {
     // 代理后端使用独立目录.
     val paperProxyDirectory = rootProject.layout.projectDirectory.dir("run/proxy/paper/$minecraftVersion")
     val foliaProxyDirectory = rootProject.layout.projectDirectory.dir("run/proxy/folia/$minecraftVersion")
-
-    val paperConfigurationVersion = paperConfigurationVersions.getValue(minecraftVersion)
-    val commonBackendTemplates = runTemplatesDirectory.dir("backend/common")
-    val versionBackendTemplates = runTemplatesDirectory.dir("backend/versions/$paperConfigurationVersion")
 
     val prepareProxyPaper = tasks.register<InitializeRunDirectory>("prepareProxyPaper_$minecraftVersion") {
         templateDirectories.from(
