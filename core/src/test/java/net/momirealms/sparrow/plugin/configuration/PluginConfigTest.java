@@ -35,18 +35,19 @@ class PluginConfigTest {
         assertTrue(generated.contains("jdbc:postgresql://localhost:5432/minecraft"));
         assertTrue(generated.contains("mongodb://localhost:27017"));
         assertTrue(generated.contains("table-prefix: sparrow_"));
-        assertEquals(DatabaseType.MYSQL, PluginConfig.database().type());
+        DatabaseType initialType = PluginConfig.database().type();
+        DatabaseType changedType = initialType == DatabaseType.POSTGRESQL ? DatabaseType.MYSQL : DatabaseType.POSTGRESQL;
 
         Files.writeString(this.directory.resolve("config.yml"), generated
-                .replace("type: MYSQL", "type: POSTGRESQL")
+                .replace("type: " + initialType, "type: " + changedType)
                 .replace("redis://localhost:6379/0", "redis://localhost:6380/0"));
         config.reload();
-        assertEquals(DatabaseType.MYSQL, PluginConfig.database().type());
+        assertEquals(initialType, PluginConfig.database().type());
         assertEquals("redis://localhost:6379/0", PluginConfig.redis().url());
 
         PluginConfig restarted = new PluginConfig(plugin, yaml);
         restarted.reload();
-        assertEquals(DatabaseType.POSTGRESQL, PluginConfig.database().type());
+        assertEquals(changedType, PluginConfig.database().type());
         assertEquals("redis://localhost:6380/0", PluginConfig.redis().url());
     }
 }

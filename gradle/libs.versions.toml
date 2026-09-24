@@ -36,6 +36,7 @@ cloud-minecraft-extras = "2.0.0-beta.15"
 sparrow-nbt = "0.22"
 sparrow-reflection = "0.34"
 sparrow-yaml = "1.0.22"
+sparrow-ui = "beta.36"
 
 # Adventure
 adventure = "5.2.0"
@@ -108,6 +109,7 @@ sparrow-nbt-codec = { module = "net.momirealms:sparrow-nbt-codec", version.ref =
 sparrow-nbt-legacy-codec = { module = "net.momirealms:sparrow-nbt-legacy-codec", version.ref = "sparrow-nbt" }
 sparrow-reflection = { module = "net.momirealms:sparrow-reflection", version.ref = "sparrow-reflection" }
 sparrow-yaml = { module = "net.momirealms:sparrow-yaml", version.ref = "sparrow-yaml" }
+sparrow-ui = { module = "net.momirealms:sparrow-ui", version.ref = "sparrow-ui" }
 
 # Adventure
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }

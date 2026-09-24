@@ -19,6 +19,7 @@ import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.logger.filter.DisconnectLogFilter;
 import net.momirealms.sparrow.proxy.BukkitProxy;
 import net.momirealms.sparrow.redis.RedisConnector;
+import net.momirealms.sparrow.ui.SparrowUI;
 import net.momirealms.sparrow.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.util.CharacterUtils;
@@ -144,6 +145,8 @@ public class SparrowPlugin implements Plugin {
             return;
         }
         this.playerManager.onEnable(this.javaPlugin);
+        SparrowUI.getInstance().setUp(this.javaPlugin);
+        SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
         // 命令管理器
         this.commandManager = new BukkitCommandManager(this);
         this.commandManager.registerDefaultFeatures();

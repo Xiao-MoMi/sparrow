@@ -33,6 +33,7 @@ dependencies {
     compileOnly(libs.bundles.adventure)
     implementation(libs.bundles.sparrow.nbt)
     implementation(libs.sparrow.yaml)
+    implementation(libs.sparrow.ui)
 
     compileOnly(libs.sparrow.reflection)
     compileOnly(libs.datafixerupper)

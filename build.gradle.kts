@@ -7,8 +7,7 @@ plugins {
     alias(libs.plugins.shadow)
 }
 
-val projectPackage = providers.gradleProperty("projectPackage").get()
-
+val projectPackage = "net.momirealms.sparrow"
 group = projectPackage
 version = libs.versions.project.version.get()
 
@@ -44,6 +43,7 @@ subprojects {
         maven("https://libraries.minecraft.net/")
         maven("https://repo.catnies.top/releases/")
         maven("https://repo.momirealms.net/releases/")
+        maven("https://repo.momirealms.net/snapshots/")
         maven("https://repo.papermc.io/repository/maven-public/")
     }
 
@@ -75,6 +75,7 @@ subprojects {
             val libs = "$projectPackage.libraries"
             relocate("net.kyori", libs)
             relocate("net.momirealms.sparrow.yaml", "$libs.yaml")
+            relocate("net.momirealms.sparrow.ui", "$libs.ui")
             relocate("net.momirealms.antigrieflib", "$libs.antigrieflib")
             relocate("net.momirealms.sparrow.nbt", "$libs.nbt")
             relocate("cn.gtemc.levelerbridge", "$libs.levelerbridge")
