@@ -29,6 +29,8 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_SUDO_FAILURE = Component.translatable().key("command.sudo.failure");
     TranslatableComponent.Builder COMMAND_TOP_BLOCK_UNAVAILABLE = Component.translatable().key("command.top-block.unavailable");
     TranslatableComponent.Builder COMMAND_TELEPORT_FAILURE = Component.translatable().key("command.teleport.failure");
+    TranslatableComponent.Builder COMMAND_PATROL_SUCCESS = Component.translatable().key("command.patrol.success");
+    TranslatableComponent.Builder COMMAND_PATROL_EMPTY = Component.translatable().key("command.patrol.empty");
     TranslatableComponent.Builder COMMAND_LOOK_OPTIONS = Component.translatable().key("command.look.options");
     TranslatableComponent.Builder COMMAND_LOOK_TARGET_MISSING = Component.translatable().key("command.look.target_missing");
     TranslatableComponent.Builder COMMAND_LOOK_DIFFERENT_WORLD = Component.translatable().key("command.look.different_world");
@@ -47,6 +49,7 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_RELOAD_CONFIG_SUCCESS = Component.translatable().key("command.reload.config.success");
     TranslatableComponent.Builder COMMAND_RELOAD_CONFIG_FAILURE = Component.translatable().key("command.reload.config.failure");
     TranslatableComponent.Builder COMMAND_FEATURE_UNKNOWN = Component.translatable().key("command.feature.unknown");
+    TranslatableComponent.Builder COMMAND_FEATURE_DISABLED = Component.translatable().key("command.feature.disabled");
     TranslatableComponent.Builder COMMAND_FEATURE_BUSY = Component.translatable().key("command.feature.busy");
     TranslatableComponent.Builder COMMAND_FEATURE_RESTART_REQUIRED = Component.translatable().key("command.feature.restart_required");
     TranslatableComponent.Builder COMMAND_FEATURE_SUCCESS = Component.translatable().key("command.feature.success");

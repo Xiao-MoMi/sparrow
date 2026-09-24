@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.configuration;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.yaml.SparrowYaml;
@@ -83,9 +84,19 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "手持潜影盒右键打开.")
         private QuickShulkerSettings quickShulker = new QuickShulkerSettings();
 
+        @BlankLineBefore
+        @Comment("Teleport to online players one by one with /patrol, starting from the player not patrolled for the longest time.")
+        @Comment(lang = "zh", value = "使用 /patrol 轮流传送到在线玩家, 优先选择最久没被巡查的玩家.")
+        private PatrolSettings patrol = new PatrolSettings();
+
         @NotNull
         public QuickShulkerSettings quickShulker() {
             return this.quickShulker;
+        }
+
+        @NotNull
+        public PatrolSettings patrol() {
+            return this.patrol;
         }
 
         /** 按功能 ID 获取对应的配置, 未知 ID 会抛出异常. */
@@ -93,6 +104,7 @@ public final class FeaturesConfig {
         public FeatureSettings settings(@NotNull String id) {
             return switch (id) {
                 case "quick-shulker" -> this.quickShulker;
+                case "patrol" -> this.patrol;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

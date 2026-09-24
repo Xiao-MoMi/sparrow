@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.feature;
 
+import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
@@ -32,6 +33,7 @@ public final class FeatureManager {
         FeaturesConfig config = plugin.configurationManager().featuresConfig();
         FeatureManager manager = new FeatureManager(config, plugin.scheduler().async(), plugin.scheduler().platform());
         manager.register(new QuickShulkerFeature(plugin.javaPlugin(), config));
+        manager.register(new PatrolFeature(plugin.javaPlugin(), config));
         return manager;
     }
 
@@ -126,6 +128,18 @@ public final class FeatureManager {
     @Nullable
     public Feature<?> feature(@NotNull String id) {
         return this.features.get(id);
+    }
+
+    /**
+     * 按 ID 获取已注册的内置模块并转换为具体类型, 供模块自带的命令访问业务方法.
+     *
+     * @param id <strong>必须是已注册的模块 ID</strong>
+     * @param type 模块的具体类型
+     * @return 对应的模块实例
+     */
+    @NotNull
+    public <F extends Feature<?>> F feature(@NotNull String id, @NotNull Class<F> type) {
+        return type.cast(this.features.get(id));
     }
 
     @NotNull

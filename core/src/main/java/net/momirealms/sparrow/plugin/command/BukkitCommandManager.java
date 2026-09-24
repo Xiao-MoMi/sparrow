@@ -11,6 +11,7 @@ import net.momirealms.sparrow.plugin.command.feature.DemoCommand;
 import net.momirealms.sparrow.plugin.command.feature.CreditsCommand;
 import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.FlyCommand;
+import net.momirealms.sparrow.plugin.command.feature.PatrolCommand;
 import net.momirealms.sparrow.plugin.command.feature.ToastCommand;
 import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
@@ -75,6 +76,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new HealCommand(this, plugin),
                 new LookCommand(this, plugin),
                 new LoomCommand(this, plugin),
+                new PatrolCommand(this, plugin),
                 new ReloadCommand(this, plugin),
                 new StonecutterCommand(this, plugin),
                 new SuicideCommand(this, plugin),

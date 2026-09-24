@@ -173,6 +173,9 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig credits = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " credits", "/credits"), DependencyVersions.PROJECT_ID + ".command.credits");
 
+        @BlankLineBefore
+        CommandConfig patrol = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " patrol", "/patrol"), DependencyVersions.PROJECT_ID + ".command.patrol");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -192,6 +195,7 @@ public final class CommandsConfig {
                 case "totem-animation" -> this.totemAnimation;
                 case "demo" -> this.demo;
                 case "credits" -> this.credits;
+                case "patrol" -> this.patrol;
                 case "fly-speed" -> this.flySpeed;
                 case "walk-speed" -> this.walkSpeed;
                 case "suicide" -> this.suicide;
