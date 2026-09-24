@@ -6,6 +6,10 @@ import net.kyori.adventure.text.TranslatableComponent;
 public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_ACTIONBAR_SUCCESS = Component.translatable().key("command.actionbar.success");
     TranslatableComponent.Builder COMMAND_BROADCAST_SUCCESS = Component.translatable().key("command.broadcast.success");
+    TranslatableComponent.Builder COMMAND_TOAST_SUCCESS = Component.translatable().key("command.toast.success");
+    TranslatableComponent.Builder COMMAND_TOAST_INVALID_ICON = Component.translatable().key("command.toast.invalid-icon");
+    TranslatableComponent.Builder COMMAND_FLY_ENABLED = Component.translatable().key("command.fly.enabled");
+    TranslatableComponent.Builder COMMAND_FLY_DISABLED = Component.translatable().key("command.fly.disabled");
     TranslatableComponent.Builder COMMAND_TITLE_SUCCESS = Component.translatable().key("command.title.success");
     TranslatableComponent.Builder COMMAND_TOTEM_ANIMATION_SUCCESS = Component.translatable().key("command.totem-animation.success");
     TranslatableComponent.Builder COMMAND_DEMO_SUCCESS = Component.translatable().key("command.demo.success");

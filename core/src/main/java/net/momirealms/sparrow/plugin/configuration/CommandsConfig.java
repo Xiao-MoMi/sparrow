@@ -149,6 +149,12 @@ public final class CommandsConfig {
         CommandConfig topBlock = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " top-block", "/top-block"), DependencyVersions.PROJECT_ID + ".command.top-block");
 
         @BlankLineBefore
+        CommandConfig fly = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " fly", "/fly"), DependencyVersions.PROJECT_ID + ".command.fly");
+
+        @BlankLineBefore
+        CommandConfig toast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " toast", "/toast"), DependencyVersions.PROJECT_ID + ".command.toast");
+
+        @BlankLineBefore
         CommandConfig actionbar = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " actionbar", "/actionbar"), DependencyVersions.PROJECT_ID + ".command.actionbar");
 
         @BlankLineBefore
@@ -178,6 +184,8 @@ public final class CommandsConfig {
         public CommandConfig command(@NotNull String featureID) {
             return switch (featureID) {
                 case "reload" -> this.reload;
+                case "fly" -> this.fly;
+                case "toast" -> this.toast;
                 case "actionbar" -> this.actionbar;
                 case "broadcast" -> this.broadcast;
                 case "title" -> this.title;

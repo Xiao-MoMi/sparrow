@@ -35,6 +35,7 @@ dependencies {
     implementation(libs.bundles.sparrow.nbt)
     implementation(libs.sparrow.yaml)
     implementation(libs.sparrow.ui)
+    implementation(libs.sparrow.redis.message.broker)
 
     compileOnly(libs.sparrow.reflection)
     compileOnly(libs.datafixerupper)
@@ -51,6 +52,10 @@ dependencies {
     testRuntimeOnly(libs.cloud.minecraft.extras)
     testImplementation(libs.mockbukkit)
     testImplementation(libs.mockito.core)
+    testImplementation(project(":bukkit-proxy"))
+    testImplementation(libs.sparrow.reflection)
+    testImplementation(libs.lettuce.core)
+    testRuntimeOnly(libs.caffeine)
     testImplementation(libs.test.paper.api)
     testImplementation(libs.mongodb.driver.sync)
     testImplementation(libs.jdbi.core)

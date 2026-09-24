@@ -82,6 +82,11 @@ public abstract class SparrowPlayer extends NetworkUser {
     public abstract void sendTotemAnimation(@NotNull ItemStack totem);
 
     /**
+     * 发送指定图标和样式的进度提示, 随后清除客户端临时进度记录. 图标必须为非空物品.
+     */
+    public abstract void sendToast(@NotNull Component text, @NotNull ItemStack icon, @NotNull ToastType type);
+
+    /**
      * 显示演示版介绍界面, 不改变服务器游戏模式.
      */
     public abstract void sendDemo();

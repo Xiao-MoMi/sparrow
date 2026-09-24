@@ -20,6 +20,7 @@ import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.logger.filter.DisconnectLogFilter;
 import net.momirealms.sparrow.proxy.BukkitProxy;
 import net.momirealms.sparrow.redis.RedisConnector;
+import net.momirealms.sparrow.redis.MessageBrokerManager;
 import net.momirealms.sparrow.ui.SparrowUI;
 import net.momirealms.sparrow.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
@@ -61,6 +62,7 @@ public class SparrowPlugin implements Plugin {
     private final ConfigurationManager configurationManager;
     private final DatabaseManager databaseManager;
     private final RedisConnector redisConnector;
+    private final MessageBrokerManager messageBrokerManager;
     private final CompatibilityManager compatibilityManager;
     private final PlayerManager playerManager;
 
@@ -90,6 +92,7 @@ public class SparrowPlugin implements Plugin {
         this.setupProxy();
         this.databaseManager = DatabaseManager.create(PluginConfig.database());
         this.redisConnector = new RedisConnector(PluginConfig.redis());
+        this.messageBrokerManager = new MessageBrokerManager(this);
         this.translationManager = new TranslationManagerImpl(this);
         this.translationManager.reload();
         this.compatibilityManager = new CompatibilityManager(this);
@@ -111,9 +114,11 @@ public class SparrowPlugin implements Plugin {
         this.databaseManager.initialize();
         try {
             this.redisConnector.initialize();
+            this.messageBrokerManager.onLoad();
             this.compatibilityManager.onLoad(); // 集成插件管理器
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
+            this.messageBrokerManager.onDisable();
             this.redisConnector.close();
             this.databaseManager.close();
             throw exception;
@@ -175,6 +180,7 @@ public class SparrowPlugin implements Plugin {
         if (this.playerManager != null) this.playerManager.shutdown();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
+        if (this.messageBrokerManager != null) this.messageBrokerManager.onDisable();
         if (this.redisConnector != null) this.redisConnector.close();
         if (this.databaseManager != null) this.databaseManager.close();
         if (this.dependencyManager != null) this.dependencyManager.close();
@@ -496,6 +502,11 @@ public class SparrowPlugin implements Plugin {
     @Override
     public RedisConnector redisConnector() {
         return this.redisConnector;
+    }
+
+    @Override
+    public MessageBrokerManager messageBrokerManager() {
+        return this.messageBrokerManager;
     }
 
     @Override

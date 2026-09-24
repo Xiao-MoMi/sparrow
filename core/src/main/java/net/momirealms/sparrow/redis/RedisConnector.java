@@ -7,6 +7,8 @@ import io.lettuce.core.RedisURI;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.redis.messagebroker.connection.PubSubRedisConnection;
+import net.momirealms.sparrow.redis.messagebroker.connection.RedisConnection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.TimeUnit;
@@ -15,6 +17,7 @@ public final class RedisConnector implements AutoCloseable {
     private final PluginConfig.RedisOptions options;
     private RedisClient client;
     private StatefulRedisConnection<byte[], byte[]> connection;
+    private PubSubRedisConnection brokerConnection;
     private int database;
 
     public RedisConnector(@NotNull PluginConfig.RedisOptions options) {
@@ -32,6 +35,7 @@ public final class RedisConnector implements AutoCloseable {
             StatefulRedisConnection<byte[], byte[]> connected = connectedClient.connect(ByteArrayCodec.INSTANCE);
             try {
                 connected.sync().ping();
+                this.brokerConnection = new PubSubRedisConnection(connectedClient);
                 this.database = uri.getDatabase();
                 this.client = connectedClient;
                 this.connection = connected;
@@ -67,12 +71,18 @@ public final class RedisConnector implements AutoCloseable {
         return this.database;
     }
 
+    @NotNull
+    public RedisConnection brokerConnection() {
+        return this.brokerConnection;
+    }
+
     public boolean available() {
         return this.connection != null && this.connection.isOpen();
     }
 
     @Override
     public void close() {
+        if (this.brokerConnection != null) this.brokerConnection.close();
         if (this.connection != null) this.connection.close();
         if (this.client != null) this.client.shutdown(0, 2, TimeUnit.SECONDS);
     }

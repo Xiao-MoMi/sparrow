@@ -10,6 +10,8 @@ import net.momirealms.sparrow.plugin.command.feature.TotemAnimationCommand;
 import net.momirealms.sparrow.plugin.command.feature.DemoCommand;
 import net.momirealms.sparrow.plugin.command.feature.CreditsCommand;
 import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
+import net.momirealms.sparrow.plugin.command.feature.FlyCommand;
+import net.momirealms.sparrow.plugin.command.feature.ToastCommand;
 import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
 import net.momirealms.sparrow.plugin.command.feature.BurnCommand;
@@ -68,6 +70,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new FeatureListCommand(this, plugin),
                 new FeedCommand(this, plugin),
                 new FlySpeedCommand(this, plugin),
+                new FlyCommand(this, plugin),
                 new GrindstoneCommand(this, plugin),
                 new HealCommand(this, plugin),
                 new LookCommand(this, plugin),
@@ -78,6 +81,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new SudoCommand(this, plugin),
                 new SmithingTableCommand(this, plugin),
                 new TitleCommand(this, plugin),
+                new ToastCommand(this, plugin),
                 new TotemAnimationCommand(this, plugin),
                 new TopBlockCommand(this, plugin),
                 new WalkSpeedCommand(this, plugin),

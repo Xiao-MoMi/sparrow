@@ -19,6 +19,9 @@ import net.momirealms.sparrow.plugin.command.feature.CreditsCommand;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import org.incendo.cloud.parser.flag.CommandFlag;
 import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
+import net.momirealms.sparrow.plugin.command.feature.FlyCommand;
+import net.momirealms.sparrow.plugin.command.feature.ToastCommand;
+import net.momirealms.sparrow.player.ToastType;
 import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
 import net.momirealms.sparrow.plugin.command.feature.BurnCommand;
@@ -453,6 +456,80 @@ class PlayerCommandsTest {
         assertTrue(this.tasks.isEmpty());
     }
 
+    @Test
+    void flyTogglesAndSetsBothStatesOnTargetThread() throws Exception {
+        FlyCommand command = new FlyCommand(this.commands, this.plugin);
+        this.commands.registerFeature(command, new CommandsConfig.ConfigDefinition().command("fly"));
+        Player player = this.player("Tester");
+        assertThrows(Exception.class, () -> this.execute(player, "fly"));
+        player.setOp(true);
+        this.execute(player, "fly");
+        assertFalse(player.getAllowFlight());
+        assertSame(player, this.tasks.peekFirst().entity());
+        this.drain();
+        assertTrue(player.getAllowFlight());
+        assertTrue(player.isFlying());
+        this.execute(player, "sparrow fly");
+        this.drain();
+        assertFalse(player.getAllowFlight());
+        assertFalse(player.isFlying());
+        this.execute(this.console, "sparrow fly Tester true");
+        this.drain();
+        assertTrue(player.getAllowFlight());
+        assertTrue(player.isFlying());
+        player.setFlying(false);
+        this.execute(this.console, "fly Tester true");
+        this.drain();
+        assertTrue(player.isFlying());
+        this.execute(this.console, "fly Tester false");
+        this.drain();
+        assertFalse(player.getAllowFlight());
+        assertFalse(player.isFlying());
+        assertEquals("command.fly.disabled", this.commands.feedback.getLast());
+        this.execute(this.console, "fly");
+        assertEquals("command.player.required", this.commands.feedback.getLast());
+        assertTrue(this.tasks.isEmpty());
+    }
+
+    @Test
+    void toastPassesIconAndStyleWithDefaultParsingWithoutScheduling() throws Exception {
+        Player player = this.player("Tester");
+        BukkitSparrowPlayer receiver = this.receiver(player);
+        ToastCommand command = new ToastCommand(this.commands, this.plugin);
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        context.store("targets", new MultiplePlayerSelector() {
+            @Override public String inputString() { return "Tester"; }
+            @Override public Collection<Player> values() { return List.of(player); }
+        });
+        ProtoItemStack parsed = mock(ProtoItemStack.class);
+        ItemStack icon = mock(ItemStack.class);
+        Material iconMaterial = mock(Material.class);
+        when(icon.getType()).thenReturn(iconMaterial);
+        when(parsed.createItemStack(1)).thenReturn(icon);
+        context.store("item", parsed);
+        context.store("type", ToastType.CHALLENGE);
+        context.store("message", "<gold>Hello %player_name%");
+        CompatibilityManager compatibility = mock(CompatibilityManager.class);
+        Field field = SparrowPlugin.class.getDeclaredField("compatibilityManager");
+        field.setAccessible(true);
+        field.set(this.plugin, compatibility);
+        when(compatibility.parsePlaceholders(same(player), anyString())).thenReturn("<gold>Hello Tester");
+        this.invoke(command, context);
+        verify(receiver).sendToast(Component.text("Hello Tester", NamedTextColor.GOLD), icon, ToastType.CHALLENGE);
+        assertEquals("command.toast.success", this.commands.feedback.getLast());
+        when(iconMaterial.isAir()).thenReturn(true);
+        this.invoke(command, context);
+        assertEquals("command.toast.invalid-icon", this.commands.feedback.getLast());
+        verify(receiver, times(1)).sendToast(any(), any(), any());
+        when(iconMaterial.isAir()).thenReturn(false);
+        verify(compatibility).parsePlaceholders(same(player), eq("<gold>Hello %player_name%"));
+        this.commands.feedback.clear();
+        context.flags().addPresenceFlag(CommandFlag.builder("silent").build());
+        this.invoke(command, context);
+        assertTrue(this.commands.feedback.isEmpty());
+        assertTrue(this.tasks.isEmpty());
+    }
+
     private BukkitSparrowPlayer receiver(Player player) throws Exception {
         PlayerManager manager = mock(PlayerManager.class);
         BukkitSparrowPlayer receiver = mock(BukkitSparrowPlayer.class);
@@ -481,10 +558,19 @@ class PlayerCommandsTest {
         int[] food = {20};
         float[] saturation = {5.0f};
         boolean[] op = {false};
+        boolean[] flight = {false, false};
         float[] speed = {0.1f, 0.2f};
         int[] fire = {0};
         Player player = (Player) Proxy.newProxyInstance(Player.class.getClassLoader(), new Class<?>[]{Player.class}, (instance, method, args) -> switch (method.getName()) {
             case "getName", "toString" -> name;
+            case "getAllowFlight" -> flight[0];
+            case "isFlying" -> flight[1];
+            case "setAllowFlight" -> { flight[0] = (boolean) args[0]; yield null; }
+            case "setFlying" -> {
+                if ((boolean) args[0] && !flight[0]) throw new IllegalArgumentException("Flight is not allowed");
+                flight[1] = (boolean) args[0];
+                yield null;
+            }
             case "hasPermission", "isOp" -> op[0];
             case "setOp" -> { op[0] = (boolean) args[0]; yield null; }
             case "getHealth" -> health[0];

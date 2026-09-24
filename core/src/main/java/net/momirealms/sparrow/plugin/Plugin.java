@@ -12,6 +12,7 @@ import net.momirealms.sparrow.plugin.classpath.ClassPathAppender;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.redis.RedisConnector;
+import net.momirealms.sparrow.redis.MessageBrokerManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -71,6 +72,8 @@ public interface Plugin {
     DatabaseManager databaseManager();
 
     RedisConnector redisConnector();
+
+    MessageBrokerManager messageBrokerManager();
 
     CompatibilityManager compatibilityManager();
 

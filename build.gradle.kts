@@ -77,6 +77,7 @@ subprojects {
             relocate("net.kyori", libs)
             relocate("net.momirealms.sparrow.yaml", "$libs.yaml")
             relocate("net.momirealms.sparrow.ui", "$libs.ui")
+            relocate("net.momirealms.sparrow.redis.messagebroker", "$libs.redis.messagebroker")
             relocate("net.momirealms.antigrieflib", "$libs.antigrieflib")
             relocate("net.momirealms.sparrow.nbt", "$libs.nbt")
             relocate("cn.gtemc.levelerbridge", "$libs.levelerbridge")

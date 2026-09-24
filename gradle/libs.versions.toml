@@ -39,6 +39,7 @@ sparrow-nbt = "0.22"
 sparrow-reflection = "0.34"
 sparrow-yaml = "1.0.22"
 sparrow-ui = "beta.36"
+sparrow-redis-message-broker = "0.0.7"
 
 # Adventure
 adventure = "5.2.0"
@@ -76,6 +77,7 @@ run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-task" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
 
 [libraries]
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
 # Platform
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
@@ -114,6 +116,7 @@ sparrow-nbt-legacy-codec = { module = "net.momirealms:sparrow-nbt-legacy-codec",
 sparrow-reflection = { module = "net.momirealms:sparrow-reflection", version.ref = "sparrow-reflection" }
 sparrow-yaml = { module = "net.momirealms:sparrow-yaml", version.ref = "sparrow-yaml" }
 sparrow-ui = { module = "net.momirealms:sparrow-ui", version.ref = "sparrow-ui" }
+sparrow-redis-message-broker = { module = "net.momirealms:sparrow-redis-message-broker", version.ref = "sparrow-redis-message-broker" }
 
 # Adventure
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
