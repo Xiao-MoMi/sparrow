@@ -57,6 +57,8 @@ class TranslationVersionTest {
             assertEquals(DependencyVersions.LANG_VERSION, document.get(String.class, Route.from("__version__")));
             assertFalse(document.contains(Route.from("lang-version")));
             assertEquals("custom busy message", translations.miniMessageTranslation("command.feature.busy", Locale.ENGLISH));
+            assertTrue(translations.translationKeys().contains("command.features.header"));
+            assertTrue(translations.miniMessageTranslation("command.features.label.enable", Locale.ENGLISH).contains("Enable"));
             assertFalse(translations.translationKeys().contains("__version__"));
             assertFalse(translations.translationKeys().contains("lang-version"));
 

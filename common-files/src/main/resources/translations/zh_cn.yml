@@ -1,30 +1,63 @@
 __version__: '${lang_version}'
 
-exception.invalid_syntax: <red>语法错误。正确语法：<white><arg:0></white></red>
-exception.invalid_argument: <red>参数无效。原因：<white><arg:0></white></red>
-exception.invalid_sender: <red><arg:0>不允许执行此命令。执行者必须是<arg:1></red>
-exception.unexpected: <red>执行此命令时发生内部错误</red>
-exception.no_permission: <red>抱歉，你没有权限执行此命令</red>
-argument.parse.failure.flag.unknown: <red>未知的“<arg:0>”标志</red>
-argument.parse.failure.flag.duplicate_flag: <red>重复的“<arg:0>”标志</red>
-argument.parse.failure.flag.no_flag_started: <red>无法识别的短标志组合“<arg:0>”</red>
-argument.parse.failure.flag.missing_argument: <red>缺少“<arg:0>”参数</red>
-argument.parse.failure.flag.no_permission: <red>你没有权限使用“<arg:0>”标志</red>
-command.reload.too_fast: <red>上一次配置重载尚未完成。</red>
-command.reload.config.failure: <red>无法重新加载配置。请检查控制台日志</red>
-command.reload.config.success: <dark_gray>» </dark_gray><gradient:#F4A460:#FFD700><b>${project_name}</b></gradient> <gray>•</gray> <white>配置文件已重新加载完成</white><gray>（<hover:show_text:'<gray>异步/同步'><color:#FFD700><arg:1></color>/<color:#F4A460><arg:2></color></hover>毫秒）</gray>
+exception.invalid_syntax: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>命令格式有误，请使用：<color:#F2F4FF><arg:0></color></color>'
+exception.invalid_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>参数有误：<color:#F2F4FF><arg:0></color></color>'
+exception.invalid_sender: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:0> 不能执行此命令，请使用 <arg:1> 执行</color>'
+exception.unexpected: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>命令执行失败，请查看控制台日志</color>'
+exception.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有权限执行此命令</color>'
+argument.parse.failure.flag.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未知选项：<arg:0></color>'
+argument.parse.failure.flag.duplicate_flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>选项重复：<arg:0></color>'
+argument.parse.failure.flag.no_flag_started: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法识别选项：<arg:0></color>'
+argument.parse.failure.flag.missing_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>缺少选项 <arg:0> 的参数</color>'
+argument.parse.failure.flag.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有权限使用选项 <arg:0></color>'
+command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在重载，请稍候</color>'
+command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>配置重载失败，请查看控制台日志</color>'
+command.reload.config.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>配置已重载<color:#C8E4E9>（耗时 <color:#FFE08A><arg:0></color> 毫秒）</color></color>'
+command.feature.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到模块 <color:#F2F4FF><arg:0></color></color>'
+command.feature.busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在重载，请稍后再切换模块</color>'
+command.feature.restart_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>模块 <color:#F2F4FF><arg:0></color> 需要重启服务器才能切换状态</color>'
+command.feature.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1><color:#C8E4E9> · 设置已保存</color></color>'
+command.feature.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>模块 <color:#F2F4FF><arg:0></color> 切换失败，请查看控制台日志</color>'
+feature.state.uninstalled: '<color:#C8E4E9>未安装</color>'
+feature.state.enabled: '<color:#C9F2C7>已启动</color>'
+feature.state.disabled: '<color:#7D98BF>已关闭</color>'
+feature.state.unloaded: '<color:#7D98BF>已卸载</color>'
+feature.state.failed: '<color:#FFB6CB>发生错误</color>'
 
-command.feature.unknown: '<red>未知功能：<arg:0></red>'
-command.feature.busy: '<red>配置重载期间无法切换功能。</red>'
-command.feature.restart_required: '<red><arg:0> 的启用状态需要重启服务器才能更改。</red>'
-command.feature.success: '<green><arg:0>：<arg:1>，设置已保存。</green>'
-command.feature.failure: '<red><arg:0> 切换失败，请检查控制台日志，并使用 feature 命令查询实际状态。</red>'
-command.feature.status: '<gray><arg:0>：<white><arg:1></white></gray>'
-feature.state.uninstalled: '未安装'
-feature.state.unloaded: '已卸载'
-feature.state.enabled: '已启用'
-feature.state.disabled: '已停用'
-feature.state.failed: '发生错误，需要重启'
+command.features.message: '<arg:0>'
+command.features.header: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>模块管理</color> <color:#C8E4E9>·</color> <color:#FFE08A><arg:0>/<arg:1></color> <color:#C8E4E9>页 · 共 </color><color:#FFE08A><arg:2></color><color:#C8E4E9> 个模块</color>'
+command.features.row: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1> <arg:2>'
+command.features.navigation: '<arg:0> <color:#FFE08A><arg:1>/<arg:2></color> <arg:3> <arg:4>'
+command.features.empty: '<color:#C8E4E9>暂无可管理的模块</color>'
+command.features.disabled: '<color:#7D98BF><arg:0></color>'
+command.features.console.action: '<arg:0> <color:#F2F4FF><arg:1></color>'
+command.features.console.disabled: '<color:#7D98BF><arg:0> (<arg:1>)</color>'
+command.features.label.enable: '[启]'
+command.features.action.enable: '<color:#C9F2C7><arg:0></color>'
+command.features.hint.enable: '<color:#F2F4FF>点击启动模块并保存设置</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.label.disable: '[停]'
+command.features.action.disable: '<color:#FFB6CB><arg:0></color>'
+command.features.hint.disable: '<color:#F2F4FF>点击关闭模块并保存设置</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.label.status: '[查]'
+command.features.action.status: '<color:#C8E4E9><arg:0></color>'
+command.features.hint.status: '<color:#F2F4FF>查看模块当前状态</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.label.previous: '[上一页]'
+command.features.action.previous: '<color:#C9F2C7><arg:0></color>'
+command.features.hint.previous: '<color:#F2F4FF>查看上一页</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.label.next: '[下一页]'
+command.features.action.next: '<color:#C9F2C7><arg:0></color>'
+command.features.hint.next: '<color:#F2F4FF>查看下一页</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.label.refresh: '[刷新]'
+command.features.action.refresh: '<color:#C7BCE7><arg:0></color>'
+command.features.hint.refresh: '<color:#F2F4FF>刷新模块状态</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.no_permission: '你没有权限执行此命令'
+command.features.unavailable: '此命令未启用'
+command.features.restart_required: '需要重启服务器才能切换状态'
+command.features.busy: '正在重载，请稍候'
+command.features.already_enabled: '模块已经启动'
+command.features.already_disabled: '模块尚未启动'
+command.features.first_page: '已经是第一页'
+command.features.last_page: '已经是最后一页'
 
 log.plugin.restart_at_runtime: '请勿在服务器运行期间重新启用插件。'
 log.plugin.enable_failed: '插件启用失败，请检查加载阶段的日志。'

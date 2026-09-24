@@ -38,6 +38,7 @@ class FeatureManagerTest {
                 });
         this.configurationManager = new ConfigurationManager(plugin);
         this.config = this.configurationManager.featuresConfig();
+        this.config.saveEnabled("quick-shulker", false);
         this.manager = new FeatureManager(this.config, Runnable::run, Runnable::run);
         this.feature = new TestFeature(this.config);
         this.manager.register(this.feature);

@@ -72,9 +72,23 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        CommandConfig feature = new CommandConfig(
+        CommandConfig featureEnable = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " feature"),
+                List.of("/" + DependencyVersions.PROJECT_ID + " feature-enable"),
+                DependencyVersions.PROJECT_ID + ".command.admin.feature"
+        );
+
+        @BlankLineBefore
+        CommandConfig featureDisable = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " feature-disable"),
+                DependencyVersions.PROJECT_ID + ".command.admin.feature"
+        );
+
+        @BlankLineBefore
+        CommandConfig featureList = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " feature-list"),
                 DependencyVersions.PROJECT_ID + ".command.admin.feature"
         );
 
@@ -89,7 +103,9 @@ public final class CommandsConfig {
         public CommandConfig command(@NotNull String featureID) {
             return switch (featureID) {
                 case "reload" -> this.reload;
-                case "feature" -> this.feature;
+                case "feature_enable" -> this.featureEnable;
+                case "feature_disable" -> this.featureDisable;
+                case "feature_list" -> this.featureList;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }

@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.configuration;
 
 import net.momirealms.sparrow.yaml.SparrowYaml;
+import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.yaml.YamlDocument;
 import net.momirealms.sparrow.yaml.route.Route;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,7 @@ class FeaturesConfigTest {
         assertEquals("1", document.get(String.class, Route.from("__version__")));
         assertFalse(document.contains(Route.from("version")));
         assertFalse(document.contains(Route.from("features")));
-        assertFalse(config.config().quickShulker().enabled());
+        assertTrue(config.config().quickShulker().enabled());
         assertTrue(config.config().quickShulker().requireSneaking());
         assertTrue(config.config().quickShulker().allowOffhand());
         assertEquals(0, config.config().quickShulker().disabledWorlds().size());
@@ -80,9 +81,12 @@ class FeaturesConfigTest {
 
         assertFalse(commands.configDefinition().command("reload").isEnable());
         assertEquals("custom.reload", commands.configDefinition().command("reload").getPermission());
-        assertTrue(commands.configDefinition().command("feature").isEnable());
+        assertTrue(commands.configDefinition().command("feature_enable").isEnable());
+        assertTrue(commands.configDefinition().command("feature_disable").isEnable());
+        assertTrue(commands.configDefinition().command("feature_status").isEnable());
+        assertTrue(commands.configDefinition().command("features").isEnable());
         YamlDocument document = SparrowYaml.builder().build().load(this.directory.resolve("commands.yml"));
-        assertEquals("2", document.get(String.class, Route.from("__version__")));
+        assertEquals(DependencyVersions.COMMANDS_CONFIG_VERSION, document.get(String.class, Route.from("__version__")));
         assertFalse(document.contains(Route.from("config-version")));
     }
 }
