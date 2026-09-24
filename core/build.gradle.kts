@@ -75,6 +75,7 @@ buildConfig {
     buildConfigField("CONFIG_VERSION", libs.versions.config.version.get())
     buildConfigField("COMMANDS_CONFIG_VERSION", libs.versions.commands.config.version.get())
     buildConfigField("FEATURES_CONFIG_VERSION", libs.versions.features.config.version.get())
+    buildConfigField("SERVER_CONFIG_VERSION", libs.versions.server.config.version.get())
     buildConfigField("LANG_VERSION", libs.versions.lang.version.get())
     // ASM
     buildConfigField("ASM", libs.versions.asm.get())

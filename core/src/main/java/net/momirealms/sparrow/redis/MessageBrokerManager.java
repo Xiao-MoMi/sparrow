@@ -1,9 +1,12 @@
 package net.momirealms.sparrow.redis;
 
 import io.netty.buffer.ByteBuf;
+import net.momirealms.sparrow.player.PlayerPresenceMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.redis.heartbeat.ServerProbeMessage;
+import net.momirealms.sparrow.redis.heartbeat.ServerProbeResponseMessage;
 import net.momirealms.sparrow.redis.messagebroker.Logger;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import org.jetbrains.annotations.NotNull;
@@ -23,10 +26,13 @@ public final class MessageBrokerManager {
         // Redis Pub/Sub 跨数据库共享频道, 用数据库编号隔离各组服务器的消息.
         this.broker = MessageBroker.builder(buffer -> buffer)
                 .channel(("sparrow:db:" + connector.database() + ":messages").getBytes(StandardCharsets.UTF_8))
-                .serverId(PluginConfig.redis().serverId())
+                .serverId(ServerConfig.serverId())
                 .logger(new BrokerLogger(this.plugin.logger()))
                 .connection(connector.brokerConnection())
                 .build();
+        this.broker.registry().register(ServerProbeMessage.ID, ServerProbeMessage.CODEC);
+        this.broker.registry().register(ServerProbeResponseMessage.ID, ServerProbeResponseMessage.CODEC);
+        this.broker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
         this.broker.subscribe();
     }
 

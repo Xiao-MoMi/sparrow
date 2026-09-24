@@ -10,6 +10,11 @@ public final class LogConstants {
     public static final String PLUGIN_INITIALIZING_PROXIES = "log.plugin.initializing_proxies";
     public static final String COMPATIBILITY_HOOKED = "log.compatibility.hooked";
     public static final String COMPATIBILITY_HOOK_FAILED = "log.compatibility.hook_failed";
+    public static final String SERVER_ID_MISSING = "log.server.id_missing";
+    public static final String SERVER_ID_DUPLICATE = "log.server.id_duplicate";
+    public static final String SERVER_ID_SEIZED = "log.server.id_seized";
+    public static final String PLAYER_SAVE_FAILED = "log.player.save_failed";
+    public static final String PLAYER_ROSTER_REFRESH_FAILED = "log.player.roster_refresh_failed";
     public static final String TRANSLATION_DEFAULT_LOAD_FAILED = "log.translation.default_load_failed";
     public static final String TRANSLATION_DEFAULT_SYNTAX_ERROR = "log.translation.default_syntax_error";
     public static final String TRANSLATION_INVALID_FILE = "log.translation.invalid_file";

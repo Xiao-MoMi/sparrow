@@ -4,6 +4,9 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
+import net.momirealms.sparrow.locale.LogConstants;
+import net.momirealms.sparrow.locale.TranslationManager;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
@@ -16,24 +19,36 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 public final class PlayerManager implements Listener, ChannelFutureListener {
+    private final SparrowPlugin plugin;
+    private final NetworkRoster roster;
     private final ConcurrentMap<Channel, BukkitSparrowPlayer> players = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, BukkitSparrowPlayer> onlinePlayers = new ConcurrentHashMap<>();
 
-    public void onEnable(@NotNull JavaPlugin plugin) {
+    public PlayerManager(@NotNull SparrowPlugin plugin) {
+        this.plugin = plugin;
+        this.roster = new NetworkRoster(plugin, this);
+    }
+
+    public void onEnable() {
+        JavaPlugin javaPlugin = this.plugin.javaPlugin();
         Listener loginListener = VersionHelper.isPaper() ? new PaperPlayerListener(this) : new SpigotPlayerListener(this);
-        plugin.getServer().getPluginManager().registerEvents(loginListener, plugin);
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        javaPlugin.getServer().getPluginManager().registerEvents(loginListener, javaPlugin);
+        javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
+        this.roster.onEnable();
     }
 
     /**
@@ -60,7 +75,15 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.players.computeIfPresent(this.getChannel(player), (channel, sparrowPlayer) -> {
             sparrowPlayer.initialize(player);
             this.onlinePlayers.put(sparrowPlayer.uniqueId(), sparrowPlayer);
+            this.roster.presence(sparrowPlayer.uniqueId(), sparrowPlayer.name(), true);
             return sparrowPlayer;
+        });
+        // 记录当前名字, 供离线时按名字或 UUID 互查
+        String name = player.getName();
+        this.plugin.dataStorage().saveUser(player.getUniqueId(), name).whenComplete((ignored, failure) -> {
+            if (failure != null) {
+                this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
+            }
         });
     }
 
@@ -75,17 +98,21 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     }
 
     private void removePlayer(@NotNull Channel channel) {
-        // 与 Join 对同一条目的初始化串行执行, 关闭连接时一并清理在线索引.
+        // 与 Join 对同一条目的初始化串行执行, 关闭连接时一并清理在线索引和全服名单.
         this.players.computeIfPresent(channel, (key, player) -> {
-            this.onlinePlayers.remove(player.uniqueId(), player);
+            if (this.onlinePlayers.remove(player.uniqueId(), player)) {
+                this.roster.presence(player.uniqueId(), player.name(), false);
+            }
             player.close();
             key.closeFuture().removeListener(this);
             return null;
         });
     }
 
+    // 需要在 Redis 连接关闭前调用
     @ApiStatus.Internal
     public void shutdown() {
+        this.roster.shutdown();
         for (Channel channel : this.players.keySet()) {
             this.removePlayer(channel);
         }
@@ -150,5 +177,74 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @NotNull
     public Collection<SparrowPlayer> getOnlinePlayers() {
         return List.copyOf(this.onlinePlayers.values());
+    }
+
+    /**
+     * 返回全服在线玩家, 按名字忽略大小写排序. 名单由进退服通知和每 30 秒的校准维护, 可能短暂落后于实际状态.
+     *
+     * @return 最近一次名单变化时的只读快照
+     */
+    @NotNull
+    public List<NetworkPlayer> getNetworkPlayers() {
+        return this.roster.players();
+    }
+
+    /**
+     * 按名字在全服在线名单中查找玩家, 名字忽略大小写.
+     *
+     * @param name 玩家名
+     * @return 在线玩家及其所在服务器, 不在线时为 null
+     */
+    @Nullable
+    public NetworkPlayer getNetworkPlayer(@NotNull String name) {
+        return this.roster.player(name);
+    }
+
+    /**
+     * 按 UUID 在全服在线名单中查找玩家.
+     *
+     * @param uniqueId 玩家 UUID
+     * @return 在线玩家及其所在服务器, 不在线时为 null
+     */
+    @Nullable
+    public NetworkPlayer getNetworkPlayer(@NotNull UUID uniqueId) {
+        return this.roster.player(uniqueId);
+    }
+
+    /**
+     * 按前缀返回全服在线玩家名的命令补全项, 前缀忽略大小写, 空前缀返回全部.
+     *
+     * @param prefix 已输入的名字前缀
+     * @return 按名字排序的补全项
+     */
+    @NotNull
+    public List<Suggestion> suggestNetworkPlayers(@NotNull String prefix) {
+        return this.roster.suggestions(prefix);
+    }
+
+    /**
+     * 按名字解析玩家, 离线玩家也能查到. 全服在线时名字忽略大小写, 离线时按数据库记录精确匹配.
+     *
+     * @param name 玩家名
+     * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
+     */
+    @NotNull
+    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull String name) {
+        NetworkPlayer online = this.roster.player(name);
+        if (online != null) return CompletableFuture.completedFuture(Optional.of(new PlayerIdentity(online.uuid(), online.name())));
+        return this.plugin.dataStorage().lookupUser(name).thenApply(found -> found.map(uuid -> new PlayerIdentity(uuid, name)));
+    }
+
+    /**
+     * 按 UUID 解析玩家, 离线时取数据库中最近使用的名字.
+     *
+     * @param uniqueId 玩家 UUID
+     * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
+     */
+    @NotNull
+    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull UUID uniqueId) {
+        NetworkPlayer online = this.roster.player(uniqueId);
+        if (online != null) return CompletableFuture.completedFuture(Optional.of(new PlayerIdentity(online.uuid(), online.name())));
+        return this.plugin.dataStorage().lookupName(uniqueId).thenApply(found -> found.map(name -> new PlayerIdentity(uniqueId, name)));
     }
 }

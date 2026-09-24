@@ -18,7 +18,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Locale;
-import java.util.UUID;
 
 public final class PluginConfig {
     private static final String CONFIG_FILE = "config.yml";
@@ -96,16 +95,9 @@ public final class PluginConfig {
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class RedisOptions {
-        @Comment("Unique server ID for Redis messages. Keep it different on each server sharing the same Redis database.")
-        @Comment(lang = "zh", value = "Redis 消息使用的服务器标识, 共享同一 Redis 数据库的各服应使用不同标识.")
-        String serverId = UUID.randomUUID().toString();
         String url = "redis://localhost:6379/0";
         String username = "";
         String password = "";
-
-        public String serverId() {
-            return this.serverId;
-        }
 
         public String url() {
             return this.url;

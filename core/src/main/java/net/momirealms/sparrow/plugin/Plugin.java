@@ -2,7 +2,7 @@ package net.momirealms.sparrow.plugin;
 
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.feature.FeatureManager;
-import net.momirealms.sparrow.database.DatabaseManager;
+import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
@@ -13,6 +13,7 @@ import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.redis.MessageBrokerManager;
+import net.momirealms.sparrow.redis.heartbeat.ServerHeartBeats;
 
 import java.io.File;
 import java.io.InputStream;
@@ -69,11 +70,13 @@ public interface Plugin {
 
     DependencyManager dependencyManager();
 
-    DatabaseManager databaseManager();
+    DataStorage dataStorage();
 
     RedisConnector redisConnector();
 
     MessageBrokerManager messageBrokerManager();
+
+    ServerHeartBeats serverHeartBeats();
 
     CompatibilityManager compatibilityManager();
 

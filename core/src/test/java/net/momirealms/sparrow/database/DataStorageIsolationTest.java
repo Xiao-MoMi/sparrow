@@ -5,11 +5,12 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class DatabaseManagerIsolationTest {
-    private static final String MANAGER = "net.momirealms.sparrow.database.DatabaseManager";
+class DataStorageIsolationTest {
+    private static final String MANAGER = "net.momirealms.sparrow.database.DataStorage";
 
     @Test
     void sqlManagerLoadsWithoutMongoLibraries() throws Exception {
@@ -22,15 +23,15 @@ class DatabaseManagerIsolationTest {
     }
 
     private static void assertManagerLoads(DatabaseType type, String... excludedPackages) throws Exception {
-        ClassLoader loader = new ClassLoader(DatabaseManagerIsolationTest.class.getClassLoader()) {
+        ClassLoader loader = new ClassLoader(DataStorageIsolationTest.class.getClassLoader()) {
             @Override
             protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
                 for (String excluded : excludedPackages) {
                     if (name.startsWith(excluded)) throw new ClassNotFoundException(name);
                 }
                 if (!name.equals(MANAGER) && !name.startsWith(MANAGER + "$")
-                        && !name.equals(MANAGER.replace("DatabaseManager", "SqlDatabaseManager"))
-                        && !name.equals(MANAGER.replace("DatabaseManager", "MongoDatabaseManager"))) {
+                        && !name.equals(MANAGER.replace("DataStorage", "SqlDataStorage"))
+                        && !name.equals(MANAGER.replace("DataStorage", "MongoDataStorage"))) {
                     return super.loadClass(name, resolve);
                 }
                 synchronized (this.getClassLoadingLock(name)) {
@@ -53,7 +54,7 @@ class DatabaseManagerIsolationTest {
         typeField.setAccessible(true);
         typeField.set(options, type);
         Class<?> managerClass = Class.forName(MANAGER, true, loader);
-        Object manager = managerClass.getMethod("create", PluginConfig.DatabaseOptions.class).invoke(null, options);
+        Object manager = managerClass.getMethod("create", PluginConfig.DatabaseOptions.class, Executor.class).invoke(null, options, (Executor) Runnable::run);
         assertEquals(type, managerClass.getMethod("type").invoke(manager));
     }
 }

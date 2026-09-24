@@ -35,8 +35,6 @@ class PluginConfigTest {
         assertTrue(generated.contains("database:"));
         assertTrue(generated.contains("redis:"));
         assertTrue(generated.contains("text-options:"));
-        String serverId = PluginConfig.redis().serverId();
-        assertTrue(generated.contains("server-id: " + serverId));
         assertTrue(generated.contains("parse-placeholder: true"));
         assertTrue(generated.contains("parse-legacy-color: false"));
         assertTrue(PluginConfig.text().parsePlaceholder());
@@ -56,7 +54,6 @@ class PluginConfigTest {
         config.reload();
         assertEquals(initialType, PluginConfig.database().type());
         assertEquals("redis://localhost:6379/0", PluginConfig.redis().url());
-        assertEquals(serverId, PluginConfig.redis().serverId());
         assertFalse(PluginConfig.text().parsePlaceholder());
         assertTrue(PluginConfig.text().parseLegacyColor());
 
@@ -64,6 +61,5 @@ class PluginConfigTest {
         restarted.reload();
         assertEquals(changedType, PluginConfig.database().type());
         assertEquals("redis://localhost:6380/0", PluginConfig.redis().url());
-        assertEquals(serverId, PluginConfig.redis().serverId());
     }
 }

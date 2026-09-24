@@ -1,7 +1,7 @@
 package net.momirealms.sparrow.redis;
 
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.redis.messagebroker.connection.RedisConnection;
 import org.junit.jupiter.api.Test;
@@ -23,14 +23,13 @@ class MessageBrokerManagerTest {
         when(plugin.logger()).thenReturn(mock(PluginLogger.class));
         when(connector.database()).thenReturn(3);
         when(connector.brokerConnection()).thenReturn(connection);
-        PluginConfig.RedisOptions options = new PluginConfig.RedisOptions();
-        try (MockedStatic<PluginConfig> config = mockStatic(PluginConfig.class)) {
-            config.when(PluginConfig::redis).thenReturn(options);
+        try (MockedStatic<ServerConfig> config = mockStatic(ServerConfig.class)) {
+            config.when(ServerConfig::serverId).thenReturn("server-a");
             MessageBrokerManager manager = new MessageBrokerManager(plugin);
             manager.onLoad();
             byte[] channel = "sparrow:db:3:messages".getBytes(StandardCharsets.UTF_8);
             assertArrayEquals(channel, manager.broker().channel());
-            assertEquals(options.serverId(), manager.broker().serverId());
+            assertEquals("server-a", manager.broker().serverId());
             verify(connection).subscribe(eq(channel), any());
             manager.onDisable();
             manager.onDisable();

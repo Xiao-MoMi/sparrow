@@ -5,9 +5,10 @@ import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
-import net.momirealms.sparrow.database.DatabaseManager;
+import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
 import net.momirealms.sparrow.plugin.dependency.Dependencies;
 import net.momirealms.sparrow.plugin.dependency.DependencyManager;
@@ -21,6 +22,7 @@ import net.momirealms.sparrow.plugin.logger.filter.DisconnectLogFilter;
 import net.momirealms.sparrow.proxy.BukkitProxy;
 import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.redis.MessageBrokerManager;
+import net.momirealms.sparrow.redis.heartbeat.ServerHeartBeats;
 import net.momirealms.sparrow.ui.SparrowUI;
 import net.momirealms.sparrow.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
@@ -60,9 +62,10 @@ public class SparrowPlugin implements Plugin {
     private final SchedulerAdapter scheduler;
     private final DependencyManager dependencyManager;
     private final ConfigurationManager configurationManager;
-    private final DatabaseManager databaseManager;
+    private final DataStorage dataStorage;
     private final RedisConnector redisConnector;
     private final MessageBrokerManager messageBrokerManager;
+    private final ServerHeartBeats serverHeartBeats;
     private final CompatibilityManager compatibilityManager;
     private final PlayerManager playerManager;
 
@@ -90,13 +93,14 @@ public class SparrowPlugin implements Plugin {
         this.configurationManager.reload();
         this.applyDependencies();
         this.setupProxy();
-        this.databaseManager = DatabaseManager.create(PluginConfig.database());
+        this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async());
         this.redisConnector = new RedisConnector(PluginConfig.redis());
         this.messageBrokerManager = new MessageBrokerManager(this);
+        this.serverHeartBeats = new ServerHeartBeats(this);
         this.translationManager = new TranslationManagerImpl(this);
         this.translationManager.reload();
         this.compatibilityManager = new CompatibilityManager(this);
-        this.playerManager = new PlayerManager();
+        this.playerManager = new PlayerManager(this);
 
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }
@@ -111,16 +115,28 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginLoad() {
-        this.databaseManager.initialize();
+        // 服务器身份缺失时不放行
+        if (ServerConfig.serverId().isEmpty()) {
+            this.logger.error(" ");
+            this.logger.error("============================================================");
+            this.logger.error(TranslationManager.console(LogConstants.SERVER_ID_MISSING));
+            this.logger.error("============================================================");
+            this.logger.error(" ");
+            Bukkit.getServer().shutdown();
+            return;
+        }
+        this.dataStorage.initialize();
         try {
             this.redisConnector.initialize();
             this.messageBrokerManager.onLoad();
+            this.serverHeartBeats.onLoad(); // 探测同名服务器需要消息代理已订阅
             this.compatibilityManager.onLoad(); // 集成插件管理器
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
+            this.serverHeartBeats.shutdown();
             this.messageBrokerManager.onDisable();
             this.redisConnector.close();
-            this.databaseManager.close();
+            this.dataStorage.close();
             throw exception;
         }
     }
@@ -151,7 +167,7 @@ public class SparrowPlugin implements Plugin {
             Bukkit.getServer().shutdown();
             return;
         }
-        this.playerManager.onEnable(this.javaPlugin);
+        this.playerManager.onEnable();
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
         this.featureManager = FeatureManager.create(this);
@@ -177,12 +193,13 @@ public class SparrowPlugin implements Plugin {
     @Override
     public void onPluginDisable() {
         if (this.featureManager != null) this.featureManager.onDisable();
-        if (this.playerManager != null) this.playerManager.shutdown();
+        if (this.playerManager != null) this.playerManager.shutdown();          // 名单注销依赖 Redis 连接, 需要先于连接关闭.
+        if (this.serverHeartBeats != null) this.serverHeartBeats.shutdown();    // 心跳注销依赖 Redis 连接, 需要先于连接关闭.
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
         if (this.messageBrokerManager != null) this.messageBrokerManager.onDisable();
         if (this.redisConnector != null) this.redisConnector.close();
-        if (this.databaseManager != null) this.databaseManager.close();
+        if (this.dataStorage != null) this.dataStorage.close();
         if (this.dependencyManager != null) this.dependencyManager.close();
         if (ServerUtils.isRunning()) {
             logger().error(" ");
@@ -495,8 +512,8 @@ public class SparrowPlugin implements Plugin {
     }
 
     @Override
-    public DatabaseManager databaseManager() {
-        return this.databaseManager;
+    public DataStorage dataStorage() {
+        return this.dataStorage;
     }
 
     @Override
@@ -507,6 +524,11 @@ public class SparrowPlugin implements Plugin {
     @Override
     public MessageBrokerManager messageBrokerManager() {
         return this.messageBrokerManager;
+    }
+
+    @Override
+    public ServerHeartBeats serverHeartBeats() {
+        return this.serverHeartBeats;
     }
 
     @Override
