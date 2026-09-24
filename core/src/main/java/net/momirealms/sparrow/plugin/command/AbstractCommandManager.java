@@ -64,7 +64,7 @@ public abstract class AbstractCommandManager implements CommandManager {
         return ((sender, node, component) -> {
             if (sender instanceof Player player) {
                 SparrowPlayer pluginPlayer = this.plugin.playerManager().getPlayer(player);
-                if (pluginPlayer != null && pluginPlayer.initialized()) {
+                if (pluginPlayer != null) {
                     pluginPlayer.sendMessage(component);
                 }
             } else {

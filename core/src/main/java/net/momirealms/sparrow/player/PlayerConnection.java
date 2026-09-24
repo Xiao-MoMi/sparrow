@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.network;
+package net.momirealms.sparrow.player;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -15,65 +15,50 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.channels.ClosedChannelException;
 import java.util.UUID;
 
-public abstract class NetworkUser {
+public final class PlayerConnection {
     private final UUID uniqueId;
     private final String name;
-    private final ChannelHandler connection;
+    private final ChannelHandler handle;
     private final Channel channel;
 
-    protected NetworkUser(@NotNull ChannelHandler connection, @NotNull UUID uniqueId, @NotNull String name) {
-        this.connection = connection;
-        this.channel = (Channel) ConnectionProxy.INSTANCE.getChannel(connection);
+    PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name) {
+        this.handle = handle;
+        this.channel = (Channel) ConnectionProxy.INSTANCE.getChannel(handle);
         this.uniqueId = uniqueId;
         this.name = name;
     }
 
-    /**
-     * 返回本次登录的玩家 UUID.
-     *
-     * @return 登录身份对应的 UUID
-     */
+    // 登录时的 UUID
     @NotNull
     public UUID uniqueId() {
         return this.uniqueId;
     }
 
-    /**
-     * 返回创建时记录的玩家名.
-     *
-     * @return 本次登录的玩家名
-     */
+    // 登录时的玩家名
     @NotNull
     public String name() {
         return this.name;
     }
 
     /**
-     * 返回创建时保存的原版网络 Connection, 以 Netty 的处理器类型暴露.
-     * 退出后仍保留同一引用, 连接是否可用取决于其当前状态.
+     * 返回原版网络 Connection 对象, 以 Netty 的处理器类型暴露.
      *
-     * @return 本次连接的原版网络对象
+     * @return 本次连接的原版 Connection
      */
     @NotNull
-    public ChannelHandler connection() {
-        return this.connection;
+    public ChannelHandler handle() {
+        return this.handle;
     }
 
-    /**
-     * 返回本次连接使用的 Netty Channel, 可在 Join 初始化前取得.
-     * 退出后仍保留同一引用, Channel 可能已经关闭.
-     *
-     * @return 原版网络连接对应的 Channel
-     */
     @NotNull
-    public Channel nettyChannel() {
+    public Channel channel() {
         return this.channel;
     }
 
     /**
      * 向客户端发送原版 NMS 数据包, 经过连接现有的出站处理器.
      * 可在任意线程调用, 实际发送在连接的 event loop 执行; 返回不表示客户端已收到.
-     * 平台玩家初始化前也可调用, <strong>包的方向和协议阶段必须与连接当前状态匹配</strong>.
+     * 玩家 Join 前也可调用, <strong>包的方向和协议阶段必须与连接当前状态匹配</strong>.
      *
      * @param packet 当前服务端版本的客户端方向 NMS Packet, 调用后交由连接处理
      * @throws IllegalArgumentException 参数不是 NMS Packet

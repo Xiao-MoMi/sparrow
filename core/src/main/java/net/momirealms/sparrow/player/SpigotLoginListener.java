@@ -11,10 +11,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 
-final class SpigotPlayerListener implements Listener {
+final class SpigotLoginListener implements Listener {
     private final PlayerManager manager;
 
-    SpigotPlayerListener(@NotNull PlayerManager manager) {
+    SpigotLoginListener(@NotNull PlayerManager manager) {
         this.manager = manager;
     }
 
@@ -26,6 +26,6 @@ final class SpigotPlayerListener implements Listener {
         Object handle = CraftPlayerProxy.INSTANCE.getHandle(player);
         Object listener = ServerPlayerProxy.INSTANCE.getTransferCookieConnection(handle);
         ChannelHandler connection = (ChannelHandler) ServerLoginPacketListenerImplProxy.INSTANCE.getConnection(listener);
-        this.manager.createPlayer(connection, player.getUniqueId(), player.getName());
+        this.manager.registerConnection(connection, player.getUniqueId(), player.getName());
     }
 }

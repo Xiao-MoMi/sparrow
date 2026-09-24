@@ -11,25 +11,25 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
-final class PaperPlayerListener implements Listener {
+final class PaperLoginListener implements Listener {
     private final PlayerManager manager;
 
-    PaperPlayerListener(@NotNull PlayerManager manager) {
+    PaperLoginListener(@NotNull PlayerManager manager) {
         this.manager = manager;
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onInitialConfigure(@NotNull PlayerConnectionInitialConfigureEvent event) {
-        this.createPlayer(event.getConnection());
+        this.registerConnection(event.getConnection());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onReconfigure(@NotNull PlayerConnectionReconfigureEvent event) {
-        this.createPlayer(event.getConnection());
+        this.registerConnection(event.getConnection());
     }
 
-    private void createPlayer(@NotNull PlayerConfigurationConnection connection) {
+    private void registerConnection(@NotNull PlayerConfigurationConnection connection) {
         PlayerProfile profile = connection.getProfile();
-        this.manager.createPlayer((ChannelHandler) ReadablePlayerCookieConnectionProxy.INSTANCE.getConnection(connection), profile.getId(), profile.getName());
+        this.manager.registerConnection((ChannelHandler) ReadablePlayerCookieConnectionProxy.INSTANCE.getConnection(connection), profile.getId(), profile.getName());
     }
 }

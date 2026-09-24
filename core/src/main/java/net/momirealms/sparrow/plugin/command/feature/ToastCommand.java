@@ -2,8 +2,8 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.advancement.AdvancementFrame;
 import net.momirealms.sparrow.player.SparrowPlayer;
-import net.momirealms.sparrow.player.ToastType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -32,7 +32,7 @@ public final class ToastCommand extends BukkitCommandFeature {
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
-                .required("type", EnumParser.enumParser(ToastType.class))
+                .required("type", EnumParser.enumParser(AdvancementFrame.class))
                 .required("item", ItemStackParser.itemStackParser())
                 .required("message", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
@@ -55,7 +55,7 @@ public final class ToastCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_TOAST_INVALID_ICON);
             return;
         }
-        ToastType type = context.get("type");
+        AdvancementFrame type = context.get("type");
         String message = context.get("message");
         PluginConfig.TextOptions text = PluginConfig.text();
         boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");

@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.command.parser;
 
 import net.momirealms.sparrow.player.PlayerManager;
+import net.momirealms.sparrow.player.cluster.ClusterRoster;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
 import org.incendo.cloud.parser.ArgumentParseResult;
@@ -11,18 +12,18 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * 按全服在线名单补全玩家名, 解析时原样接受任意名字, 离线玩家由命令通过 {@link PlayerManager#resolvePlayer(String)} 查找.
+ * 按集群在线名单补全玩家名, 解析时原样接受任意名字, 离线玩家由命令通过 {@link PlayerManager#resolvePlayer(String)} 查找.
  */
-public final class NetworkPlayerParser<C> implements ArgumentParser<C, String>, BlockingSuggestionProvider<C> {
-    private final PlayerManager players;
+public final class ClusterPlayerParser<C> implements ArgumentParser<C, String>, BlockingSuggestionProvider<C> {
+    private final ClusterRoster cluster;
 
-    public NetworkPlayerParser(@NotNull PlayerManager players) {
-        this.players = players;
+    public ClusterPlayerParser(@NotNull ClusterRoster cluster) {
+        this.cluster = cluster;
     }
 
     @NotNull
-    public static <C> ParserDescriptor<C, String> playerParser(@NotNull PlayerManager players) {
-        return ParserDescriptor.of(new NetworkPlayerParser<>(players), String.class);
+    public static <C> ParserDescriptor<C, String> clusterPlayerParser(@NotNull ClusterRoster cluster) {
+        return ParserDescriptor.of(new ClusterPlayerParser<>(cluster), String.class);
     }
 
     @Override
@@ -34,6 +35,6 @@ public final class NetworkPlayerParser<C> implements ArgumentParser<C, String>, 
     @Override
     @NotNull
     public Iterable<? extends Suggestion> suggestions(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
-        return this.players.suggestNetworkPlayers(input.peekString());
+        return this.cluster.suggest(input.peekString());
     }
 }

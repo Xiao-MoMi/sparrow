@@ -1,7 +1,7 @@
 package net.momirealms.sparrow.redis;
 
 import io.netty.buffer.ByteBuf;
-import net.momirealms.sparrow.player.PlayerPresenceMessage;
+import net.momirealms.sparrow.player.cluster.PlayerPresenceMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
