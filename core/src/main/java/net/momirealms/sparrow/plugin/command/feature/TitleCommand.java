@@ -7,6 +7,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.util.Components;
+import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -46,8 +47,9 @@ public final class TitleCommand extends BukkitCommandFeature {
         }
 
         String message = context.get("message");
-        boolean legacy = context.flags().hasFlag("legacy-color");
-        boolean placeholders = context.flags().hasFlag("parse");
+        PluginConfig.TextOptions text = PluginConfig.text();
+        boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
+        boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         String[] parts = message.split("\\\\n", -1);
         if (parts.length > 2) {
             this.handleFeedback(context, MessageConstants.COMMAND_TITLE_FORMAT);

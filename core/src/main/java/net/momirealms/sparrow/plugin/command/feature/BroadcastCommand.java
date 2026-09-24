@@ -7,6 +7,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.util.Components;
+import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -42,8 +43,9 @@ public final class BroadcastCommand extends BukkitCommandFeature {
         }
 
         String message = context.get("message");
-        boolean legacy = context.flags().hasFlag("legacy-color");
-        boolean placeholders = context.flags().hasFlag("parse");
+        PluginConfig.TextOptions text = PluginConfig.text();
+        boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
+        boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         for (Player player : players) {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             Component component = Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, message) : message, legacy);

@@ -34,6 +34,11 @@ class PluginConfigTest {
         assertFalse(generated.contains("config-version:"));
         assertTrue(generated.contains("database:"));
         assertTrue(generated.contains("redis:"));
+        assertTrue(generated.contains("text:"));
+        assertTrue(generated.contains("parse-placeholder: true"));
+        assertTrue(generated.contains("parse-legacy-color: false"));
+        assertTrue(PluginConfig.text().parsePlaceholder());
+        assertFalse(PluginConfig.text().parseLegacyColor());
         assertTrue(generated.contains("jdbc:mariadb://localhost:3306/minecraft"));
         assertTrue(generated.contains("jdbc:postgresql://localhost:5432/minecraft"));
         assertTrue(generated.contains("mongodb://localhost:27017"));
@@ -43,10 +48,14 @@ class PluginConfigTest {
 
         Files.writeString(this.directory.resolve("config.yml"), generated
                 .replace("type: " + initialType, "type: " + changedType)
-                .replace("redis://localhost:6379/0", "redis://localhost:6380/0"));
+                .replace("redis://localhost:6379/0", "redis://localhost:6380/0")
+                .replace("parse-placeholder: true", "parse-placeholder: false")
+                .replace("parse-legacy-color: false", "parse-legacy-color: true"));
         config.reload();
         assertEquals(initialType, PluginConfig.database().type());
         assertEquals("redis://localhost:6379/0", PluginConfig.redis().url());
+        assertFalse(PluginConfig.text().parsePlaceholder());
+        assertTrue(PluginConfig.text().parseLegacyColor());
 
         PluginConfig restarted = new PluginConfig(plugin, yaml);
         restarted.reload();

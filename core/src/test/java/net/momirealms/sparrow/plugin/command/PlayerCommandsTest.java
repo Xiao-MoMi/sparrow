@@ -45,6 +45,7 @@ import net.momirealms.sparrow.plugin.command.feature.SmithingTableCommand;
 import net.momirealms.sparrow.plugin.command.feature.StonecutterCommand;
 import net.momirealms.sparrow.plugin.command.feature.WorkbenchCommand;
 import net.momirealms.sparrow.plugin.configuration.CommandsConfig;
+import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import org.bukkit.Bukkit;
@@ -78,6 +79,7 @@ class PlayerCommandsTest {
     private SparrowPlugin plugin;
     private final List<String> performed = new ArrayList<>();
     private Server previousServer;
+    private Object previousConfig;
     private CommandSender console;
     private final Map<String, Player> players = new LinkedHashMap<>();
     private TestManager commands;
@@ -85,6 +87,10 @@ class PlayerCommandsTest {
 
     @BeforeEach
     void setUp() throws Exception {
+        Field configField = PluginConfig.class.getDeclaredField("config");
+        configField.setAccessible(true);
+        this.previousConfig = configField.get(null);
+        configField.set(null, new PluginConfig.ConfigDefinition());
         this.previousServer = Bukkit.getServer();
         this.console = (CommandSender) Proxy.newProxyInstance(CommandSender.class.getClassLoader(), new Class<?>[]{CommandSender.class}, (instance, method, args) -> method.getName().equals("hasPermission") ? true : null);
         Server server = (Server) Proxy.newProxyInstance(Server.class.getClassLoader(), new Class<?>[]{Server.class}, (instance, method, args) -> switch (method.getName()) {
@@ -99,6 +105,9 @@ class PlayerCommandsTest {
         Field field = Unsafe.class.getDeclaredField("theUnsafe");
         field.setAccessible(true);
         this.plugin = (SparrowPlugin) ((Unsafe) field.get(null)).allocateInstance(SparrowPlugin.class);
+        Field compatibilityField = SparrowPlugin.class.getDeclaredField("compatibilityManager");
+        compatibilityField.setAccessible(true);
+        compatibilityField.set(this.plugin, new CompatibilityManager(this.plugin));
         PlatformExecutor executor = (PlatformExecutor) Proxy.newProxyInstance(PlatformExecutor.class.getClassLoader(), new Class<?>[]{PlatformExecutor.class}, (instance, method, args) -> {
             if (method.getName().equals("run") && args.length == 3) {
                 this.tasks.add(new Scheduled((Entity) args[2], (Runnable) args[0]));
@@ -128,6 +137,9 @@ class PlayerCommandsTest {
         Field field = Bukkit.class.getDeclaredField("server");
         field.setAccessible(true);
         field.set(null, this.previousServer);
+        Field configField = PluginConfig.class.getDeclaredField("config");
+        configField.setAccessible(true);
+        configField.set(null, this.previousConfig);
     }
 
     @Test
@@ -388,7 +400,6 @@ class PlayerCommandsTest {
             @Override public Collection<Player> values() { return List.of(player); }
         });
         context.store("message", "<gold>Hello %player_name%");
-        context.flags().addPresenceFlag(CommandFlag.builder("parse").build());
         context.flags().addPresenceFlag(CommandFlag.builder("silent").build());
         CompatibilityManager compatibility = mock(CompatibilityManager.class);
         Field field = SparrowPlugin.class.getDeclaredField("compatibilityManager");
@@ -403,6 +414,18 @@ class PlayerCommandsTest {
         verify(compatibility, times(2)).parsePlaceholders(same(player), eq("<gold>Hello %player_name%"));
         assertTrue(this.tasks.isEmpty());
         assertTrue(this.commands.feedback.isEmpty());
+
+        Field parseDefault = PluginConfig.TextOptions.class.getDeclaredField("parsePlaceholder");
+        parseDefault.setAccessible(true);
+        parseDefault.setBoolean(PluginConfig.text(), false);
+        this.invoke(new BroadcastCommand(this.commands, this.plugin), context);
+        verify(receiver).sendMessage(Component.text("Hello %player_name%", NamedTextColor.GOLD));
+        verify(compatibility, times(2)).parsePlaceholders(same(player), eq("<gold>Hello %player_name%"));
+
+        context.flags().addPresenceFlag(CommandFlag.builder("parse").build());
+        this.invoke(new BroadcastCommand(this.commands, this.plugin), context);
+        verify(receiver, times(2)).sendMessage(expected);
+        verify(compatibility, times(3)).parsePlaceholders(same(player), eq("<gold>Hello %player_name%"));
     }
 
     @Test
