@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin;
 
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
+import net.momirealms.sparrow.database.DatabaseManager;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
@@ -9,6 +10,7 @@ import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.classpath.ClassPathAppender;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
+import net.momirealms.sparrow.redis.RedisConnector;
 
 import java.io.File;
 import java.io.InputStream;
@@ -64,6 +66,10 @@ public interface Plugin {
     SchedulerAdapter scheduler();
 
     DependencyManager dependencyManager();
+
+    DatabaseManager databaseManager();
+
+    RedisConnector redisConnector();
 
     CompatibilityManager compatibilityManager();
 

@@ -1,18 +1,11 @@
 package net.momirealms.sparrow.plugin.command;
 
-import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommandConfig {
-    @Comment("Whether to register this command.")
-    @Comment(lang = "zh", value = "是否注册此命令.")
     private boolean enable = false;
-    @Comment("Permission required to execute this command.")
-    @Comment(lang = "zh", value = "执行此命令需要的权限.")
     private String permission = null;
-    @Comment("Command paths, each starting with a slash.")
-    @Comment(lang = "zh", value = "命令用法列表, 每项以斜杠开头.")
     private List<String> usages = new ArrayList<>();
 
     private CommandConfig() {}

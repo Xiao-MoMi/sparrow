@@ -214,6 +214,51 @@ public final class Dependencies {
             .build();
 
     /**
+     * SQL
+     */
+    public static final Dependency JDBI_CORE = Dependency.builder()
+            .groupId("org{}jdbi")
+            .artifactId("jdbi3-core")
+            .version(DependencyVersions.JDBI)
+            .addRelocation("jdbi", "org{}jdbi")
+            .addRelocations(GEANTY_REF.relocations())
+            .build();
+
+    public static final Dependency HIKARI_CP = Dependency.builder()
+            .groupId("com{}zaxxer")
+            .artifactId("HikariCP")
+            .version(DependencyVersions.HIKARI_CP)
+            .addRelocation("hikari", "com{}zaxxer{}hikari")
+            .build();
+
+    public static final Dependency MYSQL_DRIVER = Dependency.builder()
+            .groupId("com{}mysql")
+            .artifactId("mysql-connector-j")
+            .version(DependencyVersions.MYSQL_DRIVER)
+            .addRelocation("mysql", "com{}mysql")
+            .build();
+
+    public static final Dependency MARIADB_DRIVER = Dependency.builder()
+            .groupId("org{}mariadb{}jdbc")
+            .artifactId("mariadb-java-client")
+            .version(DependencyVersions.MARIADB_DRIVER)
+            .addRelocation("mariadb", "org{}mariadb{}jdbc")
+            .build();
+
+    public static final Dependency POSTGRESQL_DRIVER = Dependency.builder()
+            .groupId("org{}postgresql")
+            .artifactId("postgresql")
+            .version(DependencyVersions.POSTGRESQL_DRIVER)
+            .addRelocation("postgresql", "org{}postgresql")
+            .build();
+
+    public static final Dependency CHECKER_QUAL = Dependency.builder()
+            .groupId("org{}checkerframework")
+            .artifactId("checker-qual")
+            .version(DependencyVersions.CHECKER_QUAL)
+            .build();
+
+    /**
      * MongoDB
      */
     public static final Dependency MONGODB_DRIVER_CORE = Dependency.builder()

@@ -38,12 +38,17 @@ dependencies {
     compileOnly(libs.datafixerupper)
     compileOnly(libs.lettuce.core)
     compileOnly(libs.mongodb.driver.sync)
+    compileOnly(libs.jdbi.core)
+    compileOnly(libs.hikari.cp)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platformLauncher)
     testImplementation(libs.mockbukkit)
     testImplementation(libs.test.paper.api)
+    testImplementation(libs.mongodb.driver.sync)
+    testImplementation(libs.jdbi.core)
+    testImplementation(libs.hikari.cp)
 }
 
 // Version
@@ -66,6 +71,12 @@ buildConfig {
     // COMMON
     buildConfigField("CAFFEINE", libs.versions.caffeine.get())
     buildConfigField("MONGODB_DRIVER", libs.versions.mongodb.driver.get())
+    buildConfigField("JDBI", libs.versions.jdbi.get())
+    buildConfigField("HIKARI_CP", libs.versions.hikari.cp.get())
+    buildConfigField("MYSQL_DRIVER", libs.versions.mysql.driver.get())
+    buildConfigField("MARIADB_DRIVER", libs.versions.mariadb.driver.get())
+    buildConfigField("POSTGRESQL_DRIVER", libs.versions.postgresql.driver.get())
+    buildConfigField("CHECKER_QUAL", libs.versions.checker.qual.get())
     buildConfigField("REACTIVE_STREAMS", libs.versions.reactive.streams.get())
     // LETTUCE
     buildConfigField("LETTUCE", libs.versions.lettuce.get())

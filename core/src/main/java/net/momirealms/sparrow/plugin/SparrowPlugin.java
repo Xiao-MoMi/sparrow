@@ -4,7 +4,9 @@ import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
+import net.momirealms.sparrow.database.DatabaseManager;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
+import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
 import net.momirealms.sparrow.plugin.dependency.Dependencies;
 import net.momirealms.sparrow.plugin.dependency.DependencyManager;
@@ -16,6 +18,7 @@ import net.momirealms.sparrow.plugin.classpath.ClassPathAppender;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.logger.filter.DisconnectLogFilter;
 import net.momirealms.sparrow.proxy.BukkitProxy;
+import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.util.CharacterUtils;
@@ -54,6 +57,8 @@ public class SparrowPlugin implements Plugin {
     private final SchedulerAdapter scheduler;
     private final DependencyManager dependencyManager;
     private final ConfigurationManager configurationManager;
+    private final DatabaseManager databaseManager;
+    private final RedisConnector redisConnector;
     private final CompatibilityManager compatibilityManager;
     private final PlayerManager playerManager;
 
@@ -76,10 +81,12 @@ public class SparrowPlugin implements Plugin {
 
         this.scheduler = new BukkitSchedulerAdapter(this);
         this.dependencyManager = new DependencyManager(this);
-        this.applyDependencies();
-        this.setupProxy();
         this.configurationManager = new ConfigurationManager(this);
         this.configurationManager.reload();
+        this.applyDependencies();
+        this.setupProxy();
+        this.databaseManager = DatabaseManager.create(PluginConfig.database());
+        this.redisConnector = new RedisConnector(PluginConfig.redis());
         this.translationManager = new TranslationManagerImpl(this);
         this.translationManager.reload();
         this.compatibilityManager = new CompatibilityManager(this);
@@ -98,8 +105,16 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginLoad() {
-        this.successfullyLoaded = true;
-        this.compatibilityManager.onLoad(); // 集成插件管理器
+        this.databaseManager.initialize();
+        try {
+            this.redisConnector.initialize();
+            this.compatibilityManager.onLoad(); // 集成插件管理器
+            this.successfullyLoaded = true;
+        } catch (RuntimeException exception) {
+            this.redisConnector.close();
+            this.databaseManager.close();
+            throw exception;
+        }
     }
 
     @Override
@@ -152,6 +167,8 @@ public class SparrowPlugin implements Plugin {
         if (this.playerManager != null) this.playerManager.shutdown();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
+        if (this.redisConnector != null) this.redisConnector.close();
+        if (this.databaseManager != null) this.databaseManager.close();
         if (this.dependencyManager != null) this.dependencyManager.close();
         if (ServerUtils.isRunning()) {
             logger().error(" ");
@@ -239,18 +256,15 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public List<Dependency> platformDependencies() {
-        return List.of(
+        List<Dependency> dependencies = new ArrayList<>(List.of(
                 Dependencies.PLUGIN_BUKKIT_PROXY,
                 // Common
                 Dependencies.CAFFEINE,
-                // MangoDB
-                //Dependencies.MONGODB_DRIVER_CORE, Dependencies.MONGODB_DRIVER_SYNC, Dependencies.MONGODB_DRIVER_REACTIVESTREAMS,
-                //Dependencies.MONGODB_DRIVER_BSON, Dependencies.MONGODB_DRIVER_KOTLIN_COROUTINE, Dependencies.REACTIVE_STREAMS,
                 // Lettuce
-                //Dependencies.LETTUCE,
-                //Dependencies.REACTOR_CORE, Dependencies.REACTIVE_STREAMS,
-                //Dependencies.NETTY_RESOLVER, Dependencies.NETTY_RESOLVER_DNS, Dependencies.NETTY_CODEC_DNS,
-                //Dependencies.JACKSON_CORE, Dependencies.JACKSON_ANNOTATIONS, Dependencies.JACKSON_DATABIND, Dependencies.JACKSON_DATATYPE,
+                Dependencies.LETTUCE,
+                Dependencies.REACTOR_CORE, Dependencies.REACTIVE_STREAMS,
+                Dependencies.NETTY_RESOLVER, Dependencies.NETTY_RESOLVER_DNS, Dependencies.NETTY_CODEC_DNS,
+                Dependencies.JACKSON_CORE, Dependencies.JACKSON_ANNOTATIONS, Dependencies.JACKSON_DATABIND, Dependencies.JACKSON_DATATYPE,
                 // CLOUD
                 Dependencies.GEANTY_REF,
                 Dependencies.CLOUD_CORE, Dependencies.CLOUD_SERVICES,
@@ -261,7 +275,22 @@ public class SparrowPlugin implements Plugin {
                 Dependencies.ADVENTURE_KEY, Dependencies.ADVENTURE_API, Dependencies.ADVENTURE_NBT,
                 Dependencies.MINIMESSAGE,
                 Dependencies.TEXT_SERIALIZER_COMMONS, Dependencies.TEXT_SERIALIZER_LEGACY, Dependencies.TEXT_SERIALIZER_PLAIN, Dependencies.TEXT_SERIALIZER_GSON, Dependencies.TEXT_SERIALIZER_GSON_LEGACY, Dependencies.TEXT_SERIALIZER_JSON
-        );
+        ));
+        switch (PluginConfig.database().type()) {
+            case MONGODB -> dependencies.addAll(List.of(
+                    Dependencies.MONGODB_DRIVER_BSON, Dependencies.MONGODB_DRIVER_CORE, Dependencies.MONGODB_DRIVER_SYNC
+            ));
+            case MYSQL -> dependencies.addAll(List.of(
+                    Dependencies.JDBI_CORE, Dependencies.HIKARI_CP, Dependencies.MYSQL_DRIVER
+            ));
+            case MARIADB -> dependencies.addAll(List.of(
+                    Dependencies.JDBI_CORE, Dependencies.HIKARI_CP, Dependencies.MARIADB_DRIVER
+            ));
+            case POSTGRESQL -> dependencies.addAll(List.of(
+                    Dependencies.JDBI_CORE, Dependencies.HIKARI_CP, Dependencies.POSTGRESQL_DRIVER, Dependencies.CHECKER_QUAL
+            ));
+        }
+        return dependencies;
     }
 
     /**
@@ -441,6 +470,16 @@ public class SparrowPlugin implements Plugin {
     @Override
     public DependencyManager dependencyManager() {
         return this.dependencyManager;
+    }
+
+    @Override
+    public DatabaseManager databaseManager() {
+        return this.databaseManager;
+    }
+
+    @Override
+    public RedisConnector redisConnector() {
+        return this.redisConnector;
     }
 
     @Override
