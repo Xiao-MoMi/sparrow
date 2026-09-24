@@ -32,6 +32,11 @@ public final class QuickShulkerSettings implements FeatureSettings {
         return this.enabled;
     }
 
+    @Override
+    public void enabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     public boolean requireSneaking() {
         return this.requireSneaking;
     }
@@ -48,16 +53,5 @@ public final class QuickShulkerSettings implements FeatureSettings {
     @NotNull
     public List<String> disabledWorlds() {
         return this.disabledWorlds;
-    }
-
-    @NotNull
-    public QuickShulkerSettings withEnabled(boolean enabled) {
-        QuickShulkerSettings copy = new QuickShulkerSettings();
-        copy.enabled = enabled;
-        copy.requireSneaking = this.requireSneaking;
-        copy.allowOffhand = this.allowOffhand;
-        copy.title = this.title;
-        copy.disabledWorlds = this.disabledWorlds;
-        return copy;
     }
 }

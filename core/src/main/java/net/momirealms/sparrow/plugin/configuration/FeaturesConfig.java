@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.plugin.configuration;
 
+import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.yaml.SparrowYaml;
@@ -39,7 +40,6 @@ public final class FeaturesConfig {
         this.config = this.load();
     }
 
-    /** 从文件读取功能配置. */
     @NotNull
     public ConfigDefinition load() {
         try {
@@ -49,19 +49,18 @@ public final class FeaturesConfig {
         }
     }
 
-    /** 读取配置文件, 成功后替换当前快照. */
     public void reload() {
         this.config = this.load();
     }
 
     /** 保存指定功能的开关, 保留文件中的其他选项和注释. */
     public void saveEnabled(@NotNull String id, boolean enabled) {
-        ConfigDefinition updated = this.config.withEnabled(id, enabled);
+        FeatureSettings settings = this.config.settings(id);
         try {
             YamlDocument document = this.yaml.load(this.path);
             document.set(Route.from(id, "enabled"), enabled);
             document.save(this.path);
-            this.config = updated;
+            settings.enabled(enabled);
         } catch (IOException exception) {
             throw new UncheckedIOException("Failed to save feature state: " + id, exception);
         }
@@ -89,15 +88,13 @@ public final class FeaturesConfig {
             return this.quickShulker;
         }
 
-        private ConfigDefinition withEnabled(String id, boolean enabled) {
-            ConfigDefinition copy = new ConfigDefinition();
-            copy.version = this.version;
-            copy.quickShulker = this.quickShulker;
-            switch (id) {
-                case "quick-shulker" -> copy.quickShulker = this.quickShulker.withEnabled(enabled);
+        /** 按功能 ID 获取对应的配置, 未知 ID 会抛出异常. */
+        @NotNull
+        public FeatureSettings settings(@NotNull String id) {
+            return switch (id) {
+                case "quick-shulker" -> this.quickShulker;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
-            }
-            return copy;
+            };
         }
     }
 }
