@@ -119,6 +119,30 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig feed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " feed", "/feed"), DependencyVersions.PROJECT_ID + ".command.feed");
 
+        @BlankLineBefore
+        CommandConfig flyspeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " flyspeed", "/flyspeed"), DependencyVersions.PROJECT_ID + ".command.flyspeed");
+
+        @BlankLineBefore
+        CommandConfig walkspeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " walkspeed", "/walkspeed"), DependencyVersions.PROJECT_ID + ".command.walkspeed");
+
+        @BlankLineBefore
+        CommandConfig suicide = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " suicide", "/suicide"), DependencyVersions.PROJECT_ID + ".command.suicide");
+
+        @BlankLineBefore
+        CommandConfig burn = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " burn", "/burn"), DependencyVersions.PROJECT_ID + ".command.burn");
+
+        @BlankLineBefore
+        CommandConfig extinguish = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " extinguish", "/extinguish"), DependencyVersions.PROJECT_ID + ".command.extinguish");
+
+        @BlankLineBefore
+        CommandConfig sudo = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " sudo", "/sudo"), DependencyVersions.PROJECT_ID + ".command.sudo");
+
+        @BlankLineBefore
+        CommandConfig look = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " look", "/look"), DependencyVersions.PROJECT_ID + ".command.look");
+
+        @BlankLineBefore
+        CommandConfig topblock = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " topblock", "/topblock"), DependencyVersions.PROJECT_ID + ".command.topblock");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -130,6 +154,14 @@ public final class CommandsConfig {
         public CommandConfig command(@NotNull String featureID) {
             return switch (featureID) {
                 case "reload" -> this.reload;
+                case "flyspeed" -> this.flyspeed;
+                case "walkspeed" -> this.walkspeed;
+                case "suicide" -> this.suicide;
+                case "burn" -> this.burn;
+                case "extinguish" -> this.extinguish;
+                case "sudo" -> this.sudo;
+                case "look" -> this.look;
+                case "topblock" -> this.topblock;
                 case "workbench" -> this.workbench;
                 case "anvil" -> this.anvil;
                 case "grindstone" -> this.grindstone;

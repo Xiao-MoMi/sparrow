@@ -3,6 +3,14 @@ package net.momirealms.sparrow.plugin.command;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
+import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
+import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
+import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
+import net.momirealms.sparrow.plugin.command.feature.BurnCommand;
+import net.momirealms.sparrow.plugin.command.feature.ExtinguishCommand;
+import net.momirealms.sparrow.plugin.command.feature.SudoCommand;
+import net.momirealms.sparrow.plugin.command.feature.LookCommand;
+import net.momirealms.sparrow.plugin.command.feature.TopBlockCommand;
 import net.momirealms.sparrow.plugin.command.feature.WorkbenchCommand;
 import net.momirealms.sparrow.plugin.command.feature.AnvilCommand;
 import net.momirealms.sparrow.plugin.command.feature.GrindstoneCommand;
@@ -42,6 +50,14 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.plugin = plugin;
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
                 new ReloadCommand(this, plugin),
+                new FlySpeedCommand(this, plugin),
+                new WalkSpeedCommand(this, plugin),
+                new SuicideCommand(this, plugin),
+                new BurnCommand(this, plugin),
+                new ExtinguishCommand(this, plugin),
+                new SudoCommand(this, plugin),
+                new LookCommand(this, plugin),
+                new TopBlockCommand(this, plugin),
                 new FeatureEnableCommand(this, plugin),
                 new FeatureDisableCommand(this, plugin),
                 new FeatureListCommand(this, plugin),

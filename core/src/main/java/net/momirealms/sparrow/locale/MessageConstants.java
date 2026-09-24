@@ -4,6 +4,22 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 
 public interface MessageConstants {
+    TranslatableComponent.Builder COMMAND_FLYSPEED_SUCCESS = Component.translatable().key("command.flyspeed.success");
+    TranslatableComponent.Builder COMMAND_WALKSPEED_SUCCESS = Component.translatable().key("command.walkspeed.success");
+    TranslatableComponent.Builder COMMAND_SUICIDE_SUCCESS = Component.translatable().key("command.suicide.success");
+    TranslatableComponent.Builder COMMAND_BURN_SUCCESS = Component.translatable().key("command.burn.success");
+    TranslatableComponent.Builder COMMAND_EXTINGUISH_SUCCESS = Component.translatable().key("command.extinguish.success");
+    TranslatableComponent.Builder COMMAND_SUDO_SUCCESS = Component.translatable().key("command.sudo.success");
+    TranslatableComponent.Builder COMMAND_LOOK_SUCCESS = Component.translatable().key("command.look.success");
+    TranslatableComponent.Builder COMMAND_TOPBLOCK_SUCCESS = Component.translatable().key("command.topblock.success");
+    TranslatableComponent.Builder COMMAND_TARGETS_EMPTY = Component.translatable().key("command.targets.empty");
+    TranslatableComponent.Builder COMMAND_SUDO_EMPTY = Component.translatable().key("command.sudo.empty");
+    TranslatableComponent.Builder COMMAND_SUDO_FAILURE = Component.translatable().key("command.sudo.failure");
+    TranslatableComponent.Builder COMMAND_TOPBLOCK_UNAVAILABLE = Component.translatable().key("command.topblock.unavailable");
+    TranslatableComponent.Builder COMMAND_TELEPORT_FAILURE = Component.translatable().key("command.teleport.failure");
+    TranslatableComponent.Builder COMMAND_LOOK_OPTIONS = Component.translatable().key("command.look.options");
+    TranslatableComponent.Builder COMMAND_LOOK_TARGET_MISSING = Component.translatable().key("command.look.target_missing");
+    TranslatableComponent.Builder COMMAND_LOOK_DIFFERENT_WORLD = Component.translatable().key("command.look.different_world");
     TranslatableComponent.Builder COMMAND_PLAYER_REQUIRED = Component.translatable().key("command.player.required");
     TranslatableComponent.Builder COMMAND_PLAYER_DEAD = Component.translatable().key("command.player.dead");
     TranslatableComponent.Builder COMMAND_WORKBENCH_SUCCESS = Component.translatable().key("command.workbench.success");

@@ -4,6 +4,23 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
+import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
+import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
+import net.momirealms.sparrow.plugin.command.feature.BurnCommand;
+import net.momirealms.sparrow.plugin.command.feature.ExtinguishCommand;
+import net.momirealms.sparrow.plugin.command.feature.SudoCommand;
+import net.momirealms.sparrow.plugin.command.feature.LookCommand;
+import org.incendo.cloud.bukkit.data.MultipleEntitySelector;
+import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
+import org.incendo.cloud.context.CommandContext;
+import org.bukkit.Location;
+import org.bukkit.World;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.Block;
+import net.momirealms.sparrow.plugin.command.feature.TopBlockCommand;
+import java.lang.reflect.Method;
+import java.util.Collection;
 import net.momirealms.sparrow.plugin.command.feature.AnvilCommand;
 import net.momirealms.sparrow.plugin.command.feature.CartographyTableCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeedCommand;
@@ -43,6 +60,8 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 class PlayerCommandsTest {
+    private SparrowPlugin plugin;
+    private final List<String> performed = new ArrayList<>();
     private Server previousServer;
     private CommandSender console;
     private final Map<String, Player> players = new LinkedHashMap<>();
@@ -64,7 +83,7 @@ class PlayerCommandsTest {
         serverField.set(null, server);
         Field field = Unsafe.class.getDeclaredField("theUnsafe");
         field.setAccessible(true);
-        SparrowPlugin plugin = (SparrowPlugin) ((Unsafe) field.get(null)).allocateInstance(SparrowPlugin.class);
+        this.plugin = (SparrowPlugin) ((Unsafe) field.get(null)).allocateInstance(SparrowPlugin.class);
         PlatformExecutor executor = (PlatformExecutor) Proxy.newProxyInstance(PlatformExecutor.class.getClassLoader(), new Class<?>[]{PlatformExecutor.class}, (instance, method, args) -> {
             if (method.getName().equals("run") && args.length == 3) {
                 this.tasks.add(new Scheduled((Entity) args[2], (Runnable) args[0]));
@@ -168,11 +187,151 @@ class PlayerCommandsTest {
         assertEquals("command.player.dead", this.commands.feedback.getLast());
     }
 
+    @Test
+    void speedBoundsAndSuicideUsePlayerScheduler() throws Exception {
+        for (CommandFeature feature : List.of(new FlySpeedCommand(this.commands, this.plugin), new WalkSpeedCommand(this.commands, this.plugin), new SuicideCommand(this.commands, this.plugin))) {
+            this.commands.registerFeature(feature, new CommandsConfig.ConfigDefinition().command(feature.getFeatureID()));
+        }
+        Player player = this.player("Tester");
+        player.setOp(true);
+        this.execute(player, "flyspeed -1");
+        assertEquals(0.1f, player.getFlySpeed());
+        this.drain();
+        assertEquals(-1.0f, player.getFlySpeed());
+        this.execute(this.console, "sparrow walkspeed 1 Tester");
+        this.drain();
+        assertEquals(1.0f, player.getWalkSpeed());
+        assertThrows(Exception.class, () -> this.execute(player, "flyspeed 1.01"));
+        assertThrows(Exception.class, () -> this.execute(player, "walkspeed -1.01"));
+        assertThrows(Exception.class, () -> this.execute(player, "walkspeed NaN"));
+        assertTrue(this.tasks.isEmpty());
+        this.execute(this.console, "flyspeed 0.5");
+        assertEquals("command.player.required", this.commands.feedback.getLast());
+        assertThrows(Exception.class, () -> this.execute(this.console, "suicide"));
+        this.execute(player, "sparrow suicide");
+        assertEquals(20.0, player.getHealth());
+        this.drain();
+        assertEquals(0.0, player.getHealth());
+    }
+
+    @Test
+    void burnAndExtinguishScheduleEverySelectedEntityAndRejectEmptySelection() throws Exception {
+        Player first = this.player("First");
+        Player second = this.player("Second");
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        MultipleEntitySelector selector = new MultipleEntitySelector() {
+            @Override public String inputString() { return "@a"; }
+            @Override public Collection<Entity> values() { return List.of(first, second); }
+        };
+        context.store("targets", selector);
+        context.store("time", 1200);
+        this.invoke(new BurnCommand(this.commands, this.plugin), context);
+        assertEquals(2, this.tasks.size());
+        assertEquals(0, first.getFireTicks());
+        this.drain();
+        assertEquals(1200, first.getFireTicks());
+        assertEquals(1200, second.getFireTicks());
+        this.invoke(new ExtinguishCommand(this.commands, this.plugin), context);
+        this.drain();
+        assertEquals(0, first.getFireTicks());
+        assertEquals(0, second.getFireTicks());
+        context.store("targets", new MultipleEntitySelector() {
+            @Override public String inputString() { return "@e"; }
+            @Override public Collection<Entity> values() { return List.of(); }
+        });
+        this.invoke(new BurnCommand(this.commands, this.plugin), context);
+        assertTrue(this.tasks.isEmpty());
+        assertEquals("command.targets.empty", this.commands.feedback.getLast());
+    }
+
+    @Test
+    void sudoKeepsArgumentsAndPlayerIdentityAndReportsDispatchFailure() throws Exception {
+        Player player = this.player("Tester");
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        context.store("targets", new MultiplePlayerSelector() {
+            @Override public String inputString() { return "Tester"; }
+            @Override public Collection<Player> values() { return List.of(player); }
+        });
+        context.store("command", "/say hello --flag value");
+        this.invoke(new SudoCommand(this.commands, this.plugin), context);
+        assertTrue(this.performed.isEmpty());
+        this.drain();
+        assertEquals(List.of("Tester:say hello --flag value"), this.performed);
+        assertFalse(player.isOp());
+        context.store("command", "missing");
+        this.invoke(new SudoCommand(this.commands, this.plugin), context);
+        this.drain();
+        assertEquals("command.sudo.failure", this.commands.feedback.getLast());
+    }
+
+    @Test
+    void lookUsesCorrectDiagonalAnglesAndRejectsCrossWorldTargets() throws Exception {
+        World world = (World) Proxy.newProxyInstance(World.class.getClassLoader(), new Class<?>[]{World.class}, (instance, method, args) -> method.getName().equals("equals") ? instance == args[0] : null);
+        Location location = new Location(world, 0, 64, 0, 0, 15);
+        Entity entity = (Entity) Proxy.newProxyInstance(Entity.class.getClassLoader(), new Class<?>[]{Entity.class}, (instance, method, args) -> switch (method.getName()) {
+            case "getLocation" -> location.clone();
+            case "getName" -> "Entity";
+            case "setRotation" -> { location.setYaw((float) args[0]); location.setPitch((float) args[1]); yield null; }
+            default -> throw new UnsupportedOperationException(method.getName());
+        });
+        LookCommand command = new LookCommand(this.commands, this.plugin);
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        this.invoke(command, context);
+        assertEquals("command.look.options", this.commands.feedback.getLast());
+        Method schedule = LookCommand.class.getDeclaredMethod("schedule", CommandContext.class, Collection.class, Location.class, BlockFace.class);
+        schedule.setAccessible(true);
+        schedule.invoke(command, context, List.of(entity), null, BlockFace.NORTH_EAST);
+        this.drain();
+        assertEquals(-135.0f, location.getYaw());
+        assertEquals(15.0f, location.getPitch());
+        schedule.invoke(command, context, List.of(entity), null, BlockFace.NORTH_WEST);
+        this.drain();
+        assertEquals(135.0f, location.getYaw());
+        schedule.invoke(command, context, List.of(entity), new Location(null, 1, 64, 0), null);
+        this.drain();
+        assertEquals("command.look.different_world", this.commands.feedback.getLast());
+    }
+
+    @Test
+    void topBlockRejectsDestinationWithoutHeadroomAtWorldLimit() throws Exception {
+        Block block = (Block) Proxy.newProxyInstance(Block.class.getClassLoader(), new Class<?>[]{Block.class}, (instance, method, args) -> switch (method.getName()) {
+            case "getY" -> 319;
+            case "isPassable" -> false;
+            default -> throw new UnsupportedOperationException(method.getName());
+        });
+        World world = (World) Proxy.newProxyInstance(World.class.getClassLoader(), new Class<?>[]{World.class}, (instance, method, args) -> switch (method.getName()) {
+            case "getHighestBlockAt" -> block;
+            case "getMinHeight" -> -64;
+            case "getMaxHeight" -> 320;
+            default -> throw new UnsupportedOperationException(method.getName());
+        });
+        Player player = (Player) Proxy.newProxyInstance(Player.class.getClassLoader(), new Class<?>[]{Player.class}, (instance, method, args) -> switch (method.getName()) {
+            case "getLocation" -> new Location(world, 5.25, 60, -3.75, 90, 20);
+            case "getHeight" -> 1.8;
+            case "hasPermission" -> true;
+            case "getName" -> "Tester";
+            default -> throw new UnsupportedOperationException(method.getName());
+        });
+        TopBlockCommand command = new TopBlockCommand(this.commands, this.plugin);
+        this.invoke(command, new CommandContext<>(player, this.commands.getCommandManager()));
+        assertSame(player, this.tasks.peekFirst().entity());
+        this.drain();
+        assertEquals("command.topblock.unavailable", this.commands.feedback.getLast());
+    }
+
+    private void invoke(BukkitCommandFeature command, CommandContext<CommandSender> context) throws Exception {
+        Method method = command.getClass().getDeclaredMethod("execute", CommandContext.class);
+        method.setAccessible(true);
+        method.invoke(command, context);
+    }
+
     private Player player(String name) {
         double[] health = {20.0};
         int[] food = {20};
         float[] saturation = {5.0f};
         boolean[] op = {false};
+        float[] speed = {0.1f, 0.2f};
+        int[] fire = {0};
         Player player = (Player) Proxy.newProxyInstance(Player.class.getClassLoader(), new Class<?>[]{Player.class}, (instance, method, args) -> switch (method.getName()) {
             case "getName", "toString" -> name;
             case "hasPermission", "isOp" -> op[0];
@@ -185,6 +344,13 @@ class PlayerCommandsTest {
             case "setSaturation" -> { saturation[0] = (float) args[0]; yield null; }
             case "isDead" -> health[0] == 0;
             case "canSee" -> true;
+            case "getFlySpeed" -> speed[0];
+            case "getWalkSpeed" -> speed[1];
+            case "setFlySpeed" -> { speed[0] = (float) args[0]; yield null; }
+            case "setWalkSpeed" -> { speed[1] = (float) args[0]; yield null; }
+            case "getFireTicks" -> fire[0];
+            case "setFireTicks" -> { fire[0] = (int) args[0]; yield null; }
+            case "performCommand" -> { this.performed.add(name + ":" + args[0]); yield !args[0].equals("missing"); }
             default -> throw new UnsupportedOperationException(method.getName());
         });
         this.players.put(name, player);

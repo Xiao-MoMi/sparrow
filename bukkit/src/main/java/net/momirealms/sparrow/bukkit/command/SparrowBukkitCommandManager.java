@@ -3,14 +3,7 @@ package net.momirealms.sparrow.bukkit.command;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.bukkit.SparrowBukkitPlugin;
-import net.momirealms.sparrow.bukkit.command.feature.player.LookAdminCommand;
-import net.momirealms.sparrow.bukkit.command.feature.player.LookPlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.container.*;
-import net.momirealms.sparrow.bukkit.command.feature.entity.BurnAdminCommand;
-import net.momirealms.sparrow.bukkit.command.feature.entity.ExtinguishAdminCommand;
-import net.momirealms.sparrow.bukkit.command.feature.entity.HealAdminCommand;
-import net.momirealms.sparrow.bukkit.command.feature.entity.HealPlayerCommand;
-import net.momirealms.sparrow.bukkit.command.feature.internal.ReloadAdminCommand;
 import net.momirealms.sparrow.bukkit.command.feature.item.*;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemCustomModelDataPlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemDisplayNamePlayerCommand;
@@ -45,54 +38,25 @@ import java.util.List;
 public final class SparrowBukkitCommandManager extends AbstractSparrowCommandManager<CommandSender> {
 
     private final List<CommandFeature<CommandSender>> FEATURES = List.of(
-            new WorkbenchPlayerCommand(this),
-            new WorkbenchAdminCommand(this),
-            new HealPlayerCommand(this),
-            new HealAdminCommand(this),
-            new SuicidePlayerCommand(this),
-            new AnvilPlayerCommand(this),
-            new AnvilAdminCommand(this),
             new EnderChestPlayerCommand(this),
             new EnderChestAdminCommand(this),
-            new GrindStonePlayerCommand(this),
-            new GrindStoneAdminCommand(this),
-            new SmithingTablePlayerCommand(this),
-            new SmithingTableAdminCommand(this),
-            new StoneCutterPlayerCommand(this),
-            new StoneCutterAdminCommand(this),
-            new CartographyTablePlayerCommand(this),
-            new CartographyTableAdminCommand(this),
-            new LoomPlayerCommand(this),
-            new LoomAdminCommand(this),
             new WorldAdminCommand(this),
             new WorldPlayerCommand(this),
-            new SudoAdminCommand(this),
             new FlyPlayerCommand(this),
             new FlyAdminCommand(this),
             new ActionBarAdminCommand(this),
             new EnchantAdminCommand(this),
             new ToastAdminCommand(this),
-            new FlySpeedAdminCommand(this),
-            new FlySpeedPlayerCommand(this),
-            new WalkSpeedAdminCommand(this),
-            new WalkSpeedPlayerCommand(this),
-            new FeedAdminCommand(this),
-            new FeedPlayerCommand(this),
             new TitleAdminCommand(this),
             new PatrolAdminCommand(this),
             new BroadcastAdminCommand(this),
             new ServerAdminCommand(this),
             new ServerPlayerCommand(this),
             new ColorPlayerCommand(this),
-            new ReloadAdminCommand(this),
             new DyePlayerCommand(this),
             new DyeAdminCommand(this),
             new TpOfflineAdminCommand(this),
             new TpOfflinePlayerCommand(this),
-            new TopBlockAdminCommand(this),
-            new TopBlockPlayerCommand(this),
-            new BurnAdminCommand(this),
-            new ExtinguishAdminCommand(this),
             new HeadAdminCommand(this),
             new URLHeadAdminCommand(this),
             new HeadPlayerCommand(this),
@@ -111,9 +75,7 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new ItemDataPlayerCommand(this),
             new ItemCustomModelDataPlayerCommand(this),
             new ItemDisplayNamePlayerCommand(this),
-            new ItemLorePlayerCommand(this),
-            new LookAdminCommand(this),
-            new LookPlayerCommand(this)
+            new ItemLorePlayerCommand(this)
     );
 
     private final Index<String, CommandFeature<CommandSender>> INDEX = Index.create(CommandFeature::getFeatureID, FEATURES);
