@@ -102,13 +102,15 @@ public final class CommandsConfig {
         CommandConfig grindstone = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"), DependencyVersions.PROJECT_ID + ".command.grindstone");
 
         @BlankLineBefore
-        CommandConfig smithingtable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " smithingtable", "/smithingtable"), DependencyVersions.PROJECT_ID + ".command.smithingtable");
+        @YamlProperty("smithing-table")
+        CommandConfig smithingTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " smithing-table", "/smithing-table"), DependencyVersions.PROJECT_ID + ".command.smithing-table");
 
         @BlankLineBefore
         CommandConfig stonecutter = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " stonecutter", "/stonecutter"), DependencyVersions.PROJECT_ID + ".command.stonecutter");
 
         @BlankLineBefore
-        CommandConfig cartographytable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " cartographytable", "/cartographytable"), DependencyVersions.PROJECT_ID + ".command.cartographytable");
+        @YamlProperty("cartography-table")
+        CommandConfig cartographyTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " cartography-table", "/cartography-table"), DependencyVersions.PROJECT_ID + ".command.cartography-table");
 
         @BlankLineBefore
         CommandConfig loom = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " loom", "/loom"), DependencyVersions.PROJECT_ID + ".command.loom");
@@ -120,10 +122,12 @@ public final class CommandsConfig {
         CommandConfig feed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " feed", "/feed"), DependencyVersions.PROJECT_ID + ".command.feed");
 
         @BlankLineBefore
-        CommandConfig flyspeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " flyspeed", "/flyspeed"), DependencyVersions.PROJECT_ID + ".command.flyspeed");
+        @YamlProperty("fly-speed")
+        CommandConfig flySpeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " fly-speed", "/fly-speed"), DependencyVersions.PROJECT_ID + ".command.fly-speed");
 
         @BlankLineBefore
-        CommandConfig walkspeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " walkspeed", "/walkspeed"), DependencyVersions.PROJECT_ID + ".command.walkspeed");
+        @YamlProperty("walk-speed")
+        CommandConfig walkSpeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " walk-speed", "/walk-speed"), DependencyVersions.PROJECT_ID + ".command.walk-speed");
 
         @BlankLineBefore
         CommandConfig suicide = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " suicide", "/suicide"), DependencyVersions.PROJECT_ID + ".command.suicide");
@@ -141,7 +145,27 @@ public final class CommandsConfig {
         CommandConfig look = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " look", "/look"), DependencyVersions.PROJECT_ID + ".command.look");
 
         @BlankLineBefore
-        CommandConfig topblock = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " topblock", "/topblock"), DependencyVersions.PROJECT_ID + ".command.topblock");
+        @YamlProperty("top-block")
+        CommandConfig topBlock = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " top-block", "/top-block"), DependencyVersions.PROJECT_ID + ".command.top-block");
+
+        @BlankLineBefore
+        CommandConfig actionbar = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " actionbar", "/actionbar"), DependencyVersions.PROJECT_ID + ".command.actionbar");
+
+        @BlankLineBefore
+        CommandConfig broadcast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " broadcast", "/broadcast"), DependencyVersions.PROJECT_ID + ".command.broadcast");
+
+        @BlankLineBefore
+        CommandConfig title = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " title", "/title"), DependencyVersions.PROJECT_ID + ".command.title");
+
+        @BlankLineBefore
+        @YamlProperty("totem-animation")
+        CommandConfig totemAnimation = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " totem-animation", "/totem-animation"), DependencyVersions.PROJECT_ID + ".command.totem-animation");
+
+        @BlankLineBefore
+        CommandConfig demo = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " demo", "/demo"), DependencyVersions.PROJECT_ID + ".command.demo");
+
+        @BlankLineBefore
+        CommandConfig credits = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " credits", "/credits"), DependencyVersions.PROJECT_ID + ".command.credits");
 
         /**
          * 返回指定内置 Feature 的命令配置.
@@ -154,20 +178,26 @@ public final class CommandsConfig {
         public CommandConfig command(@NotNull String featureID) {
             return switch (featureID) {
                 case "reload" -> this.reload;
-                case "flyspeed" -> this.flyspeed;
-                case "walkspeed" -> this.walkspeed;
+                case "actionbar" -> this.actionbar;
+                case "broadcast" -> this.broadcast;
+                case "title" -> this.title;
+                case "totem-animation" -> this.totemAnimation;
+                case "demo" -> this.demo;
+                case "credits" -> this.credits;
+                case "fly-speed" -> this.flySpeed;
+                case "walk-speed" -> this.walkSpeed;
                 case "suicide" -> this.suicide;
                 case "burn" -> this.burn;
                 case "extinguish" -> this.extinguish;
                 case "sudo" -> this.sudo;
                 case "look" -> this.look;
-                case "topblock" -> this.topblock;
+                case "top-block" -> this.topBlock;
                 case "workbench" -> this.workbench;
                 case "anvil" -> this.anvil;
                 case "grindstone" -> this.grindstone;
-                case "smithingtable" -> this.smithingtable;
+                case "smithing-table" -> this.smithingTable;
                 case "stonecutter" -> this.stonecutter;
-                case "cartographytable" -> this.cartographytable;
+                case "cartography-table" -> this.cartographyTable;
                 case "loom" -> this.loom;
                 case "heal" -> this.heal;
                 case "feed" -> this.feed;

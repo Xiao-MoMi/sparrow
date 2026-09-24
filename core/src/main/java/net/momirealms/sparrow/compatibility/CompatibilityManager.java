@@ -5,6 +5,9 @@ import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.entity.Player;
+import me.clip.placeholderapi.PlaceholderAPI;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class CompatibilityManager {
@@ -33,6 +36,11 @@ public final class CompatibilityManager {
 
     public boolean hasPlugin(String plugin) {
         return this.getPlugin(plugin) != null;
+    }
+
+    @NotNull
+    public String parsePlaceholders(@NotNull Player player, @NotNull String text) {
+        return this.hasPlaceholderAPI ? PlaceholderAPI.setPlaceholders(player, text) : text;
     }
 
     private @Nullable Plugin getPlugin(String name) {

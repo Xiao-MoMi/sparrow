@@ -31,13 +31,13 @@ public final class CartographyTableCommand extends BukkitCommandFeature {
         }
         this.plugin().scheduler().platform().run(() -> {
             player.openCartographyTable(null, true);
-            this.handleFeedback(context, MessageConstants.COMMAND_CARTOGRAPHYTABLE_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS, Component.text(player.getName()));
         }, () -> {}, player);
     }
 
     @Override
     public String getFeatureID() {
-        return "cartographytable";
+        return "cartography-table";
     }
 }
 

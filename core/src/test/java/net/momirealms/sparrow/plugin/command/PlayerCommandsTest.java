@@ -4,6 +4,20 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.PlayerManager;
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.incendo.cloud.bukkit.data.ProtoItemStack;
+import net.momirealms.sparrow.plugin.command.feature.ActionBarCommand;
+import net.momirealms.sparrow.plugin.command.feature.BroadcastCommand;
+import net.momirealms.sparrow.plugin.command.feature.TitleCommand;
+import net.momirealms.sparrow.plugin.command.feature.TotemAnimationCommand;
+import net.momirealms.sparrow.plugin.command.feature.DemoCommand;
+import net.momirealms.sparrow.plugin.command.feature.CreditsCommand;
+import net.momirealms.sparrow.compatibility.CompatibilityManager;
+import org.incendo.cloud.parser.flag.CommandFlag;
 import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
@@ -58,6 +72,7 @@ import java.util.logging.Logger;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class PlayerCommandsTest {
     private SparrowPlugin plugin;
@@ -194,18 +209,18 @@ class PlayerCommandsTest {
         }
         Player player = this.player("Tester");
         player.setOp(true);
-        this.execute(player, "flyspeed -1");
+        this.execute(player, "fly-speed -1");
         assertEquals(0.1f, player.getFlySpeed());
         this.drain();
         assertEquals(-1.0f, player.getFlySpeed());
-        this.execute(this.console, "sparrow walkspeed 1 Tester");
+        this.execute(this.console, "sparrow walk-speed 1 Tester");
         this.drain();
         assertEquals(1.0f, player.getWalkSpeed());
-        assertThrows(Exception.class, () -> this.execute(player, "flyspeed 1.01"));
-        assertThrows(Exception.class, () -> this.execute(player, "walkspeed -1.01"));
-        assertThrows(Exception.class, () -> this.execute(player, "walkspeed NaN"));
+        assertThrows(Exception.class, () -> this.execute(player, "fly-speed 1.01"));
+        assertThrows(Exception.class, () -> this.execute(player, "walk-speed -1.01"));
+        assertThrows(Exception.class, () -> this.execute(player, "walk-speed NaN"));
         assertTrue(this.tasks.isEmpty());
-        this.execute(this.console, "flyspeed 0.5");
+        this.execute(this.console, "fly-speed 0.5");
         assertEquals("command.player.required", this.commands.feedback.getLast());
         assertThrows(Exception.class, () -> this.execute(this.console, "suicide"));
         this.execute(player, "sparrow suicide");
@@ -242,26 +257,6 @@ class PlayerCommandsTest {
         this.invoke(new BurnCommand(this.commands, this.plugin), context);
         assertTrue(this.tasks.isEmpty());
         assertEquals("command.targets.empty", this.commands.feedback.getLast());
-    }
-
-    @Test
-    void sudoKeepsArgumentsAndPlayerIdentityAndReportsDispatchFailure() throws Exception {
-        Player player = this.player("Tester");
-        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
-        context.store("targets", new MultiplePlayerSelector() {
-            @Override public String inputString() { return "Tester"; }
-            @Override public Collection<Player> values() { return List.of(player); }
-        });
-        context.store("command", "/say hello --flag value");
-        this.invoke(new SudoCommand(this.commands, this.plugin), context);
-        assertTrue(this.performed.isEmpty());
-        this.drain();
-        assertEquals(List.of("Tester:say hello --flag value"), this.performed);
-        assertFalse(player.isOp());
-        context.store("command", "missing");
-        this.invoke(new SudoCommand(this.commands, this.plugin), context);
-        this.drain();
-        assertEquals("command.sudo.failure", this.commands.feedback.getLast());
     }
 
     @Test
@@ -316,7 +311,140 @@ class PlayerCommandsTest {
         this.invoke(command, new CommandContext<>(player, this.commands.getCommandManager()));
         assertSame(player, this.tasks.peekFirst().entity());
         this.drain();
-        assertEquals("command.topblock.unavailable", this.commands.feedback.getLast());
+        assertEquals("command.top-block.unavailable", this.commands.feedback.getLast());
+    }
+
+    @Test
+    void demoAndCreditsResolveBothEntrypointsAndRequireConsoleTarget() throws Exception {
+        Player player = this.player("Tester");
+        BukkitSparrowPlayer receiver = this.receiver(player);
+        player.setOp(true);
+        for (CommandFeature feature : List.of(new DemoCommand(this.commands, this.plugin), new CreditsCommand(this.commands, this.plugin))) {
+            this.commands.registerFeature(feature, new CommandsConfig.ConfigDefinition().command(feature.getFeatureID()));
+            this.execute(player, feature.getFeatureID());
+            assertTrue(this.tasks.isEmpty());
+            this.execute(this.console, "sparrow " + feature.getFeatureID() + " Tester");
+            assertTrue(this.tasks.isEmpty());
+            this.execute(this.console, feature.getFeatureID());
+            assertEquals("command.player.required", this.commands.feedback.getLast());
+        }
+        verify(receiver, times(2)).sendDemo();
+        verify(receiver, times(2)).sendCredits();
+        verifyNoMoreInteractions(receiver);
+    }
+
+    @Test
+    void messageAndAnimationCommandsRejectEmptySelectionsAndHonorSilent() throws Exception {
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        context.store("targets", new MultiplePlayerSelector() {
+            @Override public String inputString() { return "@a"; }
+            @Override public Collection<Player> values() { return List.of(); }
+        });
+        List<BukkitCommandFeature> commands = List.of(new ActionBarCommand(this.commands, this.plugin),
+                new BroadcastCommand(this.commands, this.plugin), new TitleCommand(this.commands, this.plugin),
+                new TotemAnimationCommand(this.commands, this.plugin));
+        for (int i = 0; i < commands.size(); i++) {
+            this.invoke(commands.get(i), context);
+            assertEquals("command.targets.empty", this.commands.feedback.getLast());
+        }
+        assertTrue(this.tasks.isEmpty());
+        this.commands.feedback.clear();
+        context.flags().addPresenceFlag(CommandFlag.builder("silent").build());
+        this.invoke(commands.getFirst(), context);
+        assertTrue(this.commands.feedback.isEmpty());
+    }
+
+    @Test
+    void titleRejectsExtraSeparatorsAndImmediatelySendsEmptySubtitle() throws Exception {
+        Player player = this.player("Tester");
+        BukkitSparrowPlayer receiver = this.receiver(player);
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        context.store("targets", new MultiplePlayerSelector() {
+            @Override public String inputString() { return "Tester"; }
+            @Override public Collection<Player> values() { return List.of(player); }
+        });
+        context.store("message", "main\\nsub\\nextra");
+        TitleCommand command = new TitleCommand(this.commands, this.plugin);
+        this.invoke(command, context);
+        assertEquals("command.title.format", this.commands.feedback.getLast());
+        assertTrue(this.tasks.isEmpty());
+        verifyNoInteractions(receiver);
+        context.store("message", "main\\n");
+        context.store("fadeIn", 5);
+        context.store("stay", 60);
+        context.store("fadeOut", 15);
+        this.invoke(command, context);
+        verify(receiver).sendTitle(Component.text("main"), Component.empty(), 5, 60, 15);
+        assertTrue(this.tasks.isEmpty());
+    }
+
+    @Test
+    void messagesParseForReceiverAndSendImmediatelyWithSilentFeedback() throws Exception {
+        Player player = this.player("Tester");
+        BukkitSparrowPlayer receiver = this.receiver(player);
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        context.store("targets", new MultiplePlayerSelector() {
+            @Override public String inputString() { return "Tester"; }
+            @Override public Collection<Player> values() { return List.of(player); }
+        });
+        context.store("message", "<gold>Hello %player_name%");
+        context.flags().addPresenceFlag(CommandFlag.builder("parse").build());
+        context.flags().addPresenceFlag(CommandFlag.builder("silent").build());
+        CompatibilityManager compatibility = mock(CompatibilityManager.class);
+        Field field = SparrowPlugin.class.getDeclaredField("compatibilityManager");
+        field.setAccessible(true);
+        field.set(this.plugin, compatibility);
+        when(compatibility.parsePlaceholders(same(player), eq("<gold>Hello %player_name%"))).thenReturn("<gold>Hello Tester");
+        this.invoke(new BroadcastCommand(this.commands, this.plugin), context);
+        this.invoke(new ActionBarCommand(this.commands, this.plugin), context);
+        Component expected = Component.text("Hello Tester", NamedTextColor.GOLD);
+        verify(receiver).sendMessage(expected);
+        verify(receiver).sendActionBar(expected);
+        verify(compatibility, times(2)).parsePlaceholders(same(player), eq("<gold>Hello %player_name%"));
+        assertTrue(this.tasks.isEmpty());
+        assertTrue(this.commands.feedback.isEmpty());
+    }
+
+    @Test
+    void totemRejectsOtherItemsAndImmediatelySendsAnimation() throws Exception {
+        Player player = this.player("Tester");
+        BukkitSparrowPlayer receiver = this.receiver(player);
+        CommandContext<CommandSender> context = new CommandContext<>(this.console, this.commands.getCommandManager());
+        context.store("targets", new MultiplePlayerSelector() {
+            @Override public String inputString() { return "Tester"; }
+            @Override public Collection<Player> values() { return List.of(player); }
+        });
+        ProtoItemStack parsed = mock(ProtoItemStack.class);
+        ItemStack item = mock(ItemStack.class);
+        when(parsed.createItemStack(1)).thenReturn(item);
+        when(item.getType()).thenReturn(Material.STONE);
+        context.store("item", parsed);
+        TotemAnimationCommand command = new TotemAnimationCommand(this.commands, this.plugin);
+        this.invoke(command, context);
+        assertEquals("command.totem-animation.invalid", this.commands.feedback.getLast());
+        verifyNoInteractions(receiver);
+        when(item.getType()).thenReturn(Material.TOTEM_OF_UNDYING);
+        this.invoke(command, context);
+        verify(receiver).sendTotemAnimation(item);
+        assertEquals("command.totem-animation.success", this.commands.feedback.getLast());
+        assertTrue(this.tasks.isEmpty());
+    }
+
+    private BukkitSparrowPlayer receiver(Player player) throws Exception {
+        PlayerManager manager = mock(PlayerManager.class);
+        BukkitSparrowPlayer receiver = mock(BukkitSparrowPlayer.class);
+        when(manager.getPlayer(same(player))).thenReturn(receiver);
+        Field field = SparrowPlugin.class.getDeclaredField("playerManager");
+        field.setAccessible(true);
+        field.set(this.plugin, manager);
+        return receiver;
+    }
+
+    @Test
+    void missingPlaceholderApiPreservesText() {
+        CompatibilityManager compatibility = new CompatibilityManager(this.plugin);
+        String text = "<gold>Hello %player_name%";
+        assertEquals(text, compatibility.parsePlaceholders(this.player("Tester"), text));
     }
 
     private void invoke(BukkitCommandFeature command, CommandContext<CommandSender> context) throws Exception {

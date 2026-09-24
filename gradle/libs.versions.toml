@@ -22,6 +22,7 @@ jar-relocator = "1.7"
 
 # Common
 caffeine = "3.2.3"
+placeholderapi = "2.12.3"
 
 # Command
 geantyref = "2.0.1"
@@ -63,6 +64,7 @@ reactor = "3.8.5"
 # Test
 junit = "6.0.1"
 mockbukkit = "4.93.0"
+mockito = "5.22.0"
 
 [plugins]
 # Build
@@ -74,6 +76,7 @@ run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-task" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
 
 [libraries]
+placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
 # Platform
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "datafixerupper" }
@@ -132,6 +135,7 @@ junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platformLauncher = { module = "org.junit.platform:junit-platform-launcher" }
 mockbukkit = { module = "org.mockbukkit.mockbukkit:mockbukkit-v1.21", version.ref = "mockbukkit" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 test-paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 
 [bundles]

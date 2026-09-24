@@ -35,12 +35,12 @@ public final class WalkSpeedCommand extends BukkitCommandFeature {
         float speed = context.get("speed");
         this.plugin().scheduler().platform().run(() -> {
             player.setWalkSpeed(speed);
-            this.handleFeedback(context, MessageConstants.COMMAND_WALKSPEED_SUCCESS, Component.text(player.getName()), Component.text(speed));
+            this.handleFeedback(context, MessageConstants.COMMAND_WALK_SPEED_SUCCESS, Component.text(player.getName()), Component.text(speed));
         }, () -> {}, player);
     }
 
     @Override
     public String getFeatureID() {
-        return "walkspeed";
+        return "walk-speed";
     }
 }

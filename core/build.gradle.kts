@@ -29,6 +29,7 @@ dependencies {
     compileOnly(libs.cloud.core)
     compileOnly(libs.cloud.paper)
     compileOnly(libs.cloud.minecraft.extras)
+    compileOnly(libs.placeholderapi)
 
     compileOnly(libs.bundles.adventure)
     implementation(libs.bundles.sparrow.nbt)
@@ -49,6 +50,7 @@ dependencies {
     testImplementation(libs.cloud.bukkit)
     testRuntimeOnly(libs.cloud.minecraft.extras)
     testImplementation(libs.mockbukkit)
+    testImplementation(libs.mockito.core)
     testImplementation(libs.test.paper.api)
     testImplementation(libs.mongodb.driver.sync)
     testImplementation(libs.jdbi.core)

@@ -45,6 +45,7 @@ subprojects {
         maven("https://repo.momirealms.net/releases/")
         maven("https://repo.momirealms.net/snapshots/")
         maven("https://repo.papermc.io/repository/maven-public/")
+        maven("https://repo.extendedclip.com/releases/")
     }
 
     dependencies {

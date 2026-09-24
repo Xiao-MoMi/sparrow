@@ -31,13 +31,13 @@ public final class SmithingTableCommand extends BukkitCommandFeature {
         }
         this.plugin().scheduler().platform().run(() -> {
             player.openSmithingTable(null, true);
-            this.handleFeedback(context, MessageConstants.COMMAND_SMITHINGTABLE_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, MessageConstants.COMMAND_SMITHING_TABLE_SUCCESS, Component.text(player.getName()));
         }, () -> {}, player);
     }
 
     @Override
     public String getFeatureID() {
-        return "smithingtable";
+        return "smithing-table";
     }
 }
 

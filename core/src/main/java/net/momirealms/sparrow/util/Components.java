@@ -24,6 +24,10 @@ public final class Components {
         return MiniMessage.miniMessage().deserialize(miniMessage);
     }
 
+    public static Component miniMessage(String text, boolean legacy) {
+        return miniMessage(legacy ? AdventureHelper.legacyToMiniMessage(text) : text);
+    }
+
     public static Component miniMessage(String miniMessage, TagResolver... resolvers) {
         return MiniMessage.miniMessage().deserialize(miniMessage, resolvers);
     }

@@ -3,6 +3,12 @@ package net.momirealms.sparrow.plugin.command;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
+import net.momirealms.sparrow.plugin.command.feature.ActionBarCommand;
+import net.momirealms.sparrow.plugin.command.feature.BroadcastCommand;
+import net.momirealms.sparrow.plugin.command.feature.TitleCommand;
+import net.momirealms.sparrow.plugin.command.feature.TotemAnimationCommand;
+import net.momirealms.sparrow.plugin.command.feature.DemoCommand;
+import net.momirealms.sparrow.plugin.command.feature.CreditsCommand;
 import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
@@ -49,27 +55,33 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         // 初始化命令索引
         this.plugin = plugin;
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
-                new ReloadCommand(this, plugin),
-                new FlySpeedCommand(this, plugin),
-                new WalkSpeedCommand(this, plugin),
-                new SuicideCommand(this, plugin),
+                new AnvilCommand(this, plugin),
+                new ActionBarCommand(this, plugin),
+                new CreditsCommand(this, plugin),
+                new CartographyTableCommand(this, plugin),
+                new BroadcastCommand(this, plugin),
                 new BurnCommand(this, plugin),
+                new DemoCommand(this, plugin),
                 new ExtinguishCommand(this, plugin),
-                new SudoCommand(this, plugin),
-                new LookCommand(this, plugin),
-                new TopBlockCommand(this, plugin),
                 new FeatureEnableCommand(this, plugin),
                 new FeatureDisableCommand(this, plugin),
                 new FeatureListCommand(this, plugin),
-                new WorkbenchCommand(this, plugin),
-                new AnvilCommand(this, plugin),
+                new FeedCommand(this, plugin),
+                new FlySpeedCommand(this, plugin),
                 new GrindstoneCommand(this, plugin),
-                new SmithingTableCommand(this, plugin),
-                new StonecutterCommand(this, plugin),
-                new CartographyTableCommand(this, plugin),
-                new LoomCommand(this, plugin),
                 new HealCommand(this, plugin),
-                new FeedCommand(this, plugin)
+                new LookCommand(this, plugin),
+                new LoomCommand(this, plugin),
+                new ReloadCommand(this, plugin),
+                new StonecutterCommand(this, plugin),
+                new SuicideCommand(this, plugin),
+                new SudoCommand(this, plugin),
+                new SmithingTableCommand(this, plugin),
+                new TitleCommand(this, plugin),
+                new TotemAnimationCommand(this, plugin),
+                new TopBlockCommand(this, plugin),
+                new WalkSpeedCommand(this, plugin),
+                new WorkbenchCommand(this, plugin)
         ));
         final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
         // 开启 ALLOW_UNSAFE_REGISTRATION, 以允许在部分运行环境中完成命令注册.

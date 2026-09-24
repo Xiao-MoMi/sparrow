@@ -3,6 +3,7 @@ package net.momirealms.sparrow.player;
 import io.netty.channel.ChannelHandler;
 import net.momirealms.sparrow.network.NetworkUser;
 import net.kyori.adventure.text.Component;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Locale;
@@ -69,4 +70,24 @@ public abstract class SparrowPlayer extends NetworkUser {
     public void sendActionBar(@NotNull Component message) {
         this.sendMessage(message, true);
     }
+
+    /**
+     * 发送主副标题及以 tick 计的显示时间, 空组件会清除对应旧文本.
+     */
+    public abstract void sendTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut);
+
+    /**
+     * 使用指定图腾播放客户端动画, 不消耗物品或写入服务器背包.
+     */
+    public abstract void sendTotemAnimation(@NotNull ItemStack totem);
+
+    /**
+     * 显示演示版介绍界面, 不改变服务器游戏模式.
+     */
+    public abstract void sendDemo();
+
+    /**
+     * 显示终末之诗与制作人员界面, 不修改通关记录.
+     */
+    public abstract void sendCredits();
 }

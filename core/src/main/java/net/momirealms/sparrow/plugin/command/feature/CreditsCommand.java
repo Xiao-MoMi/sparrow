@@ -10,19 +10,16 @@ import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
-import org.incendo.cloud.parser.standard.FloatParser;
 import org.jetbrains.annotations.NotNull;
 
-public final class FlySpeedCommand extends BukkitCommandFeature {
-    public FlySpeedCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
+public final class CreditsCommand extends BukkitCommandFeature {
+    public CreditsCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
 
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder
-                .required("speed", FloatParser.floatParser(-1, 1))
-                .optional("player", PlayerParser.playerParser())
+        return builder.optional("player", PlayerParser.playerParser())
                 .handler(this::execute);
     }
 
@@ -32,15 +29,13 @@ public final class FlySpeedCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;
         }
-        float speed = context.get("speed");
-        this.plugin().scheduler().platform().run(() -> {
-            player.setFlySpeed(speed);
-            this.handleFeedback(context, MessageConstants.COMMAND_FLY_SPEED_SUCCESS, Component.text(player.getName()), Component.text(speed));
-        }, () -> {}, player);
+
+        this.plugin().playerManager().getPlayer(player).sendCredits();
+        this.handleFeedback(context, MessageConstants.COMMAND_CREDITS_SUCCESS, Component.text(player.getName()));
     }
 
     @Override
     public String getFeatureID() {
-        return "fly-speed";
+        return "credits";
     }
 }

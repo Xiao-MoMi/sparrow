@@ -56,7 +56,7 @@ public final class TopBlockCommand extends BukkitCommandFeature {
                         || !world.getBlockAt(location.getBlockX(), y, location.getBlockZ()).isPassable()
                         || !world.getBlockAt(location.getBlockX(), y + 1, location.getBlockZ()).isPassable()
                         || block.isEmpty()) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_TOPBLOCK_UNAVAILABLE, Component.text(entity.getName()));
+                    this.handleFeedback(context, MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE, Component.text(entity.getName()));
                     return;
                 }
                 location.setY(y);
@@ -65,7 +65,7 @@ public final class TopBlockCommand extends BukkitCommandFeature {
                     if (error != null) {
                         this.plugin().logger().warn("Failed to teleport " + name + " to the highest block", error);
                     }
-                    this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_TOPBLOCK_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
+                    this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
                 });
             }, () -> {}, entity);
         }
@@ -73,6 +73,6 @@ public final class TopBlockCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "topblock";
+        return "top-block";
     }
 }
