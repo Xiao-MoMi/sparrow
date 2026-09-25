@@ -4,6 +4,17 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 
 public interface MessageConstants {
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_TIP = Component.translatable().key("command.highlight.tip");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_FIRST = Component.translatable().key("command.highlight.first");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_WORLD = Component.translatable().key("command.highlight.world");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_PEACEFUL = Component.translatable().key("command.highlight.peaceful");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_TOO_LARGE = Component.translatable().key("command.highlight.too_large");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_HEIGHT = Component.translatable().key("command.highlight.height");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_SUCCESS = Component.translatable().key("command.highlight.success");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_FAILURE = Component.translatable().key("command.highlight.failure");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_TIMEOUT = Component.translatable().key("command.highlight.timeout");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_CANCELLED = Component.translatable().key("command.highlight.cancelled");
+    TranslatableComponent.Builder COMMAND_HIGHLIGHT_POINTS = Component.translatable().key("command.highlight.points");
     TranslatableComponent.Builder COMMAND_ACTIONBAR_SUCCESS = Component.translatable().key("command.actionbar.success");
     TranslatableComponent.Builder COMMAND_BROADCAST_SUCCESS = Component.translatable().key("command.broadcast.success");
     TranslatableComponent.Builder COMMAND_TOAST_SUCCESS = Component.translatable().key("command.toast.success");

@@ -32,3 +32,5 @@ build
 /run/
 /target/
 /.kotlin/
+/core/logs/
+/logs/

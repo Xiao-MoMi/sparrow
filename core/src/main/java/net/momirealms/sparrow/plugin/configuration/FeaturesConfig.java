@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.configuration;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
@@ -95,6 +96,16 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "使用 /server 把玩家送到其他后端服务器.")
         private ServerSettings server = new ServerSettings();
 
+        @BlankLineBefore
+        @Comment("Select a region and show glowing block outlines to players.")
+        @Comment(lang = "zh", value = "选择区域并向玩家显示方块发光轮廓.")
+        private HighlightSettings highlight = new HighlightSettings();
+
+        @NotNull
+        public HighlightSettings highlight() {
+            return this.highlight;
+        }
+
         @NotNull
         public QuickShulkerSettings quickShulker() {
             return this.quickShulker;
@@ -117,6 +128,7 @@ public final class FeaturesConfig {
                 case "quick-shulker" -> this.quickShulker;
                 case "patrol" -> this.patrol;
                 case "server" -> this.server;
+                case "highlight" -> this.highlight;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

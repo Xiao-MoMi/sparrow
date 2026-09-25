@@ -174,6 +174,9 @@ public final class CommandsConfig {
         CommandConfig patrol = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " patrol", "/patrol"), DependencyVersions.PROJECT_ID + ".command.patrol");
 
         @BlankLineBefore
+        CommandConfig highlight = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " highlight", "/highlight"), DependencyVersions.PROJECT_ID + ".command.highlight");
+
+        @BlankLineBefore
         CommandConfig server = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"), DependencyVersions.PROJECT_ID + ".command.server");
 
         @BlankLineBefore
@@ -206,6 +209,7 @@ public final class CommandsConfig {
                 case "demo" -> this.demo;
                 case "credits" -> this.credits;
                 case "patrol" -> this.patrol;
+                case "highlight" -> this.highlight;
                 case "server" -> this.server;
                 case "enchant" -> this.enchant;
                 case "enchantment-table" -> this.enchantmentTable;

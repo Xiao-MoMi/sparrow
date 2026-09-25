@@ -1,8 +1,6 @@
 package net.momirealms.sparrow.bukkit;
 
 import net.momirealms.sparrow.heart.SparrowHeart;
-import net.momirealms.sparrow.heart.feature.color.NamedTextColor;
-import net.momirealms.sparrow.heart.feature.highlight.HighlightBlocks;
 import net.momirealms.sparrow.heart.feature.inventory.HandSlot;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -44,13 +42,6 @@ public class SparrowNMSProxy {
         requireNonNull(player, "player");
         requireNonNull(slot, "slot");
         heart.swingHand(player, slot);
-    }
-
-    public HighlightBlocks highlightBlocks(Player player, NamedTextColor color, Location... locations) {
-        requireNonNull(player, "player");
-        requireNonNull(color, "color");
-        requireNonNull(locations, "locations");
-        return heart.highlightBlocks(player, color, locations);
     }
 
     public void sendDebugMarker(Player player, Location location, String message, int duration, int color) {

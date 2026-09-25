@@ -223,3 +223,16 @@ log.translation.directory_failed: 'Failed to load translation files from the tra
 log.translation.invalid_file: 'Invalid translation file: <arg:0>'
 log.translation.locale_missing: 'translations/<arg:0>.yml does not exist; using <arg:1>.yml as the default locale.'
 log.translation.read_failed: 'Failed to read translation file: <arg:0>'
+
+# command.highlight
+command.highlight.tip: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Left-click to use your position, or right-click a block. Select two points; run the command again to cancel.</color>'
+command.highlight.first: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>First point: <arg:0>, <arg:1>, <arg:2>.</color>'
+command.highlight.world: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Select two points in the same world. Console must specify --world.</color>'
+command.highlight.too_large: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The selection may contain at most <arg:0> blocks, including both endpoints.</color>'
+command.highlight.height: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The selection exceeds the world height limits.</color>'
+command.highlight.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Showing the highlight to <arg:0>.</color>'
+command.highlight.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Could not create the highlight. See the server log.</color>'
+command.highlight.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Highlight selection timed out.</color>'
+command.highlight.cancelled: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Highlight selection cancelled.</color>'
+command.highlight.points: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Specify both --from x y z and --to x y z, or omit both to select interactively.</color>'
+command.highlight.peaceful: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Highlight is unavailable while the selected world is in Peaceful difficulty.</color>'

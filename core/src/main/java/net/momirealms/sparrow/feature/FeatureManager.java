@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature;
 
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
+import net.momirealms.sparrow.feature.highlight.HighlightFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
 import net.momirealms.sparrow.feature.server.ServerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -31,6 +32,7 @@ public final class FeatureManager {
         this.features.put(QuickShulkerFeature.ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
         this.features.put(PatrolFeature.ID, new PatrolFeature(plugin.javaPlugin(), this.config));
         this.features.put(ServerFeature.ID, new ServerFeature(this.config));
+        this.features.put(HighlightFeature.ID, new HighlightFeature(plugin));
     }
 
     public void onEnable() {
