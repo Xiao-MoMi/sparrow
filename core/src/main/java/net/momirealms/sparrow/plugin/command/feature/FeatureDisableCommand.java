@@ -9,7 +9,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
@@ -73,20 +72,11 @@ public final class FeatureDisableCommand extends BukkitCommandFeature {
         if (error != null) {
             Throwable cause = error instanceof CompletionException ? error.getCause() : error;
             this.plugin().logger().warn("Failed to switch feature " + id, cause);
+            this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_FAILURE, Component.text(id));
+            return;
         }
-        Runnable feedback = () -> {
-            if (error != null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_FAILURE, Component.text(id));
-            } else {
-                this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_SUCCESS,
-                        Component.text(id), Component.translatable("feature.state." + state.name().toLowerCase(Locale.ROOT)));
-            }
-        };
-        if (context.sender() instanceof Player player) {
-            this.plugin().scheduler().platform().run(feedback, () -> {}, player);
-        } else {
-            feedback.run();
-        }
+        this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_SUCCESS,
+                Component.text(id), Component.translatable("feature.state." + state.name().toLowerCase(Locale.ROOT)));
     }
 
     @Override

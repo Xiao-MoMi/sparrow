@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.incendo.cloud.Command;
+import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
@@ -28,7 +29,9 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     public ServerCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
-        this.parser = new ServerParser<>(plugin.javaPlugin(), server -> this.feature().allowed(server));
+        var cloudManager = commandManager.getCommandManager();
+        boolean asynchronousCompletion = cloudManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) || cloudManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION);
+        this.parser = new ServerParser<>(plugin.javaPlugin(), server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server), asynchronousCompletion);
     }
 
     // 查询和切服共用 BungeeCord 通道, 随命令注册与注销
@@ -56,7 +59,7 @@ public final class ServerCommand extends BukkitCommandFeature {
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        ServerFeature feature = this.feature();
+        ServerFeature feature = this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class);
         if (!feature.enabled()) {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(ServerFeature.ID));
             return;
@@ -96,10 +99,6 @@ public final class ServerCommand extends BukkitCommandFeature {
         out.writeUTF("Connect");
         out.writeUTF(server);
         player.sendPluginMessage(this.plugin().javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
-    }
-
-    private ServerFeature feature() {
-        return this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class);
     }
 
     @Override

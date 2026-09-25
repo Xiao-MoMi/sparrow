@@ -24,7 +24,7 @@ public final class ReloadCommand extends BukkitCommandFeature {
                         this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_TOO_FAST);
                         return;
                     }
-                    this.plugin().reloadPlugin(this.plugin().scheduler().async(), r -> this.plugin().scheduler().platform().run(r)).thenAcceptAsync(reloadResult -> {
+                    this.plugin().reloadPlugin(this.plugin().scheduler().async(), r -> this.plugin().scheduler().platform().run(r)).thenAccept(reloadResult -> {
                         if (!reloadResult.success()) {
                             this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_FAILURE);
                             return;
@@ -34,7 +34,7 @@ public final class ReloadCommand extends BukkitCommandFeature {
                                 Component.text(reloadResult.asyncTime()),
                                 Component.text(reloadResult.syncTime())
                         );
-                    }, this.plugin().scheduler().async());
+                    });
                 }));
     }
 
