@@ -4,6 +4,7 @@ import net.momirealms.sparrow.player.SparrowPlayer;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantCommand;
+import net.momirealms.sparrow.plugin.command.feature.WorldCommand;
 import net.momirealms.sparrow.plugin.command.feature.ActionBarCommand;
 import net.momirealms.sparrow.plugin.command.feature.BroadcastCommand;
 import net.momirealms.sparrow.plugin.command.feature.TitleCommand;
@@ -87,6 +88,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new BurnCommand(this, plugin),
                 new DemoCommand(this, plugin),
                 new EnchantCommand(this, plugin),
+                new WorldCommand(this, plugin),
                 new ExtinguishCommand(this, plugin),
                 new FeatureEnableCommand(this, plugin),
                 new FeatureDisableCommand(this, plugin),

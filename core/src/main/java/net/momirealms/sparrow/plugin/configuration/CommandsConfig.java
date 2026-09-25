@@ -179,6 +179,9 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig enchant = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " enchant", "/enchant"), DependencyVersions.PROJECT_ID + ".command.enchant");
 
+        @BlankLineBefore
+        CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -201,6 +204,7 @@ public final class CommandsConfig {
                 case "patrol" -> this.patrol;
                 case "server" -> this.server;
                 case "enchant" -> this.enchant;
+                case "world" -> this.world;
                 case "fly-speed" -> this.flySpeed;
                 case "walk-speed" -> this.walkSpeed;
                 case "suicide" -> this.suicide;

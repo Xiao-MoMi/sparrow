@@ -78,7 +78,7 @@ public final class EnchantCommand extends BukkitCommandFeature {
                 }
                 item.setItemMeta(meta);
                 equipment.setItem(slot, item);
-                this.handleFeedback(context, level < 0 ? MessageConstants.COMMAND_ENCHANT_REMOVED : MessageConstants.COMMAND_ENCHANT_SUCCESS,
+                this.handleFeedback(context, level < 0 ? MessageConstants.COMMAND_ENCHANT_REMOVED : level == 0 ? MessageConstants.COMMAND_ENCHANT_ZERO : MessageConstants.COMMAND_ENCHANT_SUCCESS,
                         Component.text(entity.getName()), Component.text(enchantment.getKey().toString()), Component.text(level));
             }, () -> {}, entity);
         }

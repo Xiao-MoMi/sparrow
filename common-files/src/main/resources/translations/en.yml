@@ -44,10 +44,11 @@ command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for <color:#C7BCE7><arg:0></color></color>'
 
 # command.enchant
-command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red><arg:0> has no equipment</red>'
-command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>The selected equipment slot of <arg:0> is empty</red>'
-command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <green>Removed <arg:1> from the selected equipment of <arg:0></green>'
-command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <green>Applied <arg:1> at level <arg:2> to the selected equipment of <arg:0></green>'
+command.enchant.entity: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A><color:#A9C7E8><arg:0></color> has no equipment slots.</color>'
+command.enchant.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>The selected equipment slot of <color:#A9C7E8><arg:0></color> is empty.</color>'
+command.enchant.removed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Removed <color:#E6C777><arg:1></color> from <color:#A9C7E8><arg:0></color>''s equipment.</color>'
+command.enchant.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Applied <color:#E6C777><arg:1></color> <color:#B6D9AE>level <arg:2></color> to <color:#A9C7E8><arg:0></color>''s equipment.</color>'
+command.enchant.zero: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set <color:#E6C777><arg:1></color> on <color:#A9C7E8><arg:0></color>''s equipment to <color:#E6C777>level 0</color>.</color>'
 
 # command.extinguish
 command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Extinguished <color:#C7BCE7><arg:0></color></color>'
@@ -177,6 +178,11 @@ command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 
 # command.workbench
 command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened crafting table for <color:#C7BCE7><arg:0></color></color>'
+
+# command.world
+command.world.empty: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>No other worlds are loaded.</color>'
+command.world.no_space: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>There is not enough space above the destination in <color:#E6C777><arg:0></color>.</color>'
+command.world.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Teleported <color:#A9C7E8><arg:0></color> to <color:#E6C777><arg:1></color>.</color>'
 
 # feature.state
 feature.state.disabled: '<color:#7D98BF>Disabled</color>'

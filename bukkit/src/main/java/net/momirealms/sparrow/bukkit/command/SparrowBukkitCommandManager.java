@@ -10,7 +10,6 @@ import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemDisplayName
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemLorePlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.misc.*;
 import net.momirealms.sparrow.bukkit.command.feature.player.*;
-import net.momirealms.sparrow.bukkit.command.feature.world.*;
 import net.momirealms.sparrow.bukkit.command.processor.SelectorPostProcessor;
 import net.momirealms.sparrow.common.command.AbstractSparrowCommandManager;
 import net.momirealms.sparrow.common.command.CommandFeature;
@@ -36,8 +35,6 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
     private final List<CommandFeature<CommandSender>> FEATURES = List.of(
             new EnderChestPlayerCommand(this),
             new EnderChestAdminCommand(this),
-            new WorldAdminCommand(this),
-            new WorldPlayerCommand(this),
             new EnchantAdminCommand(this),
             new ColorPlayerCommand(this),
             new DyePlayerCommand(this),

@@ -44,10 +44,11 @@ command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示演示版提示</color>'
 
 # command.enchant
-command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red><arg:0> 没有装备栏</red>'
-command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red><arg:0> 的指定装备槽位为空</red>'
-command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <green>已从 <arg:0> 的指定装备移除 <arg:1></green>'
-command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <green>已为 <arg:0> 的指定装备添加 <arg:1>，等级 <arg:2></green>'
+command.enchant.entity: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A><color:#A9C7E8><arg:0></color> 没有可操作的装备栏。</color>'
+command.enchant.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A><color:#A9C7E8><arg:0></color> 的指定装备槽位为空。</color>'
+command.enchant.removed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已移除 <color:#A9C7E8><arg:0></color> 装备上的 <color:#E6C777><arg:1></color>。</color>'
+command.enchant.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <color:#A9C7E8><arg:0></color> 的装备附加 <color:#E6C777><arg:1></color> <color:#B6D9AE><arg:2> 级</color>。</color>'
+command.enchant.zero: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <color:#A9C7E8><arg:0></color> 装备上的 <color:#E6C777><arg:1></color> 设为 <color:#E6C777>0 级</color>。</color>'
 
 # command.extinguish
 command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 灭火</color>'
@@ -177,6 +178,11 @@ command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 
 # command.workbench
 command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开工作台</color>'
+
+# command.world
+command.world.empty: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>没有其他已加载世界可供切换。</color>'
+command.world.no_space: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>世界 <color:#E6C777><arg:0></color> 的目标位置上方没有足够空间。</color>'
+command.world.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <color:#A9C7E8><arg:0></color> 传送至 <color:#E6C777><arg:1></color>。</color>'
 
 # feature.state
 feature.state.disabled: '<color:#7D98BF>已关闭</color>'

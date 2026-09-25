@@ -26,6 +26,10 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_TOP_BLOCK_SUCCESS = Component.translatable().key("command.top-block.success");
     TranslatableComponent.Builder COMMAND_TARGETS_EMPTY = Component.translatable().key("command.targets.empty");
     TranslatableComponent.Builder COMMAND_ENCHANT_SUCCESS = Component.translatable().key("command.enchant.success");
+    TranslatableComponent.Builder COMMAND_ENCHANT_ZERO = Component.translatable().key("command.enchant.zero");
+    TranslatableComponent.Builder COMMAND_WORLD_SUCCESS = Component.translatable().key("command.world.success");
+    TranslatableComponent.Builder COMMAND_WORLD_EMPTY = Component.translatable().key("command.world.empty");
+    TranslatableComponent.Builder COMMAND_WORLD_NO_SPACE = Component.translatable().key("command.world.no_space");
     TranslatableComponent.Builder COMMAND_ENCHANT_REMOVED = Component.translatable().key("command.enchant.removed");
     TranslatableComponent.Builder COMMAND_ENCHANT_ENTITY = Component.translatable().key("command.enchant.entity");
     TranslatableComponent.Builder COMMAND_ENCHANT_ITEMLESS = Component.translatable().key("command.enchant.itemless");
