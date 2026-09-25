@@ -77,4 +77,8 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_FEATURE_SUCCESS = Component.translatable().key("command.feature.success");
     TranslatableComponent.Builder COMMAND_FEATURE_FAILURE = Component.translatable().key("command.feature.failure");
     TranslatableComponent.Builder COMMAND_FEATURE_STATUS = Component.translatable().key("command.feature.status");
+    TranslatableComponent.Builder COMMAND_ITEM_DATA_SUCCESS = Component.translatable().key("command.item-data.success");
+    TranslatableComponent.Builder COMMAND_ITEM_DATA_SUMMARY = Component.translatable().key("command.item-data.summary");
+    TranslatableComponent.Builder COMMAND_ITEM_DATA_ITEMLESS = Component.translatable().key("command.item-data.itemless");
+    TranslatableComponent.Builder COMMAND_ITEM_DATA_FAILURE = Component.translatable().key("command.item-data.failure");
 }

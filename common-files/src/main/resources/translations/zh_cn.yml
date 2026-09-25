@@ -236,3 +236,9 @@ command.highlight.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_n
 command.highlight.cancelled: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已取消高亮选点.</color>'
 command.highlight.points: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>请同时指定 --from x y z 与 --to x y z, 或均省略以交互选点.</color>'
 command.highlight.peaceful: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>选区所在世界为和平模式, 无法使用高亮功能.</color>'
+
+# command.item-data
+command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>主手物品数据:</color><newline><arg:0>'
+command.item-data.summary: '<color:#E6C777>[<arg:0> 行数据]</color> <color:#C5CCD3>悬浮查看, 使用 --chat 展开并点击值复制.</color>'
+command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>请在主手拿着物品.</color>'
+command.item-data.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>无法读取物品数据, 请检查服务端日志.</color>'

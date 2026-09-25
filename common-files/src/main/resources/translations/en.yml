@@ -236,3 +236,9 @@ command.highlight.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_n
 command.highlight.cancelled: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Highlight selection cancelled.</color>'
 command.highlight.points: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Specify both --from x y z and --to x y z, or omit both to select interactively.</color>'
 command.highlight.peaceful: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Highlight is unavailable while the selected world is in Peaceful difficulty.</color>'
+
+# command.item-data
+command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Main-hand item data:</color><newline><arg:0>'
+command.item-data.summary: '<color:#E6C777>[<arg:0> lines]</color> <color:#C5CCD3>Hover to inspect, or use --chat to expand and click values to copy.</color>'
+command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Hold an item in your main hand.</color>'
+command.item-data.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Unable to read item data. Check the server log.</color>'

@@ -57,7 +57,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMANDS_PLAYER_MORE_FAILED_NO_CHANGE = Component.translatable().key("commands.player.more.failed.nochange");
     TranslatableComponent.Builder COMMANDS_PLAYER_DISTANCE_FAILED = Component.translatable().key("commands.player.distance.failed");
     TranslatableComponent.Builder COMMANDS_PLAYER_DISTANCE_SUCCESS = Component.translatable().key("commands.player.distance.success");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_DATA = Component.translatable().key("commands.player.item.data");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("commands.player.item.query.custommodeldata.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_CUSTOM_MODEL_DATA_FAILURE = Component.translatable().key("commands.player.item.query.custommodeldata.failure");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("commands.player.item.edit.custommodeldata.success");
