@@ -8,14 +8,16 @@ import org.incendo.cloud.exception.parsing.ParserException;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
 import org.incendo.cloud.parser.ParserDescriptor;
-import org.incendo.cloud.suggestion.BlockingSuggestionProvider;
+import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class TimeParser<C> implements ArgumentParser<C, Integer>, BlockingSuggestionProvider.Strings<C> {
+public final class TimeParser<C> implements ArgumentParser.FutureArgumentParser<C, Integer>, SuggestionProvider<C> {
     private static final Pattern PART = Pattern.compile("([0-9]+)([dhmst]?)");
 
     @NotNull
@@ -25,20 +27,20 @@ public final class TimeParser<C> implements ArgumentParser<C, Integer>, Blocking
 
     @Override
     @NotNull
-    public ArgumentParseResult<Integer> parse(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
+    public CompletableFuture<ArgumentParseResult<Integer>> parseFuture(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
         String value = input.readString();
         Matcher matcher = PART.matcher(value);
         long ticks = 0;
         int end = 0;
         while (matcher.find()) {
             if (matcher.start() != end || (matcher.group(2).isEmpty() && (end != 0 || matcher.end() != value.length()))) {
-                return ArgumentParseResult.failure(new TimeParseException(value, context));
+                return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
             }
             long amount;
             try {
                 amount = Long.parseLong(matcher.group(1));
             } catch (NumberFormatException exception) {
-                return ArgumentParseResult.failure(new TimeParseException(value, context));
+                return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
             }
             int multiplier = switch (matcher.group(2)) {
                 case "d" -> 1728000;
@@ -48,21 +50,21 @@ public final class TimeParser<C> implements ArgumentParser<C, Integer>, Blocking
                 default -> 1;
             };
             if (amount > (Integer.MAX_VALUE - ticks) / multiplier) {
-                return ArgumentParseResult.failure(new TimeParseException(value, context));
+                return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
             }
             ticks += amount * multiplier;
             end = matcher.end();
         }
         if (end == 0 || end != value.length()) {
-            return ArgumentParseResult.failure(new TimeParseException(value, context));
+            return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
         }
-        return ArgumentParseResult.success((int) ticks);
+        return ArgumentParseResult.successFuture((int) ticks);
     }
 
     @Override
     @NotNull
-    public Iterable<String> stringSuggestions(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
-        return List.of("5s", "10s", "30s", "1m", "1m30s");
+    public CompletableFuture<List<Suggestion>> suggestionsFuture(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
+        return CompletableFuture.completedFuture(List.of("5s", "10s", "30s", "1m", "1m30s").stream().map(Suggestion::suggestion).toList());
     }
 
     public static final class TimeParseException extends ParserException {

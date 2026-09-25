@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.command;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
+import net.momirealms.sparrow.plugin.command.feature.EnchantCommand;
 import net.momirealms.sparrow.plugin.command.feature.ActionBarCommand;
 import net.momirealms.sparrow.plugin.command.feature.BroadcastCommand;
 import net.momirealms.sparrow.plugin.command.feature.TitleCommand;
@@ -50,12 +51,15 @@ public final class BukkitCommandManager extends AbstractCommandManager {
     private final Index<String, CommandFeature> index;
 
     public BukkitCommandManager(SparrowPlugin plugin) {
-        // 构建 LegacyPaperCommandManager 并交给父类
-        super(plugin, new LegacyPaperCommandManager<>(
+        this(plugin, new LegacyPaperCommandManager<>(
                 plugin.javaPlugin(),
                 ExecutionCoordinator.simpleCoordinator(),
                 SenderMapper.identity()
         ));
+    }
+
+    private BukkitCommandManager(SparrowPlugin plugin, LegacyPaperCommandManager<CommandSender> manager) {
+        super(plugin, manager, manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) || manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION));
         // 初始化命令索引
         this.plugin = plugin;
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
@@ -66,6 +70,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new BroadcastCommand(this, plugin),
                 new BurnCommand(this, plugin),
                 new DemoCommand(this, plugin),
+                new EnchantCommand(this, plugin),
                 new ExtinguishCommand(this, plugin),
                 new FeatureEnableCommand(this, plugin),
                 new FeatureDisableCommand(this, plugin),
@@ -91,7 +96,6 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new WalkSpeedCommand(this, plugin),
                 new WorkbenchCommand(this, plugin)
         ));
-        final LegacyPaperCommandManager<CommandSender> manager = (LegacyPaperCommandManager<CommandSender>) getCommandManager();
         // 开启 ALLOW_UNSAFE_REGISTRATION, 以允许在部分运行环境中完成命令注册.
         manager.settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true);
         // 能力注册 brigadier 或异步补全.

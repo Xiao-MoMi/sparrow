@@ -27,11 +27,6 @@ public abstract class DataStorage implements AutoCloseable {
 
     public abstract void initialize();
 
-    @NotNull
-    public DatabaseType type() {
-        return this.options.type();
-    }
-
     /**
      * 写入玩家当前的名字并刷新最后出现时间, 已有记录会被覆盖.
      *

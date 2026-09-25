@@ -170,7 +170,7 @@ public class SparrowPlugin implements Plugin {
         this.playerManager.onEnable();
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
-        this.featureManager = FeatureManager.create(this);
+        this.featureManager = new FeatureManager(this);
         this.featureManager.onEnable();
         // 命令管理器
         this.commandManager = new BukkitCommandManager(this);

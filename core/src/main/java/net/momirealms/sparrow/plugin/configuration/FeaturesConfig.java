@@ -43,7 +43,7 @@ public final class FeaturesConfig {
     }
 
     @NotNull
-    public ConfigDefinition load() {
+    private ConfigDefinition load() {
         try {
             return this.mapper.load(this.path).value();
         } catch (IOException exception) {

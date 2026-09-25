@@ -12,13 +12,14 @@ import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
-import org.incendo.cloud.suggestion.SuggestionProvider;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletableFuture;
 
 public final class FeatureDisableCommand extends BukkitCommandFeature {
 
@@ -29,7 +30,7 @@ public final class FeatureDisableCommand extends BukkitCommandFeature {
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder
-                .required("feature", StringParser.stringParser(), SuggestionProvider.blockingStrings((context, input) -> this.suggestions()))
+                .required("feature", StringParser.stringParser(), (context, input) -> CompletableFuture.completedFuture(this.suggestions().stream().map(Suggestion::suggestion).toList()))
                 .handler(context -> this.plugin().scheduler().platform().execute(() -> this.execute(context)));
     }
 

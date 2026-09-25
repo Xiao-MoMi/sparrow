@@ -14,7 +14,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
 import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
@@ -29,9 +28,7 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     public ServerCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
-        var cloudManager = commandManager.getCommandManager();
-        boolean asynchronousCompletion = cloudManager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) || cloudManager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION);
-        this.parser = new ServerParser<>(plugin.javaPlugin(), server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server), asynchronousCompletion);
+        this.parser = new ServerParser<>(commandManager, plugin.javaPlugin(), server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server));
     }
 
     // 查询和切服共用 BungeeCord 通道, 随命令注册与注销

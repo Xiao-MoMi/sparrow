@@ -1,127 +1,219 @@
 __version__: '${lang_version}'
-command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送 ActionBar</color>'
-command.broadcast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送广播</color>'
-command.toast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 显示进度提示</color>'
-command.fly.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 开启飞行</color>'
-command.fly.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 关闭飞行</color>'
-command.title.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送标题</color>'
-command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 播放图腾动画</color>'
-command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示演示版提示</color>'
-command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示终末之诗</color>'
-command.title.format: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>标题只能包含主标题和副标题，使用一个 \n 分隔</color>'
-command.totem-animation.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>动画物品必须是不死图腾</color>'
-command.fly-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的飞行速度设为 <color:#C7BCE7><arg:1></color></color>'
-command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的行走速度设为 <color:#C7BCE7><arg:1></color></color>'
-command.suicide.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> 已自杀</color>'
-command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已使 <color:#C7BCE7><arg:0></color> 燃烧 <color:#C7BCE7><arg:1></color> tick</color>'
-command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 灭火</color>'
-command.sudo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已让 <color:#C7BCE7><arg:0></color> 执行命令</color>'
-command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整 <color:#C7BCE7><arg:0></color> 的朝向</color>'
-command.top-block.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送至最高方块上方</color>'
-command.targets.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有选中任何实体</color>'
-command.sudo.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请输入要执行的命令</color>'
-command.sudo.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 未能执行该命令</color>'
-command.top-block.unavailable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 所在位置没有可用的登顶落点</color>'
-command.teleport.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能完成 <color:#C7BCE7><arg:0></color> 的传送或朝向调整</color>'
-command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>正在巡查 <color:#C7BCE7><arg:0></color></color>'
-command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有可以巡查的玩家</color>'
-command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 发送至服务器 <color:#C7BCE7><arg:1></color></color>'
-command.server.not_allowed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>不允许切换到服务器 <color:#F2F4FF><arg:0></color></color>'
-command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>当前已在服务器 <color:#F2F4FF><arg:0></color></color>'
-command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请且仅指定一个朝向选项：--location、--face、--player 或 --entity_uuid</color>'
-command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
-command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 与朝向目标不在同一个世界</color>'
-argument.parse.failure.time: '无效时长 <arg:0>；使用 tick 数或 d/h/m/s/t 单位，最多 2147483647 tick'
-command.player.required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定目标玩家；只有玩家可以省略 player 参数</color>'
-command.player.dead: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法治疗已死亡的玩家 <arg:0></color>'
-command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开工作台</color>'
-command.anvil.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开铁砧</color>'
-command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开砂轮</color>'
-command.smithing-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开锻造台</color>'
-command.stonecutter.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开切石机</color>'
-command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开制图台</color>'
-command.loom.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开织布机</color>'
-command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已治疗 <color:#C7BCE7><arg:0></color></color>'
-command.feed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已喂食 <color:#C7BCE7><arg:0></color></color>'
 
-exception.invalid_syntax: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>命令格式有误，请使用：<color:#F2F4FF><arg:0></color></color>'
+# exception
 exception.invalid_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>参数有误：<color:#F2F4FF><arg:0></color></color>'
 exception.invalid_sender: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:0> 不能执行此命令，请使用 <arg:1> 执行</color>'
-exception.unexpected: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>命令执行失败，请查看控制台日志</color>'
+exception.invalid_syntax: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>命令格式有误，请使用：<color:#F2F4FF><arg:0></color></color>'
 exception.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有权限执行此命令</color>'
-argument.parse.failure.flag.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未知选项：<arg:0></color>'
+exception.unexpected: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>命令执行失败，请查看控制台日志</color>'
+
+# argument.parse.failure
+argument.parse.failure.color: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>无效的颜色：<arg:0></red>'
+argument.parse.failure.enchantment: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>未知附魔：<arg:0></red>'
+argument.parse.failure.namedtextcolor: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>未知的命名颜色：<arg:0></red>'
+argument.parse.failure.offlineplayer: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>找不到 <arg:0> 的本服玩家记录</red>'
+argument.parse.failure.time: '无效时长 <arg:0>；使用 tick 数或 d/h/m/s/t 单位，最多 2147483647 tick'
+argument.parse.failure.url: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>无效的 URL：<arg:0></red>'
+
+# argument.parse.failure.flag
 argument.parse.failure.flag.duplicate_flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>选项重复：<arg:0></color>'
-argument.parse.failure.flag.no_flag_started: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法识别选项：<arg:0></color>'
 argument.parse.failure.flag.missing_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>缺少选项 <arg:0> 的参数</color>'
+argument.parse.failure.flag.no_flag_started: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法识别选项：<arg:0></color>'
 argument.parse.failure.flag.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有权限使用选项 <arg:0></color>'
-command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在重载，请稍候</color>'
-command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>配置重载失败，请查看控制台日志</color>'
-command.reload.config.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>配置已重载<color:#C8E4E9>（耗时 <color:#FFE08A><arg:0></color> 毫秒）</color></color>'
-command.feature.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到模块 <color:#F2F4FF><arg:0></color></color>'
-command.feature.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>模块 <color:#F2F4FF><arg:0></color> 未启用</color>'
+argument.parse.failure.flag.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未知选项：<arg:0></color>'
+
+# command.actionbar
+command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送 ActionBar</color>'
+
+# command.anvil
+command.anvil.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开铁砧</color>'
+
+# command.broadcast
+command.broadcast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送广播</color>'
+
+# command.burn
+command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已使 <color:#C7BCE7><arg:0></color> 燃烧 <color:#C7BCE7><arg:1></color> tick</color>'
+
+# command.cartography-table
+command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开制图台</color>'
+
+# command.credits
+command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示终末之诗</color>'
+
+# command.demo
+command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示演示版提示</color>'
+
+# command.enchant
+command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red><arg:0> 没有装备栏</red>'
+command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red><arg:0> 的指定装备槽位为空</red>'
+command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <green>已从 <arg:0> 的指定装备移除 <arg:1></green>'
+command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <green>已为 <arg:0> 的指定装备添加 <arg:1>，等级 <arg:2></green>'
+
+# command.extinguish
+command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 灭火</color>'
+
+# command.feature
 command.feature.busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在重载，请稍后再切换模块</color>'
+command.feature.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>模块 <color:#F2F4FF><arg:0></color> 未启用</color>'
+command.feature.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>模块 <color:#F2F4FF><arg:0></color> 切换失败，请查看控制台日志</color>'
 command.feature.restart_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>模块 <color:#F2F4FF><arg:0></color> 需要重启服务器才能切换状态</color>'
 command.feature.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1><color:#C8E4E9> · 设置已保存</color></color>'
-command.feature.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>模块 <color:#F2F4FF><arg:0></color> 切换失败，请查看控制台日志</color>'
-feature.state.uninstalled: '<color:#C8E4E9>未安装</color>'
-feature.state.enabled: '<color:#C9F2C7>已启动</color>'
-feature.state.disabled: '<color:#7D98BF>已关闭</color>'
-feature.state.unloaded: '<color:#7D98BF>已卸载</color>'
-feature.state.failed: '<color:#FFB6CB>发生错误</color>'
+command.feature.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到模块 <color:#F2F4FF><arg:0></color></color>'
 
-command.features.message: '<arg:0>'
-command.features.header: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>模块管理</color> <color:#C8E4E9>·</color> <color:#FFE08A><arg:0>/<arg:1></color> <color:#C8E4E9>页 · 共 </color><color:#FFE08A><arg:2></color><color:#C8E4E9> 个模块</color>'
-command.features.row: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1> <arg:2>'
-command.features.navigation: '<arg:0> <color:#FFE08A><arg:1>/<arg:2></color> <arg:3> <arg:4>'
-command.features.empty: '<color:#C8E4E9>暂无可管理的模块</color>'
-command.features.disabled: '<color:#7D98BF><arg:0></color>'
+# command.features
+command.features.action.disable: '<color:#FFB6CB><arg:0></color>'
+command.features.action.enable: '<color:#C9F2C7><arg:0></color>'
+command.features.action.next: '<color:#C9F2C7><arg:0></color>'
+command.features.action.previous: '<color:#C9F2C7><arg:0></color>'
+command.features.action.refresh: '<color:#C7BCE7><arg:0></color>'
+command.features.action.status: '<color:#C8E4E9><arg:0></color>'
+command.features.already_disabled: '模块尚未启动'
+command.features.already_enabled: '模块已经启动'
+command.features.busy: '正在重载，请稍候'
 command.features.console.action: '<arg:0> <color:#F2F4FF><arg:1></color>'
 command.features.console.disabled: '<color:#7D98BF><arg:0> (<arg:1>)</color>'
-command.features.label.enable: '[启]'
-command.features.action.enable: '<color:#C9F2C7><arg:0></color>'
-command.features.hint.enable: '<color:#F2F4FF>点击启动模块并保存设置</color><newline><color:#C8E4E9><arg:0></color>'
-command.features.label.disable: '[停]'
-command.features.action.disable: '<color:#FFB6CB><arg:0></color>'
-command.features.hint.disable: '<color:#F2F4FF>点击关闭模块并保存设置</color><newline><color:#C8E4E9><arg:0></color>'
-command.features.label.status: '[查]'
-command.features.action.status: '<color:#C8E4E9><arg:0></color>'
-command.features.hint.status: '<color:#F2F4FF>查看模块当前状态</color><newline><color:#C8E4E9><arg:0></color>'
-command.features.label.previous: '[上一页]'
-command.features.action.previous: '<color:#C9F2C7><arg:0></color>'
-command.features.hint.previous: '<color:#F2F4FF>查看上一页</color><newline><color:#C8E4E9><arg:0></color>'
-command.features.label.next: '[下一页]'
-command.features.action.next: '<color:#C9F2C7><arg:0></color>'
-command.features.hint.next: '<color:#F2F4FF>查看下一页</color><newline><color:#C8E4E9><arg:0></color>'
-command.features.label.refresh: '[刷新]'
-command.features.action.refresh: '<color:#C7BCE7><arg:0></color>'
-command.features.hint.refresh: '<color:#F2F4FF>刷新模块状态</color><newline><color:#C8E4E9><arg:0></color>'
-command.features.no_permission: '你没有权限执行此命令'
-command.features.unavailable: '此命令未启用'
-command.features.restart_required: '需要重启服务器才能切换状态'
-command.features.busy: '正在重载，请稍候'
-command.features.already_enabled: '模块已经启动'
-command.features.already_disabled: '模块尚未启动'
+command.features.disabled: '<color:#7D98BF><arg:0></color>'
+command.features.empty: '<color:#C8E4E9>暂无可管理的模块</color>'
 command.features.first_page: '已经是第一页'
+command.features.header: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>模块管理</color> <color:#C8E4E9>·</color> <color:#FFE08A><arg:0>/<arg:1></color> <color:#C8E4E9>页 · 共 </color><color:#FFE08A><arg:2></color><color:#C8E4E9> 个模块</color>'
+command.features.hint.disable: '<color:#F2F4FF>点击关闭模块并保存设置</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.hint.enable: '<color:#F2F4FF>点击启动模块并保存设置</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.hint.next: '<color:#F2F4FF>查看下一页</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.hint.previous: '<color:#F2F4FF>查看上一页</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.hint.refresh: '<color:#F2F4FF>刷新模块状态</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.hint.status: '<color:#F2F4FF>查看模块当前状态</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.label.disable: '[停]'
+command.features.label.enable: '[启]'
+command.features.label.next: '[下一页]'
+command.features.label.previous: '[上一页]'
+command.features.label.refresh: '[刷新]'
+command.features.label.status: '[查]'
 command.features.last_page: '已经是最后一页'
+command.features.message: '<arg:0>'
+command.features.navigation: '<arg:0> <color:#FFE08A><arg:1>/<arg:2></color> <arg:3> <arg:4>'
+command.features.no_permission: '你没有权限执行此命令'
+command.features.restart_required: '需要重启服务器才能切换状态'
+command.features.row: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1> <arg:2>'
+command.features.unavailable: '此命令未启用'
 
-log.plugin.restart_at_runtime: '请勿在服务器运行期间重新启用插件。'
-log.plugin.enable_failed: '插件启用失败，请检查加载阶段的日志。'
-log.plugin.shutdown_after_failure: '插件未能正确加载，正在关闭服务器。'
+# command.feed
+command.feed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已喂食 <color:#C7BCE7><arg:0></color></color>'
+
+# command.fly
+command.fly.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 关闭飞行</color>'
+command.fly.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 开启飞行</color>'
+
+# command.fly-speed
+command.fly-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的飞行速度设为 <color:#C7BCE7><arg:1></color></color>'
+
+# command.grindstone
+command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开砂轮</color>'
+
+# command.heal
+command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已治疗 <color:#C7BCE7><arg:0></color></color>'
+
+# command.look
+command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 与朝向目标不在同一个世界</color>'
+command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请且仅指定一个朝向选项：--location、--face、--player 或 --entity_uuid</color>'
+command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整 <color:#C7BCE7><arg:0></color> 的朝向</color>'
+command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
+
+# command.loom
+command.loom.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开织布机</color>'
+
+# command.patrol
+command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有可以巡查的玩家</color>'
+command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>正在巡查 <color:#C7BCE7><arg:0></color></color>'
+
+# command.player
+command.player.dead: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法治疗已死亡的玩家 <arg:0></color>'
+command.player.required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定目标玩家；只有玩家可以省略 player 参数</color>'
+
+# command.reload
+command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>配置重载失败，请查看控制台日志</color>'
+command.reload.config.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>配置已重载<color:#C8E4E9>（耗时 <color:#FFE08A><arg:0></color> 毫秒）</color></color>'
+command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在重载，请稍候</color>'
+
+# command.server
+command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>当前已在服务器 <color:#F2F4FF><arg:0></color></color>'
+command.server.not_allowed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>不允许切换到服务器 <color:#F2F4FF><arg:0></color></color>'
+command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 发送至服务器 <color:#C7BCE7><arg:1></color></color>'
+
+# command.smithing-table
+command.smithing-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开锻造台</color>'
+
+# command.stonecutter
+command.stonecutter.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开切石机</color>'
+
+# command.sudo
+command.sudo.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请输入要执行的命令</color>'
+command.sudo.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 未能执行该命令</color>'
+command.sudo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已让 <color:#C7BCE7><arg:0></color> 执行命令</color>'
+
+# command.suicide
+command.suicide.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> 已自杀</color>'
+
+# command.targets
+command.targets.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有选中任何实体</color>'
+
+# command.teleport
+command.teleport.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能完成 <color:#C7BCE7><arg:0></color> 的传送或朝向调整</color>'
+
+# command.title
+command.title.format: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>标题只能包含主标题和副标题，使用一个 \n 分隔</color>'
+command.title.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送标题</color>'
+
+# command.toast
+command.toast.invalid-icon: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>进度提示图标不能是空气</color>'
+command.toast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 显示进度提示</color>'
+
+# command.top-block
+command.top-block.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送至最高方块上方</color>'
+command.top-block.unavailable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 所在位置没有可用的登顶落点</color>'
+
+# command.totem-animation
+command.totem-animation.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>动画物品必须是不死图腾</color>'
+command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 播放图腾动画</color>'
+
+# command.walk-speed
+command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的行走速度设为 <color:#C7BCE7><arg:1></color></color>'
+
+# command.workbench
+command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开工作台</color>'
+
+# feature.state
+feature.state.disabled: '<color:#7D98BF>已关闭</color>'
+feature.state.enabled: '<color:#C9F2C7>已启动</color>'
+feature.state.failed: '<color:#FFB6CB>发生错误</color>'
+feature.state.uninstalled: '<color:#C8E4E9>未安装</color>'
+feature.state.unloaded: '<color:#7D98BF>已卸载</color>'
+
+# log.compatibility
+log.compatibility.hook_failed: '接入 <arg:0> 失败'
+log.compatibility.hooked: '[兼容] 已接入 <arg:0>'
+
+# log.player
+log.player.roster_refresh_failed: '刷新全服在线名单失败。'
+log.player.save_failed: '保存玩家 <arg:0> 的名字记录失败。'
+
+# log.plugin
 log.plugin.disable_at_runtime: '请勿在服务器运行期间禁用插件。'
+log.plugin.enable_failed: '插件启用失败，请检查加载阶段的日志。'
+log.plugin.initializing_proxies: '正在初始化 ASM 代理...'
 log.plugin.reload_failed: '插件重载失败。'
 log.plugin.reload_submission_failed: '提交重载任务失败。'
-log.plugin.initializing_proxies: '正在初始化 ASM 代理...'
-log.compatibility.hooked: '[兼容] 已接入 <arg:0>'
-log.compatibility.hook_failed: '接入 <arg:0> 失败'
-log.server.id_missing: 'server.yml 中的 server-id 为空，正在关闭服务器。请为共用 Redis 和数据库的每台服务器填写不同的 server-id。'
+log.plugin.restart_at_runtime: '请勿在服务器运行期间重新启用插件。'
+log.plugin.shutdown_after_failure: '插件未能正确加载，正在关闭服务器。'
+
+# log.server
 log.server.id_duplicate: '已有在线服务器正在使用 server-id <arg:0>，共用同一 Redis 数据库的每台服务器需要在 server.yml 中填写不同的 server-id。'
+log.server.id_missing: 'server.yml 中的 server-id 为空，正在关闭服务器。请为共用 Redis 和数据库的每台服务器填写不同的 server-id。'
 log.server.id_seized: '已接管上次运行残留的心跳（token <arg:0>）。'
-log.player.save_failed: '保存玩家 <arg:0> 的名字记录失败。'
-log.player.roster_refresh_failed: '刷新全服在线名单失败。'
+
+# log.translation
 log.translation.default_load_failed: '加载默认语言文件失败。'
 log.translation.default_syntax_error: '默认语言文件存在 YAML 语法错误。'
-log.translation.invalid_file: '无效的语言文件：<arg:0>'
-log.translation.read_failed: '读取语言文件失败：<arg:0>'
 log.translation.directory_failed: '从 translations 目录加载语言文件失败。'
+log.translation.invalid_file: '无效的语言文件：<arg:0>'
 log.translation.locale_missing: 'translations/<arg:0>.yml 不存在，使用 <arg:1>.yml 作为默认语言。'
-command.toast.invalid-icon: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>进度提示图标不能是空气</color>'
+log.translation.read_failed: '读取语言文件失败：<arg:0>'

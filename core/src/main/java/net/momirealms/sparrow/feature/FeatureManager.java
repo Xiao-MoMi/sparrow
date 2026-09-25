@@ -23,24 +23,14 @@ public final class FeatureManager {
     private final Map<String, Feature<?>> features = new LinkedHashMap<>();
     private volatile boolean closed;
 
-    FeatureManager(@NotNull FeaturesConfig config, @NotNull Executor asyncExecutor, @NotNull Executor platformExecutor) {
-        this.config = config;
-        this.asyncExecutor = asyncExecutor;
-        this.platformExecutor = platformExecutor;
-    }
+    public FeatureManager(@NotNull SparrowPlugin plugin) {
+        this.config = plugin.configurationManager().featuresConfig();
+        this.asyncExecutor = plugin.scheduler().async();
+        this.platformExecutor = plugin.scheduler().platform();
 
-    @NotNull
-    public static FeatureManager create(@NotNull SparrowPlugin plugin) {
-        FeaturesConfig config = plugin.configurationManager().featuresConfig();
-        FeatureManager manager = new FeatureManager(config, plugin.scheduler().async(), plugin.scheduler().platform());
-        manager.register(new QuickShulkerFeature(plugin.javaPlugin(), config));
-        manager.register(new PatrolFeature(plugin.javaPlugin(), config));
-        manager.register(new ServerFeature(config));
-        return manager;
-    }
-
-    void register(Feature<?> feature) {
-        this.features.put(feature.id(), feature);
+        this.features.put(QuickShulkerFeature.ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
+        this.features.put(PatrolFeature.ID, new PatrolFeature(plugin.javaPlugin(), this.config));
+        this.features.put(ServerFeature.ID, new ServerFeature(this.config));
     }
 
     public void onEnable() {

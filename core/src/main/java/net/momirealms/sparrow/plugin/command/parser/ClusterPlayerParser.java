@@ -7,14 +7,16 @@ import org.incendo.cloud.context.CommandInput;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
 import org.incendo.cloud.parser.ParserDescriptor;
-import org.incendo.cloud.suggestion.BlockingSuggestionProvider;
 import org.incendo.cloud.suggestion.Suggestion;
+import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * 按集群在线名单补全玩家名, 解析时原样接受任意名字, 离线玩家由命令通过 {@link PlayerManager#resolvePlayer(String)} 查找.
  */
-public final class ClusterPlayerParser<C> implements ArgumentParser<C, String>, BlockingSuggestionProvider<C> {
+public final class ClusterPlayerParser<C> implements ArgumentParser.FutureArgumentParser<C, String>, SuggestionProvider<C> {
     private final ClusterRoster cluster;
 
     public ClusterPlayerParser(@NotNull ClusterRoster cluster) {
@@ -28,13 +30,13 @@ public final class ClusterPlayerParser<C> implements ArgumentParser<C, String>, 
 
     @Override
     @NotNull
-    public ArgumentParseResult<String> parse(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
-        return ArgumentParseResult.success(input.readString());
+    public CompletableFuture<ArgumentParseResult<String>> parseFuture(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
+        return ArgumentParseResult.successFuture(input.readString());
     }
 
     @Override
     @NotNull
-    public Iterable<? extends Suggestion> suggestions(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
-        return this.cluster.suggest(input.peekString());
+    public CompletableFuture<? extends Iterable<? extends Suggestion>> suggestionsFuture(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
+        return CompletableFuture.completedFuture(this.cluster.suggest(input.peekString()));
     }
 }

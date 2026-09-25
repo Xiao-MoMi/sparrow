@@ -32,6 +32,7 @@ public abstract class AbstractCommandManager implements CommandManager {
     protected final HashSet<CommandFeature> registeredFeatures = new HashSet<>();
     protected final org.incendo.cloud.CommandManager<CommandSender> commandManager;
     protected final Plugin plugin;
+    private final boolean asynchronousCompletion;
     private final CloudCaptionFormatter captionFormatter;
     private final MinecraftExceptionHandler.Decorator<CommandSender> decorator = (formatter, ctx, msg) -> msg;
     private TriConsumer<CommandSender, String, Component> feedbackConsumer;
@@ -46,12 +47,18 @@ public abstract class AbstractCommandManager implements CommandManager {
         }
     };
 
-    public AbstractCommandManager(Plugin plugin, org.incendo.cloud.CommandManager<CommandSender> commandManager) {
+    protected AbstractCommandManager(Plugin plugin, org.incendo.cloud.CommandManager<CommandSender> commandManager, boolean asynchronousCompletion) {
         this.commandManager = commandManager;
         this.plugin = plugin;
+        this.asynchronousCompletion = asynchronousCompletion;
         this.inject(); // 修改默认异常处理器.
         this.feedbackConsumer = defaultFeedbackConsumer();
         this.captionFormatter = new CloudCaptionFormatter();
+    }
+
+    @Override
+    public boolean asynchronousCompletion() {
+        return this.asynchronousCompletion;
     }
 
     @Override

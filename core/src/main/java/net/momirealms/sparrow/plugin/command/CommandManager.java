@@ -11,6 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 public interface CommandManager {
+
+    /**
+     * 检查当前平台的命令补全是否可以异步进行
+     */
+    boolean asynchronousCompletion();
+
     /**
      * 使用给定命令实现与命令配置注册一个命令功能.
      *

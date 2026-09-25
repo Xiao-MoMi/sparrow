@@ -39,7 +39,7 @@ cloud-minecraft-extras = "2.0.0-beta.15"
 sparrow-nbt = "0.22"
 sparrow-reflection = "0.34"
 sparrow-yaml = "1.0.22"
-sparrow-ui = "beta.36"
+sparrow-ui = "beta.38"
 sparrow-redis-message-broker = "0.0.7"
 
 # Adventure
@@ -65,7 +65,6 @@ reactor = "3.8.5"
 
 # Test
 junit = "6.0.1"
-mockbukkit = "4.93.0"
 mockito = "5.22.0"
 
 [plugins]
@@ -138,7 +137,6 @@ examination-string = { module = "net.kyori:examination-string", version.ref = "e
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platformLauncher = { module = "org.junit.platform:junit-platform-launcher" }
-mockbukkit = { module = "org.mockbukkit.mockbukkit:mockbukkit-v1.21", version.ref = "mockbukkit" }
 mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
 test-paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 

@@ -55,6 +55,6 @@ class DataStorageIsolationTest {
         typeField.set(options, type);
         Class<?> managerClass = Class.forName(MANAGER, true, loader);
         Object manager = managerClass.getMethod("create", PluginConfig.DatabaseOptions.class, Executor.class).invoke(null, options, (Executor) Runnable::run);
-        assertEquals(type, managerClass.getMethod("type").invoke(manager));
+        assertEquals(type == DatabaseType.MONGODB ? "MongoDataStorage" : "SqlDataStorage", manager.getClass().getSimpleName());
     }
 }

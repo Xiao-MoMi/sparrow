@@ -50,7 +50,6 @@ dependencies {
     testImplementation(libs.cloud.core)
     testImplementation(libs.cloud.bukkit)
     testRuntimeOnly(libs.cloud.minecraft.extras)
-    testImplementation(libs.mockbukkit)
     testImplementation(libs.mockito.core)
     testImplementation(project(":bukkit-proxy"))
     testImplementation(libs.sparrow.reflection)

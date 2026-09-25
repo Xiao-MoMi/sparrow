@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.command.parser;
 
 import com.google.common.io.ByteArrayDataOutput;
+import net.momirealms.sparrow.plugin.command.CommandManager;
 import com.google.common.io.ByteStreams;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -22,12 +23,14 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 class ServerParserTest {
+    private final CommandManager commands = mock(CommandManager.class);
     private final JavaPlugin plugin = mock(JavaPlugin.class);
     private ServerParser<CommandSender> parser;
 
     @BeforeEach
     void setUp() {
-        this.parser = new ServerParser<>(this.plugin, server -> !server.equals("hidden"), true);
+        when(this.commands.asynchronousCompletion()).thenReturn(true);
+        this.parser = new ServerParser<>(this.commands, this.plugin, server -> !server.equals("hidden"));
     }
 
     @Test
@@ -72,7 +75,8 @@ class ServerParserTest {
 
     @Test
     void synchronousCompletionUsesPreviousProxyResponse() {
-        this.parser = new ServerParser<>(this.plugin, server -> true, false);
+        when(this.commands.asynchronousCompletion()).thenReturn(false);
+        this.parser = new ServerParser<>(this.commands, this.plugin, server -> true);
         Player player = this.player();
         assertEquals(List.of(), this.suggest(player).join());
         this.receive(player, "GetServers", "lobby, survival");
