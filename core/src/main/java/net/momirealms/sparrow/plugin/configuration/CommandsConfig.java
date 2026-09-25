@@ -113,9 +113,6 @@ public final class CommandsConfig {
         CommandConfig cartographyTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " cartography-table", "/cartography-table"), DependencyVersions.PROJECT_ID + ".command.cartography-table");
 
         @BlankLineBefore
-        CommandConfig loom = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " loom", "/loom"), DependencyVersions.PROJECT_ID + ".command.loom");
-
-        @BlankLineBefore
         CommandConfig heal = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " heal", "/heal"), DependencyVersions.PROJECT_ID + ".command.heal");
 
         @BlankLineBefore
@@ -218,7 +215,6 @@ public final class CommandsConfig {
                 case "smithing-table" -> this.smithingTable;
                 case "stonecutter" -> this.stonecutter;
                 case "cartography-table" -> this.cartographyTable;
-                case "loom" -> this.loom;
                 case "heal" -> this.heal;
                 case "feed" -> this.feed;
                 case "feature_enable" -> this.featureEnable;

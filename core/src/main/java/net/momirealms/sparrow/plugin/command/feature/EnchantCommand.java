@@ -61,7 +61,7 @@ public final class EnchantCommand extends BukkitCommandFeature {
                     return;
                 }
                 ItemStack item = equipment.getItem(slot);
-                if (item.isEmpty()) {
+                if (item.getType().isAir() || item.getAmount() <= 0) {
                     this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ITEMLESS, Component.text(entity.getName()));
                     return;
                 }
@@ -79,7 +79,7 @@ public final class EnchantCommand extends BukkitCommandFeature {
                 item.setItemMeta(meta);
                 equipment.setItem(slot, item);
                 this.handleFeedback(context, level < 0 ? MessageConstants.COMMAND_ENCHANT_REMOVED : MessageConstants.COMMAND_ENCHANT_SUCCESS,
-                        Component.text(entity.getName()), Component.text(enchantment.getKey().asString()), Component.text(level));
+                        Component.text(entity.getName()), Component.text(enchantment.getKey().toString()), Component.text(level));
             }, () -> {}, entity);
         }
     }

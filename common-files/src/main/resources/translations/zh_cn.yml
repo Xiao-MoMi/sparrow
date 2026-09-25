@@ -118,9 +118,6 @@ command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整 <color:#C7BCE7><arg:0></color> 的朝向</color>'
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
 
-# command.loom
-command.loom.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开织布机</color>'
-
 # command.patrol
 command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有可以巡查的玩家</color>'
 command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>正在巡查 <color:#C7BCE7><arg:0></color></color>'

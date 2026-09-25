@@ -118,9 +118,6 @@ command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Changed <color:#C7BCE7><arg:0></color>''s direction</color>'
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target entity was not found or has left</color>'
 
-# command.loom
-command.loom.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened loom for <color:#C7BCE7><arg:0></color></color>'
-
 # command.patrol
 command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No players are available to patrol</color>'
 command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Patrolling <color:#C7BCE7><arg:0></color></color>'

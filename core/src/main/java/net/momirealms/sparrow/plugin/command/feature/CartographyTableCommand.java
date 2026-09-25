@@ -7,6 +7,8 @@ import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.inventory.MenuType;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
@@ -30,7 +32,7 @@ public final class CartographyTableCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            player.openCartographyTable(null, true);
+            player.openInventory(MenuType.CARTOGRAPHY_TABLE.create(player, InventoryType.CARTOGRAPHY.getDefaultTitle()));
             this.handleFeedback(context, MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS, Component.text(player.getName()));
         }, () -> {}, player);
     }

@@ -49,7 +49,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_SMITHING_TABLE_SUCCESS = Component.translatable().key("command.smithing-table.success");
     TranslatableComponent.Builder COMMAND_STONECUTTER_SUCCESS = Component.translatable().key("command.stonecutter.success");
     TranslatableComponent.Builder COMMAND_CARTOGRAPHY_TABLE_SUCCESS = Component.translatable().key("command.cartography-table.success");
-    TranslatableComponent.Builder COMMAND_LOOM_SUCCESS = Component.translatable().key("command.loom.success");
     TranslatableComponent.Builder COMMAND_HEAL_SUCCESS = Component.translatable().key("command.heal.success");
     TranslatableComponent.Builder COMMAND_FEED_SUCCESS = Component.translatable().key("command.feed.success");
     TranslatableComponent.Builder COMMAND_RELOAD_TOO_FAST = Component.translatable().key("command.reload.too_fast");

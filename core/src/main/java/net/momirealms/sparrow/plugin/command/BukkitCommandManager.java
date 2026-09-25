@@ -28,17 +28,19 @@ import net.momirealms.sparrow.plugin.command.feature.GrindstoneCommand;
 import net.momirealms.sparrow.plugin.command.feature.SmithingTableCommand;
 import net.momirealms.sparrow.plugin.command.feature.StonecutterCommand;
 import net.momirealms.sparrow.plugin.command.feature.CartographyTableCommand;
-import net.momirealms.sparrow.plugin.command.feature.LoomCommand;
 import net.momirealms.sparrow.plugin.command.feature.HealCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeatureEnableCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeatureDisableCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeatureListCommand;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.util.ReflectionUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.SenderMapper;
 import org.incendo.cloud.bukkit.CloudBukkitCapabilities;
+import org.incendo.cloud.bukkit.internal.CraftBukkitReflection;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.setting.ManagerSetting;
@@ -49,6 +51,20 @@ import java.util.Locale;
 public final class BukkitCommandManager extends AbstractCommandManager {
     public final SparrowPlugin plugin;
     private final Index<String, CommandFeature> index;
+
+    static {
+        // 无版本包名的 Spigot 没有 getMinecraftVersion(), Cloud 会因此禁用原生选择器.
+        if (CraftBukkitReflection.MAJOR_REVISION == -1) {
+            String[] version = Bukkit.getBukkitVersion().split("\\.");
+            int major = Integer.parseInt(version[0]);
+            int revision = major == 1 ? Integer.parseInt(version[1]) : major;
+            try {
+                ReflectionUtils.unreflectSetter(CraftBukkitReflection.class.getDeclaredField("MAJOR_REVISION")).invokeExact(revision);
+            } catch (Throwable exception) {
+                throw new ExceptionInInitializerError(exception);
+            }
+        }
+    }
 
     public BukkitCommandManager(SparrowPlugin plugin) {
         this(plugin, new LegacyPaperCommandManager<>(
@@ -81,7 +97,6 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new GrindstoneCommand(this, plugin),
                 new HealCommand(this, plugin),
                 new LookCommand(this, plugin),
-                new LoomCommand(this, plugin),
                 new PatrolCommand(this, plugin),
                 new ServerCommand(this, plugin),
                 new ReloadCommand(this, plugin),
