@@ -4,7 +4,6 @@ import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.bukkit.SparrowBukkitPlugin;
 import net.momirealms.sparrow.bukkit.command.feature.item.*;
-import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemCustomModelDataPlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemLorePlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.misc.*;
 import net.momirealms.sparrow.bukkit.command.feature.player.*;
@@ -34,7 +33,6 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new HeadAdminCommand(this),
             new URLHeadAdminCommand(this),
             new HeadPlayerCommand(this),
-            new ItemCustomModelDataPlayerCommand(this),
             new ItemLorePlayerCommand(this)
     );
 

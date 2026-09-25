@@ -5,7 +5,7 @@ config-version = "2"
 commands-config-version = "2"
 features-config-version = "1"
 server-config-version = "1"
-lang-version = "4"
+lang-version = "5"
 mysql-schema-version = "1"
 postgresql-schema-version = "1"
 mongodb-index-version = "1"
@@ -26,6 +26,7 @@ jar-relocator = "1.7"
 
 # Common
 caffeine = "3.2.3"
+concurrentutil = "0.0.10"
 placeholderapi = "2.12.3"
 
 # Command
@@ -80,6 +81,7 @@ run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-task" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
 
 [libraries]
+concurrentutil = { module = "ca.spottedleaf:concurrentutil", version.ref = "concurrentutil" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
 # Platform

@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.player;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -34,15 +35,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 public final class PlayerManager implements Listener, ChannelFutureListener {
     private final SparrowPlugin plugin;
     private final ClusterRoster cluster;
     private final TeleportManager teleports;
-    private final ConcurrentMap<Channel, PlayerConnection> connections = new ConcurrentHashMap<>(); // 配置阶段起登记, 连接关闭或退出时移除
-    private final ConcurrentMap<UUID, BukkitSparrowPlayer> players = new ConcurrentHashMap<>();     // Join 时创建, 退出时移除
+    private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>(); // 配置阶段起登记, 连接关闭或退出时移除
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();     // Join 时创建, 退出时移除
 
     public PlayerManager(@NotNull SparrowPlugin plugin) {
         this.plugin = plugin;
@@ -114,7 +113,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private void removeConnection(@NotNull Channel channel) {
         this.connections.computeIfPresent(channel, (key, connection) -> {
             BukkitSparrowPlayer player = this.players.get(connection.uniqueId());
-            if (player != null && player.connection() == connection && this.players.remove(connection.uniqueId(), player)) {
+            if (player != null && player.connection() == connection && this.players.remove(connection.uniqueId(), player) == player) {
                 this.cluster.presence(connection.uniqueId(), connection.name(), false);
             }
             key.closeFuture().removeListener(this);
@@ -127,7 +126,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     public void shutdown() {
         this.teleports.shutdown();
         this.cluster.shutdown();
-        for (Channel channel : this.connections.keySet()) {
+        for (Channel channel : this.connections.keys()) {
             this.removeConnection(channel);
         }
         this.players.clear();

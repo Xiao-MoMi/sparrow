@@ -29,9 +29,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMANDS_ADMIN_URLHEAD_SUCCESS_SINGLE = Component.translatable().key("commands.admin.urlhead.success.single");
     TranslatableComponent.Builder COMMANDS_ADMIN_URLHEAD_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.urlhead.success.multiple");
     TranslatableComponent.Builder COMMANDS_ADMIN_URLHEAD_FAILED_SKULL = Component.translatable().key("commands.admin.urlhead.failed.skull");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("commands.player.item.query.custommodeldata.success");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_CUSTOM_MODEL_DATA_FAILURE = Component.translatable().key("commands.player.item.query.custommodeldata.failure");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("commands.player.item.edit.custommodeldata.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_LORE_SUCCESS = Component.translatable().key("commands.player.item.query.lore.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_LORE_SUCCESS = Component.translatable().key("commands.player.item.edit.lore.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_LORE_FAILURE_FLAG = Component.translatable().key("commands.player.item.edit.lore.failure.flag");

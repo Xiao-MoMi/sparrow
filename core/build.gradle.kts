@@ -37,6 +37,7 @@ dependencies {
     implementation(libs.sparrow.yaml)
     implementation(libs.sparrow.ui)
     implementation(libs.sparrow.redis.message.broker)
+    implementation(libs.concurrentutil) { isTransitive = false }
 
     compileOnly(libs.sparrow.reflection)
     compileOnly(libs.datafixerupper)

@@ -336,8 +336,8 @@ public final class TranslationManagerImpl implements TranslationManager {
                 throw new IOException("Resource not found: translations/" + fileName);
             }
 
-            YamlDocument newDocument = this.plugin.configurationManager().sparrowYaml().load(is);
-            Map<String, String> newMap = loadLangData(newDocument);
+            YamlDocument jarYamlDocument = this.plugin.configurationManager().sparrowYaml().load(is);
+            Map<String, String> newMap = loadLangData(jarYamlDocument);
 
             newFileContents.put("__version__", this.langVersion);
             newFileContents.putAll(this.translationFallback);
@@ -349,11 +349,10 @@ public final class TranslationManagerImpl implements TranslationManager {
                 }
             }
 
-            YamlDocument outputDocument = this.plugin.configurationManager().sparrowYaml().load("");
             for (Map.Entry<String, String> entry : newFileContents.entrySet()) {
-                outputDocument.setAndGet(Route.from(entry.getKey()), entry.getValue());
+                jarYamlDocument.setAndGet(Route.from(entry.getKey()), entry.getValue());
             }
-            outputDocument.save(translationFile);
+            jarYamlDocument.save(translationFile);
 
             newFileContents.remove("__version__");
             return newFileContents;

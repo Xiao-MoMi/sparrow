@@ -194,6 +194,10 @@ public final class CommandsConfig {
         CommandConfig color = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " color", "/color"), DependencyVersions.PROJECT_ID + ".command.color");
 
         @BlankLineBefore
+        @YamlProperty("custom-model-data")
+        CommandConfig customModelData = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " custom_model_data", "/custom_model_data"), DependencyVersions.PROJECT_ID + ".command.custom-model-data");
+
+        @BlankLineBefore
         CommandConfig more = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"), DependencyVersions.PROJECT_ID + ".command.more");
 
         @BlankLineBefore
@@ -244,6 +248,7 @@ public final class CommandsConfig {
                 case "ender-chest" -> this.enderChest;
                 case "item-data" -> this.itemData;
                 case "color" -> this.color;
+                case "custom-model-data" -> this.customModelData;
                 case "more" -> this.more;
                 case "distance" -> this.distance;
                 case "server" -> this.server;
