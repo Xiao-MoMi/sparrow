@@ -14,9 +14,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder ARGUMENT_ENTITY_NOTFOUND_PLAYER = Component.translatable().key("argument.entity.notfound.player");
     TranslatableComponent.Builder ARGUMENT_ENTITY_NOTFOUND_ENTITY = Component.translatable().key("argument.entity.notfound.entity");
     TranslatableComponent.Builder ARGUMENT_PARSE_FAILURE_ENCHANTMENT = Component.translatable().key("argument.parse.failure.enchantment");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ENDER_CHEST_SUCCESS = Component.translatable().key("commands.player.enderchest.success");
-    TranslatableComponent.Builder COMMANDS_ADMIN_ENDER_CHEST_SUCCESS_SINGLE = Component.translatable().key("commands.admin.enderchest.success.single");
-    TranslatableComponent.Builder COMMANDS_ADMIN_ENDER_CHEST_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.enderchest.success.multiple");
     TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANT_FAILED_INCOMPATIBLE = Component.translatable().key("commands.admin.enchant.failed.incompatible");
     TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANT_FAILED_LEVEL = Component.translatable().key("commands.admin.enchant.failed.level");
     TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANT_FAILED_ITEMLESS = Component.translatable().key("commands.admin.enchant.failed.itemless");
@@ -52,9 +49,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("commands.player.item.query.custommodeldata.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_CUSTOM_MODEL_DATA_FAILURE = Component.translatable().key("commands.player.item.query.custommodeldata.failure");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("commands.player.item.edit.custommodeldata.success");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_DISPLAY_NAME_SUCCESS = Component.translatable().key("commands.player.item.query.displayname.success");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_DISPLAY_NAME_FAILURE = Component.translatable().key("commands.player.item.query.displayname.failure");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_DISPLAY_NAME_SUCCESS = Component.translatable().key("commands.player.item.edit.displayname.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_QUERY_LORE_SUCCESS = Component.translatable().key("commands.player.item.query.lore.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_LORE_SUCCESS = Component.translatable().key("commands.player.item.edit.lore.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_ITEM_EDIT_LORE_FAILURE_FLAG = Component.translatable().key("commands.player.item.edit.lore.failure.flag");

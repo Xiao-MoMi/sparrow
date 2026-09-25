@@ -3,10 +3,10 @@ package net.momirealms.sparrow.compatibility;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.compatibility.papi.PlaceholderAPIUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.entity.Player;
-import me.clip.placeholderapi.PlaceholderAPI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,7 +40,7 @@ public final class CompatibilityManager {
 
     @NotNull
     public String parsePlaceholders(@NotNull Player player, @NotNull String text) {
-        return this.hasPlaceholderAPI ? PlaceholderAPI.setPlaceholders(player, text) : text;
+        return this.hasPlaceholderAPI ? PlaceholderAPIUtils.parse(player, text) : text;
     }
 
     private @Nullable Plugin getPlugin(String name) {

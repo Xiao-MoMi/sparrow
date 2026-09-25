@@ -76,7 +76,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_FEATURE_RESTART_REQUIRED = Component.translatable().key("command.feature.restart_required");
     TranslatableComponent.Builder COMMAND_FEATURE_SUCCESS = Component.translatable().key("command.feature.success");
     TranslatableComponent.Builder COMMAND_FEATURE_FAILURE = Component.translatable().key("command.feature.failure");
-    TranslatableComponent.Builder COMMAND_FEATURE_STATUS = Component.translatable().key("command.feature.status");
     TranslatableComponent.Builder COMMAND_ITEM_DATA_SUCCESS = Component.translatable().key("command.item-data.success");
     TranslatableComponent.Builder COMMAND_ITEM_DATA_SUMMARY = Component.translatable().key("command.item-data.summary");
     TranslatableComponent.Builder COMMAND_ITEM_DATA_ITEMLESS = Component.translatable().key("command.item-data.itemless");
@@ -86,4 +85,18 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_MORE_TOO_MANY = Component.translatable().key("command.more.too_many");
     TranslatableComponent.Builder COMMAND_DISTANCE_SUCCESS = Component.translatable().key("command.distance.success");
     TranslatableComponent.Builder COMMAND_DISTANCE_FAILED = Component.translatable().key("command.distance.failed");
+    TranslatableComponent.Builder COMMAND_ITEM_NAME_SUCCESS = Component.translatable().key("command.item-name.success");
+    TranslatableComponent.Builder COMMAND_ITEM_NAME_QUERY = Component.translatable().key("command.item-name.query");
+    TranslatableComponent.Builder COMMAND_ITEM_NAME_UNNAMED = Component.translatable().key("command.item-name.unnamed");
+    TranslatableComponent.Builder COMMAND_ITEM_NAME_ITEMLESS = Component.translatable().key("command.item-name.itemless");
+    TranslatableComponent.Builder COMMAND_ITEM_NAME_INVALID = Component.translatable().key("command.item-name.invalid");
+    TranslatableComponent.Builder COMMAND_ITEM_NAME_EDIT = Component.translatable().key("command.item-name.edit");
+    TranslatableComponent.Builder COMMAND_ENDER_CHEST_SUCCESS = Component.translatable().key("command.ender-chest.success");
+    TranslatableComponent.Builder COMMAND_ENDER_CHEST_FAILED = Component.translatable().key("command.ender-chest.failed");
+    TranslatableComponent.Builder COMMAND_CUSTOM_NAME_SUCCESS = Component.translatable().key("command.custom-name.success");
+    TranslatableComponent.Builder COMMAND_CUSTOM_NAME_QUERY = Component.translatable().key("command.custom-name.query");
+    TranslatableComponent.Builder COMMAND_CUSTOM_NAME_UNNAMED = Component.translatable().key("command.custom-name.unnamed");
+    TranslatableComponent.Builder COMMAND_CUSTOM_NAME_ITEMLESS = Component.translatable().key("command.custom-name.itemless");
+    TranslatableComponent.Builder COMMAND_CUSTOM_NAME_INVALID = Component.translatable().key("command.custom-name.invalid");
+    TranslatableComponent.Builder COMMAND_CUSTOM_NAME_EDIT = Component.translatable().key("command.custom-name.edit");
 }

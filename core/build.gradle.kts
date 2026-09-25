@@ -152,7 +152,7 @@ paper {
         register("PlaceholderAPI") {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             required = false
-            joinClasspath = false
+            joinClasspath = true
         }
     }
 }

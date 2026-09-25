@@ -251,3 +251,19 @@ command.more.too_many: '<color:#8A949E>»</color> <color:#E6C777>${project_name}
 # command.distance
 command.distance.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Euclidean distance: <arg:0> blocks, Manhattan distance: <arg:1> blocks.</color>'
 command.distance.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No target block found within <arg:0> blocks along your line of sight.</color>'
+
+command.item-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set the main-hand item name of <arg:1> to <arg:0>.</color>'
+command.item-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Main-hand item name of <arg:3>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.item-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The main-hand item of <arg:0> has no item name component.</color>'
+command.item-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> is not holding an item in the main hand.</color>'
+command.item-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid name format. Check the JSON or text tags.</color>'
+command.item-name.edit: '<color:#C5CCD3>Click to edit the name</color>'
+command.ender-chest.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Opened the ender chest for <arg:0>.</color>'
+command.ender-chest.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Could not open the ender chest for <arg:0>.</color>'
+
+command.custom-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set the main-hand custom name of <arg:1> to <arg:0>.</color>'
+command.custom-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Main-hand custom name of <arg:3>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.custom-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The main-hand item of <arg:0> has no custom display name.</color>'
+command.custom-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> is not holding an item in the main hand.</color>'
+command.custom-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid name format. Check the JSON or text tags.</color>'
+command.custom-name.edit: '<color:#C5CCD3>Click to edit the name</color>'

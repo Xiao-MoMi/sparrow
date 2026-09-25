@@ -251,3 +251,19 @@ command.more.too_many: '<color:#8A949E>»</color> <color:#E6C777>${project_name}
 # command.distance
 command.distance.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>直线距离: <arg:0> 格, 曼哈顿距离: <arg:1> 格.</color>'
 command.distance.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>视线方向 <arg:0> 格内没有找到目标方块.</color>'
+
+command.item-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <arg:1> 的主手物品名称设为 <arg:0>.</color>'
+command.item-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:3> 的主手物品名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.item-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手物品没有物品名称组件.</color>'
+command.item-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手没有物品.</color>'
+command.item-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>名称格式无效, 请检查 JSON 或文本标签.</color>'
+command.item-name.edit: '<color:#C5CCD3>点击填入编辑命令</color>'
+command.ender-chest.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <arg:0> 打开其末影箱.</color>'
+command.ender-chest.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>未能为 <arg:0> 打开末影箱.</color>'
+
+command.custom-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <arg:1> 的主手物品自定义名称设为 <arg:0>.</color>'
+command.custom-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:3> 的主手物品自定义名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.custom-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手物品没有自定义显示名称.</color>'
+command.custom-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手没有物品.</color>'
+command.custom-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>名称格式无效, 请检查 JSON 或文本标签.</color>'
+command.custom-name.edit: '<color:#C5CCD3>点击填入编辑命令</color>'

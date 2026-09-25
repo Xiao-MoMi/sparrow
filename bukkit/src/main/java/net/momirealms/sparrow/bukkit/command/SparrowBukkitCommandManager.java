@@ -3,10 +3,8 @@ package net.momirealms.sparrow.bukkit.command;
 import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.bukkit.SparrowBukkitPlugin;
-import net.momirealms.sparrow.bukkit.command.feature.container.*;
 import net.momirealms.sparrow.bukkit.command.feature.item.*;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemCustomModelDataPlayerCommand;
-import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemDisplayNamePlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemLorePlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.misc.*;
 import net.momirealms.sparrow.bukkit.command.feature.player.*;
@@ -33,8 +31,6 @@ import java.util.List;
 public final class SparrowBukkitCommandManager extends AbstractSparrowCommandManager<CommandSender> {
 
     private final List<CommandFeature<CommandSender>> FEATURES = List.of(
-            new EnderChestPlayerCommand(this),
-            new EnderChestAdminCommand(this),
             new EnchantAdminCommand(this),
             new ColorPlayerCommand(this),
             new DyePlayerCommand(this),
@@ -45,7 +41,6 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new URLHeadAdminCommand(this),
             new HeadPlayerCommand(this),
             new ItemCustomModelDataPlayerCommand(this),
-            new ItemDisplayNamePlayerCommand(this),
             new ItemLorePlayerCommand(this)
     );
 

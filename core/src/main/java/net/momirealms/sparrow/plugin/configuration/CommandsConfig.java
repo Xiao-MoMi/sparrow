@@ -197,6 +197,18 @@ public final class CommandsConfig {
         CommandConfig distance = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " distance", "/distance"), DependencyVersions.PROJECT_ID + ".command.distance");
 
         @BlankLineBefore
+        @YamlProperty("custom-name")
+        CommandConfig customName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " custom_name", "/custom_name"), DependencyVersions.PROJECT_ID + ".command.custom-name");
+
+        @BlankLineBefore
+        @YamlProperty("item-name")
+        CommandConfig itemName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " item_name", "/item_name"), DependencyVersions.PROJECT_ID + ".command.item-name");
+
+        @BlankLineBefore
+        @YamlProperty("ender-chest")
+        CommandConfig enderChest = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ender_chest", "/ender_chest"), DependencyVersions.PROJECT_ID + ".command.ender-chest");
+
+        @BlankLineBefore
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
         /**
@@ -220,6 +232,9 @@ public final class CommandsConfig {
                 case "credits" -> this.credits;
                 case "patrol" -> this.patrol;
                 case "highlight" -> this.highlight;
+                case "item-name" -> this.itemName;
+                case "custom-name" -> this.customName;
+                case "ender-chest" -> this.enderChest;
                 case "item-data" -> this.itemData;
                 case "more" -> this.more;
                 case "distance" -> this.distance;

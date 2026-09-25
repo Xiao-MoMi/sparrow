@@ -3,7 +3,6 @@ package net.momirealms.sparrow.bukkit;
 import net.momirealms.sparrow.heart.SparrowHeart;
 import net.momirealms.sparrow.heart.feature.inventory.HandSlot;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.Objects.requireNonNull;
@@ -24,24 +23,10 @@ public class SparrowNMSProxy {
         private static final SparrowNMSProxy INSTANCE = new SparrowNMSProxy();
     }
 
-    public void openCustomInventory(@NotNull Player player, @NotNull Inventory inventory, @NotNull String titleTitle) {
-        requireNonNull(player, "player");
-        requireNonNull(inventory, "inventory");
-        requireNonNull(titleTitle, "titleTitle");
-        heart.openCustomInventory(player, inventory, titleTitle);
-    }
-
-    public void updateInventoryTitle(@NotNull Player player, @NotNull String titleTitle) {
-        requireNonNull(player, "player");
-        requireNonNull(titleTitle, "titleTitle");
-        heart.updateInventoryTitle(player, titleTitle);
-    }
-
     public void swingHand(@NotNull Player player, @NotNull HandSlot slot) {
         requireNonNull(player, "player");
         requireNonNull(slot, "slot");
         heart.swingHand(player, slot);
     }
-
 
 }
