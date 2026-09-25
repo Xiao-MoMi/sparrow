@@ -8,20 +8,20 @@ exception.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 exception.unexpected: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>命令执行失败，请查看控制台日志</color>'
 
 # argument.parse.failure
-argument.parse.failure.color: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>无效的颜色：<arg:0></red>'
-argument.parse.failure.enchantment: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>未知附魔：<arg:0></red>'
-argument.parse.failure.modeldata: '无效模型数据 <arg:0>. 请使用整数 (123) 或带小数点的数值 (123.0).'
-argument.parse.failure.namedtextcolor: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>未知的命名颜色：<arg:0></red>'
-argument.parse.failure.offlineplayer: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>找不到 <arg:0> 的本服玩家记录</red>'
-argument.parse.failure.time: '无效时长 <arg:0>；使用 tick 数或 d/h/m/s/t 单位，最多 2147483647 tick'
-argument.parse.failure.url: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>无效的 URL：<arg:0></red>'
+argument.parse.failure.color: '<color:#FFB6CB>无效的颜色：<color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.enchantment: '<color:#FFB6CB>未知附魔：<color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.modeldata: '<color:#FFB6CB>无效模型数据 <color:#F2F4FF><arg:0></color>. 请使用整数 (123) 或带小数点的数值 (123.0).</color>'
+argument.parse.failure.namedtextcolor: '<color:#FFB6CB>未知的命名颜色：<color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.offlineplayer: '<color:#FFB6CB>找不到 <color:#F2F4FF><arg:0></color> 的本服玩家记录</color>'
+argument.parse.failure.time: '<color:#FFB6CB>无效时长 <color:#F2F4FF><arg:0></color>；使用 tick 数或 d/h/m/s/t 单位，最多 2147483647 tick</color>'
+argument.parse.failure.url: '<color:#FFB6CB>无效的 URL：<color:#F2F4FF><arg:0></color></color>'
 
 # argument.parse.failure.flag
-argument.parse.failure.flag.duplicate_flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>选项重复：<arg:0></color>'
-argument.parse.failure.flag.missing_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>缺少选项 <arg:0> 的参数</color>'
-argument.parse.failure.flag.no_flag_started: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法识别选项：<arg:0></color>'
-argument.parse.failure.flag.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有权限使用选项 <arg:0></color>'
-argument.parse.failure.flag.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未知选项：<arg:0></color>'
+argument.parse.failure.flag.duplicate_flag: '<color:#FFB6CB>选项重复：<color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.flag.missing_argument: '<color:#FFB6CB>缺少选项 <color:#F2F4FF><arg:0></color> 的参数</color>'
+argument.parse.failure.flag.no_flag_started: '<color:#FFB6CB>无法识别选项：<color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.flag.no_permission: '<color:#FFB6CB>你没有权限使用选项 <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.flag.unknown: '<color:#FFB6CB>未知选项：<color:#F2F4FF><arg:0></color></color>'
 
 # command.actionbar
 command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送 ActionBar</color>'
@@ -39,48 +39,48 @@ command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开制图台</color>'
 
 # command.color
-command.color.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>玩家 <arg:0> 的 <arg:1> 槽位没有物品.</color>'
-command.color.missing: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>玩家 <arg:0> 的 <arg:1> 槽位物品没有 minecraft:dyed_color 组件.</color>'
-command.color.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>玩家 <arg:0> 的 <arg:6> 槽位物品染色为 <arg:1> (点击复制), RGB (<arg:2>, <arg:3>, <arg:4>), 十进制 <arg:5>.</color>'
-command.color.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将玩家 <arg:0> 的 <arg:2> 槽位物品染色组件设为 <arg:1>.</color>'
+command.color.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 的 <color:#F2F4FF><arg:1></color> 槽位没有物品.</color>'
+command.color.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 的 <color:#F2F4FF><arg:1></color> 槽位物品没有 minecraft:dyed_color 组件.</color>'
+command.color.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>玩家 <color:#C7BCE7><arg:0></color> 的 <color:#C7BCE7><arg:6></color> 槽位物品染色为 <arg:1> (点击复制), RGB (<color:#C7BCE7><arg:2></color>, <color:#C7BCE7><arg:3></color>, <color:#C7BCE7><arg:4></color>), 十进制 <color:#C7BCE7><arg:5></color>.</color>'
+command.color.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将玩家 <color:#C7BCE7><arg:0></color> 的 <color:#C7BCE7><arg:2></color> 槽位物品染色组件设为 <color:#C7BCE7><arg:1></color>.</color>'
 
 # command.credits
 command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示终末之诗</color>'
 
 # command.custom-model-data
-command.custom-model-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>主手没有物品.</color>'
-command.custom-model-data.missing: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>主手物品没有数值模型数据.</color>'
-command.custom-model-data.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>模型数据: <arg:0>.</color>'
-command.custom-model-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将模型数据设为 <arg:0>.</color>'
+command.custom-model-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>主手没有物品.</color>'
+command.custom-model-data.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>主手物品没有数值模型数据.</color>'
+command.custom-model-data.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>模型数据: <color:#C7BCE7><arg:0></color>.</color>'
+command.custom-model-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将模型数据设为 <color:#C7BCE7><arg:0></color>.</color>'
 
 # command.custom-name
-command.custom-name.edit: '<color:#C5CCD3>点击填入编辑命令</color>'
-command.custom-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>名称格式无效, 请检查 JSON 或文本标签.</color>'
-command.custom-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手没有物品.</color>'
-command.custom-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:3> 的主手物品自定义名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
-command.custom-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <arg:1> 的主手物品自定义名称设为 <arg:0>.</color>'
-command.custom-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手物品没有自定义显示名称.</color>'
+command.custom-name.edit: '<color:#F2F4FF>点击填入编辑命令</color>'
+command.custom-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>名称格式无效, 请检查 JSON 或文本标签.</color>'
+command.custom-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手没有物品.</color>'
+command.custom-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:3></color> 的主手物品自定义名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.custom-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:1></color> 的主手物品自定义名称设为 <arg:0>.</color>'
+command.custom-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手物品没有自定义显示名称.</color>'
 
 # command.demo
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示演示版提示</color>'
 
 # command.distance
-command.distance.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>视线方向 <arg:0> 格内没有找到目标方块.</color>'
-command.distance.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>直线距离: <arg:0> 格, 曼哈顿距离: <arg:1> 格.</color>'
+command.distance.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>视线方向 <color:#F2F4FF><arg:0></color> 格内没有找到目标方块.</color>'
+command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>直线距离: <color:#C7BCE7><arg:0></color> 格, 曼哈顿距离: <color:#C7BCE7><arg:1></color> 格.</color>'
 
 # command.enchant
-command.enchant.entity: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A><color:#A9C7E8><arg:0></color> 没有可操作的装备栏。</color>'
-command.enchant.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A><color:#A9C7E8><arg:0></color> 的指定装备槽位为空。</color>'
-command.enchant.removed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已移除 <color:#A9C7E8><arg:0></color> 装备上的 <color:#E6C777><arg:1></color>。</color>'
-command.enchant.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <color:#A9C7E8><arg:0></color> 的装备附加 <color:#E6C777><arg:1></color> <color:#B6D9AE><arg:2> 级</color>。</color>'
-command.enchant.zero: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <color:#A9C7E8><arg:0></color> 装备上的 <color:#E6C777><arg:1></color> 设为 <color:#E6C777>0 级</color>。</color>'
+command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 没有可操作的装备栏。</color>'
+command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的指定装备槽位为空。</color>'
+command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已移除 <color:#C7BCE7><arg:0></color> 装备上的 <color:#C7BCE7><arg:1></color>。</color>'
+command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 的装备附加 <color:#C7BCE7><arg:1></color> <color:#C7BCE7><arg:2></color> 级。</color>'
+command.enchant.zero: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 装备上的 <color:#C7BCE7><arg:1></color> 设为 0 级。</color>'
 
 # command.enchantment-table
-command.enchantment-table.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <color:#A9C7E8><arg:0></color> 打开附魔台。</color>'
+command.enchantment-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开附魔台。</color>'
 
 # command.ender-chest
-command.ender-chest.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>未能为 <arg:0> 打开末影箱.</color>'
-command.ender-chest.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <arg:0> 打开其末影箱.</color>'
+command.ender-chest.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能为 <color:#F2F4FF><arg:0></color> 打开末影箱.</color>'
+command.ender-chest.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开其末影箱.</color>'
 
 # command.extinguish
 command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 灭火</color>'
@@ -145,47 +145,58 @@ command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 # command.heal
 command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已治疗 <color:#C7BCE7><arg:0></color></color>'
 
+# command.head
+command.head.source_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定头颅来源的玩家名或 UUID。</color>'
+command.head.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无效的玩家名或 UUID：<color:#F2F4FF><arg:0></color>。</color>'
+command.head.not_found: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有找到 <color:#F2F4FF><arg:0></color> 的皮肤资料。</color>'
+command.head.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>获取 <color:#C7BCE7><arg:0></color> 的头颅超时，已取消本次请求，请稍后重试。</color>'
+command.head.throttled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>皮肤服务请求过于频繁，请稍后重试。</color>'
+command.head.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>获取 <color:#F2F4FF><arg:0></color> 的头颅失败，请稍后重试。</color>'
+command.head.invalid_response: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>皮肤服务返回了无效资料，请检查 head 的接口配置。</color>'
+command.head.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>头颅请求已失效：模块已停用、重载或接收玩家已退出。</color>'
+command.head.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:2></color> 发放 <color:#C7BCE7><arg:0></color> 个来自 <color:#C7BCE7><arg:1></color> 的头颅。</color>'
+
 # command.highlight
-command.highlight.cancelled: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已取消高亮选点.</color>'
-command.highlight.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>无法创建高亮, 请检查服务端日志.</color>'
-command.highlight.first: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已选择第一点: <arg:0>, <arg:1>, <arg:2>.</color>'
-command.highlight.height: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>选区超出世界高度范围.</color>'
-command.highlight.peaceful: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>选区所在世界为和平模式, 无法使用高亮功能.</color>'
-command.highlight.points: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>请同时指定 --from x y z 与 --to x y z, 或均省略以交互选点.</color>'
-command.highlight.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已向 <arg:0> 显示高亮.</color>'
-command.highlight.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>高亮选点已超时.</color>'
-command.highlight.tip: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>左键选择脚下位置, 右键选择点击的方块. 选取两个点, 再次执行命令取消选点.</color>'
-command.highlight.too_large: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>选区最多包含 <arg:0> 个方块, 两端也计入范围.</color>'
-command.highlight.world: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>请在同一世界中选点. 控制台必须指定 --world.</color>'
+command.highlight.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>已取消高亮选点.</color>'
+command.highlight.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法创建高亮, 请检查服务端日志.</color>'
+command.highlight.first: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已选择第一点: <color:#C7BCE7><arg:0></color>, <color:#C7BCE7><arg:1></color>, <color:#C7BCE7><arg:2></color>.</color>'
+command.highlight.height: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>选区超出世界高度范围.</color>'
+command.highlight.peaceful: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>选区所在世界为和平模式, 无法使用高亮功能.</color>'
+command.highlight.points: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>请同时指定 --from x y z 与 --to x y z, 或均省略以交互选点.</color>'
+command.highlight.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示高亮.</color>'
+command.highlight.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>高亮选点已超时.</color>'
+command.highlight.tip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>左键选择脚下位置, 右键选择点击的方块. 选取两个点, 再次执行命令取消选点.</color>'
+command.highlight.too_large: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>选区最多包含 <color:#F2F4FF><arg:0></color> 个方块, 两端也计入范围.</color>'
+command.highlight.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请在同一世界中选点. 控制台必须指定 --world.</color>'
 
 # command.item-data
-command.item-data.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>无法读取物品数据, 请检查服务端日志.</color>'
-command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>请在主手拿着物品.</color>'
-command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>主手物品数据:</color><newline><arg:0>'
-command.item-data.summary: '<color:#E6C777>[<arg:0> 行数据]</color> <color:#C5CCD3>悬浮查看, 使用 --chat 展开并点击值复制.</color>'
+command.item-data.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法读取物品数据, 请检查服务端日志.</color>'
+command.item-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请在主手拿着物品.</color>'
+command.item-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>主手物品数据:<newline><arg:0></color>'
+command.item-data.summary: '<color:#FFE08A>[<arg:0> 行数据]</color> <color:#F2F4FF>悬浮查看, 使用 --chat 展开并点击值复制.</color>'
 
 # command.item-lore
-command.item-lore.bound: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>行号 <arg:0> 超出范围, 可用范围: <arg:1>–<arg:2>.</color>'
+command.item-lore.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>行号 <color:#F2F4FF><arg:0></color> 超出范围, 可用范围: <color:#F2F4FF><arg:1></color>–<color:#F2F4FF><arg:2></color>.</color>'
 command.item-lore.delete: '删除'
 command.item-lore.down: '下移'
 command.item-lore.edit: '编辑'
-command.item-lore.expired: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>此描述面板已过期, 请重新执行命令.</color>'
+command.item-lore.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>此描述面板已过期, 请重新执行命令.</color>'
 command.item-lore.insert: '插入'
-command.item-lore.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>描述文本或 JSON 格式无效.</color>'
-command.item-lore.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>主手没有物品.</color>'
-command.item-lore.limit: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>物品描述最多允许 <arg:0> 行.</color>'
-command.item-lore.missing-flag: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>缺少必需的参数: <arg:0>.</color>'
-command.item-lore.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>物品描述:<newline><arg:0></color>'
-command.item-lore.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已更新物品描述:<newline><arg:0></color>'
+command.item-lore.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>描述文本或 JSON 格式无效.</color>'
+command.item-lore.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>主手没有物品.</color>'
+command.item-lore.limit: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>物品描述最多允许 <color:#F2F4FF><arg:0></color> 行.</color>'
+command.item-lore.missing-flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>缺少必需的参数: <color:#F2F4FF><arg:0></color>.</color>'
+command.item-lore.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>物品描述:<newline><arg:0></color>'
+command.item-lore.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已更新物品描述:<newline><arg:0></color>'
 command.item-lore.up: '上移'
 
 # command.item-name
-command.item-name.edit: '<color:#C5CCD3>点击填入编辑命令</color>'
-command.item-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>名称格式无效, 请检查 JSON 或文本标签.</color>'
-command.item-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手没有物品.</color>'
-command.item-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:3> 的主手物品名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
-command.item-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <arg:1> 的主手物品名称设为 <arg:0>.</color>'
-command.item-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手物品没有物品名称组件.</color>'
+command.item-name.edit: '<color:#F2F4FF>点击填入编辑命令</color>'
+command.item-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>名称格式无效, 请检查 JSON 或文本标签.</color>'
+command.item-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手没有物品.</color>'
+command.item-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:3></color> 的主手物品名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.item-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:1></color> 的主手物品名称设为 <arg:0>.</color>'
+command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手物品没有物品名称组件.</color>'
 
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 与朝向目标不在同一个世界</color>'
@@ -194,9 +205,9 @@ command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
 
 # command.more
-command.more.no_change: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手为空或数量已满, 没有增加物品.</color>'
-command.more.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <arg:0> 增加 <arg:1> 个物品.</color>'
-command.more.too_many: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>此物品单次最多额外复制 <arg:0> 个（100 组）.</color>'
+command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#C7BCE7><arg:0></color> 的主手为空或数量已满, 没有增加物品.</color>'
+command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 增加 <color:#C7BCE7><arg:1></color> 个物品.</color>'
+command.more.too_many: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>此物品单次最多额外复制 <color:#F2F4FF><arg:0></color> 个（100 组）.</color>'
 
 # command.patrol
 command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有可以巡查的玩家</color>'
@@ -253,13 +264,13 @@ command.totem-animation.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 播放图腾动画</color>'
 
 # command.tp-offline
-command.tp-offline.connecting: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>目标服务器已接受请求, 正在将 <arg:0> 送往 <arg:2> 上 <arg:1> 的最后下线位置.</color>'
-command.tp-offline.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>目标世界或坐标无效, 未修改出生位置或执行传送.</color>'
-command.tp-offline.no-location: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>玩家 <arg:0> 尚未保存下线位置.</color>'
-command.tp-offline.server-offline: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>服务器 <arg:2> 的心跳不存在, 无法传送.</color>'
-command.tp-offline.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <arg:0> 传送到 <arg:1> 的最后下线位置.</color>'
-command.tp-offline.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>目标服务器未在 5 秒内响应传送请求.</color>'
-command.tp-offline.unknown: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>找不到玩家 <arg:0> 的数据库记录.</color>'
+command.tp-offline.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>目标服务器已接受请求, 正在将 <color:#C7BCE7><arg:0></color> 送往 <color:#C7BCE7><arg:2></color> 上 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
+command.tp-offline.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标世界或坐标无效, 未修改出生位置或执行传送.</color>'
+command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 尚未保存下线位置.</color>'
+command.tp-offline.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>服务器 <color:#F2F4FF><arg:2></color> 的心跳不存在, 无法传送.</color>'
+command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
+command.tp-offline.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标服务器未在 5 秒内响应传送请求.</color>'
+command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>找不到玩家 <color:#F2F4FF><arg:0></color> 的数据库记录.</color>'
 
 # command.walk-speed
 command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的行走速度设为 <color:#C7BCE7><arg:1></color></color>'
@@ -268,9 +279,9 @@ command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开工作台</color>'
 
 # command.world
-command.world.empty: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>没有其他已加载世界可供切换。</color>'
-command.world.no_space: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>世界 <color:#E6C777><arg:0></color> 的目标位置上方没有足够空间。</color>'
-command.world.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <color:#A9C7E8><arg:0></color> 传送至 <color:#E6C777><arg:1></color>。</color>'
+command.world.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有其他已加载世界可供切换。</color>'
+command.world.no_space: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>世界 <color:#F2F4FF><arg:0></color> 的目标位置上方没有足够空间。</color>'
+command.world.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送至 <color:#C7BCE7><arg:1></color>。</color>'
 
 # feature.state
 feature.state.disabled: '<color:#7D98BF>已关闭</color>'

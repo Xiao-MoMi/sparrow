@@ -4,6 +4,16 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 
 public interface MessageConstants {
+    TranslatableComponent.Builder COMMAND_HEAD_SOURCE_REQUIRED = Component.translatable().key("command.head.source_required");
+    TranslatableComponent.Builder COMMAND_HEAD_INVALID = Component.translatable().key("command.head.invalid");
+    TranslatableComponent.Builder COMMAND_HEAD_NOT_FOUND = Component.translatable().key("command.head.not_found");
+    TranslatableComponent.Builder COMMAND_HEAD_TIMEOUT = Component.translatable().key("command.head.timeout");
+    TranslatableComponent.Builder COMMAND_HEAD_THROTTLED = Component.translatable().key("command.head.throttled");
+    TranslatableComponent.Builder COMMAND_HEAD_FAILURE = Component.translatable().key("command.head.failure");
+    TranslatableComponent.Builder COMMAND_HEAD_INVALID_RESPONSE = Component.translatable().key("command.head.invalid_response");
+    TranslatableComponent.Builder COMMAND_HEAD_CANCELLED = Component.translatable().key("command.head.cancelled");
+    TranslatableComponent.Builder COMMAND_HEAD_SUCCESS = Component.translatable().key("command.head.success");
+
     TranslatableComponent.Builder COMMAND_HIGHLIGHT_TIP = Component.translatable().key("command.highlight.tip");
     TranslatableComponent.Builder COMMAND_HIGHLIGHT_FIRST = Component.translatable().key("command.highlight.first");
     TranslatableComponent.Builder COMMAND_HIGHLIGHT_WORLD = Component.translatable().key("command.highlight.world");

@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.configuration;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
@@ -101,6 +102,16 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "选择区域并向玩家显示方块发光轮廓.")
         private HighlightSettings highlight = new HighlightSettings();
 
+        @BlankLineBefore
+        @Comment("Fetch player heads and URL textures, with memory and Redis caches.")
+        @Comment(lang = "zh", value = "获取玩家头颅和 URL 纹理, 使用内存及 Redis 缓存.")
+        private HeadSettings head = new HeadSettings();
+
+        @NotNull
+        public HeadSettings head() {
+            return this.head;
+        }
+
         @NotNull
         public HighlightSettings highlight() {
             return this.highlight;
@@ -129,6 +140,7 @@ public final class FeaturesConfig {
                 case "patrol" -> this.patrol;
                 case "server" -> this.server;
                 case "highlight" -> this.highlight;
+                case "head" -> this.head;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

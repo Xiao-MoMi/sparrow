@@ -21,12 +21,4 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANT_FAILED = Component.translatable().key("commands.admin.enchant.failed");
     TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANT_SUCCESS_SINGLE = Component.translatable().key("commands.admin.enchant.success.single");
     TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANT_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.enchant.success.multiple");
-    TranslatableComponent.Builder COMMANDS_ADMIN_HEAD_SUCCESS_SINGLE = Component.translatable().key("commands.admin.head.success.single");
-    TranslatableComponent.Builder COMMANDS_ADMIN_HEAD_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.head.success.multiple");
-    TranslatableComponent.Builder COMMANDS_ADMIN_HEAD_FAILED_SKULL = Component.translatable().key("commands.admin.head.failed.skull");
-    TranslatableComponent.Builder COMMANDS_PLAYER_HEAD_SUCCESS = Component.translatable().key("commands.player.head.success");
-    TranslatableComponent.Builder COMMANDS_PLAYER_HEAD_FAILED_SKULL = Component.translatable().key("commands.player.head.failed.skull");
-    TranslatableComponent.Builder COMMANDS_ADMIN_URLHEAD_SUCCESS_SINGLE = Component.translatable().key("commands.admin.urlhead.success.single");
-    TranslatableComponent.Builder COMMANDS_ADMIN_URLHEAD_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.urlhead.success.multiple");
-    TranslatableComponent.Builder COMMANDS_ADMIN_URLHEAD_FAILED_SKULL = Component.translatable().key("commands.admin.urlhead.failed.skull");
 }

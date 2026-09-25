@@ -48,4 +48,37 @@ class FeaturesConfigTest {
         assertThrows(RuntimeException.class, config::reload);
         assertSame(original, config.config());
     }
+
+    @Test
+    void headSettingsRoundTripCustomUrlsHeadersAndCacheDurations() throws Exception {
+        Files.writeString(this.directory.resolve("features.yml"), """
+                __version__: '1'
+                head:
+                  enabled: true
+                  source-order: [api, online]
+                  request-timeout: 20s
+                  cache:
+                    memory:
+                      ttl: 2m30s
+                    redis:
+                      enabled: true
+                      ttl: 3d
+                  api:
+                    name-url: 'https://example.test/names/{name}'
+                    profile-url: 'https://example.test/profiles/{uuid-dashed}'
+                    headers:
+                      Authorization: Bearer example
+                """);
+        FeaturesConfig config = new FeaturesConfig(this.directory, SparrowYaml.builder().build());
+        var head = config.config().head();
+        assertEquals(List.of("api", "online"), head.sourceOrder());
+        assertEquals("2m30s", head.cache().memory().ttl());
+        assertEquals("3d", head.cache().redis().ttl());
+        assertEquals("https://example.test/profiles/{uuid-dashed}", head.api().profileUrl());
+        assertEquals("Bearer example", head.api().headers().get("Authorization"));
+        config.saveEnabled("head", false);
+        config.reload();
+        assertFalse(config.config().head().enabled());
+        assertEquals("Bearer example", config.config().head().api().headers().get("Authorization"));
+    }
 }

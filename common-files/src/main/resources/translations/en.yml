@@ -8,20 +8,20 @@ exception.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 exception.unexpected: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Command failed. Check the console log</color>'
 
 # argument.parse.failure
-argument.parse.failure.color: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>Invalid color: <arg:0></red>'
-argument.parse.failure.enchantment: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>Unknown enchantment: <arg:0></red>'
-argument.parse.failure.modeldata: 'Invalid model data <arg:0>. Use an integer (123) or an explicit decimal (123.0).'
-argument.parse.failure.namedtextcolor: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>Unknown named color: <arg:0></red>'
-argument.parse.failure.offlineplayer: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>No local player record found for <arg:0></red>'
-argument.parse.failure.time: 'Invalid duration <arg:0>. Use ticks or d/h/m/s/t units, up to 2147483647 ticks'
-argument.parse.failure.url: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <red>Invalid URL: <arg:0></red>'
+argument.parse.failure.color: '<color:#FFB6CB>Invalid color: <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.enchantment: '<color:#FFB6CB>Unknown enchantment: <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.modeldata: '<color:#FFB6CB>Invalid model data <color:#F2F4FF><arg:0></color>. Use an integer (123) or an explicit decimal (123.0).</color>'
+argument.parse.failure.namedtextcolor: '<color:#FFB6CB>Unknown named color: <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.offlineplayer: '<color:#FFB6CB>No local player record found for <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.time: '<color:#FFB6CB>Invalid duration <color:#F2F4FF><arg:0></color>. Use ticks or d/h/m/s/t units, up to 2147483647 ticks</color>'
+argument.parse.failure.url: '<color:#FFB6CB>Invalid URL: <color:#F2F4FF><arg:0></color></color>'
 
 # argument.parse.failure.flag
-argument.parse.failure.flag.duplicate_flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Duplicate flag: <arg:0></color>'
-argument.parse.failure.flag.missing_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Missing argument for flag <arg:0></color>'
-argument.parse.failure.flag.no_flag_started: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Unrecognized flag: <arg:0></color>'
-argument.parse.failure.flag.no_permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You do not have permission to use flag <arg:0></color>'
-argument.parse.failure.flag.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Unknown flag: <arg:0></color>'
+argument.parse.failure.flag.duplicate_flag: '<color:#FFB6CB>Duplicate flag: <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.flag.missing_argument: '<color:#FFB6CB>Missing argument for flag <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.flag.no_flag_started: '<color:#FFB6CB>Unrecognized flag: <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.flag.no_permission: '<color:#FFB6CB>You do not have permission to use flag <color:#F2F4FF><arg:0></color></color>'
+argument.parse.failure.flag.unknown: '<color:#FFB6CB>Unknown flag: <color:#F2F4FF><arg:0></color></color>'
 
 # command.actionbar
 command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent an action bar to <color:#C7BCE7><arg:0></color></color>'
@@ -39,48 +39,48 @@ command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened cartography table for <color:#C7BCE7><arg:0></color></color>'
 
 # command.color
-command.color.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The <arg:1> slot of <arg:0> is empty.</color>'
-command.color.missing: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The item in the <arg:1> slot of <arg:0> has no minecraft:dyed_color component.</color>'
-command.color.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Dyed color of the item in the <arg:6> slot of <arg:0>: <arg:1> (click to copy), RGB (<arg:2>, <arg:3>, <arg:4>), decimal <arg:5>.</color>'
-command.color.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set the dyed color of the item in the <arg:2> slot of <arg:0> to <arg:1>.</color>'
+command.color.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The <color:#F2F4FF><arg:1></color> slot of <color:#F2F4FF><arg:0></color> is empty.</color>'
+command.color.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item in the <color:#F2F4FF><arg:1></color> slot of <color:#F2F4FF><arg:0></color> has no minecraft:dyed_color component.</color>'
+command.color.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Dyed color of the item in the <color:#C7BCE7><arg:6></color> slot of <color:#C7BCE7><arg:0></color>: <arg:1> (click to copy), RGB (<color:#C7BCE7><arg:2></color>, <color:#C7BCE7><arg:3></color>, <color:#C7BCE7><arg:4></color>), decimal <color:#C7BCE7><arg:5></color>.</color>'
+command.color.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the dyed color of the item in the <color:#C7BCE7><arg:2></color> slot of <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>.</color>'
 
 # command.credits
 command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the credits for <color:#C7BCE7><arg:0></color></color>'
 
 # command.custom-model-data
-command.custom-model-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Your main hand is empty.</color>'
-command.custom-model-data.missing: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The item in your main hand has no numeric custom model data.</color>'
-command.custom-model-data.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Custom model data: <arg:0>.</color>'
-command.custom-model-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set custom model data to <arg:0>.</color>'
+command.custom-model-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main hand is empty.</color>'
+command.custom-model-data.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item in your main hand has no numeric custom model data.</color>'
+command.custom-model-data.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Custom model data: <color:#C7BCE7><arg:0></color>.</color>'
+command.custom-model-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set custom model data to <color:#C7BCE7><arg:0></color>.</color>'
 
 # command.custom-name
-command.custom-name.edit: '<color:#C5CCD3>Click to edit the name</color>'
-command.custom-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid name format. Check the JSON or text tags.</color>'
-command.custom-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> is not holding an item in the main hand.</color>'
-command.custom-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Main-hand custom name of <arg:3>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
-command.custom-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set the main-hand custom name of <arg:1> to <arg:0>.</color>'
-command.custom-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The main-hand item of <arg:0> has no custom display name.</color>'
+command.custom-name.edit: '<color:#F2F4FF>Click to edit the name</color>'
+command.custom-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid name format. Check the JSON or text tags.</color>'
+command.custom-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
+command.custom-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Main-hand custom name of <color:#C7BCE7><arg:3></color>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.custom-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand custom name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
+command.custom-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no custom display name.</color>'
 
 # command.demo
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for <color:#C7BCE7><arg:0></color></color>'
 
 # command.distance
-command.distance.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No target block found within <arg:0> blocks along your line of sight.</color>'
-command.distance.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Euclidean distance: <arg:0> blocks, Manhattan distance: <arg:1> blocks.</color>'
+command.distance.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No target block found within <color:#F2F4FF><arg:0></color> blocks along your line of sight.</color>'
+command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Euclidean distance: <color:#C7BCE7><arg:0></color> blocks, Manhattan distance: <color:#C7BCE7><arg:1></color> blocks.</color>'
 
 # command.enchant
-command.enchant.entity: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A><color:#A9C7E8><arg:0></color> has no equipment slots.</color>'
-command.enchant.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>The selected equipment slot of <color:#A9C7E8><arg:0></color> is empty.</color>'
-command.enchant.removed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Removed <color:#E6C777><arg:1></color> from <color:#A9C7E8><arg:0></color>''s equipment.</color>'
-command.enchant.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Applied <color:#E6C777><arg:1></color> <color:#B6D9AE>level <arg:2></color> to <color:#A9C7E8><arg:0></color>''s equipment.</color>'
-command.enchant.zero: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set <color:#E6C777><arg:1></color> on <color:#A9C7E8><arg:0></color>''s equipment to <color:#E6C777>level 0</color>.</color>'
+command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> has no equipment slots.</color>'
+command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selected equipment slot of <color:#F2F4FF><arg:0></color> is empty.</color>'
+command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Removed <color:#C7BCE7><arg:1></color> from <color:#C7BCE7><arg:0></color>''s equipment.</color>'
+command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied <color:#C7BCE7><arg:1></color> level <color:#C7BCE7><arg:2></color> to <color:#C7BCE7><arg:0></color>''s equipment.</color>'
+command.enchant.zero: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:0></color>''s equipment to level 0.</color>'
 
 # command.enchantment-table
-command.enchantment-table.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Opened an enchanting table for <color:#A9C7E8><arg:0></color>.</color>'
+command.enchantment-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an enchanting table for <color:#C7BCE7><arg:0></color>.</color>'
 
 # command.ender-chest
-command.ender-chest.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Could not open the ender chest for <arg:0>.</color>'
-command.ender-chest.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Opened the ender chest for <arg:0>.</color>'
+command.ender-chest.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not open the ender chest for <color:#F2F4FF><arg:0></color>.</color>'
+command.ender-chest.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the ender chest for <color:#C7BCE7><arg:0></color>.</color>'
 
 # command.extinguish
 command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Extinguished <color:#C7BCE7><arg:0></color></color>'
@@ -145,47 +145,58 @@ command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 # command.heal
 command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed <color:#C7BCE7><arg:0></color></color>'
 
+# command.head
+command.head.source_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Please specify a player name or UUID for the head.</color>'
+command.head.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid player name or UUID: <color:#F2F4FF><arg:0></color>.</color>'
+command.head.not_found: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No skin data was found for <color:#F2F4FF><arg:0></color>.</color>'
+command.head.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Fetching the head for <color:#C7BCE7><arg:0></color> timed out. The request was cancelled; please try again later.</color>'
+command.head.throttled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The skin service is rate limiting requests. Please try again later.</color>'
+command.head.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not fetch the head for <color:#F2F4FF><arg:0></color>. Please try again later.</color>'
+command.head.invalid_response: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The skin service returned invalid data. Please check the head API configuration.</color>'
+command.head.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The head request expired: the feature was disabled or reloaded, or the recipient disconnected.</color>'
+command.head.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Gave <color:#C7BCE7><arg:0></color> head(s) from <color:#C7BCE7><arg:1></color> to <color:#C7BCE7><arg:2></color>.</color>'
+
 # command.highlight
-command.highlight.cancelled: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Highlight selection cancelled.</color>'
-command.highlight.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Could not create the highlight. See the server log.</color>'
-command.highlight.first: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>First point: <arg:0>, <arg:1>, <arg:2>.</color>'
-command.highlight.height: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The selection exceeds the world height limits.</color>'
-command.highlight.peaceful: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Highlight is unavailable while the selected world is in Peaceful difficulty.</color>'
-command.highlight.points: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Specify both --from x y z and --to x y z, or omit both to select interactively.</color>'
-command.highlight.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Showing the highlight to <arg:0>.</color>'
-command.highlight.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Highlight selection timed out.</color>'
-command.highlight.tip: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Left-click to use your position, or right-click a block. Select two points; run the command again to cancel.</color>'
-command.highlight.too_large: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The selection may contain at most <arg:0> blocks, including both endpoints.</color>'
-command.highlight.world: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Select two points in the same world. Console must specify --world.</color>'
+command.highlight.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Highlight selection cancelled.</color>'
+command.highlight.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not create the highlight. See the server log.</color>'
+command.highlight.first: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>First point: <color:#C7BCE7><arg:0></color>, <color:#C7BCE7><arg:1></color>, <color:#C7BCE7><arg:2></color>.</color>'
+command.highlight.height: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selection exceeds the world height limits.</color>'
+command.highlight.peaceful: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Highlight is unavailable while the selected world is in Peaceful difficulty.</color>'
+command.highlight.points: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Specify both --from x y z and --to x y z, or omit both to select interactively.</color>'
+command.highlight.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Showing the highlight to <color:#C7BCE7><arg:0></color>.</color>'
+command.highlight.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Highlight selection timed out.</color>'
+command.highlight.tip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Left-click to use your position, or right-click a block. Select two points; run the command again to cancel.</color>'
+command.highlight.too_large: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selection may contain at most <color:#F2F4FF><arg:0></color> blocks, including both endpoints.</color>'
+command.highlight.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Select two points in the same world. Console must specify --world.</color>'
 
 # command.item-data
-command.item-data.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Unable to read item data. Check the server log.</color>'
-command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Hold an item in your main hand.</color>'
-command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Main-hand item data:</color><newline><arg:0>'
-command.item-data.summary: '<color:#E6C777>[<arg:0> lines]</color> <color:#C5CCD3>Hover to inspect, or use --chat to expand and click values to copy.</color>'
+command.item-data.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Unable to read item data. Check the server log.</color>'
+command.item-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Hold an item in your main hand.</color>'
+command.item-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Main-hand item data:<newline><arg:0></color>'
+command.item-data.summary: '<color:#FFE08A>[<arg:0> lines]</color> <color:#F2F4FF>Hover to inspect, or use --chat to expand and click values to copy.</color>'
 
 # command.item-lore
-command.item-lore.bound: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid line <arg:0>. Available range: <arg:1>–<arg:2>.</color>'
+command.item-lore.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid line <color:#F2F4FF><arg:0></color>. Available range: <color:#F2F4FF><arg:1></color>–<color:#F2F4FF><arg:2></color>.</color>'
 command.item-lore.delete: 'Delete'
 command.item-lore.down: 'Move down'
 command.item-lore.edit: 'Edit'
-command.item-lore.expired: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>This lore panel has expired. Run the command again.</color>'
+command.item-lore.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>This lore panel has expired. Run the command again.</color>'
 command.item-lore.insert: 'Insert'
-command.item-lore.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid lore text or JSON.</color>'
-command.item-lore.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Your main hand is empty.</color>'
-command.item-lore.limit: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Lore can contain at most <arg:0> lines.</color>'
-command.item-lore.missing-flag: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Missing required flag: <arg:0>.</color>'
-command.item-lore.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Item lore:<newline><arg:0></color>'
-command.item-lore.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Updated item lore:<newline><arg:0></color>'
+command.item-lore.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid lore text or JSON.</color>'
+command.item-lore.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main hand is empty.</color>'
+command.item-lore.limit: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Lore can contain at most <color:#F2F4FF><arg:0></color> lines.</color>'
+command.item-lore.missing-flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Missing required flag: <color:#F2F4FF><arg:0></color>.</color>'
+command.item-lore.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Item lore:<newline><arg:0></color>'
+command.item-lore.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Updated item lore:<newline><arg:0></color>'
 command.item-lore.up: 'Move up'
 
 # command.item-name
-command.item-name.edit: '<color:#C5CCD3>Click to edit the name</color>'
-command.item-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid name format. Check the JSON or text tags.</color>'
-command.item-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> is not holding an item in the main hand.</color>'
-command.item-name.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Main-hand item name of <arg:3>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
-command.item-name.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set the main-hand item name of <arg:1> to <arg:0>.</color>'
-command.item-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The main-hand item of <arg:0> has no item name component.</color>'
+command.item-name.edit: '<color:#F2F4FF>Click to edit the name</color>'
+command.item-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid name format. Check the JSON or text tags.</color>'
+command.item-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
+command.item-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Main-hand item name of <color:#C7BCE7><arg:3></color>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.item-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand item name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
+command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no item name component.</color>'
 
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> and the look target are in different worlds</color>'
@@ -194,9 +205,9 @@ command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target entity was not found or has left</color>'
 
 # command.more
-command.more.no_change: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No items added: <arg:0> has an empty hand or a full stack.</color>'
-command.more.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Added <arg:1> items for <arg:0>.</color>'
-command.more.too_many: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>You can copy at most <arg:0> additional items (100 stacks) at a time.</color>'
+command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>No items added: <color:#C7BCE7><arg:0></color> has an empty hand or a full stack.</color>'
+command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Added <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>.</color>'
+command.more.too_many: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can copy at most <color:#F2F4FF><arg:0></color> additional items (100 stacks) at a time.</color>'
 
 # command.patrol
 command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No players are available to patrol</color>'
@@ -253,13 +264,13 @@ command.totem-animation.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a totem animation for <color:#C7BCE7><arg:0></color></color>'
 
 # command.tp-offline
-command.tp-offline.connecting: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The destination accepted the request. Sending <arg:0> to the last logout location of <arg:1> on <arg:2>.</color>'
-command.tp-offline.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The destination world or coordinates are invalid. Spawn location and position were left unchanged.</color>'
-command.tp-offline.no-location: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> has no saved logout location.</color>'
-command.tp-offline.server-offline: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Server <arg:2> has no active heartbeat.</color>'
-command.tp-offline.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Teleported <arg:0> to the last logout location of <arg:1>.</color>'
-command.tp-offline.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The destination server did not respond within 5 seconds.</color>'
-command.tp-offline.unknown: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No database record was found for <arg:0>.</color>'
+command.tp-offline.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The destination accepted the request. Sending <color:#C7BCE7><arg:0></color> to the last logout location of <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:2></color>.</color>'
+command.tp-offline.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The destination world or coordinates are invalid. Spawn location and position were left unchanged.</color>'
+command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> has no saved logout location.</color>'
+command.tp-offline.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:2></color> has no active heartbeat.</color>'
+command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to the last logout location of <color:#C7BCE7><arg:1></color>.</color>'
+command.tp-offline.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The destination server did not respond within 5 seconds.</color>'
+command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No database record was found for <color:#F2F4FF><arg:0></color>.</color>'
 
 # command.walk-speed
 command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color>''s walk speed to <color:#C7BCE7><arg:1></color></color>'
@@ -268,9 +279,9 @@ command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened crafting table for <color:#C7BCE7><arg:0></color></color>'
 
 # command.world
-command.world.empty: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>No other worlds are loaded.</color>'
-command.world.no_space: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>There is not enough space above the destination in <color:#E6C777><arg:0></color>.</color>'
-command.world.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Teleported <color:#A9C7E8><arg:0></color> to <color:#E6C777><arg:1></color>.</color>'
+command.world.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No other worlds are loaded.</color>'
+command.world.no_space: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>There is not enough space above the destination in <color:#F2F4FF><arg:0></color>.</color>'
+command.world.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>.</color>'
 
 # feature.state
 feature.state.disabled: '<color:#7D98BF>Disabled</color>'

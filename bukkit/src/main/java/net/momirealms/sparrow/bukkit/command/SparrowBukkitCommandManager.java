@@ -28,11 +28,7 @@ import java.util.List;
 
 public final class SparrowBukkitCommandManager extends AbstractSparrowCommandManager<CommandSender> {
 
-    private final List<CommandFeature<CommandSender>> FEATURES = List.of(
-            new HeadAdminCommand(this),
-            new URLHeadAdminCommand(this),
-            new HeadPlayerCommand(this)
-    );
+    private final List<CommandFeature<CommandSender>> FEATURES = List.of();
 
     private final Index<String, CommandFeature<CommandSender>> INDEX = Index.create(CommandFeature::getFeatureID, FEATURES);
 

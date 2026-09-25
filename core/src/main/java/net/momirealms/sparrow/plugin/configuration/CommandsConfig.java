@@ -177,6 +177,9 @@ public final class CommandsConfig {
         CommandConfig highlight = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " highlight", "/highlight"), DependencyVersions.PROJECT_ID + ".command.highlight");
 
         @BlankLineBefore
+        CommandConfig head = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " head", "/head"), DependencyVersions.PROJECT_ID + ".command.head");
+
+        @BlankLineBefore
         CommandConfig server = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"), DependencyVersions.PROJECT_ID + ".command.server");
 
         @BlankLineBefore
@@ -247,6 +250,7 @@ public final class CommandsConfig {
                 case "credits" -> this.credits;
                 case "patrol" -> this.patrol;
                 case "highlight" -> this.highlight;
+                case "head" -> this.head;
                 case "item-name" -> this.itemName;
                 case "item-lore" -> this.itemLore;
                 case "custom-name" -> this.customName;
