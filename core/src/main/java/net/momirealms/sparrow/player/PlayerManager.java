@@ -9,11 +9,15 @@ import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterRoster;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
+import net.momirealms.sparrow.plugin.command.parser.ServerParser;
+import net.momirealms.sparrow.player.teleport.TeleportManager;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
 import net.momirealms.sparrow.util.VersionHelper;
+import net.momirealms.sparrow.world.WorldLocation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -36,16 +40,20 @@ import java.util.concurrent.ConcurrentMap;
 public final class PlayerManager implements Listener, ChannelFutureListener {
     private final SparrowPlugin plugin;
     private final ClusterRoster cluster;
+    private final TeleportManager teleports;
     private final ConcurrentMap<Channel, PlayerConnection> connections = new ConcurrentHashMap<>(); // 配置阶段起登记, 连接关闭或退出时移除
     private final ConcurrentMap<UUID, BukkitSparrowPlayer> players = new ConcurrentHashMap<>();     // Join 时创建, 退出时移除
 
     public PlayerManager(@NotNull SparrowPlugin plugin) {
         this.plugin = plugin;
         this.cluster = new ClusterRoster(plugin, this);
+        this.teleports = new TeleportManager(plugin);
     }
 
     public void onEnable() {
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
+        javaPlugin.getServer().getMessenger().registerOutgoingPluginChannel(javaPlugin, ServerParser.CHANNEL);
+        this.teleports.onEnable();
         Listener loginListener = VersionHelper.hasPaperPatch ? new PaperLoginListener(this) : new SpigotLoginListener(this);
         javaPlugin.getServer().getPluginManager().registerEvents(loginListener, javaPlugin);
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
@@ -73,9 +81,10 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
             this.cluster.presence(connection.uniqueId(), connection.name(), true);
             return connection;
         });
-        // 记录当前名字, 供离线时按名字或 UUID 互查
+        this.teleports.onJoin(player);
+        // 登录只刷新名字和时间, 下线位置由 Quit 事件保存.
         String name = player.getName();
-        this.plugin.dataStorage().saveUser(player.getUniqueId(), name).whenComplete((ignored, failure) -> {
+        this.plugin.dataStorage().saveLogin(player.getUniqueId(), name, System.currentTimeMillis()).whenComplete((ignored, failure) -> {
             if (failure != null) {
                 this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
             }
@@ -84,7 +93,16 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        this.removeConnection((Channel) ConnectionProxy.INSTANCE.getChannel(this.connectionHandle(event.getPlayer())));
+        Player player = event.getPlayer();
+        String name = player.getName();
+        this.plugin.dataStorage()
+                .saveLogout(player.getUniqueId(), name, System.currentTimeMillis(), ServerConfig.serverId(), WorldLocation.from(player.getLocation()))
+                .whenComplete((ignored, failure) -> {
+                    if (failure != null) {
+                        this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
+                    }
+                });
+        this.removeConnection((Channel) ConnectionProxy.INSTANCE.getChannel(this.connectionHandle(player)));
     }
 
     @Override
@@ -107,6 +125,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     // 需要在 Redis 连接关闭前调用
     @ApiStatus.Internal
     public void shutdown() {
+        this.teleports.shutdown();
         this.cluster.shutdown();
         for (Channel channel : this.connections.keySet()) {
             this.removeConnection(channel);
@@ -175,6 +194,16 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @NotNull
     public ClusterRoster cluster() {
         return this.cluster;
+    }
+
+    /**
+     * 传送管理器
+     *
+     * @return 传送管理器
+     */
+    @NotNull
+    public TeleportManager teleports() {
+        return this.teleports;
     }
 
     /**

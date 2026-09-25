@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.database;
 
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -8,13 +9,24 @@ import java.io.InputStream;
 import java.util.concurrent.Executor;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 class DataStorageIsolationTest {
     private static final String MANAGER = "net.momirealms.sparrow.database.DataStorage";
 
     @Test
-    void sqlManagerLoadsWithoutMongoLibraries() throws Exception {
-        assertManagerLoads(DatabaseType.MYSQL, "com.mongodb.", "org.bson.");
+    void mysqlManagerLoadsWithoutOtherDrivers() throws Exception {
+        assertManagerLoads(DatabaseType.MYSQL, "com.mongodb.", "org.bson.", "org.mariadb.", "org.postgresql.");
+    }
+
+    @Test
+    void mariaDbManagerLoadsWithoutMysqlOrPostgresDrivers() throws Exception {
+        assertManagerLoads(DatabaseType.MARIADB, "com.mongodb.", "org.bson.", "com.mysql.", "org.postgresql.");
+    }
+
+    @Test
+    void postgresManagerLoadsWithoutMysqlOrMariaDbDrivers() throws Exception {
+        assertManagerLoads(DatabaseType.POSTGRESQL, "com.mongodb.", "org.bson.", "com.mysql.", "org.mariadb.");
     }
 
     @Test
@@ -29,9 +41,7 @@ class DataStorageIsolationTest {
                 for (String excluded : excludedPackages) {
                     if (name.startsWith(excluded)) throw new ClassNotFoundException(name);
                 }
-                if (!name.equals(MANAGER) && !name.startsWith(MANAGER + "$")
-                        && !name.equals(MANAGER.replace("DataStorage", "SqlDataStorage"))
-                        && !name.equals(MANAGER.replace("DataStorage", "MongoDataStorage"))) {
+                if (!name.startsWith("net.momirealms.sparrow.database.") || name.equals(DatabaseType.class.getName())) {
                     return super.loadClass(name, resolve);
                 }
                 synchronized (this.getClassLoadingLock(name)) {
@@ -54,7 +64,12 @@ class DataStorageIsolationTest {
         typeField.setAccessible(true);
         typeField.set(options, type);
         Class<?> managerClass = Class.forName(MANAGER, true, loader);
-        Object manager = managerClass.getMethod("create", PluginConfig.DatabaseOptions.class, Executor.class).invoke(null, options, (Executor) Runnable::run);
-        assertEquals(type == DatabaseType.MONGODB ? "MongoDataStorage" : "SqlDataStorage", manager.getClass().getSimpleName());
+        Object manager = managerClass.getMethod("create", PluginConfig.DatabaseOptions.class, Executor.class, PluginLogger.class).invoke(null, options, (Executor) Runnable::run, mock(PluginLogger.class));
+        assertEquals(switch (type) {
+            case MYSQL -> "net.momirealms.sparrow.database.mysql.MysqlDataStorage";
+            case MARIADB -> "net.momirealms.sparrow.database.mariadb.MariaDbDataStorage";
+            case POSTGRESQL -> "net.momirealms.sparrow.database.postgresql.PostgresDataStorage";
+            case MONGODB -> "net.momirealms.sparrow.database.mongo.MongoDataStorage";
+        }, manager.getClass().getName());
     }
 }

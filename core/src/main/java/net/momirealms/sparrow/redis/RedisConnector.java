@@ -1,6 +1,10 @@
 package net.momirealms.sparrow.redis;
 
 import io.lettuce.core.RedisClient;
+import io.lettuce.core.RedisException;
+import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.locale.LogConstants;
+import net.momirealms.sparrow.locale.TranslationManager;
 import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisCredentialsProvider;
 import io.lettuce.core.RedisURI;
@@ -14,14 +18,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.TimeUnit;
 
 public final class RedisConnector implements AutoCloseable {
+    private static final RedisServerVersion MINIMUM_SERVER_VERSION = new RedisServerVersion(7, 2, 4);
+
     private final PluginConfig.RedisOptions options;
+    private final PluginLogger logger;
     private RedisClient client;
     private StatefulRedisConnection<byte[], byte[]> connection;
     private PubSubRedisConnection brokerConnection;
     private int database;
 
-    public RedisConnector(@NotNull PluginConfig.RedisOptions options) {
+    public RedisConnector(@NotNull PluginConfig.RedisOptions options, @NotNull PluginLogger logger) {
         this.options = options;
+        this.logger = logger;
     }
 
     public void initialize() {
@@ -35,6 +43,7 @@ public final class RedisConnector implements AutoCloseable {
             StatefulRedisConnection<byte[], byte[]> connected = connectedClient.connect(ByteArrayCodec.INSTANCE);
             try {
                 connected.sync().ping();
+                this.verifyRedisVersion(connected);
                 this.brokerConnection = new PubSubRedisConnection(connectedClient);
                 this.database = uri.getDatabase();
                 this.client = connectedClient;
@@ -47,6 +56,23 @@ public final class RedisConnector implements AutoCloseable {
             connectedClient.shutdown(0, 2, TimeUnit.SECONDS);
             throw exception;
         }
+    }
+
+    private void verifyRedisVersion(StatefulRedisConnection<byte[], byte[]> connection) {
+        RedisServerVersion reported;
+        try {
+            reported = RedisServerVersion.parse(connection.sync().info("server"));
+        } catch (RedisException exception) {
+            this.logger.warn(TranslationManager.console(LogConstants.REDIS_VERSION_CHECK_FAILED), exception);
+            return;
+        }
+        if (reported == null) {
+            this.logger.warn(TranslationManager.console(LogConstants.REDIS_VERSION_CHECK_FAILED));
+            return;
+        }
+        if (reported.atLeast(MINIMUM_SERVER_VERSION)) return;
+        this.logger.error(TranslationManager.console(LogConstants.REDIS_VERSION_UNSUPPORTED, reported.toString(), MINIMUM_SERVER_VERSION.toString()));
+        throw new IllegalStateException("Redis server version " + reported + " is not supported, Redis " + MINIMUM_SERVER_VERSION + " or later is required");
     }
 
     /**

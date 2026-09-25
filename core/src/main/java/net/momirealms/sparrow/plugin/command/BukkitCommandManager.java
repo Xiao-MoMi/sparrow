@@ -6,6 +6,7 @@ import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantmentTableCommand;
 import net.momirealms.sparrow.plugin.command.feature.WorldCommand;
+import net.momirealms.sparrow.plugin.command.feature.TpOfflineCommand;
 import net.momirealms.sparrow.plugin.command.feature.ActionBarCommand;
 import net.momirealms.sparrow.plugin.command.feature.BroadcastCommand;
 import net.momirealms.sparrow.plugin.command.feature.TitleCommand;
@@ -98,6 +99,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new EnchantCommand(this, plugin),
                 new EnchantmentTableCommand(this, plugin),
                 new WorldCommand(this, plugin),
+                new TpOfflineCommand(this, plugin),
                 new ExtinguishCommand(this, plugin),
                 new FeatureEnableCommand(this, plugin),
                 new FeatureDisableCommand(this, plugin),

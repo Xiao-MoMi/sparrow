@@ -267,3 +267,21 @@ command.custom-name.unnamed: '<color:#8A949E>»</color> <color:#E6C777>${project
 command.custom-name.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> is not holding an item in the main hand.</color>'
 command.custom-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid name format. Check the JSON or text tags.</color>'
 command.custom-name.edit: '<color:#C5CCD3>Click to edit the name</color>'
+
+command.tp-offline.unknown: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No database record was found for <arg:0>.</color>'
+command.tp-offline.no-location: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> has no saved logout location.</color>'
+command.tp-offline.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The destination world or coordinates are invalid. Spawn location and position were left unchanged.</color>'
+command.tp-offline.server-offline: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Server <arg:2> has no active heartbeat.</color>'
+command.tp-offline.timeout: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The destination server did not respond within 5 seconds.</color>'
+command.tp-offline.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Teleported <arg:0> to the last logout location of <arg:1>.</color>'
+command.tp-offline.connecting: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The destination accepted the request. Sending <arg:0> to the last logout location of <arg:1> on <arg:2>.</color>'
+
+log.redis.version_check_failed: Failed to read the Redis version from INFO; skipping the version check
+log.redis.version_unsupported: 'Redis version <arg:0> is unsupported; requires Redis <arg:1> or later. Shutting down the server'
+log.storage.mysql_schema_initializing: 'Initializing the MySQL schema at v<arg:1> (table prefix: "<arg:0>")'
+log.storage.mysql_schema_migrating: 'Upgrading the MySQL schema v<arg:1> -> v<arg:2> (table prefix: "<arg:0>")'
+log.storage.mysql_version_unsupported: 'MySQL version <arg:0> is unsupported; requires MySQL <arg:1> or later. Shutting down the server'
+log.storage.postgresql_schema_initializing: 'Initializing the PostgreSQL schema at v<arg:1> (table prefix: "<arg:0>")'
+log.storage.postgresql_schema_migrating: 'Upgrading the PostgreSQL schema v<arg:1> -> v<arg:2> (table prefix: "<arg:0>")'
+log.storage.schema_too_new: 'Database schema version <arg:0> is newer than the supported version <arg:1>; shutting down the server. Update this plugin and use the same Sparrow version on all servers sharing the database'
+log.storage.stale_index_dropped: 'Index layout updated, dropped the old index <arg:0>'

@@ -31,12 +31,11 @@ public final class ServerCommand extends BukkitCommandFeature {
         this.parser = new ServerParser<>(commandManager, plugin.javaPlugin(), server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server));
     }
 
-    // 查询和切服共用 BungeeCord 通道, 随命令注册与注销
+    // 命令持有服务器查询的接收监听, 发送通道由 PlayerManager 管理.
     @Override
     public void registerRelatedFunctions() {
         JavaPlugin javaPlugin = this.plugin().javaPlugin();
         Messenger messenger = javaPlugin.getServer().getMessenger();
-        messenger.registerOutgoingPluginChannel(javaPlugin, ServerParser.CHANNEL);
         messenger.registerIncomingPluginChannel(javaPlugin, ServerParser.CHANNEL, this.parser);
     }
 
@@ -45,7 +44,6 @@ public final class ServerCommand extends BukkitCommandFeature {
         JavaPlugin javaPlugin = this.plugin().javaPlugin();
         Messenger messenger = javaPlugin.getServer().getMessenger();
         messenger.unregisterIncomingPluginChannel(javaPlugin, ServerParser.CHANNEL, this.parser);
-        messenger.unregisterOutgoingPluginChannel(javaPlugin, ServerParser.CHANNEL);
     }
 
     @Override

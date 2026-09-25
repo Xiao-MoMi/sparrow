@@ -66,12 +66,12 @@ public final class ServerConfig {
         String configVersion = DependencyVersions.SERVER_CONFIG_VERSION;
 
         @Comment({
-                "A unique ID for this server. Every server sharing the same Redis database and database must use a different value.",
+                "A unique ID for this server. It should match the ID in the proxy configuration. Every server sharing the same Redis and database must use a different value.",
                 "Set this before startup. Leaving it blank shuts down the server.",
                 "Avoid changing it later. Data such as warps records the server it belongs to by this ID."
         })
         @Comment(lang = "zh", value = {
-                "本服的唯一 ID, 共用同一 Redis 和数据库的每台服务器都要填不同的值.",
+                "本服的唯一 ID, 应该与 Proxy 配置中的 ID 一致, 共用同一 Redis 和数据库的每台服务器都要填不同的值.",
                 "请在启动前填写, 留空会导致服务器关闭.",
                 "设置后尽量不要修改, 地标等数据会用它记录所属服务器."
         })

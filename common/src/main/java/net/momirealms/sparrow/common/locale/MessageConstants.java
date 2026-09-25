@@ -33,11 +33,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMANDS_ADMIN_DYE_FAILED = Component.translatable().key("commands.admin.dye.failed");
     TranslatableComponent.Builder COMMANDS_ADMIN_DYE_SUCCESS_SINGLE = Component.translatable().key("commands.admin.dye.success.single");
     TranslatableComponent.Builder COMMANDS_ADMIN_DYE_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.dye.success.multiple");
-    TranslatableComponent.Builder COMMANDS_PLAYER_TP_OFFLINE_FAILED_NEVER_PLAYED = Component.translatable().key("commands.player.tpoffline.failed.neverplayed");
-    TranslatableComponent.Builder COMMANDS_PLAYER_TP_OFFLINE_SUCCESS = Component.translatable().key("commands.player.tpoffline.success");
-    TranslatableComponent.Builder COMMANDS_ADMIN_TP_OFFLINE_FAILED_NEVER_PLAYED = Component.translatable().key("commands.admin.tpoffline.failed.neverplayed");
-    TranslatableComponent.Builder COMMANDS_ADMIN_TP_OFFLINE_SUCCESS_SINGLE = Component.translatable().key("commands.admin.tpoffline.success.single");
-    TranslatableComponent.Builder COMMANDS_ADMIN_TP_OFFLINE_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.tpoffline.success.multiple");
     TranslatableComponent.Builder COMMANDS_ADMIN_HEAD_SUCCESS_SINGLE = Component.translatable().key("commands.admin.head.success.single");
     TranslatableComponent.Builder COMMANDS_ADMIN_HEAD_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.head.success.multiple");
     TranslatableComponent.Builder COMMANDS_ADMIN_HEAD_FAILED_SKULL = Component.translatable().key("commands.admin.head.failed.skull");

@@ -51,6 +51,14 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_TELEPORT_FAILURE = Component.translatable().key("command.teleport.failure");
     TranslatableComponent.Builder COMMAND_PATROL_SUCCESS = Component.translatable().key("command.patrol.success");
     TranslatableComponent.Builder COMMAND_PATROL_EMPTY = Component.translatable().key("command.patrol.empty");
+    TranslatableComponent.Builder COMMAND_TP_OFFLINE_UNKNOWN = Component.translatable().key("command.tp-offline.unknown");
+    TranslatableComponent.Builder COMMAND_TP_OFFLINE_NO_LOCATION = Component.translatable().key("command.tp-offline.no-location");
+    TranslatableComponent.Builder COMMAND_TP_OFFLINE_INVALID = Component.translatable().key("command.tp-offline.invalid");
+    TranslatableComponent.Builder COMMAND_TP_OFFLINE_SERVER_OFFLINE = Component.translatable().key("command.tp-offline.server-offline");
+    TranslatableComponent.Builder COMMAND_TP_OFFLINE_TIMEOUT = Component.translatable().key("command.tp-offline.timeout");
+    TranslatableComponent.Builder COMMAND_TP_OFFLINE_SUCCESS = Component.translatable().key("command.tp-offline.success");
+    TranslatableComponent.Builder COMMAND_TP_OFFLINE_CONNECTING = Component.translatable().key("command.tp-offline.connecting");
+
     TranslatableComponent.Builder COMMAND_SERVER_SUCCESS = Component.translatable().key("command.server.success");
     TranslatableComponent.Builder COMMAND_SERVER_NOT_ALLOWED = Component.translatable().key("command.server.not_allowed");
     TranslatableComponent.Builder COMMAND_SERVER_CURRENT = Component.translatable().key("command.server.current");

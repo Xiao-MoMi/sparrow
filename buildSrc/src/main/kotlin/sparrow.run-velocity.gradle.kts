@@ -4,7 +4,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import xyz.jpenilla.runvelocity.task.RunVelocity
 
-val velocityDirectory = rootProject.layout.projectDirectory.dir("run/proxy/velocity")
+val velocityDirectory = rootProject.layout.projectDirectory.dir("run/velocity")
 val runTemplatesDirectory = rootProject.layout.projectDirectory.dir("buildSrc/run-templates")
 val javaToolchains = extensions.getByType<JavaToolchainService>()
 val java25 = javaToolchains.launcherFor {

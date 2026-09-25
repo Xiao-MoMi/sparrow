@@ -22,5 +22,15 @@ public final class LogConstants {
     public static final String TRANSLATION_DIRECTORY_FAILED = "log.translation.directory_failed";
     public static final String TRANSLATION_LOCALE_MISSING = "log.translation.locale_missing";
 
+    public static final String STORAGE_STALE_INDEX_DROPPED = "log.storage.stale_index_dropped";
+    public static final String STORAGE_SCHEMA_TOO_NEW = "log.storage.schema_too_new";
+    public static final String STORAGE_MYSQL_SCHEMA_INITIALIZING = "log.storage.mysql_schema_initializing";
+    public static final String STORAGE_MYSQL_SCHEMA_MIGRATING = "log.storage.mysql_schema_migrating";
+    public static final String STORAGE_MYSQL_VERSION_UNSUPPORTED = "log.storage.mysql_version_unsupported";
+    public static final String STORAGE_POSTGRESQL_SCHEMA_INITIALIZING = "log.storage.postgresql_schema_initializing";
+    public static final String STORAGE_POSTGRESQL_SCHEMA_MIGRATING = "log.storage.postgresql_schema_migrating";
+    public static final String REDIS_VERSION_UNSUPPORTED = "log.redis.version_unsupported";
+    public static final String REDIS_VERSION_CHECK_FAILED = "log.redis.version_check_failed";
+
     private LogConstants() {}
 }

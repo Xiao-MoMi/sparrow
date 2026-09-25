@@ -30,6 +30,7 @@ dependencies {
     compileOnly(libs.cloud.paper)
     compileOnly(libs.cloud.minecraft.extras)
     compileOnly(libs.placeholderapi)
+    compileOnly(libs.caffeine)
 
     compileOnly(libs.bundles.adventure)
     implementation(libs.bundles.sparrow.nbt)
@@ -54,7 +55,10 @@ dependencies {
     testImplementation(project(":bukkit-proxy"))
     testImplementation(libs.sparrow.reflection)
     testImplementation(libs.lettuce.core)
-    testRuntimeOnly(libs.caffeine)
+    testImplementation(libs.caffeine)
+    testRuntimeOnly(libs.mysql.connector.j)
+    testRuntimeOnly(libs.mariadb.driver)
+    testRuntimeOnly(libs.postgresql.driver)
     testImplementation(libs.test.paper.api)
     testImplementation(libs.mongodb.driver.sync)
     testImplementation(libs.jdbi.core)
@@ -65,6 +69,10 @@ dependencies {
 buildConfig {
     packageName = "$projectPackage.plugin.dependency"
     className = "DependencyVersions"
+
+    buildConfigField("MYSQL_SCHEMA_VERSION", libs.versions.mysql.schema.version.get().toInt())
+    buildConfigField("POSTGRESQL_SCHEMA_VERSION", libs.versions.postgresql.schema.version.get().toInt())
+    buildConfigField("MONGODB_INDEX_VERSION", libs.versions.mongodb.index.version.get().toInt())
 
     buildConfigField("PROJECT_PACKAGE", projectPackage)
     buildConfigField("PROJECT_ID", projectId)

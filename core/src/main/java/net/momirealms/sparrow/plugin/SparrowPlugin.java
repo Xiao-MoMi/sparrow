@@ -93,8 +93,8 @@ public class SparrowPlugin implements Plugin {
         this.configurationManager.reload();
         this.applyDependencies();
         this.setupProxy();
-        this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async());
-        this.redisConnector = new RedisConnector(PluginConfig.redis());
+        this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async(), this.logger);
+        this.redisConnector = new RedisConnector(PluginConfig.redis(), this.logger);
         this.messageBrokerManager = new MessageBrokerManager(this);
         this.serverHeartBeats = new ServerHeartBeats(this);
         this.translationManager = new TranslationManagerImpl(this);

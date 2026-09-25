@@ -35,8 +35,6 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new ColorPlayerCommand(this),
             new DyePlayerCommand(this),
             new DyeAdminCommand(this),
-            new TpOfflineAdminCommand(this),
-            new TpOfflinePlayerCommand(this),
             new HeadAdminCommand(this),
             new URLHeadAdminCommand(this),
             new HeadPlayerCommand(this),

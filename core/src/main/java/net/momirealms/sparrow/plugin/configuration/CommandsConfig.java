@@ -209,6 +209,10 @@ public final class CommandsConfig {
         CommandConfig enderChest = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ender_chest", "/ender_chest"), DependencyVersions.PROJECT_ID + ".command.ender-chest");
 
         @BlankLineBefore
+        @YamlProperty("tp-offline")
+        CommandConfig tpOffline = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " tp-offline", "/tp-offline"), DependencyVersions.PROJECT_ID + ".command.tp-offline");
+
+        @BlankLineBefore
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
         /**
@@ -241,6 +245,7 @@ public final class CommandsConfig {
                 case "server" -> this.server;
                 case "enchant" -> this.enchant;
                 case "enchantment-table" -> this.enchantmentTable;
+                case "tp-offline" -> this.tpOffline;
                 case "world" -> this.world;
                 case "fly-speed" -> this.flySpeed;
                 case "walk-speed" -> this.walkSpeed;

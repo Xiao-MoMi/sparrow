@@ -84,7 +84,7 @@ class ServerHeartBeatsTest {
     private ServerHeartBeats start(String serverId) throws Exception {
         PluginConfig.RedisOptions options = new PluginConfig.RedisOptions();
         set(options, "url", "redis://localhost:6379/15");
-        RedisConnector connector = new RedisConnector(options);
+        RedisConnector connector = new RedisConnector(options, mock(PluginLogger.class));
         try {
             connector.initialize();
         } catch (RuntimeException exception) {

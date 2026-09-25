@@ -1,6 +1,8 @@
 import buildlogic.InitializeRunDirectory
+import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.jvm.toolchain.JavaLauncher
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
 import xyz.jpenilla.runpaper.task.RunServer
@@ -32,6 +34,12 @@ fun javaLauncherFor(minecraftVersion: String): Provider<JavaLauncher> =
 /**
  * 配置和注册后端服务器测试.
  */
+
+// 版本表
+val paperVersions = listOf("1.21.11", "26.1.2", "26.2", "26.3")
+val foliaVersions = listOf("1.21.11", "26.1.2", "26.2")
+
+// 插件自带的那两个任务没有对应的运行目录, 关掉免得误启动
 tasks.withType<RunServer>().configureEach {
     if (name == "runServer" || name == "runDevBundleServer") {
         group = null
@@ -39,32 +47,26 @@ tasks.withType<RunServer>().configureEach {
     }
 }
 
-val minecraftVersions = listOf("1.21.11", "26.1.2", "26.2")
 val projectJar = tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
 val extraPluginJars = rootProject.fileTree("buildSrc/plugin") {
     include("*.jar")
 }
 val commonBackendTemplates = runTemplatesDirectory.dir("backend/common")
 val versionBackendTemplates = runTemplatesDirectory.dir("backend/versions/31")
-fun RunServer.configureServer(
-    display: String,
-    minecraftVersion: String,
-    directory: String,
-    maximumHeap: String? = null
-) {
+
+// 服务端公共配置
+fun RunServer.configureServer(display: String, minecraftVersion: String, directory: String) {
     // 启动前复制插件, 避免服务端直接持有共享的 shadowJar.
     legacyPluginLoading()
     group = "run paper"
     displayName.set(display)
     minecraftVersion(minecraftVersion)
     runDirectory.set(rootProject.layout.projectDirectory.dir(directory))
-    pluginJars.from(projectJar)
+    pluginJars.from(projectJar, extraPluginJars)
     javaLauncher.set(javaLauncherFor(minecraftVersion))
 
-    if (maximumHeap != null) {
-        minHeapSize = maximumHeap
-        maxHeapSize = maximumHeap
-    }
+    minHeapSize = "1536M"
+    maxHeapSize = "1536M"
 
     systemProperties["Paper.IgnoreJavaVersion"] = true
     systemProperties["${rootProject.group}.dev"] = true
@@ -81,51 +83,38 @@ fun RunServer.configureServer(
     )
 }
 
-for (minecraftVersion in minecraftVersions) {
-    // 代理后端使用独立目录.
-    val paperProxyDirectory = rootProject.layout.projectDirectory.dir("run/proxy/paper/$minecraftVersion")
-    val foliaProxyDirectory = rootProject.layout.projectDirectory.dir("run/proxy/folia/$minecraftVersion")
-
-    val prepareProxyPaper = tasks.register<InitializeRunDirectory>("prepareProxyPaper_$minecraftVersion") {
+// 任务注册
+for (minecraftVersion in paperVersions) {
+    val directory = "run/paper/$minecraftVersion"
+    val prepare = tasks.register<InitializeRunDirectory>("preparePaper_$minecraftVersion") {
         templateDirectories.from(
             commonBackendTemplates,
             versionBackendTemplates,
             runTemplatesDirectory.dir("backend/paper")
         )
-        targetDirectory.set(paperProxyDirectory)
+        targetDirectory.set(rootProject.layout.projectDirectory.dir(directory))
     }
+    tasks.register<RunServer>("runPaper_$minecraftVersion") {
+        description = "Run a Paper $minecraftVersion server with Sparrow on port 25566."
+        configureServer("Paper $minecraftVersion", minecraftVersion, directory)
+        dependsOn(prepare)
+    }
+}
 
-    val prepareProxyFolia = tasks.register<InitializeRunDirectory>("prepareProxyFolia_$minecraftVersion") {
+for (minecraftVersion in foliaVersions) {
+    val directory = "run/folia/$minecraftVersion"
+    val prepare = tasks.register<InitializeRunDirectory>("prepareFolia_$minecraftVersion") {
         templateDirectories.from(
             commonBackendTemplates,
             versionBackendTemplates,
             runTemplatesDirectory.dir("backend/folia")
         )
-        targetDirectory.set(foliaProxyDirectory)
+        targetDirectory.set(rootProject.layout.projectDirectory.dir(directory))
     }
-
-    tasks.register<RunServer>("runProxyPaper_$minecraftVersion") {
-        configureServer(
-            "Proxy Paper $minecraftVersion",
-            minecraftVersion,
-            "run/proxy/paper/$minecraftVersion",
-            "1536M"
-        )
-        description = "Run the Paper $minecraftVersion proxy backend on port 25566."
-        pluginJars.from(extraPluginJars)
-        dependsOn(prepareProxyPaper)
-    }
-
-    tasks.register<RunServer>("runProxyFolia_$minecraftVersion") {
-        configureServer(
-            "Proxy Folia $minecraftVersion",
-            minecraftVersion,
-            "run/proxy/folia/$minecraftVersion",
-            "1536M"
-        )
-        description = "Run the Folia $minecraftVersion proxy backend on port 25567."
-        pluginJars.from(extraPluginJars)
+    tasks.register<RunServer>("runFolia_$minecraftVersion") {
+        description = "Run a Folia $minecraftVersion server with Sparrow on port 25567."
+        configureServer("Folia $minecraftVersion", minecraftVersion, directory)
         downloadsApiService.set(DownloadsAPIService.folia(project))
-        dependsOn(prepareProxyFolia)
+        dependsOn(prepare)
     }
 }

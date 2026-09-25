@@ -6,6 +6,9 @@ commands-config-version = "2"
 features-config-version = "1"
 server-config-version = "1"
 lang-version = "4"
+mysql-schema-version = "1"
+postgresql-schema-version = "1"
+mongodb-index-version = "1"
 
 # Build
 run-task = "3.0.2"
