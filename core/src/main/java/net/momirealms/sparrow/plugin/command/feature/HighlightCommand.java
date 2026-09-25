@@ -9,6 +9,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.NamedTextColorParser;
+import net.momirealms.sparrow.plugin.command.parser.LocationFlagParser;
 import org.bukkit.Location;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
@@ -17,7 +18,6 @@ import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 import org.incendo.cloud.bukkit.parser.WorldParser;
-import org.incendo.cloud.bukkit.parser.location.LocationParser;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
@@ -35,8 +35,8 @@ public final class HighlightCommand extends BukkitCommandFeature {
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder.optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
-                .flag(manager.flagBuilder("from").withComponent(LocationParser.locationParser()))
-                .flag(manager.flagBuilder("to").withComponent(LocationParser.locationParser()))
+                .flag(manager.flagBuilder("from").withComponent(LocationFlagParser.locationFlagParser()))
+                .flag(manager.flagBuilder("to").withComponent(LocationFlagParser.locationFlagParser()))
                 .flag(manager.flagBuilder("world").withComponent(WorldParser.worldParser()))
                 .flag(manager.flagBuilder("highlight-duration").withAliases("d").withComponent(IntegerParser.integerParser(0, 300)))
                 .flag(manager.flagBuilder("highlight-color").withAliases("c").withComponent(NamedTextColorParser.namedTextColorParser()))
