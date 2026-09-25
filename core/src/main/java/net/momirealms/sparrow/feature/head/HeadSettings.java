@@ -11,6 +11,7 @@ import java.util.Map;
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class HeadSettings implements FeatureSettings {
     private boolean enabled = true;
+
     @Comment("Sources in priority order: online, api. Online textures are not stored in the API cache.")
     @Comment(lang = "zh", value = "获取源优先顺序, 可选 online、api. 在线纹理不会写入 API 缓存.")
     private List<String> sourceOrder = List.of("online", "api");
@@ -50,6 +51,11 @@ public final class HeadSettings implements FeatureSettings {
         }
         ProfileClient.endpoint(this.api.nameUrl.replace("{name}", "Player"));
         ProfileClient.endpoint(this.api.profileUrl.replace("{uuid}", "00000000000000000000000000000000").replace("{uuid-dashed}", "00000000-0000-0000-0000-000000000000"));
+        for (int i = 0; i < this.api.fallbackUrls.size(); i++) {
+            String url = this.api.fallbackUrls.get(i);
+            if (!url.contains("{player}")) throw new IllegalArgumentException("head.api.fallback-urls require {player}");
+            ProfileClient.endpoint(url.replace("{player}", "Player"));
+        }
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -97,9 +103,20 @@ public final class HeadSettings implements FeatureSettings {
         @Comment(lang = "zh", value = "Mojang 兼容的资料接口. {uuid} 不带连字符, {uuid-dashed} 带连字符.")
         private String profileUrl = "https://sessionserver.mojang.com/session/minecraft/profile/{uuid}";
 
+        @Comment({"Fallback endpoints in priority order when the primary API fails or returns no textures. [] disables fallback.",
+                "{player} is the URL-encoded name or dashed UUID. Return a complete Ashcon or Mojang profile.",
+                "The total lookup timeout also covers fallback requests. Extra API headers are not sent to these endpoints."})
+        @Comment(lang = "zh", value = {"主接口失败或没有纹理时依次尝试的备用接口, [] 关闭回退.",
+                "{player} 为 URL 编码后的玩家名或带连字符 UUID, 接口需返回完整的 Ashcon 或 Mojang 资料.",
+                "回退请求计入查询总超时, 不会附带下方配置的额外请求头."})
+        private List<String> fallbackUrls = List.of("https://api.ashcon.app/mojang/v2/user/{player}");
+
         @Comment("Extra headers sent only to the two profile endpoints, for example Authorization.")
         @Comment(lang = "zh", value = "只发送给上述两个资料接口的请求头, 如 Authorization.")
         private Map<String, String> headers = Map.of();
+
+        @Comment("Timeout for each Connect request.")
+        @Comment(lang = "zh", value = "每次 Connect 请求的超时时长.")
         private String connectTimeout = "3s";
 
         @Comment("Timeout for each HTTP request.")
@@ -108,6 +125,7 @@ public final class HeadSettings implements FeatureSettings {
 
         public String nameUrl() { return this.nameUrl; }
         public String profileUrl() { return this.profileUrl; }
+        public List<String> fallbackUrls() { return this.fallbackUrls; }
         public Map<String, String> headers() { return this.headers; }
         public String connectTimeout() { return this.connectTimeout; }
         public String requestTimeout() { return this.requestTimeout; }

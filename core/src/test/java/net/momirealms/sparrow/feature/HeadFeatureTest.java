@@ -15,6 +15,8 @@ import net.momirealms.sparrow.feature.head.HeadFetchException;
 import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -231,6 +233,107 @@ class HeadFeatureTest {
         }
     }
 
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void fallbackUsesOriginalNameOrUuidInOrderAndCachesTheSuccessfulProfile(boolean byName) throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            List<String> requests = new ArrayList<>();
+            AtomicReference<String> fallbackHeader = new AtomicReference<>();
+            fixture.server.createContext("/missing/", exchange -> {
+                requests.add(exchange.getRequestURI().getPath());
+                respond(exchange, 404, "{}");
+            });
+            fixture.server.createContext("/broken/", exchange -> {
+                requests.add(exchange.getRequestURI().getPath());
+                respond(exchange, 200, "{broken");
+            });
+            fixture.server.createContext("/ashcon/", exchange -> {
+                requests.add(exchange.getRequestURI().getPath());
+                fallbackHeader.set(exchange.getRequestHeaders().getFirst("X-Test"));
+                respond(exchange, 200, "{\"uuid\":\"" + ID + "\",\"username\":\"Tester\",\"textures\":{\"raw\":{\"value\":\"fallback\",\"signature\":\"signed\"}}}");
+            });
+            fixture.server.createContext("/unused/", exchange -> {
+                requests.add("unused");
+                respond(exchange, 500, "{}");
+            });
+            set(fixture.settings.api(), "fallbackUrls", List.of(fixture.base + "/missing/{player}", fixture.base + "/broken/{player}",
+                    fixture.base + "/ashcon/{player}", fixture.base + "/unused/{player}"));
+            fixture.start();
+            assertEquals("old", fixture.head.fetchByUuid(ID, true).get().texture());
+            assertTrue(requests.isEmpty());
+            fixture.handler = exchange -> respond(exchange, 503, "{}");
+            if (byName) {
+                fixture.server.removeContext("/name/");
+                fixture.server.createContext("/name/", exchange -> respond(exchange, 503, "{}"));
+            }
+            HeadData result = (byName ? fixture.head.fetchByName("Tester", true) : fixture.head.fetchByUuid(ID, true)).get(3, TimeUnit.SECONDS);
+            String player = byName ? "Tester" : ID.toString();
+            assertEquals(List.of("/missing/" + player, "/broken/" + player, "/ashcon/" + player), requests);
+            assertEquals(new HeadData(ID, "Tester", "fallback", "signed"), result);
+            assertNull(fallbackHeader.get());
+            assertEquals(result, fixture.head.fetchByName("Tester", false).get());
+            assertEquals(result, fixture.head.fetchByUuid(ID, false).get());
+            assertEquals(3, requests.size());
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = {404, 429, 503, 200})
+    void missingTexturesAndHttpFailuresFallBackToMojangProfileFormat(int status) throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            fixture.handler = exchange -> respond(exchange, status, "{\"id\":\"" + ID + "\",\"name\":\"Tester\",\"properties\":[]}");
+            fixture.server.createContext("/fallback/", exchange -> respond(exchange, 200, profile("fallback")));
+            set(fixture.settings.api(), "fallbackUrls", List.of(fixture.base + "/fallback/{player}"));
+            fixture.start();
+            assertEquals("fallback", fixture.head.fetchByUuid(ID, false).get(3, TimeUnit.SECONDS).texture());
+        }
+    }
+
+    @Test
+    void individualHttpTimeoutCanFallBackButTotalTimeoutStopsTheChain() throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            set(fixture.settings.api(), "requestTimeout", "200ms");
+            fixture.handler = exchange -> await(new CountDownLatch(1));
+            fixture.server.createContext("/fallback/", exchange -> respond(exchange, 200, profile("fallback")));
+            set(fixture.settings.api(), "fallbackUrls", List.of(fixture.base + "/fallback/{player}"));
+            fixture.start();
+            assertEquals("fallback", fixture.head.fetchByUuid(ID, false).get(3, TimeUnit.SECONDS).texture());
+        }
+        try (Fixture fixture = new Fixture()) {
+            set(fixture.settings, "requestTimeout", "300ms");
+            AtomicInteger late = new AtomicInteger();
+            fixture.handler = exchange -> respond(exchange, 503, "{}");
+            fixture.server.createContext("/slow/", exchange -> await(new CountDownLatch(1)));
+            fixture.server.createContext("/late/", exchange -> {
+                late.incrementAndGet();
+                respond(exchange, 200, profile("late"));
+            });
+            set(fixture.settings.api(), "fallbackUrls", List.of(fixture.base + "/slow/{player}", fixture.base + "/late/{player}"));
+            fixture.start();
+            ExecutionException error = assertThrows(ExecutionException.class, () -> fixture.head.fetchByUuid(ID, false).get(2, TimeUnit.SECONDS));
+            assertInstanceOf(TimeoutException.class, error.getCause());
+            assertEquals(0, late.get());
+        }
+    }
+
+    @Test
+    void wrongUuidAndExhaustedFallbacksReportFailureAndAllowRetry() throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            fixture.handler = exchange -> respond(exchange, 404, "{}");
+            fixture.server.createContext("/wrong/", exchange -> respond(exchange, 200, profile("wrong").replace(ID.toString().replace("-", ""), UUID.randomUUID().toString())));
+            fixture.server.createContext("/missing/", exchange -> respond(exchange, 404, "{}"));
+            set(fixture.settings.api(), "fallbackUrls", List.of(fixture.base + "/wrong/{player}", fixture.base + "/missing/{player}"));
+            fixture.start();
+            ExecutionException error = assertThrows(ExecutionException.class, () -> fixture.head.fetchByUuid(ID, false).get());
+            assertEquals(HeadFetchException.Reason.INVALID_RESPONSE, ((HeadFetchException) error.getCause()).reason());
+            fixture.server.removeContext("/wrong/");
+            fixture.server.createContext("/wrong/", exchange -> respond(exchange, 404, "{}"));
+            assertNull(fixture.head.fetchByUuid(ID, false).get());
+            fixture.handler = exchange -> respond(exchange, 200, profile("recovered"));
+            assertEquals("recovered", fixture.head.fetchByUuid(ID, false).get().texture());
+        }
+    }
+
     private static String profile(String texture) {
         return "{\"id\":\"" + ID.toString().replace("-", "") + "\",\"name\":\"Tester\",\"properties\":[{\"name\":\"textures\",\"value\":\"" + texture + "\"}]}";
     }
@@ -279,6 +382,7 @@ class HeadFeatureTest {
             set(this.settings.cache().redis(), "enabled", false);
             set(this.settings.api(), "nameUrl", this.base + "/name/{name}");
             set(this.settings.api(), "profileUrl", this.base + "/profile/{uuid}");
+            set(this.settings.api(), "fallbackUrls", List.of());
             set(this.settings.api(), "headers", Map.of("X-Test", "local-test"));
             when(this.plugin.configurationManager().featuresConfig().config().head()).thenReturn(this.settings);
             this.server.setExecutor(this.executor);

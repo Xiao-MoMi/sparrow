@@ -40,7 +40,7 @@ final class HeadCache {
         this.redis = redis;
         this.logger = logger;
         this.timeoutMillis = DurationUtils.parsePositive(settings.api().requestTimeout()).toMillis();
-        this.profilePrefix = "sparrow:head:v1:" + digest(settings.api().nameUrl() + "\n" + settings.api().profileUrl() + "\n" + GsonHelper.get().toJson(new TreeMap<>(settings.api().headers()))) + ":";
+        this.profilePrefix = "sparrow:head:v1:" + digest(settings.api().nameUrl() + "\n" + settings.api().profileUrl() + "\n" + GsonHelper.get().toJson(settings.api().fallbackUrls()) + "\n" + GsonHelper.get().toJson(new TreeMap<>(settings.api().headers()))) + ":";
     }
 
     @Nullable

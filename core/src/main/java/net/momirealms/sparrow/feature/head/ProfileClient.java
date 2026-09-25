@@ -16,6 +16,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 
 final class ProfileClient {
@@ -30,17 +31,59 @@ final class ProfileClient {
     }
 
     HeadData fetchByName(String name) throws IOException, InterruptedException {
-        JsonObject result = this.get(endpoint(this.settings.nameUrl().replace("{name}", URLEncoder.encode(name, StandardCharsets.UTF_8))));
-        return result == null ? null : this.fetchByUuid(uuid(string(result, "id")));
+        return this.fetch(name, null);
     }
 
     HeadData fetchByUuid(UUID uuid) throws IOException, InterruptedException {
+        return this.fetch(uuid.toString(), uuid);
+    }
+
+    private HeadData fetch(String player, UUID requestedUuid) throws IOException, InterruptedException {
+        Exception failure = null;
+        try {
+            UUID id = requestedUuid;
+            if (id == null) {
+                JsonObject result = this.get(endpoint(this.settings.nameUrl().replace("{name}", URLEncoder.encode(player, StandardCharsets.UTF_8))), true);
+                if (result != null) {
+                    id = uuid(string(result, "id"));
+                }
+            }
+            HeadData data = id == null ? null : this.fetchProfile(id);
+            if (data != null) return data;
+        } catch (IOException | HeadFetchException exception) {
+            failure = exception;
+        }
+        List<String> urls = this.settings.fallbackUrls();
+        for (int i = 0; i < urls.size(); i++) {
+            try {
+                JsonObject result = this.get(endpoint(urls.get(i).replace("{player}", URLEncoder.encode(player, StandardCharsets.UTF_8))), false);
+                HeadData data = result == null ? null : profile(result, requestedUuid);
+                if (data != null) return data;
+            } catch (IOException | HeadFetchException exception) {
+                failure = exception;
+            }
+        }
+        if (failure instanceof IOException exception) throw exception;
+        if (failure instanceof HeadFetchException exception) throw exception;
+        return null;
+    }
+
+    private HeadData fetchProfile(UUID uuid) throws IOException, InterruptedException {
         String url = this.settings.profileUrl().replace("{uuid}", uuid.toString().replace("-", "")).replace("{uuid-dashed}", uuid.toString());
-        JsonObject result = this.get(endpoint(url));
-        if (result == null) return null;
-        UUID returned = uuid(string(result, "id"));
-        if (!returned.equals(uuid)) throw invalid("Profile UUID does not match the request");
-        String name = string(result, "name");
+        JsonObject result = this.get(endpoint(url), true);
+        return result == null ? null : profile(result, uuid);
+    }
+
+    private static HeadData profile(JsonObject result, UUID requestedUuid) {
+        boolean ashcon = result.has("uuid");
+        UUID returned = uuid(string(result, ashcon ? "uuid" : "id"));
+        if (requestedUuid != null && !returned.equals(requestedUuid)) throw invalid("Profile UUID does not match the request");
+        String name = string(result, ashcon ? "username" : "name");
+        if (ashcon) {
+            JsonObject textures = object(result, "textures");
+            JsonObject raw = textures == null ? null : object(textures, "raw");
+            return raw == null ? null : new HeadData(returned, name, string(raw, "value"), optionalString(raw, "signature"));
+        }
         JsonElement properties = result.get("properties");
         if (properties == null) return null;
         if (!properties.isJsonArray()) throw invalid("Profile properties must be an array");
@@ -56,9 +99,11 @@ final class ProfileClient {
         return null;
     }
 
-    private JsonObject get(URI uri) throws IOException, InterruptedException {
+    private JsonObject get(URI uri, boolean primary) throws IOException, InterruptedException {
         HttpRequest.Builder builder = HttpRequest.newBuilder(uri).timeout(this.timeout).header("User-Agent", "Sparrow/Head");
-        this.settings.headers().forEach(builder::header);
+        if (primary) {
+            this.settings.headers().forEach(builder::header);
+        }
         HttpResponse<String> response = this.client.send(builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         int code = response.statusCode();
         if (code == 204 || code == 404) return null;
@@ -100,6 +145,13 @@ final class ProfileClient {
         if (value == null || value.isJsonNull()) return null;
         if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) throw invalid("Invalid string: " + key);
         return value.getAsString();
+    }
+
+    private static JsonObject object(JsonObject parent, String key) {
+        JsonElement value = parent.get(key);
+        if (value == null || value.isJsonNull()) return null;
+        if (!value.isJsonObject()) throw invalid("Invalid object: " + key);
+        return value.getAsJsonObject();
     }
 
     private static HeadFetchException invalid(String message) {

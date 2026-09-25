@@ -66,6 +66,9 @@ class FeaturesConfigTest {
                   api:
                     name-url: 'https://example.test/names/{name}'
                     profile-url: 'https://example.test/profiles/{uuid-dashed}'
+                    fallback-urls:
+                      - 'https://backup.test/user/{player}'
+                      - 'https://backup2.test/user/{player}'
                     headers:
                       Authorization: Bearer example
                 """);
@@ -76,9 +79,25 @@ class FeaturesConfigTest {
         assertEquals("3d", head.cache().redis().ttl());
         assertEquals("https://example.test/profiles/{uuid-dashed}", head.api().profileUrl());
         assertEquals("Bearer example", head.api().headers().get("Authorization"));
+        assertEquals(List.of("https://backup.test/user/{player}", "https://backup2.test/user/{player}"), head.api().fallbackUrls());
         config.saveEnabled("head", false);
         config.reload();
         assertFalse(config.config().head().enabled());
         assertEquals("Bearer example", config.config().head().api().headers().get("Authorization"));
+        assertEquals(head.api().fallbackUrls(), config.config().head().api().fallbackUrls());
+    }
+
+    @Test
+    void headFallbackDefaultsToAshconAndCanBeDisabled() throws Exception {
+        FeaturesConfig config = new FeaturesConfig(this.directory, SparrowYaml.builder().build());
+        assertEquals(List.of("https://api.ashcon.app/mojang/v2/user/{player}"), config.config().head().api().fallbackUrls());
+        Files.writeString(this.directory.resolve("features.yml"), """
+                __version__: '1'
+                head:
+                  api:
+                    fallback-urls: []
+                """);
+        config.reload();
+        assertTrue(config.config().head().api().fallbackUrls().isEmpty());
     }
 }

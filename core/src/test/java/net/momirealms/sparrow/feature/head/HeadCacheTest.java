@@ -4,6 +4,7 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.api.StatefulRedisConnection;
 import io.lettuce.core.codec.ByteArrayCodec;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.util.GsonHelper;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
@@ -24,7 +25,7 @@ class HeadCacheTest {
             set(settings.api(), "nameUrl", endpoint);
             set(settings.cache().memory(), "ttl", "50ms");
             set(settings.cache().redis(), "ttl", "2s");
-            String prefix = "sparrow:head:v1:" + HeadCache.digest(endpoint + "\n" + settings.api().profileUrl() + "\n{}") + ":";
+            String prefix = "sparrow:head:v1:" + HeadCache.digest(endpoint + "\n" + settings.api().profileUrl() + "\n" + GsonHelper.get().toJson(settings.api().fallbackUrls()) + "\n{}") + ":";
             byte[] key = (prefix + "name:tester").getBytes(StandardCharsets.UTF_8);
             try {
                 HeadCache first = new HeadCache(settings, connection, mock(PluginLogger.class));
@@ -57,12 +58,17 @@ class HeadCacheTest {
             set(firstSettings.api(), "nameUrl", endpoint);
             HeadSettings secondSettings = new HeadSettings();
             set(secondSettings.api(), "nameUrl", endpoint + "/other");
-            byte[] key = ("sparrow:head:v1:" + HeadCache.digest(endpoint + "\n" + firstSettings.api().profileUrl() + "\n{}") + ":name:tester").getBytes(StandardCharsets.UTF_8);
+            byte[] key = ("sparrow:head:v1:" + HeadCache.digest(endpoint + "\n" + firstSettings.api().profileUrl() + "\n" + GsonHelper.get().toJson(firstSettings.api().fallbackUrls()) + "\n{}") + ":name:tester").getBytes(StandardCharsets.UTF_8);
             try {
                 HeadCache first = new HeadCache(firstSettings, connection, mock(PluginLogger.class));
                 HeadCache second = new HeadCache(secondSettings, connection, mock(PluginLogger.class));
+                HeadSettings differentFallbacks = new HeadSettings();
+                set(differentFallbacks.api(), "nameUrl", endpoint);
+                set(differentFallbacks.api(), "fallbackUrls", List.of("https://backup.test/{player}"));
+                HeadCache third = new HeadCache(differentFallbacks, connection, mock(PluginLogger.class));
                 first.put(List.of("name:tester"), new HeadData(UUID.randomUUID(), "Tester", "texture", null)).get();
                 assertNull(second.get("name:tester"));
+                assertNull(third.get("name:tester"));
             } finally {
                 connection.sync().del(key);
             }
