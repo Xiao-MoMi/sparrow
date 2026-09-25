@@ -2,7 +2,9 @@ package net.momirealms.sparrow.plugin.command.parser;
 
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
 import org.bukkit.enchantments.Enchantment;
+import org.incendo.cloud.brigadier.suggestion.TooltipSuggestion;
 import org.incendo.cloud.bukkit.parser.NamespacedKeyParser;
 import org.incendo.cloud.caption.Caption;
 import org.incendo.cloud.caption.CaptionVariable;
@@ -17,6 +19,7 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,7 +52,10 @@ public final class EnchantmentParser<C> implements ArgumentParser.FutureArgument
     @Override
     @NotNull
     public CompletableFuture<List<Suggestion>> suggestionsFuture(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
-        return CompletableFuture.completedFuture(Registry.ENCHANTMENT.stream().map(enchantment -> enchantment.getKey().toString()).sorted().map(Suggestion::suggestion).toList());
+        return CompletableFuture.completedFuture(Registry.ENCHANTMENT.stream()
+                .<Suggestion>map(enchantment -> TooltipSuggestion.suggestion(enchantment.getKey().toString(), CraftEnchantment.bukkitToMinecraftHolder(enchantment).value().description()))
+                .sorted(Comparator.comparing(Suggestion::suggestion))
+                .toList());
     }
 
     private static final class ParseException extends ParserException {
