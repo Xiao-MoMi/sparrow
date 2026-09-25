@@ -285,3 +285,7 @@ log.storage.postgresql_schema_initializing: '正在初始化 PostgreSQL 表结�
 log.storage.postgresql_schema_migrating: '正在升级 PostgreSQL 表结构 v<arg:1> → v<arg:2>（表前缀："<arg:0>"）'
 log.storage.schema_too_new: '数据库结构版本 <arg:0> 高于本插件支持的 <arg:1>，正在关闭服务器。请升级本服插件，并保持共用数据库的各服 Sparrow 版本一致'
 log.storage.stale_index_dropped: '索引结构已更新，已移除旧索引 <arg:0>'
+command.color.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>玩家 <arg:0> 的 <arg:1> 槽位没有物品.</color>'
+command.color.missing: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>玩家 <arg:0> 的 <arg:1> 槽位物品没有 minecraft:dyed_color 组件.</color>'
+command.color.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将玩家 <arg:0> 的 <arg:2> 槽位物品染色组件设为 <arg:1>.</color>'
+command.color.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>玩家 <arg:0> 的 <arg:6> 槽位物品染色为 <arg:1> (点击复制), RGB (<arg:2>, <arg:3>, <arg:4>), 十进制 <arg:5>.</color>'

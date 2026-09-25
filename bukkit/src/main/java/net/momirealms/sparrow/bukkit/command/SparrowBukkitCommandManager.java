@@ -31,10 +31,6 @@ import java.util.List;
 public final class SparrowBukkitCommandManager extends AbstractSparrowCommandManager<CommandSender> {
 
     private final List<CommandFeature<CommandSender>> FEATURES = List.of(
-            new EnchantAdminCommand(this),
-            new ColorPlayerCommand(this),
-            new DyePlayerCommand(this),
-            new DyeAdminCommand(this),
             new HeadAdminCommand(this),
             new URLHeadAdminCommand(this),
             new HeadPlayerCommand(this),

@@ -285,3 +285,8 @@ log.storage.postgresql_schema_initializing: 'Initializing the PostgreSQL schema 
 log.storage.postgresql_schema_migrating: 'Upgrading the PostgreSQL schema v<arg:1> -> v<arg:2> (table prefix: "<arg:0>")'
 log.storage.schema_too_new: 'Database schema version <arg:0> is newer than the supported version <arg:1>; shutting down the server. Update this plugin and use the same Sparrow version on all servers sharing the database'
 log.storage.stale_index_dropped: 'Index layout updated, dropped the old index <arg:0>'
+
+command.color.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The <arg:1> slot of <arg:0> is empty.</color>'
+command.color.missing: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>The item in the <arg:1> slot of <arg:0> has no minecraft:dyed_color component.</color>'
+command.color.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set the dyed color of the item in the <arg:2> slot of <arg:0> to <arg:1>.</color>'
+command.color.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Dyed color of the item in the <arg:6> slot of <arg:0>: <arg:1> (click to copy), RGB (<arg:2>, <arg:3>, <arg:4>), decimal <arg:5>.</color>'

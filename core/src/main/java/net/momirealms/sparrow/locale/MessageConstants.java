@@ -88,6 +88,10 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_ITEM_DATA_SUMMARY = Component.translatable().key("command.item-data.summary");
     TranslatableComponent.Builder COMMAND_ITEM_DATA_ITEMLESS = Component.translatable().key("command.item-data.itemless");
     TranslatableComponent.Builder COMMAND_ITEM_DATA_FAILURE = Component.translatable().key("command.item-data.failure");
+    TranslatableComponent.Builder COMMAND_COLOR_ITEMLESS = Component.translatable().key("command.color.itemless");
+    TranslatableComponent.Builder COMMAND_COLOR_MISSING = Component.translatable().key("command.color.missing");
+    TranslatableComponent.Builder COMMAND_COLOR_SUCCESS = Component.translatable().key("command.color.success");
+    TranslatableComponent.Builder COMMAND_COLOR_QUERY = Component.translatable().key("command.color.query");
     TranslatableComponent.Builder COMMAND_MORE_SUCCESS = Component.translatable().key("command.more.success");
     TranslatableComponent.Builder COMMAND_MORE_NO_CHANGE = Component.translatable().key("command.more.no_change");
     TranslatableComponent.Builder COMMAND_MORE_TOO_MANY = Component.translatable().key("command.more.too_many");

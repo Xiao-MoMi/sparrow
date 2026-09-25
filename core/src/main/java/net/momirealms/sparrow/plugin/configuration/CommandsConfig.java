@@ -191,6 +191,9 @@ public final class CommandsConfig {
         CommandConfig itemData = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " item_data", "/item_data"), DependencyVersions.PROJECT_ID + ".command.item-data");
 
         @BlankLineBefore
+        CommandConfig color = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " color", "/color"), DependencyVersions.PROJECT_ID + ".command.color");
+
+        @BlankLineBefore
         CommandConfig more = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"), DependencyVersions.PROJECT_ID + ".command.more");
 
         @BlankLineBefore
@@ -240,6 +243,7 @@ public final class CommandsConfig {
                 case "custom-name" -> this.customName;
                 case "ender-chest" -> this.enderChest;
                 case "item-data" -> this.itemData;
+                case "color" -> this.color;
                 case "more" -> this.more;
                 case "distance" -> this.distance;
                 case "server" -> this.server;
