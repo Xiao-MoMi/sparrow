@@ -50,6 +50,9 @@ command.enchant.removed: '<color:#8A949E>»</color> <color:#E6C777>${project_nam
 command.enchant.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Applied <color:#E6C777><arg:1></color> <color:#B6D9AE>level <arg:2></color> to <color:#A9C7E8><arg:0></color>''s equipment.</color>'
 command.enchant.zero: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Set <color:#E6C777><arg:1></color> on <color:#A9C7E8><arg:0></color>''s equipment to <color:#E6C777>level 0</color>.</color>'
 
+# command.enchantment-table
+command.enchantment-table.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Opened an enchanting table for <color:#A9C7E8><arg:0></color>.</color>'
+
 # command.extinguish
 command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Extinguished <color:#C7BCE7><arg:0></color></color>'
 

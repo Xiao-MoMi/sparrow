@@ -5,10 +5,8 @@ import net.momirealms.sparrow.heart.feature.color.NamedTextColor;
 import net.momirealms.sparrow.heart.feature.highlight.HighlightBlocks;
 import net.momirealms.sparrow.heart.feature.inventory.HandSlot;
 import org.bukkit.Location;
-import org.bukkit.enchantments.EnchantmentOffer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import static java.util.Objects.requireNonNull;
@@ -46,12 +44,6 @@ public class SparrowNMSProxy {
         requireNonNull(player, "player");
         requireNonNull(slot, "slot");
         heart.swingHand(player, slot);
-    }
-
-    public EnchantmentOffer[] getEnchantmentOffers(Player player, ItemStack itemToEnchant, int shelves) {
-        requireNonNull(player, "player");
-        requireNonNull(itemToEnchant, "itemToEnchant");
-        return heart.getEnchantmentOffers(player, itemToEnchant, shelves);
     }
 
     public HighlightBlocks highlightBlocks(Player player, NamedTextColor color, Location... locations) {

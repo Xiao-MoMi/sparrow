@@ -55,9 +55,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMANDS_PLAYER_MORE_SUCCESS = Component.translatable().key("commands.player.more.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_MORE_FAILED_TOO_MANY = Component.translatable().key("commands.player.more.failed.toomany");
     TranslatableComponent.Builder COMMANDS_PLAYER_MORE_FAILED_NO_CHANGE = Component.translatable().key("commands.player.more.failed.nochange");
-    TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANTMENT_TABLE_SUCCESS_SINGLE = Component.translatable().key("commands.admin.enchantmenttable.success.single");
-    TranslatableComponent.Builder COMMANDS_ADMIN_ENCHANTMENT_TABLE_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.enchantmenttable.success.multiple");
-    TranslatableComponent.Builder COMMANDS_PLAYER_ENCHANTMENT_TABLE_SUCCESS = Component.translatable().key("commands.player.enchantmenttable.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_DISTANCE_FAILED = Component.translatable().key("commands.player.distance.failed");
     TranslatableComponent.Builder COMMANDS_PLAYER_DISTANCE_SUCCESS = Component.translatable().key("commands.player.distance.success");
     TranslatableComponent.Builder COMMANDS_PLAYER_HIGHLIGHT_SELECTED_FIRST = Component.translatable().key("commands.player.highlight.selected.first");

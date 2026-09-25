@@ -50,6 +50,9 @@ command.enchant.removed: '<color:#8A949E>»</color> <color:#E6C777>${project_nam
 command.enchant.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <color:#A9C7E8><arg:0></color> 的装备附加 <color:#E6C777><arg:1></color> <color:#B6D9AE><arg:2> 级</color>。</color>'
 command.enchant.zero: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已将 <color:#A9C7E8><arg:0></color> 装备上的 <color:#E6C777><arg:1></color> 设为 <color:#E6C777>0 级</color>。</color>'
 
+# command.enchantment-table
+command.enchantment-table.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <color:#A9C7E8><arg:0></color> 打开附魔台。</color>'
+
 # command.extinguish
 command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 灭火</color>'
 

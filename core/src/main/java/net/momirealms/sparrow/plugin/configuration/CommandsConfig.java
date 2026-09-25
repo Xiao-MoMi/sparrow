@@ -180,6 +180,10 @@ public final class CommandsConfig {
         CommandConfig enchant = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " enchant", "/enchant"), DependencyVersions.PROJECT_ID + ".command.enchant");
 
         @BlankLineBefore
+        @YamlProperty("enchantment-table")
+        CommandConfig enchantmentTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " enchantment-table", "/enchantment-table"), DependencyVersions.PROJECT_ID + ".command.enchantment-table");
+
+        @BlankLineBefore
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
         /**
@@ -204,6 +208,7 @@ public final class CommandsConfig {
                 case "patrol" -> this.patrol;
                 case "server" -> this.server;
                 case "enchant" -> this.enchant;
+                case "enchantment-table" -> this.enchantmentTable;
                 case "world" -> this.world;
                 case "fly-speed" -> this.flySpeed;
                 case "walk-speed" -> this.walkSpeed;

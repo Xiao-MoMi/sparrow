@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.bukkit;
 
 import net.momirealms.sparrow.bukkit.command.SparrowBukkitCommandManager;
-import net.momirealms.sparrow.bukkit.feature.enchant.SparrowBukkitEnchantManager;
 import net.momirealms.sparrow.bukkit.feature.item.SparrowBukkitItemFactory;
 import net.momirealms.sparrow.bukkit.feature.skull.SparrowBukkitSkullManager;
 import net.momirealms.sparrow.common.command.SparrowCommandManager;
@@ -21,7 +20,6 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
     private SparrowBukkitSkullManager skullManager;
     private SparrowBukkitSenderFactory senderFactory;
     private SparrowBukkitCommandManager commandManager;
-    private SparrowBukkitEnchantManager enchantManager;
     private SparrowBukkitItemFactory itemFactory;
 
     public SparrowBukkitPlugin(SparrowBukkitBootstrap bootstrap) {
@@ -39,16 +37,9 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
     }
 
     @Override
-    public void reload() {
-        super.reload();
-        this.enchantManager.reload();
-    }
-
-    @Override
     public void enable() {
         super.enable();
         this.skullManager = new SparrowBukkitSkullManager(this);
-        this.enchantManager = new SparrowBukkitEnchantManager(this);
         this.itemFactory = SparrowBukkitItemFactory.create(this);
         new Metrics(getLoader(), 21789);
     }
@@ -56,7 +47,6 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
     @Override
     public void disable() {
         this.commandManager.unregisterFeatures();
-        this.enchantManager.disable();
         this.skullManager.disable();
         super.disable();
     }
@@ -91,10 +81,6 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
 
     public SparrowCommandManager<CommandSender> getCommandManager() {
         return commandManager;
-    }
-
-    public SparrowBukkitEnchantManager getEnchantManager() {
-        return enchantManager;
     }
 
     public SparrowBukkitSkullManager getSkullManager() {
