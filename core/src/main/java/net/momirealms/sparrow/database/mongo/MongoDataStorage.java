@@ -87,8 +87,7 @@ public final class MongoDataStorage extends DataStorage {
                 .append(time, new Document("$max", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L)))))
                 .append(logout ? "last_login" : "last_logout", new Document("$ifNull", List.of(logout ? "$last_login" : "$last_logout", 0L)));
         if (logout) {
-            Document values = new Document("last_server", server).append("last_world", location.world()).append("x", location.x()).append("y", location.y())
-                    .append("z", location.z()).append("yaw", (double) location.yaw()).append("pitch", (double) location.pitch());
+            Document values = new Document("last_server", server).append("last_location", Document.parse(location.toJson()));
             values.forEach((key, value) -> fields.append(key, new Document("$cond", List.of(newer, new Document("$literal", value), "$" + key))));
         }
         return CompletableFuture.runAsync(() -> this.data().updateOne(Filters.eq("_id", player), List.of(new Document("$set", fields)), new UpdateOptions().upsert(true)), this.executor);
@@ -100,8 +99,8 @@ public final class MongoDataStorage extends DataStorage {
         return CompletableFuture.supplyAsync(() -> {
             Document document = this.data().find(Filters.eq("_id", player)).first();
             if (document == null) return Optional.empty();
-            String world = document.getString("last_world");
-            WorldLocation location = world == null ? null : new WorldLocation(world, document.getDouble("x"), document.getDouble("y"), document.getDouble("z"), document.getDouble("yaw").floatValue(), document.getDouble("pitch").floatValue());
+            Document stored = document.get("last_location", Document.class);
+            WorldLocation location = stored == null ? null : WorldLocation.fromJson(stored.toJson());
             return Optional.of(new PlayerData(player, document.getString(USER_NAME), document.getLong("last_login"), document.getLong("last_logout"), document.getString("last_server"), location, document.getLong(USER_UPDATED_AT)));
         }, this.executor);
     }

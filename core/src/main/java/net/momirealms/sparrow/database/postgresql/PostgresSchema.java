@@ -18,8 +18,7 @@ public final class PostgresSchema {
         handle.execute("CREATE TABLE IF NOT EXISTS " + data + " ("
                 + "player UUID PRIMARY KEY, name VARCHAR(64) COLLATE \"C\" NOT NULL, "
                 + "last_login BIGINT NOT NULL DEFAULT 0, last_logout BIGINT NOT NULL DEFAULT 0, "
-                + "last_server VARCHAR(255), last_world VARCHAR(255), x DOUBLE PRECISION, y DOUBLE PRECISION, z DOUBLE PRECISION, "
-                + "yaw REAL, pitch REAL, updated_at BIGINT NOT NULL)");
+                + "last_server VARCHAR(255), last_location JSONB, updated_at BIGINT NOT NULL)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "data_name_updated\" ON " + data + " (name, updated_at, player)");
     }
 }

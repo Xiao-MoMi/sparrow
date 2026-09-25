@@ -34,3 +34,4 @@ build
 /.kotlin/
 /core/logs/
 /logs/
+/docs/

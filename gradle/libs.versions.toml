@@ -1,6 +1,6 @@
 [versions]
 # Project
-project-version = "1.15"
+project-version = "26.9-SNAPSHOT-1"
 config-version = "2"
 commands-config-version = "2"
 features-config-version = "1"

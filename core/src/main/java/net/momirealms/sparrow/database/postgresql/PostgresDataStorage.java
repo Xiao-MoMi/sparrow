@@ -72,16 +72,15 @@ public final class PostgresDataStorage extends DataStorage {
     private CompletableFuture<Void> save(UUID player, String name, long timestamp, String server, WorldLocation location) {
         boolean logout = location != null;
         String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_server, last_world, x, y, z, yaw, pitch" : "");
-        String values = ":player, :name, :time, :time" + (logout ? ", :server, :world, :x, :y, :z, :yaw, :pitch" : "");
+        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_server, last_location" : "");
+        String values = ":player, :name, :time, :time" + (logout ? ", :server, CAST(:location AS JSONB)" : "");
         String table = this.data + ".";
         String updates = "name = CASE WHEN :time >= " + table + "updated_at THEN :name ELSE " + table + "name END";
         if (logout) {
-            String[] fields = {"last_server", "last_world", "x", "y", "z", "yaw", "pitch"};
+            String[] fields = {"last_server", "last_location"};
             for (int i = 0; i < fields.length; i++) {
                 String field = fields[i];
-                String parameter = field.replace("last_", "");
-                updates += ", " + field + " = CASE WHEN :time >= " + table + time + " THEN :" + parameter + " ELSE " + table + field + " END";
+                updates += ", " + field + " = CASE WHEN :time >= " + table + time + " THEN EXCLUDED." + field + " ELSE " + table + field + " END";
             }
         }
         // 两服的异步写入可能交错, 登录与下线各自按事件时间更新.
@@ -95,8 +94,7 @@ public final class PostgresDataStorage extends DataStorage {
             this.sql().useHandle(handle -> {
                 var query = handle.createUpdate(upsert).bind("player", player).bind("name", name).bind("time", timestamp);
                 if (logout) {
-                    query.bind("server", server).bind("world", location.world()).bind("x", location.x()).bind("y", location.y())
-                            .bind("z", location.z()).bind("yaw", location.yaw()).bind("pitch", location.pitch());
+                    query.bind("server", server).bind("location", location.toJson());
                 }
                 query.execute();
             });
@@ -108,8 +106,8 @@ public final class PostgresDataStorage extends DataStorage {
     public CompletableFuture<Optional<PlayerData>> loadPlayer(@NotNull UUID player) {
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE player = :player")
                 .bind("player", player).map((result, context) -> {
-                    String world = result.getString("last_world");
-                    WorldLocation location = world == null ? null : new WorldLocation(world, result.getDouble("x"), result.getDouble("y"), result.getDouble("z"), result.getFloat("yaw"), result.getFloat("pitch"));
+                    String json = result.getString("last_location");
+                    WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
                     return new PlayerData(player, result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"), result.getString("last_server"), location, result.getLong("updated_at"));
                 }).findOne()), this.executor);
     }
