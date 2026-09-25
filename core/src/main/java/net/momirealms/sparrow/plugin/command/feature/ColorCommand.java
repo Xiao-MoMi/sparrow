@@ -11,9 +11,9 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.OptionalTextColorParser;
-import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.CraftEquipmentSlot;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.incendo.cloud.Command;
@@ -49,14 +49,13 @@ public final class ColorCommand extends BukkitCommandFeature {
         EquipmentSlot slot = context.flags().getValue("slot", EquipmentSlot.HAND);
         Component slotName = Component.text(slot.name().toLowerCase(Locale.ROOT));
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = CraftItemStack.asNMSCopy(player.getInventory().getItem(slot));
+            ItemStack item = ((CraftPlayer) player).getHandle().getItemBySlot(CraftEquipmentSlot.getNMS(slot));
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_COLOR_ITEMLESS, Component.text(player.getName()), slotName);
                 return;
             }
             if (color != null) {
                 item.set(DataComponents.DYED_COLOR, new DyedItemColor(color.value()));
-                player.getInventory().setItem(slot, CraftItemStackProxy.INSTANCE.asBukkitMirror(item));
                 this.handleFeedback(context, MessageConstants.COMMAND_COLOR_SUCCESS, Component.text(player.getName()), Component.text(color.asHexString(), color), slotName);
                 return;
             }

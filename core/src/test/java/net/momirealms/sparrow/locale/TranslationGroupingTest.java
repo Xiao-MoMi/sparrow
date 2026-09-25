@@ -42,11 +42,13 @@ class TranslationGroupingTest {
             String updated = Files.readString(file);
             assertTrue(updated.contains("# command.color"));
             assertTrue(updated.contains("# command.custom-model-data"));
+            assertTrue(updated.contains("# command.item-lore"));
             assertTrue(updated.contains("# log.storage"));
             var document = yaml.load(file);
             assertEquals("custom translation", document.getString(Route.from("command.color.query")));
             assertEquals(DependencyVersions.LANG_VERSION, document.getString(Route.from("__version__")));
             assertNotNull(document.getString(Route.from("command.custom-model-data.success")));
+            assertNotNull(document.getString(Route.from("command.item-lore.success")));
         } finally {
             TranslationManagerImpl.instance = previous;
         }

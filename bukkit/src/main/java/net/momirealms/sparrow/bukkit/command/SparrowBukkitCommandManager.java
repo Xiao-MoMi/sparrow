@@ -4,7 +4,6 @@ import io.leangen.geantyref.TypeToken;
 import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.bukkit.SparrowBukkitPlugin;
 import net.momirealms.sparrow.bukkit.command.feature.item.*;
-import net.momirealms.sparrow.bukkit.command.feature.item.editor.ItemLorePlayerCommand;
 import net.momirealms.sparrow.bukkit.command.feature.misc.*;
 import net.momirealms.sparrow.bukkit.command.feature.player.*;
 import net.momirealms.sparrow.bukkit.command.processor.SelectorPostProcessor;
@@ -32,8 +31,7 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
     private final List<CommandFeature<CommandSender>> FEATURES = List.of(
             new HeadAdminCommand(this),
             new URLHeadAdminCommand(this),
-            new HeadPlayerCommand(this),
-            new ItemLorePlayerCommand(this)
+            new HeadPlayerCommand(this)
     );
 
     private final Index<String, CommandFeature<CommandSender>> INDEX = Index.create(CommandFeature::getFeatureID, FEATURES);

@@ -164,6 +164,21 @@ command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_
 command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>主手物品数据:</color><newline><arg:0>'
 command.item-data.summary: '<color:#E6C777>[<arg:0> 行数据]</color> <color:#C5CCD3>悬浮查看, 使用 --chat 展开并点击值复制.</color>'
 
+# command.item-lore
+command.item-lore.bound: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>行号 <arg:0> 超出范围, 可用范围: <arg:1>–<arg:2>.</color>'
+command.item-lore.delete: '删除'
+command.item-lore.down: '下移'
+command.item-lore.edit: '编辑'
+command.item-lore.expired: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>此描述面板已过期, 请重新执行命令.</color>'
+command.item-lore.insert: '插入'
+command.item-lore.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>描述文本或 JSON 格式无效.</color>'
+command.item-lore.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>主手没有物品.</color>'
+command.item-lore.limit: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>物品描述最多允许 <arg:0> 行.</color>'
+command.item-lore.missing-flag: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>缺少必需的参数: <arg:0>.</color>'
+command.item-lore.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>物品描述:<newline><arg:0></color>'
+command.item-lore.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已更新物品描述:<newline><arg:0></color>'
+command.item-lore.up: '上移'
+
 # command.item-name
 command.item-name.edit: '<color:#C5CCD3>点击填入编辑命令</color>'
 command.item-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>名称格式无效, 请检查 JSON 或文本标签.</color>'

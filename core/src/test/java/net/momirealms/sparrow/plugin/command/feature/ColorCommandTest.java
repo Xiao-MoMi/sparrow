@@ -6,6 +6,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DyedItemColor;
@@ -15,9 +16,8 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.craftbukkit.CraftEquipmentSlot;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.inventory.EquipmentSlot;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.execution.ExecutionCoordinator;
@@ -29,7 +29,9 @@ import org.mockito.ArgumentCaptor;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
+import java.util.EnumMap;
 import java.util.Locale;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -53,9 +55,9 @@ class ColorCommandTest {
         assertEquals(0x123456, changed.get(DataComponents.DYED_COLOR).rgb());
         assertEquals(7, changed.getCount());
         assertEquals(original.get(DataComponents.CUSTOM_NAME), changed.get(DataComponents.CUSTOM_NAME));
-        assertNull(original.get(DataComponents.DYED_COLOR));
+        assertSame(original, changed);
         fixture.hold(changed);
-        clearInvocations(fixture.inventory);
+        clearInvocations(fixture.handle);
         fixture.execute("color red");
         assertEquals(0xff5555, fixture.written().get(DataComponents.DYED_COLOR).rgb());
     }
@@ -66,11 +68,13 @@ class ColorCommandTest {
         ItemStack original = new ItemStack(Items.STONE);
         original.set(DataComponents.DYED_COLOR, new DyedItemColor(0x123456));
         fixture.hold(original);
+        ItemStack beforeQuery = original.copy();
         fixture.execute("color");
+        assertTrue(ItemStack.matches(beforeQuery, original));
         ArgumentCaptor<Component[]> args = ArgumentCaptor.forClass(Component[].class);
         verify(fixture.feedback).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_COLOR_QUERY), args.capture());
         assertEquals(ClickEvent.copyToClipboard("#123456"), args.getValue()[1].clickEvent());
-        verify(fixture.inventory, never()).setItem(any(EquipmentSlot.class), any());
+        verify(fixture.handle, never()).setItemSlot(any(), any());
     }
 
     @Test
@@ -79,7 +83,8 @@ class ColorCommandTest {
         fixture.hold(new ItemStack(Items.STONE));
         fixture.execute("color");
         fixture.assertFeedback(MessageConstants.COMMAND_COLOR_MISSING);
-        verify(fixture.inventory, never()).setItem(any(EquipmentSlot.class), any());
+        assertNull(fixture.items.get(EquipmentSlot.HAND).get(DataComponents.DYED_COLOR));
+        verify(fixture.handle, never()).setItemSlot(any(), any());
     }
 
     @Test
@@ -92,7 +97,7 @@ class ColorCommandTest {
         assertThrows(RuntimeException.class, () -> fixture.execute("color #notacolor"));
         assertThrows(RuntimeException.class, () -> fixture.execute("color #ffffff --slot invalid"));
         verifyNoInteractions(fixture.platform);
-        verify(fixture.inventory, never()).setItem(any(EquipmentSlot.class), any());
+        verify(fixture.handle, never()).setItemSlot(any(), any());
     }
 
     @Test
@@ -109,27 +114,28 @@ class ColorCommandTest {
     void readsAndWritesOnlyTheSelectedSlot(EquipmentSlot slot) {
         Fixture fixture = new Fixture();
         ItemStack original = new ItemStack(Items.STONE, 3);
-        when(fixture.inventory.getItem(slot)).thenReturn(CraftItemStack.asCraftMirror(original));
+        fixture.items.put(slot, original);
         String flag = " --slot " + slot.name().toLowerCase(Locale.ROOT);
         fixture.execute("color #abcdef" + flag);
         ItemStack changed = fixture.written(slot);
         assertEquals(0xabcdef, changed.get(DataComponents.DYED_COLOR).rgb());
         assertEquals(3, changed.getCount());
-        assertNull(original.get(DataComponents.DYED_COLOR));
-        verify(fixture.inventory).getItem(slot);
-        verifyNoMoreInteractions(fixture.inventory);
+        assertSame(original, changed);
+        verify(fixture.handle).getItemBySlot(CraftEquipmentSlot.getNMS(slot));
+        verifyNoMoreInteractions(fixture.handle);
 
-        clearInvocations(fixture.inventory, fixture.feedback);
-        when(fixture.inventory.getItem(slot)).thenReturn(CraftItemStack.asCraftMirror(changed));
+        clearInvocations(fixture.handle, fixture.feedback);
+        fixture.items.put(slot, changed);
         fixture.execute("color" + flag);
         fixture.assertFeedback(MessageConstants.COMMAND_COLOR_QUERY);
-        verify(fixture.inventory).getItem(slot);
-        verifyNoMoreInteractions(fixture.inventory);
+        verify(fixture.handle).getItemBySlot(CraftEquipmentSlot.getNMS(slot));
+        verifyNoMoreInteractions(fixture.handle);
     }
 
     private static final class Fixture {
-        private final Player player = mock(Player.class);
-        private final PlayerInventory inventory = mock(PlayerInventory.class);
+        private final CraftPlayer player = mock(CraftPlayer.class);
+        private final ServerPlayer handle = mock(ServerPlayer.class);
+        private final Map<EquipmentSlot, ItemStack> items = new EnumMap<>(EquipmentSlot.class);
         private final PlatformExecutor platform = mock(PlatformExecutor.class);
         private final CommandManager feedback = mock(CommandManager.class);
         private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
@@ -144,7 +150,8 @@ class ColorCommandTest {
             SchedulerAdapter scheduler = mock(SchedulerAdapter.class);
             when(plugin.scheduler()).thenReturn(scheduler);
             when(scheduler.platform()).thenReturn(this.platform);
-            when(this.player.getInventory()).thenReturn(this.inventory);
+            when(this.player.getHandle()).thenReturn(this.handle);
+            when(this.handle.getItemBySlot(any())).thenAnswer(invocation -> this.items.getOrDefault(CraftEquipmentSlot.getSlot(invocation.getArgument(0)), ItemStack.EMPTY));
             when(this.player.getName()).thenReturn("Tester");
             doAnswer(invocation -> {
                 invocation.<Runnable>getArgument(0).run();
@@ -155,7 +162,7 @@ class ColorCommandTest {
         }
 
         private void hold(ItemStack item) {
-            when(this.inventory.getItem(EquipmentSlot.HAND)).thenReturn(CraftItemStack.asCraftMirror(item));
+            this.items.put(EquipmentSlot.HAND, item);
         }
 
         private void execute(String input) {
@@ -167,9 +174,8 @@ class ColorCommandTest {
         }
 
         private ItemStack written(EquipmentSlot slot) {
-            ArgumentCaptor<org.bukkit.inventory.ItemStack> item = ArgumentCaptor.forClass(org.bukkit.inventory.ItemStack.class);
-            verify(this.inventory).setItem(eq(slot), item.capture());
-            return ((CraftItemStack) item.getValue()).handle;
+            verify(this.handle, never()).setItemSlot(any(), any());
+            return this.items.get(slot);
         }
 
         private void assertFeedback(TranslatableComponent.Builder message) {

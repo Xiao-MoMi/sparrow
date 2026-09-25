@@ -1,14 +1,17 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.ItemStack;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.command.CommandSender;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
@@ -36,20 +39,19 @@ public final class MoreCommand extends BukkitCommandFeature {
         }
         int amount = context.getOrDefault("amount", 0);
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = player.getInventory().getItemInMainHand();
-            if (item.getType().isAir() || item.getAmount() <= 0) {
+            ItemStack item = ((CraftPlayer) player).getHandle().getInventory().getSelectedItem();
+            if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_MORE_NO_CHANGE, Component.text(player.getName()));
                 return;
             }
-            int maxStack = item.getType().getMaxStackSize();
+            int maxStack = item.getItem().components().getOrDefault(DataComponents.MAX_STACK_SIZE, 64);
             if (amount == 0) {
-                int added = maxStack - item.getAmount();
+                int added = maxStack - item.getCount();
                 if (added <= 0) {
                     this.handleFeedback(context, MessageConstants.COMMAND_MORE_NO_CHANGE, Component.text(player.getName()));
                     return;
                 }
-                item.setAmount(maxStack);
-                player.getInventory().setItemInMainHand(item);
+                item.setCount(maxStack);
                 this.handleFeedback(context, MessageConstants.COMMAND_MORE_SUCCESS, Component.text(player.getName()), Component.text(added));
                 return;
             }
@@ -61,9 +63,7 @@ public final class MoreCommand extends BukkitCommandFeature {
             int remaining = amount;
             while (remaining > 0) {
                 int count = Math.min(maxStack, remaining);
-                ItemStack copy = item.clone();
-                copy.setAmount(count);
-                receiver.dropItem(copy);
+                receiver.dropItem(CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copyWithCount(count)));
                 remaining -= count;
             }
             this.handleFeedback(context, MessageConstants.COMMAND_MORE_SUCCESS, Component.text(player.getName()), Component.text(amount));

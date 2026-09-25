@@ -164,6 +164,21 @@ command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_
 command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Main-hand item data:</color><newline><arg:0>'
 command.item-data.summary: '<color:#E6C777>[<arg:0> lines]</color> <color:#C5CCD3>Hover to inspect, or use --chat to expand and click values to copy.</color>'
 
+# command.item-lore
+command.item-lore.bound: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid line <arg:0>. Available range: <arg:1>–<arg:2>.</color>'
+command.item-lore.delete: 'Delete'
+command.item-lore.down: 'Move down'
+command.item-lore.edit: 'Edit'
+command.item-lore.expired: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>This lore panel has expired. Run the command again.</color>'
+command.item-lore.insert: 'Insert'
+command.item-lore.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid lore text or JSON.</color>'
+command.item-lore.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Your main hand is empty.</color>'
+command.item-lore.limit: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Lore can contain at most <arg:0> lines.</color>'
+command.item-lore.missing-flag: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Missing required flag: <arg:0>.</color>'
+command.item-lore.query: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Item lore:<newline><arg:0></color>'
+command.item-lore.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Updated item lore:<newline><arg:0></color>'
+command.item-lore.up: 'Move up'
+
 # command.item-name
 command.item-name.edit: '<color:#C5CCD3>Click to edit the name</color>'
 command.item-name.invalid: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Invalid name format. Check the JSON or text tags.</color>'

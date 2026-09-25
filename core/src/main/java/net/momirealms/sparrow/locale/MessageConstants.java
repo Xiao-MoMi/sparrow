@@ -102,6 +102,20 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_MORE_TOO_MANY = Component.translatable().key("command.more.too_many");
     TranslatableComponent.Builder COMMAND_DISTANCE_SUCCESS = Component.translatable().key("command.distance.success");
     TranslatableComponent.Builder COMMAND_DISTANCE_FAILED = Component.translatable().key("command.distance.failed");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_ITEMLESS = Component.translatable().key("command.item-lore.itemless");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_QUERY = Component.translatable().key("command.item-lore.query");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_SUCCESS = Component.translatable().key("command.item-lore.success");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_MISSING_FLAG = Component.translatable().key("command.item-lore.missing-flag");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_EXPIRED = Component.translatable().key("command.item-lore.expired");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_BOUND = Component.translatable().key("command.item-lore.bound");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_LIMIT = Component.translatable().key("command.item-lore.limit");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_INVALID = Component.translatable().key("command.item-lore.invalid");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_EDIT = Component.translatable().key("command.item-lore.edit");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_DELETE = Component.translatable().key("command.item-lore.delete");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_UP = Component.translatable().key("command.item-lore.up");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_DOWN = Component.translatable().key("command.item-lore.down");
+    TranslatableComponent.Builder COMMAND_ITEM_LORE_INSERT = Component.translatable().key("command.item-lore.insert");
+
     TranslatableComponent.Builder COMMAND_ITEM_NAME_SUCCESS = Component.translatable().key("command.item-name.success");
     TranslatableComponent.Builder COMMAND_ITEM_NAME_QUERY = Component.translatable().key("command.item-name.query");
     TranslatableComponent.Builder COMMAND_ITEM_NAME_UNNAMED = Component.translatable().key("command.item-name.unnamed");

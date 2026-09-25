@@ -9,9 +9,8 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.ModelDataParser;
-import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
+import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -36,7 +35,7 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
         Player player = context.sender();
         Number value = context.getOrDefault("value", null);
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = CraftItemStack.asNMSCopy(player.getInventory().getItemInMainHand());
+            ItemStack item = ((CraftPlayer) player).getHandle().getInventory().getSelectedItem();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_MODEL_DATA_ITEMLESS);
                 return;
@@ -58,7 +57,6 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
                 floats.set(0, value.floatValue());
             }
             item.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.copyOf(floats), data.flags(), data.strings(), data.colors()));
-            player.getInventory().setItemInMainHand(CraftItemStackProxy.INSTANCE.asBukkitMirror(item));
             this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_MODEL_DATA_SUCCESS, Component.text(floats.getFirst().toString()));
         }, () -> {}, player);
     }

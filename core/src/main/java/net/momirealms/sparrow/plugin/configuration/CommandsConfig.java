@@ -208,6 +208,10 @@ public final class CommandsConfig {
         CommandConfig customName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " custom_name", "/custom_name"), DependencyVersions.PROJECT_ID + ".command.custom-name");
 
         @BlankLineBefore
+        @YamlProperty("item-lore")
+        CommandConfig itemLore = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " item_lore", "/item_lore"), DependencyVersions.PROJECT_ID + ".command.item-lore");
+
+        @BlankLineBefore
         @YamlProperty("item-name")
         CommandConfig itemName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " item_name", "/item_name"), DependencyVersions.PROJECT_ID + ".command.item-name");
 
@@ -244,6 +248,7 @@ public final class CommandsConfig {
                 case "patrol" -> this.patrol;
                 case "highlight" -> this.highlight;
                 case "item-name" -> this.itemName;
+                case "item-lore" -> this.itemLore;
                 case "custom-name" -> this.customName;
                 case "ender-chest" -> this.enderChest;
                 case "item-data" -> this.itemData;

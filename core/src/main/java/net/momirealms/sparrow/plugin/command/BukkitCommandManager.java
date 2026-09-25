@@ -19,6 +19,7 @@ import net.momirealms.sparrow.plugin.command.feature.PatrolCommand;
 import net.momirealms.sparrow.plugin.command.feature.HighlightCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemDataCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemNameCommand;
+import net.momirealms.sparrow.plugin.command.feature.ItemLoreCommand;
 import net.momirealms.sparrow.plugin.command.feature.CustomNameCommand;
 import net.momirealms.sparrow.plugin.command.feature.ColorCommand;
 import net.momirealms.sparrow.plugin.command.feature.CustomModelDataCommand;
@@ -116,6 +117,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new HighlightCommand(this, plugin),
                 new ItemDataCommand(this, plugin),
                 new ItemNameCommand(this, plugin),
+                new ItemLoreCommand(this, plugin),
                 new CustomNameCommand(this, plugin),
                 new ColorCommand(this, plugin),
                 new CustomModelDataCommand(this, plugin),
