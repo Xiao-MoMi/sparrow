@@ -21,17 +21,21 @@ import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.bukkit.util.CraftChatMessageProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.util.AdventureHelper;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Item;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class BukkitSparrowPlayer implements SparrowPlayer {
     private final PlayerConnection connection;
@@ -75,6 +79,21 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
     @Override
     public boolean hasPermission(@NotNull String permission) {
         return this.platformPlayer.hasPermission(permission);
+    }
+
+    @Override
+    public void dropItem(@NotNull ItemStack stack) {
+        Player player = this.platformPlayer;
+        Location location = player.getLocation();
+        Item item = player.getWorld().dropItem(player.getEyeLocation().subtract(0, 0.3, 0), stack);
+        item.setPickupDelay(0);
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        double spread = random.nextDouble(0.02);
+        double angle = random.nextDouble(Math.PI * 2);
+        Vector velocity = location.getDirection().multiply(0.3)
+                .setY(-Math.sin(Math.toRadians(location.getPitch())) * 0.3 + 0.1 + (random.nextDouble() - random.nextDouble()) * 0.1);
+        velocity.add(new Vector(Math.cos(angle) * spread, 0, Math.sin(angle) * spread));
+        item.setVelocity(velocity);
     }
 
     @Override

@@ -242,3 +242,8 @@ command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_n
 command.item-data.summary: '<color:#E6C777>[<arg:0> lines]</color> <color:#C5CCD3>Hover to inspect, or use --chat to expand and click values to copy.</color>'
 command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Hold an item in your main hand.</color>'
 command.item-data.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>Unable to read item data. Check the server log.</color>'
+
+# command.more
+command.more.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Added <arg:1> items for <arg:0>.</color>'
+command.more.no_change: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No items added: <arg:0> has an empty hand or a full stack.</color>'
+command.more.too_many: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>You can copy at most <arg:0> additional items (100 stacks) at a time.</color>'

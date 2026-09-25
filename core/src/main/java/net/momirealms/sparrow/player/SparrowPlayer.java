@@ -8,9 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Locale;
 import java.util.UUID;
 
-/**
- * 已加入本服的玩家. 对象在 Join 时创建, 玩家退出后失效, 需要时应通过 {@link PlayerManager} 重新获取.
- */
 public interface SparrowPlayer {
 
     @NotNull
@@ -36,12 +33,17 @@ public interface SparrowPlayer {
     Locale locale();
 
     /**
-     * 检查玩家当前是否拥有指定权限, <strong>必须在玩家所属线程调用</strong>.
+     * 检查玩家当前是否拥有指定权限.
      *
      * @param permission 待检查的权限节点
      * @return 平台权限系统的检查结果
      */
     boolean hasPermission(@NotNull String permission);
+
+    /**
+     * 从眼睛下方朝视线方向抛出物品, 拾取延迟为 0, 不扣除背包物品.
+     */
+    void dropItem(@NotNull ItemStack stack);
 
     /**
      * 向聊天栏发送系统消息, 调用约定同 {@link #sendMessage(Component, boolean)}.

@@ -242,3 +242,8 @@ command.item-data.success: '<color:#8A949E>»</color> <color:#E6C777>${project_n
 command.item-data.summary: '<color:#E6C777>[<arg:0> 行数据]</color> <color:#C5CCD3>悬浮查看, 使用 --chat 展开并点击值复制.</color>'
 command.item-data.itemless: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>请在主手拿着物品.</color>'
 command.item-data.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#E59A9A>无法读取物品数据, 请检查服务端日志.</color>'
+
+# command.more
+command.more.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>已为 <arg:0> 增加 <arg:1> 个物品.</color>'
+command.more.no_change: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3><arg:0> 的主手为空或数量已满, 没有增加物品.</color>'
+command.more.too_many: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>此物品单次最多额外复制 <arg:0> 个（100 组）.</color>'
