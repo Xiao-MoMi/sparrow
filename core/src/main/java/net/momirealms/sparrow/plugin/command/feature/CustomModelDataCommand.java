@@ -10,7 +10,6 @@ import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.ModelDataParser;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -35,7 +34,7 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
         Player player = context.sender();
         Number value = context.getOrDefault("value", null);
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = ((CraftPlayer) player).getHandle().getInventory().getSelectedItem();
+            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_MODEL_DATA_ITEMLESS);
                 return;

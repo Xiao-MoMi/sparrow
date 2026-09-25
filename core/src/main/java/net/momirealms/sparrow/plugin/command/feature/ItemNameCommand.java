@@ -13,7 +13,6 @@ import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.Components;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -41,7 +40,7 @@ public final class ItemNameCommand extends BukkitCommandFeature {
         Player player = context.get("player");
         String input = context.getOrDefault("name", null);
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = ((CraftPlayer) player).getHandle().getInventory().getSelectedItem();
+            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_ITEM_NAME_ITEMLESS, Component.text(player.getName()));
                 return;

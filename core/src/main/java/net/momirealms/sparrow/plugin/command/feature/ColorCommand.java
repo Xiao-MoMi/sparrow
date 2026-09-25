@@ -13,7 +13,6 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.OptionalTextColorParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.incendo.cloud.Command;
@@ -49,7 +48,7 @@ public final class ColorCommand extends BukkitCommandFeature {
         EquipmentSlot slot = context.flags().getValue("slot", EquipmentSlot.HAND);
         Component slotName = Component.text(slot.name().toLowerCase(Locale.ROOT));
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = ((CraftPlayer) player).getHandle().getItemBySlot(CraftEquipmentSlot.getNMS(slot));
+            ItemStack item = this.plugin().playerManager().getPlayer(player).nmsPlayer().getItemBySlot(CraftEquipmentSlot.getNMS(slot));
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_COLOR_ITEMLESS, Component.text(player.getName()), slotName);
                 return;

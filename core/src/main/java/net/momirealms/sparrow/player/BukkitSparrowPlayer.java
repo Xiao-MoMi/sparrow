@@ -19,7 +19,6 @@ import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.component.DeathProtection;
-import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.bukkit.util.CraftChatMessageProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.util.AdventureHelper;
@@ -42,15 +41,29 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class BukkitSparrowPlayer implements SparrowPlayer {
     private final PlayerConnection connection;
     private final Player platformPlayer;
+    private final ServerPlayer nmsPlayer;
 
     BukkitSparrowPlayer(@NotNull PlayerConnection connection, @NotNull Player platformPlayer) {
         this.connection = connection;
         this.platformPlayer = platformPlayer;
+        this.nmsPlayer = ((CraftPlayer) platformPlayer).getHandle();
     }
 
     @NotNull
     public Player platformPlayer() {
         return this.platformPlayer;
+    }
+
+    @Override
+    @NotNull
+    public ServerPlayer nmsPlayer() {
+        return this.nmsPlayer;
+    }
+
+    @Override
+    @NotNull
+    public net.minecraft.world.item.ItemStack getItemInMainHand() {
+        return this.nmsPlayer.getInventory().getSelectedItem();
     }
 
     @Override
@@ -101,8 +114,7 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
     @Override
     public void sendMessage(@NotNull Component message, boolean overlay) {
         Object component = CraftChatMessageProxy.INSTANCE.fromJSON(AdventureHelper.componentToJson(message));
-        Object handle = CraftPlayerProxy.INSTANCE.getHandle(this.platformPlayer);
-        ServerPlayerProxy.INSTANCE.sendSystemMessage(handle, component, overlay);
+        ServerPlayerProxy.INSTANCE.sendSystemMessage(this.nmsPlayer, component, overlay);
     }
 
     @Override
@@ -116,11 +128,9 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
 
     @Override
     public void sendTotemAnimation(@NotNull ItemStack totem) {
-        Player player = this.platformPlayer;
-        ServerPlayer handle = ((CraftPlayer) player).getHandle();
-        int entityId = player.getEntityId();
-        net.minecraft.world.item.ItemStack mainHand = handle.getInventory().getSelectedItem();
-        net.minecraft.world.item.ItemStack offHand = handle.getOffhandItem().copy();
+        int entityId = this.nmsPlayer.getId();
+        net.minecraft.world.item.ItemStack mainHand = this.getItemInMainHand();
+        net.minecraft.world.item.ItemStack offHand = this.nmsPlayer.getOffhandItem().copy();
         boolean mainHandTotem = mainHand.has(DataComponents.DEATH_PROTECTION);
         net.minecraft.world.item.ItemStack animation = CraftItemStack.asNMSCopy(totem);
         animation.set(DataComponents.DEATH_PROTECTION, DeathProtection.TOTEM_OF_UNDYING);
@@ -129,7 +139,7 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
             packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, net.minecraft.world.item.ItemStack.EMPTY))));
         }
         packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.OFFHAND, animation))));
-        packets.add(new ClientboundEntityEventPacket(handle, (byte) 35));
+        packets.add(new ClientboundEntityEventPacket(this.nmsPlayer, (byte) 35));
         if (mainHandTotem) {
             packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, mainHand.copy()))));
         }

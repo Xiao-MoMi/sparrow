@@ -12,7 +12,6 @@ import net.momirealms.sparrow.util.DataTreeRenderer;
 import net.momirealms.sparrow.util.ItemUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftServer;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -39,7 +38,7 @@ public final class ItemDataCommand extends BukkitCommandFeature {
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = ((CraftPlayer) player).getHandle().getInventory().getSelectedItem();
+            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_ITEMLESS);
                 return;

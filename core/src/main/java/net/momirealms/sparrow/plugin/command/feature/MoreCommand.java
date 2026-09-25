@@ -10,7 +10,6 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.parser.PlayerParser;
@@ -39,7 +38,8 @@ public final class MoreCommand extends BukkitCommandFeature {
         }
         int amount = context.getOrDefault("amount", 0);
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = ((CraftPlayer) player).getHandle().getInventory().getSelectedItem();
+            SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+            ItemStack item = receiver.getItemInMainHand();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_MORE_NO_CHANGE, Component.text(player.getName()));
                 return;
@@ -59,7 +59,6 @@ public final class MoreCommand extends BukkitCommandFeature {
                 this.handleFeedback(context, MessageConstants.COMMAND_MORE_TOO_MANY, Component.text(maxStack * 100));
                 return;
             }
-            SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             int remaining = amount;
             while (remaining > 0) {
                 int count = Math.min(maxStack, remaining);

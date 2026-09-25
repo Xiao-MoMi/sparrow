@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.player;
 
 import net.kyori.adventure.text.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +16,17 @@ public interface SparrowPlayer {
 
     @NotNull
     String name();
+
+    @NotNull
+    ServerPlayer nmsPlayer();
+
+    /**
+     * 返回当前选中槽位持有的原版物品, 修改会直接作用于背包;
+     *
+     * @return 主手原物品, 空手时为原版空物品
+     */
+    @NotNull
+    net.minecraft.world.item.ItemStack getItemInMainHand();
 
     /**
      * 返回玩家的网络连接, 用于直接收发数据包.
