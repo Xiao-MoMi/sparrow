@@ -84,4 +84,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_MORE_SUCCESS = Component.translatable().key("command.more.success");
     TranslatableComponent.Builder COMMAND_MORE_NO_CHANGE = Component.translatable().key("command.more.no_change");
     TranslatableComponent.Builder COMMAND_MORE_TOO_MANY = Component.translatable().key("command.more.too_many");
+    TranslatableComponent.Builder COMMAND_DISTANCE_SUCCESS = Component.translatable().key("command.distance.success");
+    TranslatableComponent.Builder COMMAND_DISTANCE_FAILED = Component.translatable().key("command.distance.failed");
 }

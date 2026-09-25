@@ -2,7 +2,6 @@ package net.momirealms.sparrow.bukkit;
 
 import net.momirealms.sparrow.heart.SparrowHeart;
 import net.momirealms.sparrow.heart.feature.inventory.HandSlot;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.jetbrains.annotations.NotNull;
@@ -44,10 +43,5 @@ public class SparrowNMSProxy {
         heart.swingHand(player, slot);
     }
 
-    public void sendDebugMarker(Player player, Location location, String message, int duration, int color) {
-        requireNonNull(player, "player");
-        requireNonNull(message, "message");
-        requireNonNull(location, "location");
-        heart.sendDebugMarker(player, location, message, duration, color);
-    }
+
 }

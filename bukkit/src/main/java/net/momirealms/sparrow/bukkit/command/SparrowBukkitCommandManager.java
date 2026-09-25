@@ -44,7 +44,6 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new HeadAdminCommand(this),
             new URLHeadAdminCommand(this),
             new HeadPlayerCommand(this),
-            new DistancePlayerCommand(this),
             new ItemCustomModelDataPlayerCommand(this),
             new ItemDisplayNamePlayerCommand(this),
             new ItemLorePlayerCommand(this)

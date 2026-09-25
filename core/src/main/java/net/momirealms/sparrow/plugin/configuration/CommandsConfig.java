@@ -194,6 +194,9 @@ public final class CommandsConfig {
         CommandConfig more = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"), DependencyVersions.PROJECT_ID + ".command.more");
 
         @BlankLineBefore
+        CommandConfig distance = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " distance", "/distance"), DependencyVersions.PROJECT_ID + ".command.distance");
+
+        @BlankLineBefore
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
         /**
@@ -219,6 +222,7 @@ public final class CommandsConfig {
                 case "highlight" -> this.highlight;
                 case "item-data" -> this.itemData;
                 case "more" -> this.more;
+                case "distance" -> this.distance;
                 case "server" -> this.server;
                 case "enchant" -> this.enchant;
                 case "enchantment-table" -> this.enchantmentTable;

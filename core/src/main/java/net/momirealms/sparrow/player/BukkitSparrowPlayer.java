@@ -5,6 +5,8 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
 import net.momirealms.sparrow.advancement.ToastPackets;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.protocol.game.ClientboundGameTestHighlightPosPacket;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
@@ -148,5 +150,11 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
     @Override
     public void sendToast(@NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementFrame frame) {
         this.connection.sendPacket(ToastPackets.create(text, icon, frame));
+    }
+
+    @Override
+    public void sendDebugMarker(int x, int y, int z) {
+        BlockPos position = new BlockPos(x, y, z);
+        this.connection.sendPacket(new ClientboundGameTestHighlightPosPacket(position, position));
     }
 }

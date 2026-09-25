@@ -247,3 +247,7 @@ command.item-data.failure: '<color:#8A949E>»</color> <color:#E6C777>${project_n
 command.more.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Added <arg:1> items for <arg:0>.</color>'
 command.more.no_change: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No items added: <arg:0> has an empty hand or a full stack.</color>'
 command.more.too_many: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>You can copy at most <arg:0> additional items (100 stacks) at a time.</color>'
+
+# command.distance
+command.distance.success: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>Euclidean distance: <arg:0> blocks, Manhattan distance: <arg:1> blocks.</color>'
+command.distance.failed: '<color:#8A949E>»</color> <color:#E6C777>${project_name}</color> <color:#66717D>·</color> <color:#C5CCD3>No target block found within <arg:0> blocks along your line of sight.</color>'

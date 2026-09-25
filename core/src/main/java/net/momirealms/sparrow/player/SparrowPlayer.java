@@ -95,4 +95,9 @@ public interface SparrowPlayer {
      * 显示终末之诗与制作人员界面, 不修改通关记录.
      */
     void sendCredits();
+
+    /**
+     * 在当前客户端世界的指定方块显示原版调试标记, 样式和到期时间由客户端决定.
+     */
+    void sendDebugMarker(int x, int y, int z);
 }
