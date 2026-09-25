@@ -5,12 +5,13 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.Bootstrap;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomModelData;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
@@ -99,7 +100,6 @@ class CustomModelDataCommandTest {
 
     private static final class Fixture {
         private final CraftPlayer player = mock(CraftPlayer.class);
-        private final ServerPlayer handle = mock(ServerPlayer.class);
         private final Inventory inventory = mock(Inventory.class);
         private final PlatformExecutor platform = mock(PlatformExecutor.class);
         private final CommandManager feedback = mock(CommandManager.class);
@@ -113,11 +113,14 @@ class CustomModelDataCommandTest {
 
         private Fixture() {
             SparrowPlugin plugin = mock(SparrowPlugin.class);
+            PlayerManager players = mock(PlayerManager.class);
+            BukkitSparrowPlayer sparrowPlayer = mock(BukkitSparrowPlayer.class);
+            when(plugin.playerManager()).thenReturn(players);
+            when(players.getPlayer(this.player)).thenReturn(sparrowPlayer);
             SchedulerAdapter scheduler = mock(SchedulerAdapter.class);
             when(plugin.scheduler()).thenReturn(scheduler);
             when(scheduler.platform()).thenReturn(this.platform);
-            when(this.player.getHandle()).thenReturn(this.handle);
-            when(this.handle.getInventory()).thenReturn(this.inventory);
+            when(sparrowPlayer.getItemInMainHand()).thenAnswer(ignored -> this.inventory.getSelectedItem());
             when(this.player.getName()).thenReturn("Tester");
             doAnswer(invocation -> {
                 invocation.<Runnable>getArgument(0).run();

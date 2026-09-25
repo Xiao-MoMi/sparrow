@@ -11,6 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.DyedItemColor;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
@@ -147,10 +149,14 @@ class ColorCommandTest {
 
         private Fixture() {
             SparrowPlugin plugin = mock(SparrowPlugin.class);
+            PlayerManager players = mock(PlayerManager.class);
+            BukkitSparrowPlayer sparrowPlayer = mock(BukkitSparrowPlayer.class);
+            when(plugin.playerManager()).thenReturn(players);
+            when(players.getPlayer(this.player)).thenReturn(sparrowPlayer);
             SchedulerAdapter scheduler = mock(SchedulerAdapter.class);
             when(plugin.scheduler()).thenReturn(scheduler);
             when(scheduler.platform()).thenReturn(this.platform);
-            when(this.player.getHandle()).thenReturn(this.handle);
+            when(sparrowPlayer.nmsPlayer()).thenReturn(this.handle);
             when(this.handle.getItemBySlot(any())).thenAnswer(invocation -> this.items.getOrDefault(CraftEquipmentSlot.getSlot(invocation.getArgument(0)), ItemStack.EMPTY));
             when(this.player.getName()).thenReturn("Tester");
             doAnswer(invocation -> {

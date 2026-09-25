@@ -52,7 +52,7 @@ class MoreCommandTest {
         assertEquals(64, item.getCount());
         assertEquals(16, item.get(DataComponents.MAX_STACK_SIZE));
         assertTrue(fixture.inventory.getItem(0).isEmpty());
-        verifyNoInteractions(fixture.receiver);
+        verify(fixture.receiver, never()).dropItem(any());
     }
 
     @Test
@@ -87,7 +87,7 @@ class MoreCommandTest {
         assertSame(full, fixture.inventory.getSelectedItem());
         assertEquals(64, full.getCount());
         verify(fixture.feedback, times(2)).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_MORE_NO_CHANGE), any(Component[].class));
-        verifyNoInteractions(fixture.receiver);
+        verify(fixture.receiver, never()).dropItem(any());
     }
 
     private static final class Fixture {
@@ -112,6 +112,7 @@ class MoreCommandTest {
             when(scheduler.platform()).thenReturn(platform);
             when(plugin.playerManager()).thenReturn(players);
             when(players.getPlayer(this.player)).thenReturn(this.receiver);
+            when(this.receiver.getItemInMainHand()).thenAnswer(ignored -> this.inventory.getSelectedItem());
             when(this.player.getHandle()).thenReturn(this.handle);
             when(this.handle.getInventory()).thenReturn(this.inventory);
             when(this.player.getName()).thenReturn("Tester");
