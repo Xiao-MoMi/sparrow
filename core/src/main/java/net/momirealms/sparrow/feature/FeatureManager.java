@@ -2,6 +2,7 @@ package net.momirealms.sparrow.feature;
 
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
+import net.momirealms.sparrow.feature.server.ServerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
 import net.momirealms.sparrow.util.ExceptionCollector;
@@ -34,6 +35,7 @@ public final class FeatureManager {
         FeatureManager manager = new FeatureManager(config, plugin.scheduler().async(), plugin.scheduler().platform());
         manager.register(new QuickShulkerFeature(plugin.javaPlugin(), config));
         manager.register(new PatrolFeature(plugin.javaPlugin(), config));
+        manager.register(new ServerFeature(config));
         return manager;
     }
 

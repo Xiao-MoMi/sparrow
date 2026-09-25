@@ -3,7 +3,6 @@ package net.momirealms.sparrow.bukkit;
 import net.momirealms.sparrow.bukkit.command.SparrowBukkitCommandManager;
 import net.momirealms.sparrow.bukkit.feature.enchant.SparrowBukkitEnchantManager;
 import net.momirealms.sparrow.bukkit.feature.item.SparrowBukkitItemFactory;
-import net.momirealms.sparrow.bukkit.feature.proxy.SparrowBukkitBungeeManager;
 import net.momirealms.sparrow.bukkit.feature.skull.SparrowBukkitSkullManager;
 import net.momirealms.sparrow.common.command.SparrowCommandManager;
 import net.momirealms.sparrow.common.dependency.Dependency;
@@ -19,7 +18,6 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
 
     private static SparrowBukkitPlugin plugin;
     private final SparrowBukkitBootstrap bootstrap;
-    private final SparrowBukkitBungeeManager bungeeManager;
     private SparrowBukkitSkullManager skullManager;
     private SparrowBukkitSenderFactory senderFactory;
     private SparrowBukkitCommandManager commandManager;
@@ -29,7 +27,6 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
     public SparrowBukkitPlugin(SparrowBukkitBootstrap bootstrap) {
         plugin = this;
         this.bootstrap = bootstrap;
-        this.bungeeManager = new SparrowBukkitBungeeManager(this);
     }
 
     @Override
@@ -59,7 +56,6 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
     @Override
     public void disable() {
         this.commandManager.unregisterFeatures();
-        this.bungeeManager.disable();
         this.enchantManager.disable();
         this.skullManager.disable();
         super.disable();
@@ -87,10 +83,6 @@ public final class SparrowBukkitPlugin extends AbstractSparrowPlugin {
 
     public static SparrowBukkitPlugin getInstance() {
         return plugin;
-    }
-
-    public SparrowBukkitBungeeManager getBungeeManager() {
-        return bungeeManager;
     }
 
     public SenderFactory<SparrowBukkitPlugin, CommandSender> getSenderFactory() {

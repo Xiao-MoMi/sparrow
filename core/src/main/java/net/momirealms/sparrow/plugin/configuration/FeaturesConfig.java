@@ -2,6 +2,7 @@ package net.momirealms.sparrow.plugin.configuration;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
+import net.momirealms.sparrow.feature.server.ServerSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.yaml.SparrowYaml;
@@ -89,6 +90,11 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "使用 /patrol 轮流传送到在线玩家, 优先选择最久没被巡查的玩家.")
         private PatrolSettings patrol = new PatrolSettings();
 
+        @BlankLineBefore
+        @Comment("Send players to other backend servers with /server. Server names come from the proxy (BungeeCord/Velocity) config.")
+        @Comment(lang = "zh", value = "使用 /server 把玩家送到其他后端服务器.")
+        private ServerSettings server = new ServerSettings();
+
         @NotNull
         public QuickShulkerSettings quickShulker() {
             return this.quickShulker;
@@ -99,12 +105,18 @@ public final class FeaturesConfig {
             return this.patrol;
         }
 
+        @NotNull
+        public ServerSettings server() {
+            return this.server;
+        }
+
         /** 按功能 ID 获取对应的配置, 未知 ID 会抛出异常. */
         @NotNull
         public FeatureSettings settings(@NotNull String id) {
             return switch (id) {
                 case "quick-shulker" -> this.quickShulker;
                 case "patrol" -> this.patrol;
+                case "server" -> this.server;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

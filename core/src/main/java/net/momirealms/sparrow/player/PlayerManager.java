@@ -46,7 +46,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
 
     public void onEnable() {
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
-        Listener loginListener = VersionHelper.isPaper() ? new PaperLoginListener(this) : new SpigotLoginListener(this);
+        Listener loginListener = VersionHelper.hasPaperPatch ? new PaperLoginListener(this) : new SpigotLoginListener(this);
         javaPlugin.getServer().getPluginManager().registerEvents(loginListener, javaPlugin);
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
         this.cluster.onEnable();

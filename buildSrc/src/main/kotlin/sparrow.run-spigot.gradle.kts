@@ -20,23 +20,26 @@ val bukkitPluginJars = rootProject.fileTree("buildSrc/bukkit-plugin") {
     include("*.jar")
 }
 
-// 本地提供服务端 JAR 后才注册 Spigot 任务.
-val spigotJar = rootProject.layout.projectDirectory.file("buildSrc/server-jars/spigot-26.2.jar")
-if (spigotJar.asFile.isFile) {
-    val spigotDirectory = rootProject.layout.projectDirectory.dir("run/spigot/26.2")
-    val prepareSpigot = tasks.register<InitializeRunDirectory>("prepareSpigot_26.2") {
+// 为本地提供的每个 Spigot 服务端 JAR 注册运行任务.
+val spigotJars = rootProject.fileTree("buildSrc/server-jars") {
+    include("spigot-*.jar")
+}
+for (spigotJar in spigotJars.sortedBy { it.name }) {
+    val minecraftVersion = spigotJar.name.removePrefix("spigot-").removeSuffix(".jar")
+    val spigotDirectory = rootProject.layout.projectDirectory.dir("run/spigot/$minecraftVersion")
+    val prepareSpigot = tasks.register<InitializeRunDirectory>("prepareSpigot_$minecraftVersion") {
         templateDirectories.from(runTemplatesDirectory.dir("backend/spigot"))
         targetDirectory.set(spigotDirectory)
     }
-    tasks.register<RunServer>("runSpigot_26.2") {
+    tasks.register<RunServer>("runSpigot_$minecraftVersion") {
         group = "run paper"
-        displayName.set("Spigot 26.2")
-        description = "Run the standalone Spigot 26.2 server on port 25568."
-        minecraftVersion("26.2")
+        displayName.set("Spigot $minecraftVersion")
+        description = "Run the standalone Spigot $minecraftVersion server on port 25568."
+        minecraftVersion(minecraftVersion)
         runDirectory.set(spigotDirectory)
         legacyPluginLoading()
         pluginJars.from(projectJar, bukkitPluginJars)
-        serverJar(spigotJar.asFile)
+        serverJar(spigotJar)
         javaLauncher.set(java25)
         minHeapSize = "1536M"
         maxHeapSize = "1536M"

@@ -31,6 +31,9 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_TELEPORT_FAILURE = Component.translatable().key("command.teleport.failure");
     TranslatableComponent.Builder COMMAND_PATROL_SUCCESS = Component.translatable().key("command.patrol.success");
     TranslatableComponent.Builder COMMAND_PATROL_EMPTY = Component.translatable().key("command.patrol.empty");
+    TranslatableComponent.Builder COMMAND_SERVER_SUCCESS = Component.translatable().key("command.server.success");
+    TranslatableComponent.Builder COMMAND_SERVER_NOT_ALLOWED = Component.translatable().key("command.server.not_allowed");
+    TranslatableComponent.Builder COMMAND_SERVER_CURRENT = Component.translatable().key("command.server.current");
     TranslatableComponent.Builder COMMAND_LOOK_OPTIONS = Component.translatable().key("command.look.options");
     TranslatableComponent.Builder COMMAND_LOOK_TARGET_MISSING = Component.translatable().key("command.look.target_missing");
     TranslatableComponent.Builder COMMAND_LOOK_DIFFERENT_WORLD = Component.translatable().key("command.look.different_world");

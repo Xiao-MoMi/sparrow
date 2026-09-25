@@ -14,7 +14,7 @@ public final class BukkitSchedulerAdapter extends AbstractJavaScheduler {
     public BukkitSchedulerAdapter(SparrowPlugin plugin) {
         super(plugin);
         this.plugin = plugin;
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.hasFoliaPatch) {
             this.sync = new FoliaExecutor(plugin);
         } else {
             this.sync = new BukkitExecutor(plugin);

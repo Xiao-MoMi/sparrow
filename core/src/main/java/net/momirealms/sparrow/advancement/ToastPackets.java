@@ -50,7 +50,7 @@ public final class ToastPackets {
         AdvancementType type = AdvancementType.valueOf(frame.name());
         // 26.1 起进度图标改用物品模板
         DisplayInfo display;
-        if (VersionHelper.isOrAbove26_1()) {
+        if (VersionHelper.isOrAbove26_1) {
             display = (DisplayInfo) DisplayInfoProxy.INSTANCE.create$0(ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(minecraftIcon), title, net.minecraft.network.chat.Component.empty(), Optional.empty(), type, true, false, true);
         } else {
             display = (DisplayInfo) DisplayInfoProxy.INSTANCE.create(minecraftIcon, title, net.minecraft.network.chat.Component.empty(), Optional.empty(), type, true, false, true);

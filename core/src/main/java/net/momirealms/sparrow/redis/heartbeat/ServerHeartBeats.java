@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -151,7 +152,7 @@ public final class ServerHeartBeats {
                     for (int i = 0; i < size; i++) {
                         servers.add(new String((byte[]) members.get(i), StandardCharsets.UTF_8));
                     }
-                    return servers;
+                    return Collections.unmodifiableSet(servers);
                 });
     }
 

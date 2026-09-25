@@ -39,8 +39,6 @@ public final class SparrowBukkitCommandManager extends AbstractSparrowCommandMan
             new WorldAdminCommand(this),
             new WorldPlayerCommand(this),
             new EnchantAdminCommand(this),
-            new ServerAdminCommand(this),
-            new ServerPlayerCommand(this),
             new ColorPlayerCommand(this),
             new DyePlayerCommand(this),
             new DyeAdminCommand(this),

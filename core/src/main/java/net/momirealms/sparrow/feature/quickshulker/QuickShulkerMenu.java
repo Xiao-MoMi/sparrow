@@ -86,7 +86,7 @@ public final class QuickShulkerMenu {
         // 每次事务完成后立即写回, 关闭窗口时无需额外保存.
         this.contents.subscribePostUpdate(event -> {
             if (this.validateSource()) {
-                if (VersionHelper.isOrAbove26_1()) writeTemplates(shulker, event.slotChanges());
+                if (VersionHelper.isOrAbove26_1) writeTemplates(shulker, event.slotChanges());
                 else writeContents(this.shulker, event.slotChanges());
                 this.playerInventory.setChanged();
             }

@@ -27,9 +27,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMANDS_PLAYER_WORLD_SUCCESS = Component.translatable().key("commands.player.world.success");
     TranslatableComponent.Builder COMMANDS_ADMIN_WORLD_SUCCESS_SINGLE = Component.translatable().key("commands.admin.world.success.single");
     TranslatableComponent.Builder COMMANDS_ADMIN_WORLD_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.world.success.multiple");
-    TranslatableComponent.Builder COMMANDS_PLAYER_SERVER_SUCCESS = Component.translatable().key("commands.player.server.success");
-    TranslatableComponent.Builder COMMANDS_ADMIN_SERVER_SUCCESS_SINGLE = Component.translatable().key("commands.admin.server.success.single");
-    TranslatableComponent.Builder COMMANDS_ADMIN_SERVER_SUCCESS_MULTIPLE = Component.translatable().key("commands.admin.server.success.multiple");
     TranslatableComponent.Builder COMMANDS_ADMIN_COLOR_FAILED_ITEMLESS = Component.translatable().key("commands.admin.color.failed.itemless");
     TranslatableComponent.Builder COMMANDS_ADMIN_COLOR_FAILED_INCOMPATIBLE = Component.translatable().key("commands.admin.color.failed.incompatible");
     TranslatableComponent.Builder COMMANDS_ADMIN_COLOR_SUCCESS_QUERY = Component.translatable().key("commands.admin.color.success.query");

@@ -378,19 +378,19 @@ public class SparrowPlugin implements Plugin {
      */
     private List<String> getPatches() {
         List<String> patches = new ArrayList<>();
-        if (VersionHelper.isPaper()) {
+        if (VersionHelper.hasPaperPatch) {
             patches.add("paper");
         }
-        if (VersionHelper.isFolia()) {
+        if (VersionHelper.hasFoliaPatch) {
             patches.add("folia");
         }
-        if (VersionHelper.isLeaves()) {
+        if (VersionHelper.hasLeavesPatch) {
             patches.add("leaves");
         }
-        if (VersionHelper.isCanvas()) {
+        if (VersionHelper.hasCanvasPatch) {
             patches.add("canvas");
         }
-        if (VersionHelper.isPurpur()) {
+        if (VersionHelper.hasPurpurPatch) {
             patches.add("purpur");
         }
         return patches;

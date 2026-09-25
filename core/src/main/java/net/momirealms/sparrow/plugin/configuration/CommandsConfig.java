@@ -176,6 +176,9 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig patrol = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " patrol", "/patrol"), DependencyVersions.PROJECT_ID + ".command.patrol");
 
+        @BlankLineBefore
+        CommandConfig server = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"), DependencyVersions.PROJECT_ID + ".command.server");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -196,6 +199,7 @@ public final class CommandsConfig {
                 case "demo" -> this.demo;
                 case "credits" -> this.credits;
                 case "patrol" -> this.patrol;
+                case "server" -> this.server;
                 case "fly-speed" -> this.flySpeed;
                 case "walk-speed" -> this.walkSpeed;
                 case "suicide" -> this.suicide;

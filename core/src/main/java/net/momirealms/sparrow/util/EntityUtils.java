@@ -14,7 +14,7 @@ public final class EntityUtils {
 
     @NotNull
     public static CompletableFuture<Boolean> teleport(@NotNull Entity entity, @NotNull Location location) {
-        if (VersionHelper.isFolia()) return entity.teleportAsync(location, TeleportCause.PLUGIN);
+        if (VersionHelper.hasFoliaPatch) return entity.teleportAsync(location, TeleportCause.PLUGIN);
         return CompletableFuture.completedFuture(entity.teleport(location, TeleportCause.PLUGIN));
     }
 

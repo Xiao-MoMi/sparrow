@@ -9,44 +9,31 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 public final class VersionHelper {
-    private VersionHelper() {}
-
     public static final boolean IS_RUNNING_IN_DEV = Boolean.getBoolean(DependencyVersions.PROJECT_PACKAGE + ".dev");
     public static final MinecraftVersion MINECRAFT_VERSION;
-    public static final boolean COMPONENT_RELEASE;
     public static final int WORLD_VERSION;
-    private static final int version;
-    private static final int majorVersion;
-    private static final int minorVersion;
-    private static final boolean mojmap;
-    private static final boolean folia;
-    private static final boolean paper;
-    private static final boolean leaves;
-    private static final boolean canvas;
-    private static final boolean purpur;
-    private static final boolean v1_20;
-    private static final boolean v1_20_1;
-    private static final boolean v1_20_2;
-    private static final boolean v1_20_3;
-    private static final boolean v1_20_4;
-    private static final boolean v1_20_5;
-    private static final boolean v1_20_6;
-    private static final boolean v1_21;
-    private static final boolean v1_21_1;
-    private static final boolean v1_21_2;
-    private static final boolean v1_21_3;
-    private static final boolean v1_21_4;
-    private static final boolean v1_21_5;
-    private static final boolean v1_21_6;
-    private static final boolean v1_21_7;
-    private static final boolean v1_21_8;
-    private static final boolean v1_21_9;
-    private static final boolean v1_21_10;
-    private static final boolean v1_21_11;
-    private static final boolean v26_1;
-    private static final boolean v26_1_1;
-    private static final boolean v26_1_2;
-    private static final boolean v26_2;
+    public static final int version;
+    public static final int majorVersion;
+    public static final int minorVersion;
+    public static final boolean isMojmap;
+    public static final boolean hasSpigotPatch;
+    public static final boolean hasFoliaPatch;
+    public static final boolean hasPaperPatch;
+    public static final boolean hasLeavesPatch;
+    public static final boolean hasCanvasPatch;
+    public static final boolean hasLeafPatch;
+    public static final boolean hasLithiumPatch;
+    public static final boolean hasUniverseSpigotPatch;
+    public static final boolean hasPurpurPatch;
+    public static final boolean isOrAbove1_21_8;
+    public static final boolean isOrAbove1_21_9;
+    public static final boolean isOrAbove1_21_10;
+    public static final boolean isOrAbove1_21_11;
+    public static final boolean isOrAbove26_1;
+    public static final boolean isOrAbove26_1_1;
+    public static final boolean isOrAbove26_1_2;
+    public static final boolean isOrAbove26_2;
+    public static final boolean isOrAbove26_3;
     private static final Class<?> UNOBFUSCATED_CLAZZ = Objects.requireNonNull(ReflectionUtils.getClazz(
             "net.minecraft.obfuscate.DontObfuscate", // 因为无混淆版本没有这个类所以说多写几个防止找不到了
             "net.minecraft.data.Main",
@@ -76,49 +63,38 @@ public final class VersionHelper {
             int major = Integer.parseInt(split[1]);
             int minor = split.length == 3 ? Integer.parseInt(split[2]) : 0;
 
-            // 12001 = 1.20.1
-            // 12104 = 1.21.4
+            // 1.21.8 -> 12108, 26.3 -> 260300
             version = parseVersionToInteger(versionString);
 
-            v1_20 = version >= 12000;
-            v1_20_1 = version >= 12001;
-            v1_20_2 = version >= 12002;
-            v1_20_3 = version >= 12003;
-            v1_20_4 = version >= 12004;
-            v1_20_5 = version >= 12005;
-            v1_20_6 = version >= 12006;
-            v1_21 = version >= 12100;
-            v1_21_1 = version >= 12101;
-            v1_21_2 = version >= 12102;
-            v1_21_3 = version >= 12103;
-            v1_21_4 = version >= 12104;
-            v1_21_5 = version >= 12105;
-            v1_21_6 = version >= 12106;
-            v1_21_7 = version >= 12107;
-            v1_21_8 = version >= 12108;
-            v1_21_9 = version >= 12109;
-            v1_21_10 = version >= 12110;
-            v1_21_11 = version >= 12111;
-            v26_1 = version >= 260100;
-            v26_1_1 = version >= 260101;
-            v26_1_2 = version >= 260102;
-            v26_2 = version >= 260200;
+            isOrAbove1_21_8 = version >= 12108;
+            isOrAbove1_21_9 = version >= 12109;
+            isOrAbove1_21_10 = version >= 12110;
+            isOrAbove1_21_11 = version >= 12111;
+            isOrAbove26_1 = version >= 260100;
+            isOrAbove26_1_1 = version >= 260101;
+            isOrAbove26_1_2 = version >= 260102;
+            isOrAbove26_2 = version >= 260200;
+            isOrAbove26_3 = version >= 260300;
 
             majorVersion = major;
             minorVersion = minor;
 
-            COMPONENT_RELEASE = v1_20_5;
-
-            mojmap = checkMojMap() || v26_1;
-            folia = checkFolia();
-            paper = checkPaper();
-            leaves = checkLeaves();
-            canvas = checkCanvas();
-            purpur = exists("org.purpurmc.purpur.PurpurConfig");
+            isMojmap = checkMojMap() || isOrAbove26_1;
+            hasSpigotPatch = checkSpigot();
+            hasFoliaPatch = checkFolia();
+            hasPaperPatch = checkPaper();
+            hasLeavesPatch = checkLeaves();
+            hasCanvasPatch = checkCanvas();
+            hasLeafPatch = checkLeaf();
+            hasLithiumPatch = checkLithium();
+            hasUniverseSpigotPatch = checkUniverseSpigot();
+            hasPurpurPatch = checkPurpur();
         } catch (Exception e) {
             throw new RuntimeException("Failed to init VersionHelper", e);
         }
     }
+
+    private VersionHelper() {}
 
     public static int parseVersionToInteger(String versionString) {
         int v1 = 0;
@@ -155,21 +131,9 @@ public final class VersionHelper {
         return 10000 * v1 + v2 * 100 + v3;
     }
 
-
-    public static int majorVersion() {
-        return majorVersion;
-    }
-
-    public static int minorVersion() {
-        return minorVersion;
-    }
-
-    public static int version() {
-        return version;
-    }
-
     private static boolean exists(String... classNames) {
-        for (String className : classNames) {
+        for (int i = 0; i < classNames.length; i++) {
+            String className = classNames[i];
             try {
                 Class.forName(className.replace("{}", "."), false, VersionHelper.class.getClassLoader());
                 return true;
@@ -180,8 +144,11 @@ public final class VersionHelper {
     }
 
     private static boolean checkMojMap() {
-        // Check if the server is Mojmap
         return exists("net.neoforged.art.internal.RenamerImpl");
+    }
+
+    private static boolean checkSpigot() {
+        return exists("org.spigotmc.SpigotConfig");
     }
 
     private static boolean checkFolia() {
@@ -197,122 +164,22 @@ public final class VersionHelper {
     }
 
     private static boolean checkCanvas() {
-        return exists("io.canvasmc.canvas.Config");
+        return exists("io.canvasmc.canvas.Config") || exists("io.canvasmc.canvas.GlobalConfiguration");
     }
 
-    public static boolean isFolia() {
-        return folia;
+    private static boolean checkLeaf() {
+        return exists("org.dreeam.leaf.config.LeafConfig") || exists("org.dreeam.leaf.async.chunk.AsyncChunkSender");
     }
 
-    public static boolean isPaper() {
-        return paper;
+    private static boolean checkLithium() {
+        return exists("net.caffeinemc.mods.lithium.common.world.chunk.LithiumHashPalette");
     }
 
-    public static boolean isPurpur() {
-        return purpur;
+    private static boolean checkUniverseSpigot() {
+        return exists("com.universeprojects.util.palette.CompactHashPalette");
     }
 
-    public static boolean isCanvas() {
-        return canvas;
-    }
-
-    public static boolean isLeaves() {
-        return leaves;
-    }
-
-    public static boolean isMojmap() {
-        return mojmap;
-    }
-
-    public static boolean isOrAbove1_20() {
-        return v1_20;
-    }
-
-    public static boolean isOrAbove1_20_1() {
-        return v1_20_1;
-    }
-
-    public static boolean isOrAbove1_20_2() {
-        return v1_20_2;
-    }
-
-    public static boolean isOrAbove1_20_3() {
-        return v1_20_3;
-    }
-
-    public static boolean isOrAbove1_20_4() {
-        return v1_20_4;
-    }
-
-    public static boolean isOrAbove1_20_5() {
-        return v1_20_5;
-    }
-
-    public static boolean isOrAbove1_20_6() {
-        return v1_20_6;
-    }
-
-    public static boolean isOrAbove1_21() {
-        return v1_21;
-    }
-
-    public static boolean isOrAbove1_21_1() {
-        return v1_21_1;
-    }
-
-    public static boolean isOrAbove1_21_2() {
-        return v1_21_2;
-    }
-
-    public static boolean isOrAbove1_21_3() {
-        return v1_21_3;
-    }
-
-    public static boolean isOrAbove1_21_4() {
-        return v1_21_4;
-    }
-
-    public static boolean isOrAbove1_21_5() {
-        return v1_21_5;
-    }
-
-    public static boolean isOrAbove1_21_6() {
-        return v1_21_6;
-    }
-
-    public static boolean isOrAbove1_21_7() {
-        return v1_21_7;
-    }
-
-    public static boolean isOrAbove1_21_8() {
-        return v1_21_8;
-    }
-
-    public static boolean isOrAbove1_21_9() {
-        return v1_21_9;
-    }
-
-    public static boolean isOrAbove1_21_10() {
-        return v1_21_10;
-    }
-
-    public static boolean isOrAbove1_21_11() {
-        return v1_21_11;
-    }
-
-    public static boolean isOrAbove26_1() {
-        return v26_1;
-    }
-
-    public static boolean isOrAbove26_1_1() {
-        return v26_1_1;
-    }
-
-    public static boolean isOrAbove26_1_2() {
-        return v26_1_2;
-    }
-
-    public static boolean isOrAbove26_2() {
-        return v26_2;
+    private static boolean checkPurpur() {
+        return exists("org.purpurmc.purpur.PurpurConfig");
     }
 }
