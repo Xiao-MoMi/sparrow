@@ -24,6 +24,7 @@ import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.Set;
 
 public final class EnchantCommand extends BukkitCommandFeature {
     public EnchantCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
@@ -36,6 +37,7 @@ public final class EnchantCommand extends BukkitCommandFeature {
                 .required("enchantment", EnchantmentParser.enchantmentParser())
                 .optional("level", IntegerParser.integerParser())
                 .flag(manager.flagBuilder("slot").withComponent(EnumParser.enumParser(EquipmentSlot.class)))
+                .flag(manager.flagBuilder("check"))
                 .handler(this::execute);
     }
 
@@ -49,6 +51,13 @@ public final class EnchantCommand extends BukkitCommandFeature {
         Enchantment enchantment = context.get("enchantment");
         int level = context.getOrDefault("level", 1);
         EquipmentSlot slot = context.flags().getValue("slot", EquipmentSlot.HAND);
+        // --check 按原版 /enchant 校验, 移除附魔时不校验
+        boolean check = context.flags().hasFlag("check") && level >= 0;
+        if (check && level > enchantment.getMaxLevel()) {
+            this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_LEVEL,
+                    Component.text(level), Component.text(enchantment.getKey().toString()), Component.text(enchantment.getMaxLevel()));
+            return;
+        }
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
                 if (!(entity instanceof LivingEntity livingEntity)) {
@@ -66,6 +75,10 @@ public final class EnchantCommand extends BukkitCommandFeature {
                     return;
                 }
                 ItemMeta meta = item.getItemMeta();
+                if (check && !applicable(enchantment, item, meta)) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE, Component.text(entity.getName()), Component.text(enchantment.getKey().toString()));
+                    return;
+                }
                 if (level < 0) {
                     meta.removeEnchant(enchantment);
                     if (meta instanceof EnchantmentStorageMeta storage) {
@@ -87,5 +100,15 @@ public final class EnchantCommand extends BukkitCommandFeature {
     @Override
     public String getFeatureID() {
         return "enchant";
+    }
+
+    // 做原版一致的检查和, 物品需在附魔的适用范围内, 且与已有附魔都不冲突, 已有同一附魔也视为冲突. 附魔书不在任何附魔的适用范围内
+    private static boolean applicable(Enchantment enchantment, ItemStack item, ItemMeta meta) {
+        if (!enchantment.canEnchantItem(item)) return false;
+        Set<Enchantment> existing = meta instanceof EnchantmentStorageMeta storage ? storage.getStoredEnchants().keySet() : meta.getEnchants().keySet();
+        for (Enchantment other : existing) {
+            if (enchantment.conflictsWith(other)) return false;
+        }
+        return true;
     }
 }

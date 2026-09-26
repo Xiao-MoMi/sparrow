@@ -70,7 +70,9 @@ command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project
 
 # command.enchant
 command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 没有可操作的装备栏。</color>'
+command.enchant.incompatible: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的物品不支持附魔 <color:#F2F4FF><arg:1></color>，或与已有附魔冲突。</color>'
 command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的指定装备槽位为空。</color>'
+command.enchant.level: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>等级 <color:#F2F4FF><arg:0></color> 超过了 <color:#F2F4FF><arg:1></color> 支持的最高等级 <color:#F2F4FF><arg:2></color>。</color>'
 command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已移除 <color:#C7BCE7><arg:0></color> 装备上的 <color:#C7BCE7><arg:1></color>。</color>'
 command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 的装备附加 <color:#C7BCE7><arg:1></color> <color:#C7BCE7><arg:2></color> 级。</color>'
 command.enchant.zero: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 装备上的 <color:#C7BCE7><arg:1></color> 设为 0 级。</color>'

@@ -70,7 +70,9 @@ command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project
 
 # command.enchant
 command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> has no equipment slots.</color>'
+command.enchant.incompatible: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item of <color:#F2F4FF><arg:0></color> cannot take <color:#F2F4FF><arg:1></color> or conflicts with its existing enchantments.</color>'
 command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selected equipment slot of <color:#F2F4FF><arg:0></color> is empty.</color>'
+command.enchant.level: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Level <color:#F2F4FF><arg:0></color> is higher than the maximum level <color:#F2F4FF><arg:2></color> of <color:#F2F4FF><arg:1></color>.</color>'
 command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Removed <color:#C7BCE7><arg:1></color> from <color:#C7BCE7><arg:0></color>''s equipment.</color>'
 command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied <color:#C7BCE7><arg:1></color> level <color:#C7BCE7><arg:2></color> to <color:#C7BCE7><arg:0></color>''s equipment.</color>'
 command.enchant.zero: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:0></color>''s equipment to level 0.</color>'

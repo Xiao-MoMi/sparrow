@@ -54,6 +54,8 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_ENCHANT_REMOVED = Component.translatable().key("command.enchant.removed");
     TranslatableComponent.Builder COMMAND_ENCHANT_ENTITY = Component.translatable().key("command.enchant.entity");
     TranslatableComponent.Builder COMMAND_ENCHANT_ITEMLESS = Component.translatable().key("command.enchant.itemless");
+    TranslatableComponent.Builder COMMAND_ENCHANT_LEVEL = Component.translatable().key("command.enchant.level");
+    TranslatableComponent.Builder COMMAND_ENCHANT_INCOMPATIBLE = Component.translatable().key("command.enchant.incompatible");
     TranslatableComponent.Builder COMMAND_SUDO_EMPTY = Component.translatable().key("command.sudo.empty");
     TranslatableComponent.Builder COMMAND_SUDO_FAILURE = Component.translatable().key("command.sudo.failure");
     TranslatableComponent.Builder COMMAND_TOP_BLOCK_UNAVAILABLE = Component.translatable().key("command.top-block.unavailable");
