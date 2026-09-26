@@ -51,10 +51,19 @@ public final class CompatibilityManager {
         return this.hasPlaceholderAPI ? PlaceholderAPIUtils.parse(player, text) : text;
     }
 
-    @NotNull
-    public TriState offlinePermission(@NotNull UUID uniqueId, @NotNull String permission) {
+    /**
+     * 在玩家实体创建前判断权限, 目前仅接入 LuckPerms.
+     * 权限插件未设置该节点时按 Bukkit 默认规则只授予 OP. LuckPerms 在 AsyncPlayerPreLoginEvent 的 LOW 优先级加载用户.
+     *
+     * @param uniqueId 玩家 UUID
+     * @param permission 权限节点
+     * @return 是否拥有该权限
+     */
+    public boolean hasPermissionBeforeJoin(@NotNull UUID uniqueId, @NotNull String permission) {
         LuckPermsHook hook = this.luckPerms;
-        return hook == null ? TriState.NOT_SET : hook.check(uniqueId, permission);
+        TriState state = hook == null ? TriState.NOT_SET : hook.check(uniqueId, permission);
+        if (state != TriState.NOT_SET) return state == TriState.TRUE;
+        return Bukkit.getOfflinePlayer(uniqueId).isOp();
     }
 
     private @Nullable Plugin getPlugin(String name) {

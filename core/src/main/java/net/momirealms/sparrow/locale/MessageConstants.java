@@ -13,7 +13,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_HEAD_INVALID_RESPONSE = Component.translatable().key("command.head.invalid_response");
     TranslatableComponent.Builder COMMAND_HEAD_CANCELLED = Component.translatable().key("command.head.cancelled");
     TranslatableComponent.Builder COMMAND_HEAD_SUCCESS = Component.translatable().key("command.head.success");
-
     TranslatableComponent.Builder COMMAND_HIGHLIGHT_TIP = Component.translatable().key("command.highlight.tip");
     TranslatableComponent.Builder COMMAND_HIGHLIGHT_FIRST = Component.translatable().key("command.highlight.first");
     TranslatableComponent.Builder COMMAND_HIGHLIGHT_WORLD = Component.translatable().key("command.highlight.world");
@@ -68,7 +67,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_TP_OFFLINE_TIMEOUT = Component.translatable().key("command.tp-offline.timeout");
     TranslatableComponent.Builder COMMAND_TP_OFFLINE_SUCCESS = Component.translatable().key("command.tp-offline.success");
     TranslatableComponent.Builder COMMAND_TP_OFFLINE_CONNECTING = Component.translatable().key("command.tp-offline.connecting");
-
     TranslatableComponent.Builder COMMAND_SERVER_SUCCESS = Component.translatable().key("command.server.success");
     TranslatableComponent.Builder COMMAND_SERVER_NOT_ALLOWED = Component.translatable().key("command.server.not_allowed");
     TranslatableComponent.Builder COMMAND_SERVER_CURRENT = Component.translatable().key("command.server.current");
@@ -102,7 +100,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_CUSTOM_MODEL_DATA_MISSING = Component.translatable().key("command.custom-model-data.missing");
     TranslatableComponent.Builder COMMAND_CUSTOM_MODEL_DATA_QUERY = Component.translatable().key("command.custom-model-data.query");
     TranslatableComponent.Builder COMMAND_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("command.custom-model-data.success");
-
     TranslatableComponent.Builder COMMAND_COLOR_ITEMLESS = Component.translatable().key("command.color.itemless");
     TranslatableComponent.Builder COMMAND_COLOR_MISSING = Component.translatable().key("command.color.missing");
     TranslatableComponent.Builder COMMAND_COLOR_SUCCESS = Component.translatable().key("command.color.success");
@@ -125,7 +122,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_ITEM_LORE_UP = Component.translatable().key("command.item-lore.up");
     TranslatableComponent.Builder COMMAND_ITEM_LORE_DOWN = Component.translatable().key("command.item-lore.down");
     TranslatableComponent.Builder COMMAND_ITEM_LORE_INSERT = Component.translatable().key("command.item-lore.insert");
-
     TranslatableComponent.Builder COMMAND_ITEM_NAME_SUCCESS = Component.translatable().key("command.item-name.success");
     TranslatableComponent.Builder COMMAND_ITEM_NAME_QUERY = Component.translatable().key("command.item-name.query");
     TranslatableComponent.Builder COMMAND_ITEM_NAME_UNNAMED = Component.translatable().key("command.item-name.unnamed");
@@ -144,6 +140,9 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_MAINTENANCE_DISABLED = Component.translatable().key("command.maintenance.disabled");
     TranslatableComponent.Builder COMMAND_MAINTENANCE_ACTIVE = Component.translatable().key("command.maintenance.active");
     TranslatableComponent.Builder COMMAND_MAINTENANCE_INACTIVE = Component.translatable().key("command.maintenance.inactive");
+    TranslatableComponent.Builder COMMAND_MAX_PLAYERS_QUERY = Component.translatable().key("command.max-players.query");
+    TranslatableComponent.Builder COMMAND_MAX_PLAYERS_SUCCESS = Component.translatable().key("command.max-players.success");
+    TranslatableComponent.Builder COMMAND_MAX_PLAYERS_RESET = Component.translatable().key("command.max-players.reset");
 
     TranslatableComponent.Builder MAINTENANCE_KICK = Component.translatable().key("maintenance.kick");
     TranslatableComponent.Builder MAINTENANCE_BOSS_BAR = Component.translatable().key("maintenance.boss_bar");

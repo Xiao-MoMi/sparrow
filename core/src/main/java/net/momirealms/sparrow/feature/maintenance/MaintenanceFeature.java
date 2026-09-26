@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.feature.maintenance;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.util.TriState;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerListener;
@@ -75,15 +74,8 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     @SuppressWarnings("deprecation")
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
         if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
-        if (this.allowedBeforeJoin(event.getUniqueId())) return;
+        if (this.plugin.compatibilityManager().hasPermissionBeforeJoin(event.getUniqueId(), BYPASS_PERMISSION)) return;
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, AdventureHelper.componentToLegacy(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, null)));
-    }
-
-    private boolean allowedBeforeJoin(UUID uniqueId) {
-        TriState permission = this.plugin.compatibilityManager().offlinePermission(uniqueId, BYPASS_PERMISSION);
-        if (permission != TriState.NOT_SET) return permission == TriState.TRUE;
-        // 未设置的权限节点按 Bukkit 默认规则只授予 OP
-        return Bukkit.getOfflinePlayer(uniqueId).isOp();
     }
 
     // 登录检查之后才开启维护的玩家在这里补查

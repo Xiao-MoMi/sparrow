@@ -4,6 +4,7 @@ import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
+import net.momirealms.sparrow.feature.playerlimit.PlayerLimitSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
@@ -84,6 +85,19 @@ public final class FeaturesConfig {
         }
     }
 
+    /** 保存人数上限, 保留文件中的其他选项和注释. */
+    public void saveMaxPlayers(int maxPlayers) {
+        PlayerLimitSettings settings = this.config.playerLimit();
+        try {
+            YamlDocument document = this.yaml.load(this.path);
+            document.set(Route.from("player-limit", "max-players"), maxPlayers);
+            document.save(this.path);
+            settings.maxPlayers(maxPlayers);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to save player limit", exception);
+        }
+    }
+
     @NotNull
     public ConfigDefinition config() {
         return this.config;
@@ -126,9 +140,19 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "维护模式, 开启后只有拥有绕过权限的玩家可以留在或进入服务器.")
         private MaintenanceSettings maintenance = new MaintenanceSettings();
 
+        @BlankLineBefore
+        @Comment("Change the player limit at runtime with /max-players. Players with the bypass permission can join a full server.")
+        @Comment(lang = "zh", value = "使用 /max-players 动态修改人数上限, 拥有绕过权限的玩家可以在满员时进入.")
+        private PlayerLimitSettings playerLimit = new PlayerLimitSettings();
+
         @NotNull
         public MaintenanceSettings maintenance() {
             return this.maintenance;
+        }
+
+        @NotNull
+        public PlayerLimitSettings playerLimit() {
+            return this.playerLimit;
         }
 
         @NotNull
@@ -166,6 +190,7 @@ public final class FeaturesConfig {
                 case "highlight" -> this.highlight;
                 case "head" -> this.head;
                 case "maintenance" -> this.maintenance;
+                case "player-limit" -> this.playerLimit;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

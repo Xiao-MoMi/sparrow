@@ -210,6 +210,11 @@ command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${pro
 command.maintenance.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已开启维护模式，没有绕过权限的玩家已被移出</color>'
 command.maintenance.inactive: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>服务器未处于维护模式</color>'
 
+# command.max-players
+command.max-players.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>当前在线 <color:#C7BCE7><arg:0></color> 人，人数上限 <color:#C7BCE7><arg:1></color> 人</color>'
+command.max-players.reset: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将人数上限恢复为 server.properties 中的 <color:#C7BCE7><arg:0></color> 人</color>'
+command.max-players.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将人数上限设为 <color:#C7BCE7><arg:0></color> 人</color>'
+
 # command.more
 command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#C7BCE7><arg:0></color> 的主手为空或数量已满, 没有增加物品.</color>'
 command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 增加 <color:#C7BCE7><arg:1></color> 个物品.</color>'

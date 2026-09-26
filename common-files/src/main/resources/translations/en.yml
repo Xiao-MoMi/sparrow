@@ -210,6 +210,11 @@ command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${pro
 command.maintenance.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Maintenance mode enabled; players without the bypass permission have been removed</color>'
 command.maintenance.inactive: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>The server is not under maintenance</color>'
 
+# command.max-players
+command.max-players.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:0></color> players online, player limit is <color:#C7BCE7><arg:1></color></color>'
+command.max-players.reset: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Player limit restored to <color:#C7BCE7><arg:0></color> from server.properties</color>'
+command.max-players.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Player limit set to <color:#C7BCE7><arg:0></color></color>'
+
 # command.more
 command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>No items added: <color:#C7BCE7><arg:0></color> has an empty hand or a full stack.</color>'
 command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Added <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>.</color>'

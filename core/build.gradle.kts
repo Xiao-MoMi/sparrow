@@ -58,6 +58,7 @@ dependencies {
     testImplementation(libs.sparrow.reflection)
     testImplementation(libs.lettuce.core)
     testImplementation(libs.caffeine)
+    testImplementation(libs.luckperms.api)
     testRuntimeOnly(libs.mysql.connector.j)
     testRuntimeOnly(libs.mariadb.driver)
     testRuntimeOnly(libs.postgresql.driver)

@@ -4,6 +4,7 @@ import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.head.HeadFeature;
 import net.momirealms.sparrow.feature.highlight.HighlightFeature;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
+import net.momirealms.sparrow.feature.playerlimit.PlayerLimitFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
 import net.momirealms.sparrow.feature.server.ServerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -37,6 +38,7 @@ public final class FeatureManager {
         this.features.put(HighlightFeature.ID, new HighlightFeature(plugin));
         this.features.put(HeadFeature.ID, new HeadFeature(plugin));
         this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
+        this.features.put(PlayerLimitFeature.ID, new PlayerLimitFeature(plugin));
     }
 
     public void onEnable() {

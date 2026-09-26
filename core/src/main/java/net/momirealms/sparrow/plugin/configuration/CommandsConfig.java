@@ -183,6 +183,10 @@ public final class CommandsConfig {
         CommandConfig maintenance = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " maintenance", "/maintenance"), DependencyVersions.PROJECT_ID + ".command.maintenance");
 
         @BlankLineBefore
+        @YamlProperty("max-players")
+        CommandConfig maxPlayers = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " max-players", "/max-players"), DependencyVersions.PROJECT_ID + ".command.max-players");
+
+        @BlankLineBefore
         CommandConfig server = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"), DependencyVersions.PROJECT_ID + ".command.server");
 
         @BlankLineBefore
@@ -255,6 +259,7 @@ public final class CommandsConfig {
                 case "highlight" -> this.highlight;
                 case "head" -> this.head;
                 case "maintenance" -> this.maintenance;
+                case "max-players" -> this.maxPlayers;
                 case "item-name" -> this.itemName;
                 case "item-lore" -> this.itemLore;
                 case "custom-name" -> this.customName;

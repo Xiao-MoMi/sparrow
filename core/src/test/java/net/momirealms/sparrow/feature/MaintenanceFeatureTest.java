@@ -2,7 +2,6 @@ package net.momirealms.sparrow.feature;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.util.TriState;
 import net.minecraft.server.level.ServerPlayer;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
@@ -12,7 +11,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
@@ -62,7 +60,6 @@ class MaintenanceFeatureTest {
             return null;
         }).when(executor).run(any(Runnable.class), any(Runnable.class), any(Entity.class));
         when(this.plugin.scheduler().platform()).thenReturn(executor);
-        when(this.plugin.compatibilityManager().offlinePermission(any(), anyString())).thenReturn(TriState.NOT_SET);
 
         // 渲染结果为翻译键本身
         TranslationManager manager = mock(TranslationManager.class);
@@ -72,7 +69,6 @@ class MaintenanceFeatureTest {
 
         this.bukkit = mockStatic(Bukkit.class);
         this.bukkit.when(Bukkit::getPluginManager).thenReturn(mock(PluginManager.class));
-        this.bukkit.when(() -> Bukkit.getOfflinePlayer(any(UUID.class))).thenReturn(mock(OfflinePlayer.class));
 
         this.feature = new MaintenanceFeature(this.plugin);
         ((Feature<?>) this.feature).install();
@@ -106,27 +102,12 @@ class MaintenanceFeatureTest {
     }
 
     @Test
-    void luckPermsDecidesBeforeOperatorStatus() {
+    void allowsLoginWithBypassPermission() {
         this.feature.active(true);
         AsyncPlayerPreLoginEvent granted = this.preLogin("Granted");
-        when(this.plugin.compatibilityManager().offlinePermission(granted.getUniqueId(), MaintenanceFeature.BYPASS_PERMISSION)).thenReturn(TriState.TRUE);
+        when(this.plugin.compatibilityManager().hasPermissionBeforeJoin(granted.getUniqueId(), MaintenanceFeature.BYPASS_PERMISSION)).thenReturn(true);
         this.feature.onPreLogin(granted);
         verify(granted, never()).disallow(any(AsyncPlayerPreLoginEvent.Result.class), anyString());
-        // 显式拒绝的 OP 也不能进入
-        AsyncPlayerPreLoginEvent revoked = this.preLogin("Revoked");
-        when(this.plugin.compatibilityManager().offlinePermission(revoked.getUniqueId(), MaintenanceFeature.BYPASS_PERMISSION)).thenReturn(TriState.FALSE);
-        this.operator(revoked.getUniqueId());
-        this.feature.onPreLogin(revoked);
-        verify(revoked).disallow(eq(AsyncPlayerPreLoginEvent.Result.KICK_OTHER), anyString());
-    }
-
-    @Test
-    void operatorsBypassWithoutPermissionPlugin() {
-        this.feature.active(true);
-        AsyncPlayerPreLoginEvent operator = this.preLogin("Operator");
-        this.operator(operator.getUniqueId());
-        this.feature.onPreLogin(operator);
-        verify(operator, never()).disallow(any(AsyncPlayerPreLoginEvent.Result.class), anyString());
     }
 
     @Test
@@ -213,12 +194,6 @@ class MaintenanceFeatureTest {
         when(event.getUniqueId()).thenReturn(UUID.randomUUID());
         when(event.getLoginResult()).thenReturn(AsyncPlayerPreLoginEvent.Result.ALLOWED);
         return event;
-    }
-
-    private void operator(UUID uniqueId) {
-        OfflinePlayer operator = mock(OfflinePlayer.class);
-        when(operator.isOp()).thenReturn(true);
-        this.bukkit.when(() -> Bukkit.getOfflinePlayer(uniqueId)).thenReturn(operator);
     }
 
     private SparrowPlayer player(String name, boolean bypass) {
