@@ -5,10 +5,14 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.momirealms.sparrow.locale.tag.ExpressionTag;
+import net.momirealms.sparrow.locale.tag.MessageContext;
+import net.momirealms.sparrow.locale.tag.NamedArgumentTag;
+import net.momirealms.sparrow.locale.tag.PlaceholderTag;
+import net.momirealms.sparrow.message.MiniMessage;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 
 import java.util.*;
 import java.util.function.Function;
@@ -43,9 +47,10 @@ public final class AdventureHelper {
      * 私有构造方法, 初始化所有序列化器实例.
      */
     private AdventureHelper() {
-        this.miniMessage = MiniMessage.builder().build();
+        TagResolver sparrowTags = TagResolver.resolver(NamedArgumentTag.INSTANCE, PlaceholderTag.INSTANCE, ExpressionTag.INSTANCE);
+        this.miniMessage = MiniMessage.builder().tags(TagResolver.resolver(TagResolver.standard(), sparrowTags)).build();
         this.miniMessageStrict = MiniMessage.builder().strict(true).build();
-        this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.empty()).build();
+        this.miniMessageCustom = MiniMessage.builder().tags(sparrowTags).build();
         this.legacyComponentSerializer = LegacyComponentSerializer.builder().build();
         this.legacyHexSerializer = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
         this.gsonComponentSerializer = GsonComponentSerializer.builder().build();
@@ -64,7 +69,8 @@ public final class AdventureHelper {
     }
 
     /**
-     * 获取默认的 MiniMessage 实例, 支持所有内置标签.
+     * 获取默认的 MiniMessage 实例, 支持所有标准标签以及 {@code <arg>}, {@code <papi>}, {@code <expr>}.
+     * 后三者需要以 {@link MessageContext} 作为 target 才能读取参数和玩家.
      *
      * @return 默认 MiniMessage 实例
      */
@@ -76,6 +82,7 @@ public final class AdventureHelper {
         return getInstance().miniMessageStrict;
     }
 
+    // 只有 <arg>, <papi>, <expr>, 不解析颜色等标准标签
     public static MiniMessage customMiniMessage() {
         return getInstance().miniMessageCustom;
     }

@@ -1,46 +1,40 @@
 package net.momirealms.sparrow.locale.tag;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.Context;
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.momirealms.sparrow.util.Components;
+import net.momirealms.sparrow.message.Context;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Map;
+/**
+ * {@code <arg:key[:default]>}, 从 {@link MessageContext} 中读取命名参数, 参数缺失时使用默认值.
+ */
+public final class NamedArgumentTag extends StaticTagResolver {
+    public static final NamedArgumentTag INSTANCE = new NamedArgumentTag();
 
-public class NamedArgumentTag implements TagResolver {
-    private final Map<String, Object> arguments;
-
-    public NamedArgumentTag(Map<String, Object> arguments) {
-        this.arguments = arguments;
+    private NamedArgumentTag() {
+        super("arg");
     }
 
     @Override
-    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
-        if (!has(name)) {
-            return null;
-        }
-        String key = arguments.popOr("No argument key provided").toString();
-        Object argument = this.arguments.get(key);
+    @Nullable
+    public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
+        if (!(ctx.target() instanceof MessageContext context)) return null;
+        String key = arguments.popOr("No argument key provided").value();
+        Object argument = context.argument(key);
         if (argument == null) {
-            argument = arguments.popOr("No default value provided").toString();
+            argument = arguments.popOr("No default value provided").value();
         }
         if (argument instanceof Component component) {
             return Tag.selfClosingInserting(component);
         } else if (argument instanceof ItemStack itemStack) {
             return Tag.selfClosingInserting(itemStack.effectiveName().hoverEvent(itemStack));
         } else {
-            return Tag.selfClosingInserting(Components.miniMessage(argument.toString()));
+            return Tag.selfClosingInserting(ctx.deserialize(argument.toString()));
         }
-    }
-
-    @Override
-    public boolean has(@NotNull String name) {
-        return name.equals("arg");
     }
 }

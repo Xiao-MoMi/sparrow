@@ -48,6 +48,8 @@ sparrow-reflection = "0.34"
 sparrow-yaml = "1.0.22"
 sparrow-ui = "beta.38"
 sparrow-redis-message-broker = "0.0.7"
+sparrow-minimessage = "0.5"
+sparrow-expression = "1.0"
 
 # Adventure
 adventure = "5.2.0"
@@ -126,12 +128,13 @@ sparrow-reflection = { module = "net.momirealms:sparrow-reflection", version.ref
 sparrow-yaml = { module = "net.momirealms:sparrow-yaml", version.ref = "sparrow-yaml" }
 sparrow-ui = { module = "net.momirealms:sparrow-ui", version.ref = "sparrow-ui" }
 sparrow-redis-message-broker = { module = "net.momirealms:sparrow-redis-message-broker", version.ref = "sparrow-redis-message-broker" }
+sparrow-minimessage = { module = "net.momirealms:sparrow-minimessage", version.ref = "sparrow-minimessage" }
+sparrow-expression = { module = "net.momirealms:sparrow-expr", version.ref = "sparrow-expression" }
 
 # Adventure
 adventure-api = { module = "net.kyori:adventure-api", version.ref = "adventure" }
 adventure-nbt = { module = "net.kyori:adventure-nbt", version.ref = "adventure" }
 adventure-key = { module = "net.kyori:adventure-key", version.ref = "adventure" }
-adventure-text-minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "adventure" }
 adventure-text-serializer-commons = { module = "net.kyori:adventure-text-serializer-commons", version.ref = "adventure" }
 adventure-text-serializer-legacy = { module = "net.kyori:adventure-text-serializer-legacy", version.ref = "adventure" }
 adventure-text-serializer-plain = { module = "net.kyori:adventure-text-serializer-plain", version.ref = "adventure" }
@@ -161,7 +164,6 @@ adventure = [
     "adventure-api",
     "adventure-nbt",
     "adventure-key",
-    "adventure-text-minimessage",
     "adventure-text-serializer-commons",
     "adventure-text-serializer-legacy",
     "adventure-text-serializer-plain",

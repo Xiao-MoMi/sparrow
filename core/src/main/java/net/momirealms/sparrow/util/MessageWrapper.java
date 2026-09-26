@@ -1,7 +1,7 @@
 package net.momirealms.sparrow.util;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 
 import java.util.Map;
 import java.util.Objects;

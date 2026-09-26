@@ -1,38 +1,30 @@
 package net.momirealms.sparrow.locale.tag;
 
 import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.minimessage.Context;
-import net.kyori.adventure.text.minimessage.ParsingException;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.momirealms.sparrow.message.Context;
+import net.momirealms.sparrow.message.ParsingException;
+import net.momirealms.sparrow.message.tag.Tag;
+import net.momirealms.sparrow.message.tag.resolver.ArgumentQueue;
+import net.momirealms.sparrow.message.tag.resolver.StaticTagResolver;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Objects;
 
-public final class IndexedArgumentTag implements TagResolver {
+public final class IndexedArgumentTag extends StaticTagResolver {
     private final List<? extends ComponentLike> args;
 
     public IndexedArgumentTag(@NotNull List<? extends ComponentLike> args) {
-        this.args = Objects.requireNonNull(args, "argumentComponents");
+        super("arg");
+        this.args = args;
     }
 
     @Override
-    public @Nullable Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
-        if (!has(name)) {
-            return null;
-        }
+    @NotNull
+    public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
         final int index = arguments.popOr("No argument number provided").asInt().orElseThrow(() -> ctx.newException("Invalid argument number", arguments));
         if (index < 0 || index >= this.args.size()) {
             throw ctx.newException("Invalid argument number", arguments);
         }
         return Tag.selfClosingInserting(this.args.get(index));
-    }
-
-    @Override
-    public boolean has(@NotNull String name) {
-        return name.equals("arg");
     }
 }

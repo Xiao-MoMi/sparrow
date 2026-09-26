@@ -1,10 +1,9 @@
 package net.momirealms.sparrow.util;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import net.momirealms.sparrow.locale.tag.NamedArgumentTag;
+import net.momirealms.sparrow.locale.tag.MessageContext;
+import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
@@ -17,11 +16,11 @@ public final class Components {
     }
 
     public static String toMiniMessage(Component component) {
-        return MiniMessage.miniMessage().serialize(component);
+        return AdventureHelper.miniMessage().serialize(component);
     }
 
     public static Component miniMessage(String miniMessage) {
-        return MiniMessage.miniMessage().deserialize(miniMessage);
+        return AdventureHelper.miniMessage().deserialize(miniMessage);
     }
 
     public static Component miniMessage(String text, boolean legacy) {
@@ -29,11 +28,15 @@ public final class Components {
     }
 
     public static Component miniMessage(String miniMessage, TagResolver... resolvers) {
-        return MiniMessage.miniMessage().deserialize(miniMessage, resolvers);
+        return AdventureHelper.miniMessage().deserialize(miniMessage, resolvers);
     }
 
     public static Component miniMessage(String miniMessage, Map<String, Object> arguments) {
-        return MiniMessage.miniMessage().deserialize(miniMessage, new NamedArgumentTag(arguments));
+        return AdventureHelper.miniMessage().deserialize(miniMessage, MessageContext.of(arguments));
+    }
+
+    public static Component miniMessage(String miniMessage, MessageContext context, TagResolver... resolvers) {
+        return AdventureHelper.miniMessage().deserialize(miniMessage, context, resolvers);
     }
 
     public static Component withArgs(Component component, Map<String, Object> arguments) {

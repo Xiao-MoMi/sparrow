@@ -157,14 +157,6 @@ public final class Dependencies {
             .visibility(Dependency.Visibility.PUBLIC)
             .build();
 
-    public static final Dependency MINIMESSAGE = Dependency.builder()
-            .groupId("net{}kyori")
-            .artifactId("adventure-text-minimessage")
-            .version(DependencyVersions.ADVENTURE)
-            .addRelocations(OPTION.relocations())
-            .visibility(Dependency.Visibility.PUBLIC)
-            .build();
-
     public static final Dependency TEXT_SERIALIZER_COMMONS = Dependency.builder()
             .groupId("net{}kyori")
             .artifactId("adventure-text-serializer-commons")

@@ -46,8 +46,12 @@ public final class CompatibilityManager {
         return this.getPlugin(plugin) != null;
     }
 
+    public boolean hasPlaceholderAPI() {
+        return this.hasPlaceholderAPI;
+    }
+
     @NotNull
-    public String parsePlaceholders(@NotNull Player player, @NotNull String text) {
+    public String parsePlaceholders(@Nullable Player player, @NotNull String text) {
         return this.hasPlaceholderAPI ? PlaceholderAPIUtils.parse(player, text) : text;
     }
 

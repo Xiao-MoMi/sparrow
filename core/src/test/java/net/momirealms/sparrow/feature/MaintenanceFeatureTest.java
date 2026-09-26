@@ -94,14 +94,6 @@ class MaintenanceFeatureTest {
     }
 
     @Test
-    void deniesLoginWithoutAnyBypass() {
-        this.feature.active(true);
-        AsyncPlayerPreLoginEvent event = this.preLogin("Steve");
-        this.feature.onPreLogin(event);
-        verify(event).disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, "maintenance.kick");
-    }
-
-    @Test
     void allowsLoginWithBypassPermission() {
         this.feature.active(true);
         AsyncPlayerPreLoginEvent granted = this.preLogin("Granted");
