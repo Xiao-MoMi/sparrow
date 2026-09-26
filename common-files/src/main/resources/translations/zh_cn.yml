@@ -204,6 +204,12 @@ command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整 <color:#C7BCE7><arg:0></color> 的朝向</color>'
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
 
+# command.maintenance
+command.maintenance.active: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>服务器正处于维护模式</color>'
+command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已关闭维护模式</color>'
+command.maintenance.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已开启维护模式，没有绕过权限的玩家已被移出</color>'
+command.maintenance.inactive: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>服务器未处于维护模式</color>'
+
 # command.more
 command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#C7BCE7><arg:0></color> 的主手为空或数量已满, 没有增加物品.</color>'
 command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 增加 <color:#C7BCE7><arg:1></color> 个物品.</color>'
@@ -332,3 +338,7 @@ log.translation.directory_failed: '从 translations 目录加载语言文件失�
 log.translation.invalid_file: '无效的语言文件：<arg:0>'
 log.translation.locale_missing: 'translations/<arg:0>.yml 不存在，使用 <arg:1>.yml 作为默认语言。'
 log.translation.read_failed: '读取语言文件失败：<arg:0>'
+
+# maintenance
+maintenance.boss_bar: '<color:#FFE3A3>服务器维护中</color>'
+maintenance.kick: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>服务器正在维护，请稍后再来</color>'

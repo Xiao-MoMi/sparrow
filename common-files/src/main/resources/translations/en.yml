@@ -204,6 +204,12 @@ command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Changed <color:#C7BCE7><arg:0></color>''s direction</color>'
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target entity was not found or has left</color>'
 
+# command.maintenance
+command.maintenance.active: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The server is under maintenance</color>'
+command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Maintenance mode disabled</color>'
+command.maintenance.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Maintenance mode enabled; players without the bypass permission have been removed</color>'
+command.maintenance.inactive: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>The server is not under maintenance</color>'
+
 # command.more
 command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>No items added: <color:#C7BCE7><arg:0></color> has an empty hand or a full stack.</color>'
 command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Added <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>.</color>'
@@ -332,3 +338,7 @@ log.translation.directory_failed: 'Failed to load translation files from the tra
 log.translation.invalid_file: 'Invalid translation file: <arg:0>'
 log.translation.locale_missing: 'translations/<arg:0>.yml does not exist; using <arg:1>.yml as the default locale.'
 log.translation.read_failed: 'Failed to read translation file: <arg:0>'
+
+# maintenance
+maintenance.boss_bar: '<color:#FFE3A3>Server under maintenance</color>'
+maintenance.kick: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>The server is under maintenance. Please come back later.</color>'

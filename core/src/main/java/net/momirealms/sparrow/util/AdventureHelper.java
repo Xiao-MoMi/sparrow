@@ -26,6 +26,7 @@ public final class AdventureHelper {
     private final MiniMessage miniMessageCustom;
     private final GsonComponentSerializer gsonComponentSerializer;
     private final LegacyComponentSerializer legacyComponentSerializer;
+    private final LegacyComponentSerializer legacyHexSerializer;
     // 文本替换配置, 将字符串中的换行符 '\n' 替换为 Adventure 的换行组件.
     private static final TextReplacementConfig REPLACE_LF = TextReplacementConfig.builder().matchLiteral("\n").replacement(Component.newline()).build();
 
@@ -46,6 +47,7 @@ public final class AdventureHelper {
         this.miniMessageStrict = MiniMessage.builder().strict(true).build();
         this.miniMessageCustom = MiniMessage.builder().tags(TagResolver.empty()).build();
         this.legacyComponentSerializer = LegacyComponentSerializer.builder().build();
+        this.legacyHexSerializer = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
         this.gsonComponentSerializer = GsonComponentSerializer.builder().build();
     }
 
@@ -90,6 +92,17 @@ public final class AdventureHelper {
 
     public static LegacyComponentSerializer getLegacy() {
         return getInstance().legacyComponentSerializer;
+    }
+
+    /**
+     * 将组件转换为 § 格式的旧版文本, RGB 颜色使用 Bukkit 可识别的 §x§r§r§g§g§b§b 格式.
+     * 用于只接受字符串的 Bukkit 接口, 例如 Spigot 的踢出和登录拒绝.
+     *
+     * @param component 需要转换的组件
+     * @return 旧版格式文本, 点击和悬浮等交互内容会丢失
+     */
+    public static String componentToLegacy(Component component) {
+        return getInstance().legacyHexSerializer.serialize(component);
     }
 
     /**

@@ -9,6 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundGameTestHighlightPosPacket;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBossEventPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
@@ -17,6 +18,7 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.component.DeathProtection;
 import net.momirealms.sparrow.proxy.bukkit.util.CraftChatMessageProxy;
@@ -96,6 +98,13 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
         return this.platformPlayer.hasPermission(permission);
     }
 
+    // Spigot 只有字符串版本的踢出接口
+    @Override
+    @SuppressWarnings("deprecation")
+    public void kick(@NotNull Component reason) {
+        this.platformPlayer.kickPlayer(AdventureHelper.componentToLegacy(reason));
+    }
+
     @Override
     public void dropItem(@NotNull ItemStack stack) {
         Player player = this.platformPlayer;
@@ -124,6 +133,18 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
                 new ClientboundSetSubtitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(subtitle))),
                 new ClientboundSetTitlesAnimationPacket(fadeIn, stay, fadeOut)
         )));
+    }
+
+    @Override
+    public void showBossBar(@NotNull UUID id, @NotNull Component title, float progress, @NotNull BossEvent.BossBarColor color, @NotNull BossEvent.BossBarOverlay overlay) {
+        PacketBossEvent event = new PacketBossEvent(id, CraftChatMessage.fromJSON(AdventureHelper.componentToJson(title)), color, overlay);
+        event.setProgress(progress);
+        this.connection.sendPacket(ClientboundBossEventPacket.createAddPacket(event));
+    }
+
+    @Override
+    public void hideBossBar(@NotNull UUID id) {
+        this.connection.sendPacket(ClientboundBossEventPacket.createRemovePacket(id));
     }
 
     @Override
@@ -166,5 +187,12 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
     public void sendDebugMarker(int x, int y, int z) {
         BlockPos position = new BlockPos(x, y, z);
         this.connection.sendPacket(new ClientboundGameTestHighlightPosPacket(position, position));
+    }
+
+    // 各版本 ServerBossEvent 构造器不同, 继承签名稳定的 BossEvent 仅用于构造封包
+    private static final class PacketBossEvent extends BossEvent {
+        private PacketBossEvent(UUID id, net.minecraft.network.chat.Component name, BossBarColor color, BossBarOverlay overlay) {
+            super(id, name, color, overlay);
+        }
     }
 }

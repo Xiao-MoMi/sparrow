@@ -3,7 +3,6 @@ package net.momirealms.sparrow.player.teleport;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.Ticker;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.world.WorldLocation;
@@ -56,7 +55,7 @@ public final class TeleportManager {
         Arrival arrival = this.arrivals.asMap().remove(player.getUniqueId());
         if (arrival != null && arrival.invalid) {
             SparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
-            receiver.sendMessage(this.plugin.translationManager().render((TranslatableComponent) MessageConstants.COMMAND_TP_OFFLINE_INVALID.asComponent(), receiver.locale()));
+            receiver.sendMessage(this.plugin.translationManager().render(MessageConstants.COMMAND_TP_OFFLINE_INVALID, receiver.locale()));
         }
     }
 

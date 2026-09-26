@@ -1,5 +1,7 @@
 package net.momirealms.sparrow.compatibility;
 
+import net.kyori.adventure.util.TriState;
+import net.momirealms.sparrow.compatibility.luckperms.LuckPermsHook;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -10,9 +12,12 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.UUID;
+
 public final class CompatibilityManager {
     private final SparrowPlugin plugin;
     private boolean hasPlaceholderAPI;
+    private volatile LuckPermsHook luckPerms; // 登录线程异步读取
 
     public CompatibilityManager(SparrowPlugin plugin) {
         this.plugin = plugin;
@@ -28,6 +33,9 @@ public final class CompatibilityManager {
         if (this.isPluginEnabled("PlaceholderAPI")) {
             runCatchingHook(() -> this.hasPlaceholderAPI = true, "PlaceholderAPI");
         }
+        if (this.isPluginEnabled("LuckPerms")) {
+            runCatchingHook(() -> this.luckPerms = new LuckPermsHook(), "LuckPerms");
+        }
     }
 
     public boolean isPluginEnabled(String plugin) {
@@ -41,6 +49,12 @@ public final class CompatibilityManager {
     @NotNull
     public String parsePlaceholders(@NotNull Player player, @NotNull String text) {
         return this.hasPlaceholderAPI ? PlaceholderAPIUtils.parse(player, text) : text;
+    }
+
+    @NotNull
+    public TriState offlinePermission(@NotNull UUID uniqueId, @NotNull String permission) {
+        LuckPermsHook hook = this.luckPerms;
+        return hook == null ? TriState.NOT_SET : hook.check(uniqueId, permission);
     }
 
     private @Nullable Plugin getPlugin(String name) {

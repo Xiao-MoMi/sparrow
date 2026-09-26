@@ -2,6 +2,7 @@ package net.momirealms.sparrow.player;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.BossEvent;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -53,6 +54,13 @@ public interface SparrowPlayer {
     boolean hasPermission(@NotNull String permission);
 
     /**
+     * 以插件原因踢出玩家, 会触发踢出事件. 需要在玩家所属线程调用.
+     *
+     * @param reason 显示给玩家的原因, 点击和悬浮内容会丢失
+     */
+    void kick(@NotNull Component reason);
+
+    /**
      * 从眼睛下方朝视线方向抛出物品, 拾取延迟为 0, 不扣除背包物品.
      */
     void dropItem(@NotNull ItemStack stack);
@@ -87,6 +95,21 @@ public interface SparrowPlayer {
      * 发送主副标题及以 tick 计的显示时间, 空组件会清除对应旧文本.
      */
     void sendTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut);
+
+
+    /**
+     * 仅向该玩家显示 BossBar, 服务端不跟踪其状态. 相同 ID 重复发送时由客户端覆盖旧的 BossBar.
+     *
+     * @param id BossBar 标识, 隐藏时使用
+     * @param title 标题
+     * @param progress 进度, 范围 0 到 1
+     */
+    void showBossBar(@NotNull UUID id, @NotNull Component title, float progress, @NotNull BossEvent.BossBarColor color, @NotNull BossEvent.BossBarOverlay overlay);
+
+    /**
+     * 移除 {@link #showBossBar} 显示的 BossBar, 客户端没有该 ID 时忽略.
+     */
+    void hideBossBar(@NotNull UUID id);
 
     /**
      * 使用指定图腾播放客户端动画, 不消耗物品或写入服务器背包.

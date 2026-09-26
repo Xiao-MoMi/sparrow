@@ -30,6 +30,7 @@ dependencies {
     compileOnly(libs.cloud.paper)
     compileOnly(libs.cloud.minecraft.extras)
     compileOnly(libs.placeholderapi)
+    compileOnly(libs.luckperms.api)
     compileOnly(libs.caffeine)
 
     compileOnly(libs.bundles.adventure)
@@ -144,7 +145,7 @@ bukkit {
     apiVersion = "1.21.11"
     authors = listOf("XiaoMoMi")
     contributors = listOf("g2213swo", "jhqwqmc")
-    softDepend = listOf("PlaceholderAPI")
+    softDepend = listOf("PlaceholderAPI", "LuckPerms")
     foliaSupported = true
 }
 
@@ -159,6 +160,11 @@ paper {
     foliaSupported = true
     serverDependencies {
         register("PlaceholderAPI") {
+            load = PaperPluginDescription.RelativeLoadOrder.BEFORE
+            required = false
+            joinClasspath = true
+        }
+        register("LuckPerms") {
             load = PaperPluginDescription.RelativeLoadOrder.BEFORE
             required = false
             joinClasspath = true

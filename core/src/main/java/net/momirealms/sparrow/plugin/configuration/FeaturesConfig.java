@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.configuration;
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.feature.highlight.HighlightSettings;
+import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
@@ -70,6 +71,19 @@ public final class FeaturesConfig {
         }
     }
 
+    /** 保存维护状态, 保留文件中的其他选项和注释. */
+    public void saveMaintenanceActive(boolean active) {
+        MaintenanceSettings settings = this.config.maintenance();
+        try {
+            YamlDocument document = this.yaml.load(this.path);
+            document.set(Route.from("maintenance", "active"), active);
+            document.save(this.path);
+            settings.active(active);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to save maintenance state", exception);
+        }
+    }
+
     @NotNull
     public ConfigDefinition config() {
         return this.config;
@@ -107,6 +121,16 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "获取玩家头颅和 URL 纹理, 使用内存及 Redis 缓存.")
         private HeadSettings head = new HeadSettings();
 
+        @BlankLineBefore
+        @Comment("Maintenance mode. Only players with the bypass permission can stay or join while it is active.")
+        @Comment(lang = "zh", value = "维护模式, 开启后只有拥有绕过权限的玩家可以留在或进入服务器.")
+        private MaintenanceSettings maintenance = new MaintenanceSettings();
+
+        @NotNull
+        public MaintenanceSettings maintenance() {
+            return this.maintenance;
+        }
+
         @NotNull
         public HeadSettings head() {
             return this.head;
@@ -141,6 +165,7 @@ public final class FeaturesConfig {
                 case "server" -> this.server;
                 case "highlight" -> this.highlight;
                 case "head" -> this.head;
+                case "maintenance" -> this.maintenance;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

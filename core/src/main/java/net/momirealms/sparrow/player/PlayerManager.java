@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public final class PlayerManager implements Listener, ChannelFutureListener {
     private final SparrowPlugin plugin;
@@ -42,6 +43,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final TeleportManager teleports;
     private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>(); // 配置阶段起登记, 连接关闭或退出时移除
     private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();     // Join 时创建, 退出时移除
+    private final List<PlayerListener> listeners = new CopyOnWriteArrayList<>();
 
     public PlayerManager(@NotNull SparrowPlugin plugin) {
         this.plugin = plugin;
@@ -57,6 +59,19 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         javaPlugin.getServer().getPluginManager().registerEvents(loginListener, javaPlugin);
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
         this.cluster.onEnable();
+    }
+
+    /**
+     * 注册玩家进出本服的回调, 只对之后发生的进出生效.
+     *
+     * @param listener 待注册的回调
+     */
+    public void registerListener(@NotNull PlayerListener listener) {
+        this.listeners.add(listener);
+    }
+
+    public void unregisterListener(@NotNull PlayerListener listener) {
+        this.listeners.remove(listener);
     }
 
     // 登录监听器在配置阶段调用, 同一 Channel 已登记时沿用已有连接.
@@ -88,11 +103,20 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                 this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
             }
         });
+        // 本插件的进服处理全部完成后再通知
+        BukkitSparrowPlayer joined = this.getPlayer(player);
+        if (joined != null) {
+            for (PlayerListener listener : this.listeners) listener.onJoin(joined);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        BukkitSparrowPlayer leaving = this.getPlayer(player);
+        if (leaving != null) {
+            for (PlayerListener listener : this.listeners) listener.onQuit(leaving);
+        }
         String name = player.getName();
         this.plugin.dataStorage()
                 .saveLogout(player.getUniqueId(), name, System.currentTimeMillis(), ServerConfig.serverId(), WorldLocation.from(player.getLocation()))

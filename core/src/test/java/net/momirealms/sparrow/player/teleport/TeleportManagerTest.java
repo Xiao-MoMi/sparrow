@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.player.teleport;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.minecraft.SharedConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
@@ -56,7 +57,7 @@ class TeleportManagerTest {
         when(plugin.translationManager()).thenReturn(translations);
         when(players.getPlayer(player)).thenReturn(receiver);
         Component feedback = Component.text("invalid");
-        when(translations.render(any(), any())).thenReturn(feedback);
+        when(translations.render(any(TranslatableComponent.Builder.class), any())).thenReturn(feedback);
         TeleportManager manager = new TeleportManager(plugin);
         World world = mock(World.class);
         when(world.getName()).thenReturn("world");

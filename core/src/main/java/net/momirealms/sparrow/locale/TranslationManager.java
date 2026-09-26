@@ -84,6 +84,10 @@ public interface TranslationManager {
         return render(component, null);
     }
 
+    default Component render(TranslatableComponent.Builder key, @Nullable Locale locale) {
+        return this.render((TranslatableComponent) key.asComponent(), locale);
+    }
+
     /**
      * 查询指定翻译键并将结果渲染为纯文本字符串.
      * 该方法会先获取 MiniMessage 翻译文本, 再使用按索引参数解析器填充参数, 最后提取纯文本结果.

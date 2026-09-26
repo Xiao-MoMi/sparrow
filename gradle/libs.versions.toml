@@ -5,7 +5,7 @@ config-version = "2"
 commands-config-version = "2"
 features-config-version = "1"
 server-config-version = "1"
-lang-version = "7"
+lang-version = "8"
 mysql-schema-version = "1"
 postgresql-schema-version = "1"
 mongodb-index-version = "1"
@@ -27,7 +27,10 @@ jar-relocator = "1.7"
 # Common
 caffeine = "3.2.3"
 concurrentutil = "0.0.10"
+
+# Plugin
 placeholderapi = "2.12.3"
+luckperms-api = "5.4"
 
 # Command
 geantyref = "2.0.1"
@@ -84,6 +87,7 @@ buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
 concurrentutil = { module = "ca.spottedleaf:concurrentutil", version.ref = "concurrentutil" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
+luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
 # Platform
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "datafixerupper" }

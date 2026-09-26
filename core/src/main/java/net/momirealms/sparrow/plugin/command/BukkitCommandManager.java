@@ -18,6 +18,7 @@ import net.momirealms.sparrow.plugin.command.feature.FlyCommand;
 import net.momirealms.sparrow.plugin.command.feature.PatrolCommand;
 import net.momirealms.sparrow.plugin.command.feature.HighlightCommand;
 import net.momirealms.sparrow.plugin.command.feature.HeadCommand;
+import net.momirealms.sparrow.plugin.command.feature.MaintenanceCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemDataCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemNameCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemLoreCommand;
@@ -95,6 +96,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
                 new AnvilCommand(this, plugin),
                 new HeadCommand(this, plugin),
+                new MaintenanceCommand(this, plugin),
                 new ActionBarCommand(this, plugin),
                 new CreditsCommand(this, plugin),
                 new CartographyTableCommand(this, plugin),

@@ -140,4 +140,11 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_CUSTOM_NAME_ITEMLESS = Component.translatable().key("command.custom-name.itemless");
     TranslatableComponent.Builder COMMAND_CUSTOM_NAME_INVALID = Component.translatable().key("command.custom-name.invalid");
     TranslatableComponent.Builder COMMAND_CUSTOM_NAME_EDIT = Component.translatable().key("command.custom-name.edit");
+    TranslatableComponent.Builder COMMAND_MAINTENANCE_ENABLED = Component.translatable().key("command.maintenance.enabled");
+    TranslatableComponent.Builder COMMAND_MAINTENANCE_DISABLED = Component.translatable().key("command.maintenance.disabled");
+    TranslatableComponent.Builder COMMAND_MAINTENANCE_ACTIVE = Component.translatable().key("command.maintenance.active");
+    TranslatableComponent.Builder COMMAND_MAINTENANCE_INACTIVE = Component.translatable().key("command.maintenance.inactive");
+
+    TranslatableComponent.Builder MAINTENANCE_KICK = Component.translatable().key("maintenance.kick");
+    TranslatableComponent.Builder MAINTENANCE_BOSS_BAR = Component.translatable().key("maintenance.boss_bar");
 }
