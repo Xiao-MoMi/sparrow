@@ -2,13 +2,12 @@ package net.momirealms.sparrow.feature;
 
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
-import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -29,10 +28,10 @@ class PatrolFeatureTest {
 
     @BeforeEach
     void setUp() {
-        FeaturesConfig config = mock(FeaturesConfig.class, RETURNS_DEEP_STUBS);
-        when(config.config().patrol()).thenReturn(this.settings);
-        this.patrol = new PatrolFeature(mock(JavaPlugin.class, RETURNS_DEEP_STUBS), config);
-        ((Feature<?>) this.patrol).install();
+        SparrowPlugin plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
+        when(plugin.configurationManager().featuresConfig().config().patrol()).thenReturn(this.settings);
+        this.patrol = new PatrolFeature(plugin);
+        ((Feature<?>) this.patrol).install(command -> {});
         this.admin = this.player("admin");
     }
 

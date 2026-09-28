@@ -91,7 +91,7 @@ public final class MongoDataStorage extends DataStorage {
                 .append(time, new Document("$max", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L)))))
                 .append(logout ? "last_login" : "last_logout", new Document("$ifNull", List.of(logout ? "$last_login" : "$last_logout", 0L)));
         if (logout) {
-            Document values = new Document("last_server", server).append("last_location", Document.parse(location.toJson()));
+            Document values = new Document("last_logout_server", server).append("last_logout_location", Document.parse(location.toJson()));
             values.forEach((key, value) -> fields.append(key, new Document("$cond", List.of(newer, new Document("$literal", value), "$" + key))));
         }
         if (ip != IpRange.NONE) {
@@ -130,11 +130,11 @@ public final class MongoDataStorage extends DataStorage {
     }
 
     private static PlayerData readPlayer(Document document) {
-        Document stored = document.get("last_location", Document.class);
+        Document stored = document.get("last_logout_location", Document.class);
         WorldLocation location = stored == null ? null : WorldLocation.fromJson(stored.toJson());
         Long ip = document.getLong(USER_LOGIN_IP);
         return new PlayerData(document.get("_id", UUID.class), document.getString(USER_NAME), document.getLong("last_login"), document.getLong("last_logout"),
-                document.getString("last_server"), location, ip == null ? null : IpRange.format(ip), document.getLong(USER_UPDATED_AT));
+                document.getString("last_logout_server"), location, ip == null ? null : IpRange.format(ip), document.getLong(USER_UPDATED_AT));
     }
 
     @Override

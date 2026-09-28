@@ -1,7 +1,6 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.patrol;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -20,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 
 public final class PatrolCommand extends BukkitCommandFeature {
+
     public PatrolCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }

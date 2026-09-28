@@ -1,10 +1,7 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.head;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.momirealms.sparrow.feature.head.HeadData;
-import net.momirealms.sparrow.feature.head.HeadFeature;
-import net.momirealms.sparrow.feature.head.HeadFetchException;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -32,6 +29,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 public final class HeadCommand extends BukkitCommandFeature {
+
     public HeadCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }

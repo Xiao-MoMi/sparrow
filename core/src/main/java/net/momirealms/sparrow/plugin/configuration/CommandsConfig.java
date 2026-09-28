@@ -58,6 +58,7 @@ public final class CommandsConfig {
         @Comment(lang = "zh", value = "配置版本, 请勿修改.")
         String configVersion = DependencyVersions.COMMANDS_CONFIG_VERSION;
 
+        // base: 插件自身的管理命令
         @BlankLineBefore
         @Comment({
                 "",
@@ -92,102 +93,42 @@ public final class CommandsConfig {
                 DependencyVersions.PROJECT_ID + ".command.admin.feature"
         );
 
+        // a-z: 不属于任何模块的独立命令, 插件启用时注册
         @BlankLineBefore
-        CommandConfig workbench = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " workbench", "/workbench"), DependencyVersions.PROJECT_ID + ".command.workbench");
+        CommandConfig actionbar = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " actionbar", "/actionbar"), DependencyVersions.PROJECT_ID + ".command.actionbar");
 
         @BlankLineBefore
         CommandConfig anvil = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " anvil", "/anvil"), DependencyVersions.PROJECT_ID + ".command.anvil");
 
         @BlankLineBefore
-        CommandConfig grindstone = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"), DependencyVersions.PROJECT_ID + ".command.grindstone");
+        CommandConfig broadcast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " broadcast", "/broadcast"), DependencyVersions.PROJECT_ID + ".command.broadcast");
 
         @BlankLineBefore
-        @YamlProperty("smithing-table")
-        CommandConfig smithingTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " smithing-table", "/smithing-table"), DependencyVersions.PROJECT_ID + ".command.smithing-table");
-
-        @BlankLineBefore
-        CommandConfig stonecutter = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " stonecutter", "/stonecutter"), DependencyVersions.PROJECT_ID + ".command.stonecutter");
+        CommandConfig burn = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " burn", "/burn"), DependencyVersions.PROJECT_ID + ".command.burn");
 
         @BlankLineBefore
         @YamlProperty("cartography-table")
         CommandConfig cartographyTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " cartography-table", "/cartography-table"), DependencyVersions.PROJECT_ID + ".command.cartography-table");
 
         @BlankLineBefore
-        CommandConfig heal = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " heal", "/heal"), DependencyVersions.PROJECT_ID + ".command.heal");
-
-        @BlankLineBefore
-        CommandConfig feed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " feed", "/feed"), DependencyVersions.PROJECT_ID + ".command.feed");
-
-        @BlankLineBefore
-        @YamlProperty("fly-speed")
-        CommandConfig flySpeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " fly-speed", "/fly-speed"), DependencyVersions.PROJECT_ID + ".command.fly-speed");
-
-        @BlankLineBefore
-        @YamlProperty("walk-speed")
-        CommandConfig walkSpeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " walk-speed", "/walk-speed"), DependencyVersions.PROJECT_ID + ".command.walk-speed");
-
-        @BlankLineBefore
-        CommandConfig suicide = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " suicide", "/suicide"), DependencyVersions.PROJECT_ID + ".command.suicide");
-
-        @BlankLineBefore
-        CommandConfig burn = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " burn", "/burn"), DependencyVersions.PROJECT_ID + ".command.burn");
-
-        @BlankLineBefore
-        CommandConfig extinguish = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " extinguish", "/extinguish"), DependencyVersions.PROJECT_ID + ".command.extinguish");
-
-        @BlankLineBefore
-        CommandConfig sudo = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " sudo", "/sudo"), DependencyVersions.PROJECT_ID + ".command.sudo");
-
-        @BlankLineBefore
-        CommandConfig look = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " look", "/look"), DependencyVersions.PROJECT_ID + ".command.look");
-
-        @BlankLineBefore
-        @YamlProperty("top-block")
-        CommandConfig topBlock = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " top-block", "/top-block"), DependencyVersions.PROJECT_ID + ".command.top-block");
-
-        @BlankLineBefore
-        CommandConfig fly = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " fly", "/fly"), DependencyVersions.PROJECT_ID + ".command.fly");
-
-        @BlankLineBefore
-        CommandConfig toast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " toast", "/toast"), DependencyVersions.PROJECT_ID + ".command.toast");
-
-        @BlankLineBefore
-        CommandConfig actionbar = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " actionbar", "/actionbar"), DependencyVersions.PROJECT_ID + ".command.actionbar");
-
-        @BlankLineBefore
-        CommandConfig broadcast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " broadcast", "/broadcast"), DependencyVersions.PROJECT_ID + ".command.broadcast");
-
-        @BlankLineBefore
-        CommandConfig title = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " title", "/title"), DependencyVersions.PROJECT_ID + ".command.title");
-
-        @BlankLineBefore
-        @YamlProperty("totem-animation")
-        CommandConfig totemAnimation = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " totem-animation", "/totem-animation"), DependencyVersions.PROJECT_ID + ".command.totem-animation");
-
-        @BlankLineBefore
-        CommandConfig demo = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " demo", "/demo"), DependencyVersions.PROJECT_ID + ".command.demo");
+        CommandConfig color = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " color", "/color"), DependencyVersions.PROJECT_ID + ".command.color");
 
         @BlankLineBefore
         CommandConfig credits = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " credits", "/credits"), DependencyVersions.PROJECT_ID + ".command.credits");
 
         @BlankLineBefore
-        CommandConfig patrol = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " patrol", "/patrol"), DependencyVersions.PROJECT_ID + ".command.patrol");
+        @YamlProperty("custom-model-data")
+        CommandConfig customModelData = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " custom_model_data", "/custom_model_data"), DependencyVersions.PROJECT_ID + ".command.custom-model-data");
 
         @BlankLineBefore
-        CommandConfig highlight = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " highlight", "/highlight"), DependencyVersions.PROJECT_ID + ".command.highlight");
+        @YamlProperty("custom-name")
+        CommandConfig customName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " custom_name", "/custom_name"), DependencyVersions.PROJECT_ID + ".command.custom-name");
 
         @BlankLineBefore
-        CommandConfig head = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " head", "/head"), DependencyVersions.PROJECT_ID + ".command.head");
+        CommandConfig demo = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " demo", "/demo"), DependencyVersions.PROJECT_ID + ".command.demo");
 
         @BlankLineBefore
-        CommandConfig maintenance = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " maintenance", "/maintenance"), DependencyVersions.PROJECT_ID + ".command.maintenance");
-
-        @BlankLineBefore
-        @YamlProperty("max-players")
-        CommandConfig maxPlayers = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " max-players", "/max-players"), DependencyVersions.PROJECT_ID + ".command.max-players");
-
-        @BlankLineBefore
-        CommandConfig server = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"), DependencyVersions.PROJECT_ID + ".command.server");
+        CommandConfig distance = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " distance", "/distance"), DependencyVersions.PROJECT_ID + ".command.distance");
 
         @BlankLineBefore
         CommandConfig enchant = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " enchant", "/enchant"), DependencyVersions.PROJECT_ID + ".command.enchant");
@@ -197,25 +138,38 @@ public final class CommandsConfig {
         CommandConfig enchantmentTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " enchantment-table", "/enchantment-table"), DependencyVersions.PROJECT_ID + ".command.enchantment-table");
 
         @BlankLineBefore
+        @YamlProperty("ender-chest")
+        CommandConfig enderChest = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ender_chest", "/ender_chest"), DependencyVersions.PROJECT_ID + ".command.ender-chest");
+
+        @BlankLineBefore
+        CommandConfig extinguish = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " extinguish", "/extinguish"), DependencyVersions.PROJECT_ID + ".command.extinguish");
+
+        @BlankLineBefore
+        CommandConfig feed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " feed", "/feed"), DependencyVersions.PROJECT_ID + ".command.feed");
+
+        @BlankLineBefore
+        CommandConfig fly = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " fly", "/fly"), DependencyVersions.PROJECT_ID + ".command.fly");
+
+        @BlankLineBefore
+        @YamlProperty("fly-speed")
+        CommandConfig flySpeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " fly-speed", "/fly-speed"), DependencyVersions.PROJECT_ID + ".command.fly-speed");
+
+        @BlankLineBefore
+        CommandConfig grindstone = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"), DependencyVersions.PROJECT_ID + ".command.grindstone");
+
+        @BlankLineBefore
+        CommandConfig heal = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " heal", "/heal"), DependencyVersions.PROJECT_ID + ".command.heal");
+
+        @BlankLineBefore
+        CommandConfig ip = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ip", "/ip"), DependencyVersions.PROJECT_ID + ".command.ip");
+
+        @BlankLineBefore
+        @YamlProperty("ip-history")
+        CommandConfig ipHistory = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ip-history", "/ip-history"), DependencyVersions.PROJECT_ID + ".command.ip-history");
+
+        @BlankLineBefore
         @YamlProperty("item-data")
         CommandConfig itemData = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " item_data", "/item_data"), DependencyVersions.PROJECT_ID + ".command.item-data");
-
-        @BlankLineBefore
-        CommandConfig color = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " color", "/color"), DependencyVersions.PROJECT_ID + ".command.color");
-
-        @BlankLineBefore
-        @YamlProperty("custom-model-data")
-        CommandConfig customModelData = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " custom_model_data", "/custom_model_data"), DependencyVersions.PROJECT_ID + ".command.custom-model-data");
-
-        @BlankLineBefore
-        CommandConfig more = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"), DependencyVersions.PROJECT_ID + ".command.more");
-
-        @BlankLineBefore
-        CommandConfig distance = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " distance", "/distance"), DependencyVersions.PROJECT_ID + ".command.distance");
-
-        @BlankLineBefore
-        @YamlProperty("custom-name")
-        CommandConfig customName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " custom_name", "/custom_name"), DependencyVersions.PROJECT_ID + ".command.custom-name");
 
         @BlankLineBefore
         @YamlProperty("item-lore")
@@ -226,30 +180,80 @@ public final class CommandsConfig {
         CommandConfig itemName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " item_name", "/item_name"), DependencyVersions.PROJECT_ID + ".command.item-name");
 
         @BlankLineBefore
-        @YamlProperty("ender-chest")
-        CommandConfig enderChest = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ender_chest", "/ender_chest"), DependencyVersions.PROJECT_ID + ".command.ender-chest");
+        CommandConfig look = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " look", "/look"), DependencyVersions.PROJECT_ID + ".command.look");
 
         @BlankLineBefore
-        @YamlProperty("tp-offline")
-        CommandConfig tpOffline = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " tp-offline", "/tp-offline"), DependencyVersions.PROJECT_ID + ".command.tp-offline");
+        CommandConfig more = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"), DependencyVersions.PROJECT_ID + ".command.more");
 
         @BlankLineBefore
-        CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
-
-        @BlankLineBefore
-        @YamlProperty("ip-history")
-        CommandConfig ipHistory = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ip-history", "/ip-history"), DependencyVersions.PROJECT_ID + ".command.ip-history");
-
-        @BlankLineBefore
-        CommandConfig ip = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ip", "/ip"), DependencyVersions.PROJECT_ID + ".command.ip");
+        @YamlProperty("player-name")
+        CommandConfig playerName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " player-name", "/player-name"), DependencyVersions.PROJECT_ID + ".command.player-name");
 
         @BlankLineBefore
         @YamlProperty("player-uuid")
         CommandConfig playerUuid = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " player-uuid", "/player-uuid"), DependencyVersions.PROJECT_ID + ".command.player-uuid");
 
         @BlankLineBefore
-        @YamlProperty("player-name")
-        CommandConfig playerName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " player-name", "/player-name"), DependencyVersions.PROJECT_ID + ".command.player-name");
+        @YamlProperty("smithing-table")
+        CommandConfig smithingTable = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " smithing-table", "/smithing-table"), DependencyVersions.PROJECT_ID + ".command.smithing-table");
+
+        @BlankLineBefore
+        CommandConfig stonecutter = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " stonecutter", "/stonecutter"), DependencyVersions.PROJECT_ID + ".command.stonecutter");
+
+        @BlankLineBefore
+        CommandConfig sudo = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " sudo", "/sudo"), DependencyVersions.PROJECT_ID + ".command.sudo");
+
+        @BlankLineBefore
+        CommandConfig suicide = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " suicide", "/suicide"), DependencyVersions.PROJECT_ID + ".command.suicide");
+
+        @BlankLineBefore
+        CommandConfig title = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " title", "/title"), DependencyVersions.PROJECT_ID + ".command.title");
+
+        @BlankLineBefore
+        CommandConfig toast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " toast", "/toast"), DependencyVersions.PROJECT_ID + ".command.toast");
+
+        @BlankLineBefore
+        @YamlProperty("top-block")
+        CommandConfig topBlock = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " top-block", "/top-block"), DependencyVersions.PROJECT_ID + ".command.top-block");
+
+        @BlankLineBefore
+        @YamlProperty("totem-animation")
+        CommandConfig totemAnimation = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " totem-animation", "/totem-animation"), DependencyVersions.PROJECT_ID + ".command.totem-animation");
+
+        @BlankLineBefore
+        @YamlProperty("tp-offline")
+        CommandConfig tpOffline = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " tp-offline", "/tp-offline"), DependencyVersions.PROJECT_ID + ".command.tp-offline");
+
+        @BlankLineBefore
+        @YamlProperty("walk-speed")
+        CommandConfig walkSpeed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " walk-speed", "/walk-speed"), DependencyVersions.PROJECT_ID + ".command.walk-speed");
+
+        @BlankLineBefore
+        CommandConfig workbench = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " workbench", "/workbench"), DependencyVersions.PROJECT_ID + ".command.workbench");
+
+        @BlankLineBefore
+        CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
+
+        // feature: 模块自带的命令, 由模块安装时注册, 按模块 ID 排序
+        @BlankLineBefore
+        CommandConfig head = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " head", "/head"), DependencyVersions.PROJECT_ID + ".command.head");
+
+        @BlankLineBefore
+        CommandConfig highlight = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " highlight", "/highlight"), DependencyVersions.PROJECT_ID + ".command.highlight");
+
+        @BlankLineBefore
+        CommandConfig maintenance = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " maintenance", "/maintenance"), DependencyVersions.PROJECT_ID + ".command.maintenance");
+
+        @BlankLineBefore
+        CommandConfig patrol = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " patrol", "/patrol"), DependencyVersions.PROJECT_ID + ".command.patrol");
+
+        // player-limit 模块
+        @BlankLineBefore
+        @YamlProperty("max-players")
+        CommandConfig maxPlayers = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " max-players", "/max-players"), DependencyVersions.PROJECT_ID + ".command.max-players");
+
+        @BlankLineBefore
+        CommandConfig server = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"), DependencyVersions.PROJECT_ID + ".command.server");
 
         /**
          * 返回指定内置 Feature 的命令配置.
@@ -261,57 +265,60 @@ public final class CommandsConfig {
         @NotNull
         public CommandConfig command(@NotNull String featureID) {
             return switch (featureID) {
+                // base
                 case "reload" -> this.reload;
-                case "fly" -> this.fly;
-                case "toast" -> this.toast;
-                case "actionbar" -> this.actionbar;
-                case "broadcast" -> this.broadcast;
-                case "title" -> this.title;
-                case "totem-animation" -> this.totemAnimation;
-                case "demo" -> this.demo;
-                case "credits" -> this.credits;
-                case "patrol" -> this.patrol;
-                case "highlight" -> this.highlight;
-                case "head" -> this.head;
-                case "maintenance" -> this.maintenance;
-                case "max-players" -> this.maxPlayers;
-                case "item-name" -> this.itemName;
-                case "item-lore" -> this.itemLore;
-                case "custom-name" -> this.customName;
-                case "ender-chest" -> this.enderChest;
-                case "item-data" -> this.itemData;
-                case "color" -> this.color;
-                case "custom-model-data" -> this.customModelData;
-                case "more" -> this.more;
-                case "distance" -> this.distance;
-                case "server" -> this.server;
-                case "enchant" -> this.enchant;
-                case "enchantment-table" -> this.enchantmentTable;
-                case "tp-offline" -> this.tpOffline;
-                case "world" -> this.world;
-                case "ip-history" -> this.ipHistory;
-                case "ip" -> this.ip;
-                case "player-uuid" -> this.playerUuid;
-                case "player-name" -> this.playerName;
-                case "fly-speed" -> this.flySpeed;
-                case "walk-speed" -> this.walkSpeed;
-                case "suicide" -> this.suicide;
-                case "burn" -> this.burn;
-                case "extinguish" -> this.extinguish;
-                case "sudo" -> this.sudo;
-                case "look" -> this.look;
-                case "top-block" -> this.topBlock;
-                case "workbench" -> this.workbench;
-                case "anvil" -> this.anvil;
-                case "grindstone" -> this.grindstone;
-                case "smithing-table" -> this.smithingTable;
-                case "stonecutter" -> this.stonecutter;
-                case "cartography-table" -> this.cartographyTable;
-                case "heal" -> this.heal;
-                case "feed" -> this.feed;
                 case "feature_enable" -> this.featureEnable;
                 case "feature_disable" -> this.featureDisable;
                 case "feature_list" -> this.featureList;
+                // a-z
+                case "actionbar" -> this.actionbar;
+                case "anvil" -> this.anvil;
+                case "broadcast" -> this.broadcast;
+                case "burn" -> this.burn;
+                case "cartography-table" -> this.cartographyTable;
+                case "color" -> this.color;
+                case "credits" -> this.credits;
+                case "custom-model-data" -> this.customModelData;
+                case "custom-name" -> this.customName;
+                case "demo" -> this.demo;
+                case "distance" -> this.distance;
+                case "enchant" -> this.enchant;
+                case "enchantment-table" -> this.enchantmentTable;
+                case "ender-chest" -> this.enderChest;
+                case "extinguish" -> this.extinguish;
+                case "feed" -> this.feed;
+                case "fly" -> this.fly;
+                case "fly-speed" -> this.flySpeed;
+                case "grindstone" -> this.grindstone;
+                case "heal" -> this.heal;
+                case "ip" -> this.ip;
+                case "ip-history" -> this.ipHistory;
+                case "item-data" -> this.itemData;
+                case "item-lore" -> this.itemLore;
+                case "item-name" -> this.itemName;
+                case "look" -> this.look;
+                case "more" -> this.more;
+                case "player-name" -> this.playerName;
+                case "player-uuid" -> this.playerUuid;
+                case "smithing-table" -> this.smithingTable;
+                case "stonecutter" -> this.stonecutter;
+                case "sudo" -> this.sudo;
+                case "suicide" -> this.suicide;
+                case "title" -> this.title;
+                case "toast" -> this.toast;
+                case "top-block" -> this.topBlock;
+                case "totem-animation" -> this.totemAnimation;
+                case "tp-offline" -> this.tpOffline;
+                case "walk-speed" -> this.walkSpeed;
+                case "workbench" -> this.workbench;
+                case "world" -> this.world;
+                // feature
+                case "head" -> this.head;
+                case "highlight" -> this.highlight;
+                case "maintenance" -> this.maintenance;
+                case "patrol" -> this.patrol;
+                case "max-players" -> this.maxPlayers;
+                case "server" -> this.server;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }

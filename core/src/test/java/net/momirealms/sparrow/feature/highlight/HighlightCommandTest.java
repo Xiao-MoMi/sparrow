@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.highlight;
 
 import net.minecraft.SharedConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;

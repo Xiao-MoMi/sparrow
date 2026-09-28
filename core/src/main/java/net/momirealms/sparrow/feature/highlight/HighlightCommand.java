@@ -1,9 +1,7 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.highlight;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.momirealms.sparrow.feature.highlight.HighlightFeature;
-import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -28,6 +26,7 @@ import java.util.List;
 import java.util.Locale;
 
 public final class HighlightCommand extends BukkitCommandFeature {
+
     public HighlightCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }

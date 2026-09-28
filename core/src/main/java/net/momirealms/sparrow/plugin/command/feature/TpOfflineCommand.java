@@ -69,7 +69,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                         return CompletableFuture.completedFuture(null);
                     }
                     PlayerData data = found.get();
-                    if (data.lastLocation() == null || data.lastServer() == null) {
+                    if (data.lastLogoutLocation() == null || data.lastLogoutServer() == null) {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION, Component.text(name));
                         return CompletableFuture.completedFuture(null);
                     }
@@ -81,7 +81,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                             case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
                             case FAILED -> MessageConstants.COMMAND_TELEPORT_FAILURE;
                         };
-                        this.handleFeedback(context, message, Component.text(player.getName()), Component.text(name), Component.text(data.lastServer()));
+                        this.handleFeedback(context, message, Component.text(player.getName()), Component.text(name), Component.text(data.lastLogoutServer()));
                     })).toList();
                     return CompletableFuture.allOf(transfers.toArray(CompletableFuture[]::new));
                 }).exceptionally(error -> {
@@ -97,23 +97,23 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
     }
 
     private CompletableFuture<Result> teleport(Player player, PlayerData data) {
-        if (ServerConfig.serverId().equals(data.lastServer())) {
-            Location location = data.lastLocation().resolve();
+        if (ServerConfig.serverId().equals(data.lastLogoutServer())) {
+            Location location = data.lastLogoutLocation().resolve();
             if (location == null) return CompletableFuture.completedFuture(Result.INVALID);
             CompletableFuture<Boolean> teleport = VersionHelper.hasPaperPatch
                     ? player.teleportAsync(location, TeleportCause.PLUGIN)
                     : CompletableFuture.supplyAsync(() -> player.teleport(location, TeleportCause.PLUGIN), this.plugin().scheduler().platform());
             return teleport.thenApply(success -> success ? Result.SUCCESS : Result.FAILED);
         }
-        return this.plugin().serverHeartBeats().isOnline(data.lastServer()).thenCompose(online -> {
+        return this.plugin().serverHeartBeats().isOnline(data.lastLogoutServer()).thenCompose(online -> {
             if (!online) return CompletableFuture.completedFuture(Result.SERVER_OFFLINE);
-            return this.plugin().messageBrokerManager().broker().publishTwoWay(new TeleportRequest(player.getUniqueId(), data.lastLocation()), data.lastServer())
+            return this.plugin().messageBrokerManager().broker().publishTwoWay(new TeleportRequest(player.getUniqueId(), data.lastLogoutLocation()), data.lastLogoutServer())
                     .orTimeout(5, TimeUnit.SECONDS).thenApply(response -> {
                         if (!response.accepted()) return Result.INVALID;
                         if (!player.isOnline()) return Result.FAILED;
                         ByteArrayDataOutput out = ByteStreams.newDataOutput();
                         out.writeUTF("Connect");
-                        out.writeUTF(data.lastServer());
+                        out.writeUTF(data.lastLogoutServer());
                         player.sendPluginMessage(this.plugin().javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
                         return Result.CONNECTING;
                     });

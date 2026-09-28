@@ -6,6 +6,7 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.util.AdventureHelper;
 import org.bukkit.Bukkit;
@@ -18,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 /**
  * 维护模式. 在登录阶段拒绝没有绕过权限的玩家, 使其无法进入配置阶段.
@@ -48,6 +50,11 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     protected void onLoad() {
         Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
         this.plugin.playerManager().registerListener(this);
+    }
+
+    @Override
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
+        register.accept(new MaintenanceCommand(this.plugin.commandManager(), this.plugin));
     }
 
     @Override

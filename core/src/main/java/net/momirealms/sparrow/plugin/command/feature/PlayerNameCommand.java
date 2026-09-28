@@ -6,6 +6,7 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -30,7 +31,7 @@ public final class PlayerNameCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
         String input = context.get("uuid");
-        UUID uuid = LookupSupport.parseUuid(input);
+        UUID uuid = UUIDUtils.parse(input);
         if (uuid == null) {
             this.handleFeedback(sender, MessageConstants.COMMAND_INVALID_UUID, Component.text(input));
             return;
@@ -43,7 +44,11 @@ public final class PlayerNameCommand extends BukkitCommandFeature {
             String name = found.get().name();
             this.handleFeedback(sender, MessageConstants.COMMAND_PLAYER_NAME_SUCCESS, Component.text(uuid.toString()),
                     Component.text(name).hoverEvent(Component.text(name)).clickEvent(ClickEvent.copyToClipboard(name)));
-        }).exceptionally(error -> LookupSupport.failed(this, sender, error));
+        }).exceptionally(error -> {
+            this.plugin().logger().warn("Failed to query the name of " + uuid, error);
+            this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
+            return null;
+        });
     }
 
     @Override

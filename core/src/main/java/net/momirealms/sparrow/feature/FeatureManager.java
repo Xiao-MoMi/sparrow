@@ -8,6 +8,7 @@ import net.momirealms.sparrow.feature.playerlimit.PlayerLimitFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
 import net.momirealms.sparrow.feature.server.ServerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
 import net.momirealms.sparrow.util.ExceptionCollector;
 import org.jetbrains.annotations.NotNull;
@@ -19,11 +20,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Consumer;
 
 public final class FeatureManager {
     private final FeaturesConfig config;
     private final Executor asyncExecutor;
     private final Executor platformExecutor;
+    private final Consumer<CommandFeature> commands;
     private final Map<String, Feature<?>> features = new LinkedHashMap<>();
     private volatile boolean closed;
 
@@ -31,10 +34,11 @@ public final class FeatureManager {
         this.config = plugin.configurationManager().featuresConfig();
         this.asyncExecutor = plugin.scheduler().async();
         this.platformExecutor = plugin.scheduler().platform();
+        this.commands = plugin.commandManager()::registerFeature;
 
         this.features.put(QuickShulkerFeature.ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
-        this.features.put(PatrolFeature.ID, new PatrolFeature(plugin.javaPlugin(), this.config));
-        this.features.put(ServerFeature.ID, new ServerFeature(this.config));
+        this.features.put(PatrolFeature.ID, new PatrolFeature(plugin));
+        this.features.put(ServerFeature.ID, new ServerFeature(plugin));
         this.features.put(HighlightFeature.ID, new HighlightFeature(plugin));
         this.features.put(HeadFeature.ID, new HeadFeature(plugin));
         this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
@@ -43,7 +47,7 @@ public final class FeatureManager {
 
     public void onEnable() {
         for (Feature<?> feature : this.features.values()) {
-            feature.install();
+            feature.install(this.commands);
         }
     }
 
@@ -70,7 +74,7 @@ public final class FeatureManager {
         for (Feature<?> feature : this.features.values()) {
             if (feature.hotToggleable()) {
                 if (!feature.installed()) {
-                    feature.install();
+                    feature.install(this.commands);
                 } else if (feature.config().enabled()) {
                     feature.start();
                 }
@@ -105,7 +109,7 @@ public final class FeatureManager {
         if (!enabled) {
             feature.stop();
         } else if (!feature.installed()) {
-            feature.install();
+            feature.install(this.commands);
         } else if (!feature.enabled()) {
             return CompletableFuture.runAsync(() -> {
                 this.requireOpen();

@@ -1,22 +1,32 @@
 package net.momirealms.sparrow.util;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 public final class UUIDUtils {
+    private static final Pattern PATTERN = Pattern.compile("[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+
     private UUIDUtils() {
     }
 
     /** 解析标准 UUID 或 32 位无连字符的 UUID. */
     @NotNull
     public static UUID fromString(@NotNull String value) {
-        if (value.matches("[0-9a-fA-F]{32}")) {
-            value = value.substring(0, 8) + "-" + value.substring(8, 12) + "-" + value.substring(12, 16) + "-" + value.substring(16, 20) + "-" + value.substring(20);
-        }
-        if (!value.matches("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}")) throw new IllegalArgumentException("Invalid UUID: " + value);
-        return UUID.fromString(value);
+        UUID uuid = parse(value);
+        if (uuid == null) throw new IllegalArgumentException("Invalid UUID: " + value);
+        return uuid;
+    }
+
+    /** 解析标准 UUID 或 32 位无连字符的 UUID, 格式不符时返回 null. */
+    @Nullable
+    public static UUID parse(@NotNull String value) {
+        if (!PATTERN.matcher(value).matches()) return null;
+        if (value.length() == 36) return UUID.fromString(value);
+        return new UUID(Long.parseUnsignedLong(value.substring(0, 16), 16), Long.parseUnsignedLong(value.substring(16), 16));
     }
 
     public static byte @NotNull [] toBytes(@NotNull UUID uuid) {

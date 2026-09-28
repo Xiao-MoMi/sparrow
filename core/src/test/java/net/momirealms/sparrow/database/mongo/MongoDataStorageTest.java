@@ -62,8 +62,8 @@ class MongoDataStorageTest {
             assertEquals(now + 2, saved.lastLogin());
             assertEquals(now, saved.lastLogout());
             assertEquals(now + 2, saved.updatedAt());
-            assertEquals("$survival", saved.lastServer());
-            assertEquals(location, saved.lastLocation());
+            assertEquals("$survival", saved.lastLogoutServer());
+            assertEquals(location, saved.lastLogoutLocation());
             try (var client = MongoClients.create(options.mongodb().url()); var translations = mockStatic(TranslationManager.class)) {
                 var database = client.getDatabase(options.mongodb().database());
                 var collection = database.getCollection(prefix + "data");

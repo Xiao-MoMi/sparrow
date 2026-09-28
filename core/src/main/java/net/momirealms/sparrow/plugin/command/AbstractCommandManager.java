@@ -5,7 +5,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.player.SparrowPlayer;
-import net.momirealms.sparrow.plugin.configuration.CommandsConfig;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.util.ArrayUtils;
 import net.momirealms.sparrow.util.TriConsumer;
@@ -15,7 +14,6 @@ import org.checkerframework.checker.nullness.qual.Nullable;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.caption.Caption;
 import org.incendo.cloud.caption.StandardCaptionKeys;
-import org.incendo.cloud.component.CommandComponent;
 import org.incendo.cloud.exception.*;
 import org.incendo.cloud.exception.handling.ExceptionContext;
 import org.incendo.cloud.minecraft.extras.MinecraftExceptionHandler;
@@ -23,12 +21,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractCommandManager implements CommandManager {
-    protected final HashSet<CommandComponent<CommandSender>> registeredRootCommandComponents = new HashSet<>();
-    protected final HashSet<CommandFeature> registeredFeatures = new HashSet<>();
+    private final Map<String, CommandFeature> features = new ConcurrentHashMap<>(); // 已注册的命令, 模块热安装时会在运行中新增
     protected final org.incendo.cloud.CommandManager<CommandSender> commandManager;
     protected final Plugin plugin;
     private final boolean asynchronousCompletion;
@@ -110,34 +109,36 @@ public abstract class AbstractCommandManager implements CommandManager {
     }
 
     @Override
-    public void registerFeature(CommandFeature feature, CommandConfig config) {
-        if (!config.isEnable()) throw new RuntimeException("Registering a disabled command feature is not allowed");
-        for (Command.Builder<CommandSender> builder : buildCommandBuilders(config)) {
-            Command<CommandSender> command = feature.registerCommand(commandManager, builder);
-            this.registeredRootCommandComponents.add(command.rootComponent());
+    public void registerFeature(@NotNull CommandFeature feature) {
+        CommandConfig config = this.plugin.configurationManager().commandsConfig().configDefinition().command(feature.getFeatureID());
+        if (!config.isEnable() || !feature.isAvailable()) return;
+        for (Command.Builder<CommandSender> builder : this.buildCommandBuilders(config)) {
+            feature.registerCommand(this.commandManager, builder);
         }
         feature.registerRelatedFunctions();
-        this.registeredFeatures.add(feature);
         ((AbstractCommandFeature) feature).setCommandConfig(config);
+        this.features.put(feature.getFeatureID(), feature);
     }
 
     @Override
     public void registerDefaultFeatures() {
-        CommandsConfig.ConfigDefinition commands = this.plugin.configurationManager().commandsConfig().configDefinition();
-        for (CommandFeature feature : this.features().values()) {
-            CommandConfig config = commands.command(feature.getFeatureID());
-            if (config.isEnable() && feature.isAvailable()) {
-                this.registerFeature(feature, config);
-            }
+        List<CommandFeature> features = this.defaultFeatures();
+        int size = features.size();
+        for (int i = 0; i < size; i++) {
+            this.registerFeature(features.get(i));
         }
     }
 
+    /**
+     * 不属于任何模块的命令, 插件启用时注册. 模块自带的命令在模块安装时注册.
+     */
+    @NotNull
+    protected abstract List<CommandFeature> defaultFeatures();
+
     @Override
-    public void unregisterFeatures() {
-        this.registeredRootCommandComponents.forEach(component -> this.commandManager.commandRegistrationHandler().unregisterRootCommand(component));
-        this.registeredRootCommandComponents.clear();
-        this.registeredFeatures.forEach(CommandFeature::unregisterRelatedFunctions);
-        this.registeredFeatures.clear();
+    @Nullable
+    public CommandFeature feature(@NotNull String id) {
+        return this.features.get(id);
     }
 
     @Override

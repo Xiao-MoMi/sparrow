@@ -76,7 +76,7 @@ public final class PostgresDataStorage extends DataStorage {
         boolean logout = location != null;
         boolean withIp = ip != IpRange.NONE;
         String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_server, last_location" : "") + (withIp ? ", last_login_ip" : "");
+        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
         String values = ":player, :name, :time, :time" + (logout ? ", :server, CAST(:location AS JSONB)" : "") + (withIp ? ", :ip" : "");
         String table = this.data + ".";
         String updates = "name = CASE WHEN :time >= " + table + "updated_at THEN :name ELSE " + table + "name END";
@@ -84,7 +84,7 @@ public final class PostgresDataStorage extends DataStorage {
             updates += ", last_login_ip = CASE WHEN :time >= " + table + "last_login THEN EXCLUDED.last_login_ip ELSE " + table + "last_login_ip END";
         }
         if (logout) {
-            String[] fields = {"last_server", "last_location"};
+            String[] fields = {"last_logout_server", "last_logout_location"};
             for (int i = 0; i < fields.length; i++) {
                 String field = fields[i];
                 updates += ", " + field + " = CASE WHEN :time >= " + table + time + " THEN EXCLUDED." + field + " ELSE " + table + field + " END";
@@ -135,12 +135,12 @@ public final class PostgresDataStorage extends DataStorage {
     }
 
     private static PlayerData readPlayer(ResultSet result) throws SQLException {
-        String json = result.getString("last_location");
+        String json = result.getString("last_logout_location");
         WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
         long ip = result.getLong("last_login_ip");
         String lastIp = result.wasNull() ? null : IpRange.format(ip);
         return new PlayerData(result.getObject("player", UUID.class), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
-                result.getString("last_server"), location, lastIp, result.getLong("updated_at"));
+                result.getString("last_logout_server"), location, lastIp, result.getLong("updated_at"));
     }
 
     @Override

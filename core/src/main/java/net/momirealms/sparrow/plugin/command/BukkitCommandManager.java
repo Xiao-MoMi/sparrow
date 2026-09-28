@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.plugin.command;
 
 import net.momirealms.sparrow.player.SparrowPlayer;
-import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantmentTableCommand;
@@ -19,11 +18,6 @@ import net.momirealms.sparrow.plugin.command.feature.DemoCommand;
 import net.momirealms.sparrow.plugin.command.feature.CreditsCommand;
 import net.momirealms.sparrow.plugin.command.feature.FlySpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.FlyCommand;
-import net.momirealms.sparrow.plugin.command.feature.PatrolCommand;
-import net.momirealms.sparrow.plugin.command.feature.HighlightCommand;
-import net.momirealms.sparrow.plugin.command.feature.HeadCommand;
-import net.momirealms.sparrow.plugin.command.feature.MaintenanceCommand;
-import net.momirealms.sparrow.plugin.command.feature.MaxPlayersCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemDataCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemNameCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemLoreCommand;
@@ -33,7 +27,6 @@ import net.momirealms.sparrow.plugin.command.feature.CustomModelDataCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnderChestCommand;
 import net.momirealms.sparrow.plugin.command.feature.MoreCommand;
 import net.momirealms.sparrow.plugin.command.feature.DistanceCommand;
-import net.momirealms.sparrow.plugin.command.feature.ServerCommand;
 import net.momirealms.sparrow.plugin.command.feature.ToastCommand;
 import net.momirealms.sparrow.plugin.command.feature.WalkSpeedCommand;
 import net.momirealms.sparrow.plugin.command.feature.SuicideCommand;
@@ -64,13 +57,14 @@ import org.incendo.cloud.bukkit.internal.CraftBukkitReflection;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.paper.LegacyPaperCommandManager;
 import org.incendo.cloud.setting.ManagerSetting;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Locale;
 
 public final class BukkitCommandManager extends AbstractCommandManager {
     public final SparrowPlugin plugin;
-    private final Index<String, CommandFeature> index;
+    private final List<CommandFeature> defaultFeatures;
 
     static {
         // 无版本包名的 Spigot 没有 getMinecraftVersion(), Cloud 会因此禁用原生选择器.
@@ -96,9 +90,9 @@ public final class BukkitCommandManager extends AbstractCommandManager {
 
     private BukkitCommandManager(SparrowPlugin plugin, LegacyPaperCommandManager<CommandSender> manager) {
         super(plugin, manager, manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) || manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION));
-        // 初始化命令索引
         this.plugin = plugin;
-        this.index = Index.create(CommandFeature::getFeatureID, List.of(
+        // 不属于任何模块的命令, 模块自带的命令在模块安装时注册
+        this.defaultFeatures = List.of(
                 // base
                 new ReloadCommand(this, plugin),
                 new FeatureDisableCommand(this, plugin),
@@ -145,20 +139,8 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new TpOfflineCommand(this, plugin),
                 new WalkSpeedCommand(this, plugin),
                 new WorkbenchCommand(this, plugin),
-                new WorldCommand(this, plugin),
-                // head
-                new HeadCommand(this, plugin),
-                // highlight
-                new HighlightCommand(this, plugin),
-                // maintenance
-                new MaintenanceCommand(this, plugin),
-                // patrol
-                new PatrolCommand(this, plugin),
-                // player-limit
-                new MaxPlayersCommand(this, plugin),
-                // server
-                new ServerCommand(this, plugin)
-        ));
+                new WorldCommand(this, plugin)
+        );
         // 开启 ALLOW_UNSAFE_REGISTRATION, 以允许在部分运行环境中完成命令注册.
         manager.settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true);
         // 能力注册 brigadier 或异步补全.
@@ -180,7 +162,8 @@ public final class BukkitCommandManager extends AbstractCommandManager {
     }
 
     @Override
-    public Index<String, CommandFeature> features() {
-        return this.index;
+    @NotNull
+    protected List<CommandFeature> defaultFeatures() {
+        return this.defaultFeatures;
     }
 }

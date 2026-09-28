@@ -54,6 +54,15 @@ class IpRangeTest {
         assertFalse(IpRange.parse("*.*.*.*").contains(address));
     }
 
+    @Test
+    void onlyDotsAndWildcardsLookLikeIp() {
+        assertTrue(IpRange.looksLikeIp("1.2.3.4"));
+        assertTrue(IpRange.looksLikeIp("*"));
+        assertTrue(IpRange.looksLikeIp("example.com"));
+        assertFalse(IpRange.looksLikeIp("Steve_01"));
+        assertFalse(IpRange.looksLikeIp("f7c77d99-9f15-4a66-a87d-c4a51ef30d19"));
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"", "1.2.3", "1.2.3.4.5", "256.1.1.1", "1.2.3.-1", "1.2.3.0/24", "1.*.3.*", "*.2.3.4", "example.com", "2001:db8::1", "1.2.3.a", "1.2.3.**"})
     void rejectsInvalidInput(String input) {
