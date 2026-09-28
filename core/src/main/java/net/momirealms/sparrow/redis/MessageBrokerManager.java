@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.redis;
 
 import io.netty.buffer.ByteBuf;
+import net.momirealms.sparrow.player.KickMessage;
 import net.momirealms.sparrow.player.cluster.PlayerPresenceMessage;
 import net.momirealms.sparrow.player.teleport.TeleportRequest;
 import net.momirealms.sparrow.player.teleport.TeleportResponse;
@@ -37,6 +38,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
         this.broker.registry().register(TeleportRequest.ID, TeleportRequest.CODEC);
         this.broker.registry().register(TeleportResponse.ID, TeleportResponse.CODEC);
+        this.broker.registry().register(KickMessage.ID, KickMessage.CODEC);
         this.broker.subscribe();
     }
 

@@ -21,6 +21,7 @@ import net.momirealms.sparrow.plugin.command.feature.FlyCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemDataCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemNameCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemLoreCommand;
+import net.momirealms.sparrow.plugin.command.feature.KickCommand;
 import net.momirealms.sparrow.plugin.command.feature.CustomNameCommand;
 import net.momirealms.sparrow.plugin.command.feature.ColorCommand;
 import net.momirealms.sparrow.plugin.command.feature.CustomModelDataCommand;
@@ -124,6 +125,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new ItemDataCommand(this, plugin),
                 new ItemLoreCommand(this, plugin),
                 new ItemNameCommand(this, plugin),
+                new KickCommand(this, plugin),
                 new LookCommand(this, plugin),
                 new MoreCommand(this, plugin),
                 new PlayerNameCommand(this, plugin),

@@ -180,6 +180,9 @@ public final class CommandsConfig {
         CommandConfig itemName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " item_name", "/item_name"), DependencyVersions.PROJECT_ID + ".command.item-name");
 
         @BlankLineBefore
+        CommandConfig kick = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " kick", "/kick"), DependencyVersions.PROJECT_ID + ".command.kick");
+
+        @BlankLineBefore
         CommandConfig look = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " look", "/look"), DependencyVersions.PROJECT_ID + ".command.look");
 
         @BlankLineBefore
@@ -296,6 +299,7 @@ public final class CommandsConfig {
                 case "item-data" -> this.itemData;
                 case "item-lore" -> this.itemLore;
                 case "item-name" -> this.itemName;
+                case "kick" -> this.kick;
                 case "look" -> this.look;
                 case "more" -> this.more;
                 case "player-name" -> this.playerName;
