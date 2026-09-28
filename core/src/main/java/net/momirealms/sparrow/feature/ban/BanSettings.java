@@ -5,7 +5,7 @@ import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class BanSettings implements FeatureSettings {
-    private boolean enabled = false; // 开启后才会创建封禁表, 并在每次登录时查询封禁
+    private boolean enabled = true;
 
     @Override
     public boolean enabled() {
