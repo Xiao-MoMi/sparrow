@@ -118,8 +118,8 @@ class MaintenanceFeatureTest {
         this.online.addAll(List.of(admin, guest));
         this.feature.active(true);
         verify(this.featuresConfig).saveMaintenanceActive(true);
-        verify(guest).kick(KICK);
-        verify(admin, never()).kick(any());
+        verify(guest).kickFromServer(KICK);
+        verify(admin, never()).kickFromServer(any());
         assertEquals(List.of("add"), this.operations(admin));
         assertEquals(List.of(), this.operations(guest));
         // 重复开启不会再次发送
@@ -136,7 +136,7 @@ class MaintenanceFeatureTest {
         this.feature.active(true);
         SparrowPlayer guest = this.player("guest", false);
         this.feature.onJoin(guest);
-        verify(guest).kick(KICK);
+        verify(guest).kickFromServer(KICK);
         SparrowPlayer admin = this.player("admin", true);
         this.feature.onJoin(admin);
         assertEquals(List.of("add"), this.operations(admin));
@@ -150,7 +150,7 @@ class MaintenanceFeatureTest {
     void joiningDoesNothingWhenInactive() {
         SparrowPlayer guest = this.player("guest", false);
         this.feature.onJoin(guest);
-        verify(guest, never()).kick(any());
+        verify(guest, never()).kickFromServer(any());
         assertEquals(List.of(), this.operations(guest));
     }
 
@@ -171,7 +171,7 @@ class MaintenanceFeatureTest {
         ((Feature<?>) this.feature).stop();
         ((Feature<?>) this.feature).start();
         assertTrue(this.feature.active());
-        verify(guest).kick(KICK);
+        verify(guest).kickFromServer(KICK);
     }
 
     @Test

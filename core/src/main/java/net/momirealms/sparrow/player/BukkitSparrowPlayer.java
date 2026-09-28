@@ -1,5 +1,7 @@
 package net.momirealms.sparrow.player;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import com.mojang.datafixers.util.Pair;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
@@ -23,7 +25,11 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.component.DeathProtection;
 import net.momirealms.sparrow.proxy.bukkit.util.CraftChatMessageProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.parser.ServerParser;
 import net.momirealms.sparrow.util.AdventureHelper;
+import net.momirealms.sparrow.util.VersionHelper;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
@@ -99,10 +105,28 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
         return this.platformPlayer.hasPermission(permission);
     }
 
+    @Override
+    public void kick(@NotNull Component reason) {
+        // 未开启代理直接 kick.
+        if (!ProxyMode.ENABLED) {
+            this.kickFromServer(reason);
+            return;
+        }
+        // 开启了代理则发消息 kick.
+        SparrowPlugin plugin = SparrowPlugin.instance();
+        ByteArrayDataOutput out = ByteStreams.newDataOutput();
+        out.writeUTF("KickPlayerRaw");
+        out.writeUTF(this.platformPlayer.getName());
+        out.writeUTF(AdventureHelper.componentToJson(reason));
+        this.platformPlayer.sendPluginMessage(plugin.javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
+        // 若 1秒 后仍然在线则手动 kick .
+        plugin.scheduler().platform().runLater(() -> this.kickFromServer(reason), () -> {}, 20, this.platformPlayer);
+    }
+
     // Spigot 只有字符串版本的踢出接口
     @Override
     @SuppressWarnings("deprecation")
-    public void kick(@NotNull Component reason) {
+    public void kickFromServer(@NotNull Component reason) {
         this.platformPlayer.kickPlayer(AdventureHelper.componentToLegacy(reason));
     }
 
@@ -195,5 +219,14 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
         private PacketBossEvent(UUID id, net.minecraft.network.chat.Component name, BossBarColor color, BossBarOverlay overlay) {
             super(id, name, color, overlay);
         }
+    }
+
+    // 第一次踢人时读取本服是否在 Velocity 或 BungeeCord 代理后面, 该配置需要重启才会变化.
+    // Paper 与 Folia 同时覆盖两种代理, Spigot 只有 BungeeCord 模式
+    private static final class ProxyMode {
+        @SuppressWarnings("deprecation")
+        private static final boolean ENABLED = VersionHelper.hasPaperPatch
+                ? Bukkit.getServerConfig().isProxyEnabled()
+                : Bukkit.spigot().getConfig().getBoolean("settings.bungeecord");
     }
 }
