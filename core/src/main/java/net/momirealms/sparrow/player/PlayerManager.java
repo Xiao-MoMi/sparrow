@@ -17,6 +17,7 @@ import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
+import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.entity.Player;
@@ -30,6 +31,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -96,9 +98,11 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
             return connection;
         });
         this.teleports.onJoin(player);
-        // 登录只刷新名字和时间, 下线位置由 Quit 事件保存.
+        // 登录刷新名字、时间和 IP, 下线位置由 Quit 事件保存.
         String name = player.getName();
-        this.plugin.dataStorage().saveLogin(player.getUniqueId(), name, System.currentTimeMillis()).whenComplete((ignored, failure) -> {
+        InetSocketAddress address = player.getAddress();
+        long ip = address == null ? IpRange.NONE : IpRange.address(address.getAddress());
+        this.plugin.dataStorage().saveLogin(player.getUniqueId(), name, ip, System.currentTimeMillis()).whenComplete((ignored, failure) -> {
             if (failure != null) {
                 this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
             }

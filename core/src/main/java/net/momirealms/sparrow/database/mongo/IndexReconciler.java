@@ -23,7 +23,8 @@ final class IndexReconciler {
     private static final String SCHEMA_FIELD_VERSION = "version";
 
     private static final List<IndexDeclaration> DATA_INDEXES = List.of(
-            new IndexDeclaration(new Document("name", 1).append("updated_at", -1).append("_id", -1), false, "data_name_updated")
+            new IndexDeclaration(new Document("name", 1).append("updated_at", -1).append("_id", -1), false, "data_name_updated"),
+            new IndexDeclaration(new Document("last_login_ip", 1), false, "data_login_ip")
     );
 
     // 按当前版本准备业务索引

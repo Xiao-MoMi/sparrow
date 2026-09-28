@@ -146,6 +146,19 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_MAX_PLAYERS_SUCCESS = Component.translatable().key("command.max-players.success");
     TranslatableComponent.Builder COMMAND_MAX_PLAYERS_RESET = Component.translatable().key("command.max-players.reset");
 
+    TranslatableComponent.Builder COMMAND_UNKNOWN_PLAYER = Component.translatable().key("command.lookup.unknown-player");
+    TranslatableComponent.Builder COMMAND_NO_ADDRESS = Component.translatable().key("command.lookup.no-address");
+    TranslatableComponent.Builder COMMAND_INVALID_IP = Component.translatable().key("command.lookup.invalid-ip");
+    TranslatableComponent.Builder COMMAND_INVALID_UUID = Component.translatable().key("command.lookup.invalid-uuid");
+    TranslatableComponent.Builder COMMAND_DATABASE_FAILED = Component.translatable().key("command.lookup.failed");
+    TranslatableComponent.Builder COMMAND_IP_SUCCESS = Component.translatable().key("command.ip.success");
+    TranslatableComponent.Builder COMMAND_PLAYER_UUID_SUCCESS = Component.translatable().key("command.player-uuid.success");
+    TranslatableComponent.Builder COMMAND_PLAYER_NAME_SUCCESS = Component.translatable().key("command.player-name.success");
+    TranslatableComponent.Builder COMMAND_IP_HISTORY_TITLE = Component.translatable().key("command.ip-history.title");
+    TranslatableComponent.Builder COMMAND_IP_HISTORY_ROW = Component.translatable().key("command.ip-history.row");
+    TranslatableComponent.Builder COMMAND_IP_HISTORY_ONLINE = Component.translatable().key("command.ip-history.online");
+    TranslatableComponent.Builder COMMAND_IP_HISTORY_OFFLINE = Component.translatable().key("command.ip-history.offline");
+
     TranslatableComponent.Builder MAINTENANCE_KICK = Component.translatable().key("maintenance.kick");
     TranslatableComponent.Builder MAINTENANCE_BOSS_BAR = Component.translatable().key("maintenance.boss_bar");
 }

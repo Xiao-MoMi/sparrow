@@ -10,11 +10,14 @@ import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
 import org.jdbi.v3.core.Jdbi;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -72,22 +75,28 @@ public class MysqlDataStorage extends DataStorage {
 
     @Override
     @NotNull
-    public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long timestamp) {
-        return this.save(player, name, timestamp, null, null);
+    public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long ip, long timestamp) {
+        return this.save(player, name, timestamp, ip, null, null);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Void> saveLogout(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location) {
-        return this.save(player, name, timestamp, server, location);
+        return this.save(player, name, timestamp, IpRange.NONE, server, location);
     }
 
-    private CompletableFuture<Void> save(UUID player, String name, long timestamp, String server, WorldLocation location) {
+    // todo 修复
+    private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, String server, WorldLocation location) {
         boolean logout = location != null;
+        boolean withIp = ip != IpRange.NONE;
         String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_server, last_location" : "");
-        String values = ":player, :name, :time, :time" + (logout ? ", :server, :location" : "");
+        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_server, last_location" : "") + (withIp ? ", last_login_ip" : "");
+        String values = ":player, :name, :time, :time" + (logout ? ", :server, :location" : "") + (withIp ? ", :ip" : "");
         String updates = "name = CASE WHEN :time >= updated_at THEN :name ELSE name END";
+        // MySQL 按书写顺序赋值, 需要在 last_login 更新之前比较
+        if (withIp) {
+            updates += ", last_login_ip = CASE WHEN :time >= last_login THEN :ip ELSE last_login_ip END";
+        }
         if (logout) {
             String[] fields = {"last_server", "last_location"};
             for (int i = 0; i < fields.length; i++) {
@@ -109,6 +118,9 @@ public class MysqlDataStorage extends DataStorage {
                 if (logout) {
                     query.bind("server", server).bind("location", location.toJson());
                 }
+                if (withIp) {
+                    query.bind("ip", ip);
+                }
                 query.execute();
             });
         }, this.executor);
@@ -118,11 +130,32 @@ public class MysqlDataStorage extends DataStorage {
     @NotNull
     public CompletableFuture<Optional<PlayerData>> loadPlayer(@NotNull UUID player) {
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE player = :player")
-                .bind("player", UUIDUtils.toBytes(player)).map((result, context) -> {
-                    String json = result.getString("last_location");
-                    WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
-                    return new PlayerData(player, result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"), result.getString("last_server"), location, result.getLong("updated_at"));
-                }).findOne()), this.executor);
+                .bind("player", UUIDUtils.toBytes(player)).map((result, context) -> readPlayer(result)).findOne()), this.executor);
+    }
+
+    @Override
+    @NotNull
+    public CompletableFuture<Long> countPlayersOnIp(@NotNull IpRange range) {
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT COUNT(*) FROM " + this.data + " WHERE last_login_ip BETWEEN :start AND :end")
+                .bind("start", range.start()).bind("end", range.end()).mapTo(Long.class).one()), this.executor);
+    }
+
+    @Override
+    @NotNull
+    public CompletableFuture<List<PlayerData>> listPlayersOnIp(@NotNull IpRange range, int offset, int limit) {
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data
+                        + " WHERE last_login_ip BETWEEN :start AND :end ORDER BY last_login DESC, player DESC LIMIT :limit OFFSET :offset")
+                .bind("start", range.start()).bind("end", range.end()).bind("limit", limit).bind("offset", offset)
+                .map((result, context) -> readPlayer(result)).list()), this.executor);
+    }
+
+    private static PlayerData readPlayer(ResultSet result) throws SQLException {
+        String json = result.getString("last_location");
+        WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
+        long ip = result.getLong("last_login_ip");
+        String lastIp = result.wasNull() ? null : IpRange.format(ip);
+        return new PlayerData(UUIDUtils.fromBytes(result.getBytes("player")), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
+                result.getString("last_server"), location, lastIp, result.getLong("updated_at"));
     }
 
     @Override

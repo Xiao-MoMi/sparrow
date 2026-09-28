@@ -3,6 +3,7 @@ package net.momirealms.sparrow.database;
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.mysql.MysqlSchemaMigrator;
 import net.momirealms.sparrow.database.postgresql.PostgresSchemaMigrator;
+import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -87,15 +88,19 @@ class SqlDataStorageTest {
             try {
                 UUID uuid = UUID.randomUUID();
                 WorldLocation location = new WorldLocation("world", -34.75, 66.25, 18.5, 90.25f, -12.5f);
-                storage.saveLogin(uuid, "First", 100).join();
+                storage.saveLogin(uuid, "First", IpRange.parse("10.0.0.1").start(), 100).join();
                 storage.saveLogout(uuid, "First", 200, "survival", location).join();
-                storage.saveLogin(uuid, "Renamed", 300).join();
+                storage.saveLogin(uuid, "Renamed", IpRange.parse("10.0.0.2").start(), 300).join();
                 storage.saveLogout(uuid, "Old", 150, "old", new WorldLocation("old", 0, 0, 0, 0, 0)).join();
-                storage.saveLogin(uuid, "Old", 50).join();
-                assertEquals(new PlayerData(uuid, "Renamed", 300, 200, "survival", location, 300), storage.loadPlayer(uuid).join().orElseThrow());
+                // 更早的登录不能覆盖较新的 IP
+                storage.saveLogin(uuid, "Old", IpRange.parse("10.0.0.3").start(), 50).join();
+                assertEquals(new PlayerData(uuid, "Renamed", 300, 200, "survival", location, "10.0.0.2", 300), storage.loadPlayer(uuid).join().orElseThrow());
                 assertEquals(uuid, storage.lookupUser("Renamed").join().orElseThrow());
                 assertEquals("Renamed", storage.lookupName(uuid).join().orElseThrow());
                 assertTrue(storage.lookupUser("renamed").join().isEmpty());
+                assertEquals(1L, storage.countPlayersOnIp(IpRange.parse("10.0.0.*")).join());
+                assertEquals(0L, storage.countPlayersOnIp(IpRange.parse("10.0.0.3")).join());
+                assertEquals(uuid, storage.listPlayersOnIp(IpRange.parse("10.0.*.*"), 0, 10).join().getFirst().player());
                 try (var connection = DriverManager.getConnection(url, user, password); var statement = connection.createStatement()) {
                     try (var result = statement.executeQuery("SELECT " + quote + "value" + quote + " FROM " + meta + " WHERE id = 'schema'")) {
                         assertTrue(result.next());

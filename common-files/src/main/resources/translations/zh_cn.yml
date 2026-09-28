@@ -171,6 +171,15 @@ command.highlight.tip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 command.highlight.too_large: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>选区最多包含 <color:#F2F4FF><arg:0></color> 个方块, 两端也计入范围.</color>'
 command.highlight.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请在同一世界中选点. 控制台必须指定 --world.</color>'
 
+# command.ip
+command.ip.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C7BCE7><arg:0></color> <color:#C8E4E9>最近登录 IP：</color><color:#F2F4FF><arg:1></color> <color:#C8E4E9>(<arg:2>)</color> <arg:3>'
+
+# command.ip-history
+command.ip-history.offline: '<color:#7D98BF>离线</color> <color:#C8E4E9>· 最后在 <arg:0></color>'
+command.ip-history.online: '<color:#C9F2C7>在线</color> <color:#C8E4E9>· <arg:0></color>'
+command.ip-history.row: '<arg:0> <color:#C7BCE7><arg:1></color> <color:#FFE3A3><arg:2></color> <color:#C8E4E9><arg:3></color>'
+command.ip-history.title: '最近登录 IP 为 <arg:1> 的玩家'
+
 # command.item-data
 command.item-data.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法读取物品数据, 请检查服务端日志.</color>'
 command.item-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请在主手拿着物品.</color>'
@@ -206,6 +215,13 @@ command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整 <color:#C7BCE7><arg:0></color> 的朝向</color>'
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
 
+# command.lookup
+command.lookup.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>操作失败，请查看控制台日志</color>'
+command.lookup.invalid-ip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无效的 IP：<color:#F2F4FF><arg:0></color>，示例：1.2.3.4、1.2.3.*、1.2.*.*</color>'
+command.lookup.invalid-uuid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无效的 UUID：<color:#F2F4FF><arg:0></color></color>'
+command.lookup.no-address: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有找到 <color:#F2F4FF><arg:0></color> 的登录 IP 记录</color>'
+command.lookup.unknown-player: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>数据库中没有玩家 <color:#F2F4FF><arg:0></color> 的记录</color>'
+
 # command.maintenance
 command.maintenance.active: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>服务器正处于维护模式</color>'
 command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已关闭维护模式</color>'
@@ -222,6 +238,28 @@ command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 增加 <color:#C7BCE7><arg:1></color> 个物品.</color>'
 command.more.too_many: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>此物品单次最多额外复制 <color:#F2F4FF><arg:0></color> 个（100 组）.</color>'
 
+# command.panel
+command.panel.action.ip_history: '<color:#C7BCE7><arg:0></color>'
+command.panel.action.next: '<color:#C9F2C7><arg:0></color>'
+command.panel.action.previous: '<color:#C9F2C7><arg:0></color>'
+command.panel.action.refresh: '<color:#C7BCE7><arg:0></color>'
+command.panel.confirm: '<color:#FFB6CB>点击填入命令，按回车后执行</color><newline><color:#F2F4FF><arg:0></color>'
+command.panel.console.action: '<arg:0> <arg:1>'
+command.panel.console.disabled: '<color:#7D98BF><arg:0> (<arg:1>)</color>'
+command.panel.disabled: '<color:#7D98BF><arg:0></color>'
+command.panel.empty: '<color:#C8E4E9>这一页没有记录</color>'
+command.panel.first_page: '已经是第一页'
+command.panel.header: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><arg:0></color> <color:#C8E4E9>·</color> <color:#FFE08A><arg:1>/<arg:2></color> <color:#C8E4E9>页 · 共</color> <color:#FFE08A><arg:3></color> <color:#C8E4E9>条</color>'
+command.panel.label.ip_history: '[同 IP 玩家]'
+command.panel.label.next: '[下一页]'
+command.panel.label.previous: '[上一页]'
+command.panel.label.refresh: '[刷新]'
+command.panel.last_page: '已经是最后一页'
+command.panel.message: '<arg:0>'
+command.panel.navigation: '<arg:0> <color:#FFE08A><arg:1>/<arg:2></color> <arg:3> <arg:4>'
+command.panel.no_permission: '你没有权限执行此命令'
+command.panel.unavailable: '当前无法执行此操作'
+
 # command.patrol
 command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有可以巡查的玩家</color>'
 command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>正在巡查 <color:#C7BCE7><arg:0></color></color>'
@@ -229,6 +267,12 @@ command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 # command.player
 command.player.dead: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法治疗已死亡的玩家 <arg:0></color>'
 command.player.required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定目标玩家；只有玩家可以省略 player 参数</color>'
+
+# command.player-name
+command.player-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><arg:0></color> <color:#C8E4E9>最近使用的名字：</color><color:#C7BCE7><arg:1></color>'
+
+# command.player-uuid
+command.player-uuid.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C7BCE7><arg:0></color> <color:#C8E4E9>的 UUID：</color><color:#F2F4FF><arg:1></color>'
 
 # command.reload
 command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>配置重载失败，请查看控制台日志</color>'

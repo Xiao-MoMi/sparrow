@@ -7,6 +7,10 @@ import net.momirealms.sparrow.plugin.command.feature.EnchantCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantmentTableCommand;
 import net.momirealms.sparrow.plugin.command.feature.WorldCommand;
 import net.momirealms.sparrow.plugin.command.feature.TpOfflineCommand;
+import net.momirealms.sparrow.plugin.command.feature.IpCommand;
+import net.momirealms.sparrow.plugin.command.feature.IpHistoryCommand;
+import net.momirealms.sparrow.plugin.command.feature.PlayerNameCommand;
+import net.momirealms.sparrow.plugin.command.feature.PlayerUuidCommand;
 import net.momirealms.sparrow.plugin.command.feature.ActionBarCommand;
 import net.momirealms.sparrow.plugin.command.feature.BroadcastCommand;
 import net.momirealms.sparrow.plugin.command.feature.TitleCommand;
@@ -95,53 +99,65 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         // 初始化命令索引
         this.plugin = plugin;
         this.index = Index.create(CommandFeature::getFeatureID, List.of(
-                new AnvilCommand(this, plugin),
-                new HeadCommand(this, plugin),
-                new MaintenanceCommand(this, plugin),
-                new MaxPlayersCommand(this, plugin),
+                // base
+                new ReloadCommand(this, plugin),
+                new FeatureDisableCommand(this, plugin),
+                new FeatureEnableCommand(this, plugin),
+                new FeatureListCommand(this, plugin),
+                // a-z
                 new ActionBarCommand(this, plugin),
-                new CreditsCommand(this, plugin),
-                new CartographyTableCommand(this, plugin),
+                new AnvilCommand(this, plugin),
                 new BroadcastCommand(this, plugin),
                 new BurnCommand(this, plugin),
+                new CartographyTableCommand(this, plugin),
+                new ColorCommand(this, plugin),
+                new CreditsCommand(this, plugin),
+                new CustomModelDataCommand(this, plugin),
+                new CustomNameCommand(this, plugin),
                 new DemoCommand(this, plugin),
+                new DistanceCommand(this, plugin),
                 new EnchantCommand(this, plugin),
                 new EnchantmentTableCommand(this, plugin),
-                new WorldCommand(this, plugin),
-                new TpOfflineCommand(this, plugin),
+                new EnderChestCommand(this, plugin),
                 new ExtinguishCommand(this, plugin),
-                new FeatureEnableCommand(this, plugin),
-                new FeatureDisableCommand(this, plugin),
-                new FeatureListCommand(this, plugin),
                 new FeedCommand(this, plugin),
-                new FlySpeedCommand(this, plugin),
                 new FlyCommand(this, plugin),
+                new FlySpeedCommand(this, plugin),
                 new GrindstoneCommand(this, plugin),
                 new HealCommand(this, plugin),
-                new LookCommand(this, plugin),
-                new PatrolCommand(this, plugin),
-                new HighlightCommand(this, plugin),
+                new IpCommand(this, plugin),
+                new IpHistoryCommand(this, plugin),
                 new ItemDataCommand(this, plugin),
-                new ItemNameCommand(this, plugin),
                 new ItemLoreCommand(this, plugin),
-                new CustomNameCommand(this, plugin),
-                new ColorCommand(this, plugin),
-                new CustomModelDataCommand(this, plugin),
-                new EnderChestCommand(this, plugin),
+                new ItemNameCommand(this, plugin),
+                new LookCommand(this, plugin),
                 new MoreCommand(this, plugin),
-                new DistanceCommand(this, plugin),
-                new ServerCommand(this, plugin),
-                new ReloadCommand(this, plugin),
-                new StonecutterCommand(this, plugin),
-                new SuicideCommand(this, plugin),
-                new SudoCommand(this, plugin),
+                new PlayerNameCommand(this, plugin),
+                new PlayerUuidCommand(this, plugin),
                 new SmithingTableCommand(this, plugin),
+                new StonecutterCommand(this, plugin),
+                new SudoCommand(this, plugin),
+                new SuicideCommand(this, plugin),
                 new TitleCommand(this, plugin),
                 new ToastCommand(this, plugin),
-                new TotemAnimationCommand(this, plugin),
                 new TopBlockCommand(this, plugin),
+                new TotemAnimationCommand(this, plugin),
+                new TpOfflineCommand(this, plugin),
                 new WalkSpeedCommand(this, plugin),
-                new WorkbenchCommand(this, plugin)
+                new WorkbenchCommand(this, plugin),
+                new WorldCommand(this, plugin),
+                // head
+                new HeadCommand(this, plugin),
+                // highlight
+                new HighlightCommand(this, plugin),
+                // maintenance
+                new MaintenanceCommand(this, plugin),
+                // patrol
+                new PatrolCommand(this, plugin),
+                // player-limit
+                new MaxPlayersCommand(this, plugin),
+                // server
+                new ServerCommand(this, plugin)
         ));
         // 开启 ALLOW_UNSAFE_REGISTRATION, 以允许在部分运行环境中完成命令注册.
         manager.settings().set(ManagerSetting.ALLOW_UNSAFE_REGISTRATION, true);

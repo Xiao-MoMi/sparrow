@@ -7,6 +7,7 @@ import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.util.IpRange;
 import org.bson.Document;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -41,21 +42,21 @@ class MongoDataStorageTest {
             // 未知名字查不到记录
             assertEquals(Optional.empty(), storage.lookupUser("Steve").join());
             // 同名时取最近写入的玩家, 名字区分大小写
-            storage.saveLogin(first, "Steve", System.currentTimeMillis()).join();
+            storage.saveLogin(first, "Steve", IpRange.NONE, System.currentTimeMillis()).join();
             Thread.sleep(5);
-            storage.saveLogin(second, "Steve", System.currentTimeMillis()).join();
+            storage.saveLogin(second, "Steve", IpRange.NONE, System.currentTimeMillis()).join();
             assertEquals(Optional.of(second), storage.lookupUser("Steve").join());
             assertEquals(Optional.empty(), storage.lookupUser("steve").join());
             // 改名覆盖旧名字
-            storage.saveLogin(second, "Alex", System.currentTimeMillis()).join();
+            storage.saveLogin(second, "Alex", IpRange.NONE, System.currentTimeMillis()).join();
             assertEquals(Optional.of("Alex"), storage.lookupName(second).join());
             assertEquals(Optional.of(first), storage.lookupUser("Steve").join());
             WorldLocation location = new WorldLocation("$world", -10.25, 72.5, 14.75, 123.5f, -12.75f);
             long now = System.currentTimeMillis() + 100;
             storage.saveLogout(second, "Alex", now, "$survival", location).join();
-            storage.saveLogin(second, "AlexNew", now + 2).join();
+            storage.saveLogin(second, "AlexNew", IpRange.NONE, now + 2).join();
             storage.saveLogout(second, "AlexOld", now - 1, "old", new WorldLocation("old", 1, 2, 3, 0, 0)).join();
-            storage.saveLogin(second, "AlexOld", now - 2).join();
+            storage.saveLogin(second, "AlexOld", IpRange.NONE, now - 2).join();
             PlayerData saved = storage.loadPlayer(second).join().orElseThrow();
             assertEquals("AlexNew", saved.name());
             assertEquals(now + 2, saved.lastLogin());
@@ -69,7 +70,7 @@ class MongoDataStorageTest {
                 collection.createIndex(new Document("stale", 1));
                 IndexReconciler.reconcile(mock(PluginLogger.class), database, prefix);
                 var indexes = collection.listIndexes().into(new ArrayList<>());
-                assertEquals(2, indexes.size());
+                assertEquals(3, indexes.size());
                 var meta = database.getCollection(prefix + "meta");
                 assertEquals(1, meta.find(new Document("_id", "schema")).first().getInteger("version"));
                 meta.updateOne(new Document("_id", "schema"), new Document("$set", new Document("version", 2)));

@@ -6,6 +6,7 @@ import net.kyori.adventure.translation.Translator;
 import net.momirealms.sparrow.locale.tag.IndexedArgumentTag;
 import net.momirealms.sparrow.util.AdventureHelper;
 import org.incendo.cloud.suggestion.Suggestion;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -87,6 +88,17 @@ public interface TranslationManager {
     default Component render(TranslatableComponent.Builder key, @Nullable Locale locale) {
         return this.render((TranslatableComponent) key.asComponent(), locale);
     }
+
+    /**
+     * 渲染组件树中所有本插件的翻译键, 参数里嵌套的翻译组件也会一并翻译.
+     * {@link #render(TranslatableComponent, Locale)} 只翻译最外层的键.
+     *
+     * @param component 待渲染的组件
+     * @param locale 目标语言环境, 传入 null 时使用当前选定语言
+     * @return 渲染后的组件
+     */
+    @NotNull
+    Component renderNested(@NotNull Component component, @Nullable Locale locale);
 
     /**
      * 查询指定翻译键并将结果渲染为纯文本字符串.
