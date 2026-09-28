@@ -160,5 +160,9 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_IP_HISTORY_OFFLINE = Component.translatable().key("command.ip-history.offline");
 
     TranslatableComponent.Builder MAINTENANCE_KICK = Component.translatable().key("maintenance.kick");
+    TranslatableComponent.Builder KICK_SCREEN = Component.translatable().key("kick.screen");
+    TranslatableComponent.Builder KICK_REASON_NONE = Component.translatable().key("kick.reason.none");
+    TranslatableComponent.Builder COMMAND_KICK_SUCCESS = Component.translatable().key("command.kick.success");
+    TranslatableComponent.Builder COMMAND_KICK_OFFLINE = Component.translatable().key("command.kick.offline");
     TranslatableComponent.Builder MAINTENANCE_BOSS_BAR = Component.translatable().key("maintenance.boss_bar");
 }

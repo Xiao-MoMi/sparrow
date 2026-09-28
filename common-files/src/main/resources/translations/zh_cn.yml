@@ -209,6 +209,10 @@ command.item-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 command.item-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:1></color> 的主手物品名称设为 <arg:0>.</color>'
 command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手物品没有物品名称组件.</color>'
 
+# command.kick
+command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 不在任何服务器上</color>'
+command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 从 <color:#C7BCE7><arg:1></color> 踢出</color>'
+
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 与朝向目标不在同一个世界</color>'
 command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请且仅指定一个朝向选项：--location、--face、--player 或 --entity_uuid</color>'
@@ -346,6 +350,10 @@ feature.state.enabled: '<color:#C9F2C7>已启动</color>'
 feature.state.failed: '<color:#FFB6CB>发生错误</color>'
 feature.state.uninstalled: '<color:#C8E4E9>未安装</color>'
 feature.state.unloaded: '<color:#7D98BF>已卸载</color>'
+
+# kick
+kick.reason.none: '<color:#7D98BF>未提供原因</color>'
+kick.screen: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>你已被踢出服务器</color><newline><newline><color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>'
 
 # log.compatibility
 log.compatibility.hook_failed: '接入 <arg:0> 失败'

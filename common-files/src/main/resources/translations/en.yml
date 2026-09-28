@@ -209,6 +209,10 @@ command.item-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 command.item-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand item name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
 command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no item name component.</color>'
 
+# command.kick
+command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online on any server.</color>'
+command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked <color:#C7BCE7><arg:0></color> from <color:#C7BCE7><arg:1></color>.</color>'
+
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> and the look target are in different worlds</color>'
 command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Specify exactly one look option: --location, --face, --player or --entity_uuid</color>'
@@ -346,6 +350,10 @@ feature.state.enabled: '<color:#C9F2C7>Enabled</color>'
 feature.state.failed: '<color:#FFB6CB>Failed</color>'
 feature.state.uninstalled: '<color:#C8E4E9>Not installed</color>'
 feature.state.unloaded: '<color:#7D98BF>Unloaded</color>'
+
+# kick
+kick.reason.none: '<color:#7D98BF>No reason given</color>'
+kick.screen: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>You were kicked from the server</color><newline><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>Kicked by: </color><color:#F2F4FF><arg:1></color>'
 
 # log.compatibility
 log.compatibility.hook_failed: 'Failed to hook <arg:0>'
