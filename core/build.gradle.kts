@@ -75,9 +75,10 @@ buildConfig {
     packageName = "$projectPackage.plugin.dependency"
     className = "DependencyVersions"
 
-    buildConfigField("MYSQL_SCHEMA_VERSION", libs.versions.mysql.schema.version.get().toInt())
-    buildConfigField("POSTGRESQL_SCHEMA_VERSION", libs.versions.postgresql.schema.version.get().toInt())
-    buildConfigField("MONGODB_INDEX_VERSION", libs.versions.mongodb.index.version.get().toInt())
+    buildConfigField("DATA_SCHEMA_VERSION", libs.versions.data.schema.version.get().toInt())
+    buildConfigField("MONGODB_DATA_INDEX_VERSION", libs.versions.mongodb.data.index.version.get().toInt())
+    buildConfigField("BAN_SCHEMA_VERSION", libs.versions.ban.schema.version.get().toInt())
+    buildConfigField("MONGODB_BAN_INDEX_VERSION", libs.versions.mongodb.ban.index.version.get().toInt())
 
     buildConfigField("PROJECT_PACKAGE", projectPackage)
     buildConfigField("PROJECT_ID", projectId)

@@ -11,10 +11,12 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOptions;
+import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.IpRange;
 import org.bson.Document;
@@ -25,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -34,15 +37,25 @@ import java.util.concurrent.TimeUnit;
 // 用户文档以玩家 UUID 作为 _id, 连接使用 STANDARD UUID 编码.
 @ApiStatus.Internal
 public final class MongoDataStorage extends DataStorage {
+    static final String SCHEMA_ID = "schema";
+    static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
+            "data", List.of(
+                    new IndexReconciler.IndexDeclaration(new Document("name", 1).append("updated_at", -1).append("_id", -1), false, "data_name_updated"),
+                    new IndexReconciler.IndexDeclaration(new Document("last_login_ip", 1), false, "data_login_ip"))
+    );
+
     private static final String USER_NAME = "name";
     private static final String USER_UPDATED_AT = "updated_at";
     private static final String USER_LOGIN_IP = "last_login_ip";
 
+    private final MongoBanStore banStore;
     private MongoClient client;
+    private MongoDatabase database;
     private MongoCollection<Document> data;
 
     public MongoDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
+        this.banStore = new MongoBanStore(this::database, executor, logger, this.namePrefix());
     }
 
     @Override
@@ -60,8 +73,9 @@ public final class MongoDataStorage extends DataStorage {
             MongoDatabase database = connected.getDatabase(mongoOptions.database());
             database.runCommand(new Document("ping", 1));
             MongoCollection<Document> data = database.getCollection(this.namePrefix() + "data");
-            IndexReconciler.reconcile(this.logger, database, this.namePrefix());
+            IndexReconciler.reconcile(this.logger, database, this.namePrefix(), SCHEMA_ID, DependencyVersions.MONGODB_DATA_INDEX_VERSION, INDEXES);
             this.client = connected;
+            this.database = database;
             this.data = data;
         } catch (RuntimeException exception) {
             connected.close();
@@ -153,6 +167,17 @@ public final class MongoDataStorage extends DataStorage {
             Document document = this.data().find(Filters.eq("_id", player)).projection(Projections.include(USER_NAME)).first();
             return document == null ? Optional.empty() : Optional.of(document.getString(USER_NAME));
         }, this.executor);
+    }
+
+    @Override
+    @NotNull
+    public BanStore banStore() {
+        return this.banStore;
+    }
+
+    private MongoDatabase database() {
+        if (this.database == null) throw new IllegalStateException("MongoDB is not initialized");
+        return this.database;
     }
 
     private MongoCollection<Document> data() {

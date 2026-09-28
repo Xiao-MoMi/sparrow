@@ -101,6 +101,7 @@ class SqlDataStorageTest {
                 assertEquals(1L, storage.countPlayersOnIp(IpRange.parse("10.0.0.*")).join());
                 assertEquals(0L, storage.countPlayersOnIp(IpRange.parse("10.0.0.3")).join());
                 assertEquals(uuid, storage.listPlayersOnIp(IpRange.parse("10.0.*.*"), 0, 10).join().getFirst().player());
+                BanStoreContract.verify(storage.banStore(), uuid);
                 try (var connection = DriverManager.getConnection(url, user, password); var statement = connection.createStatement()) {
                     try (var result = statement.executeQuery("SELECT " + quote + "value" + quote + " FROM " + meta + " WHERE id = 'schema'")) {
                         assertTrue(result.next());
@@ -115,6 +116,7 @@ class SqlDataStorageTest {
         } finally {
             try (var connection = DriverManager.getConnection(url, user, password); var statement = connection.createStatement()) {
                 statement.execute("DROP TABLE IF EXISTS " + table);
+                statement.execute("DROP TABLE IF EXISTS " + quote + prefix + "bans" + quote);
                 statement.execute("DROP TABLE IF EXISTS " + meta);
             }
         }
@@ -125,7 +127,7 @@ class SqlDataStorageTest {
         AtomicBoolean interrupted = new AtomicBoolean();
         Runnable migrate;
         if (postgres) {
-            PostgresSchemaMigrator migrator = new PostgresSchemaMigrator(logger, 2, (handle, tablePrefix) -> fail("Expected upgrade"), List.of(new PostgresSchemaMigration() {
+            PostgresSchemaMigrator migrator = new PostgresSchemaMigrator(logger, "schema", List.of("data"), 2, (handle, tablePrefix) -> fail("Expected upgrade"), List.of(new PostgresSchemaMigration() {
                 @Override
                 public int targetVersion() {
                     return 2;
@@ -139,7 +141,7 @@ class SqlDataStorageTest {
             }));
             migrate = () -> migrator.migrate(jdbi, prefix);
         } else {
-            MysqlSchemaMigrator migrator = new MysqlSchemaMigrator(logger, 2, (handle, tablePrefix) -> fail("Expected upgrade"), List.of(new MysqlSchemaMigration() {
+            MysqlSchemaMigrator migrator = new MysqlSchemaMigrator(logger, "schema", List.of("data"), 2, (handle, tablePrefix) -> fail("Expected upgrade"), List.of(new MysqlSchemaMigration() {
                 @Override
                 public int targetVersion() {
                     return 2;

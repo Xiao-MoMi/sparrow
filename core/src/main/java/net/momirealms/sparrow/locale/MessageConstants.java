@@ -150,6 +150,7 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_NO_ADDRESS = Component.translatable().key("command.lookup.no-address");
     TranslatableComponent.Builder COMMAND_INVALID_IP = Component.translatable().key("command.lookup.invalid-ip");
     TranslatableComponent.Builder COMMAND_INVALID_UUID = Component.translatable().key("command.lookup.invalid-uuid");
+    TranslatableComponent.Builder COMMAND_INVALID_TARGET = Component.translatable().key("command.lookup.invalid-target");
     TranslatableComponent.Builder COMMAND_DATABASE_FAILED = Component.translatable().key("command.lookup.failed");
     TranslatableComponent.Builder COMMAND_IP_SUCCESS = Component.translatable().key("command.ip.success");
     TranslatableComponent.Builder COMMAND_PLAYER_UUID_SUCCESS = Component.translatable().key("command.player-uuid.success");
@@ -158,6 +159,30 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_IP_HISTORY_ROW = Component.translatable().key("command.ip-history.row");
     TranslatableComponent.Builder COMMAND_IP_HISTORY_ONLINE = Component.translatable().key("command.ip-history.online");
     TranslatableComponent.Builder COMMAND_IP_HISTORY_OFFLINE = Component.translatable().key("command.ip-history.offline");
+
+    TranslatableComponent.Builder COMMAND_BAN_SUCCESS = Component.translatable().key("command.ban.success");
+    TranslatableComponent.Builder COMMAND_BAN_REPLACED = Component.translatable().key("command.ban.replaced");
+    TranslatableComponent.Builder COMMAND_BAN_REASON_TOO_LONG = Component.translatable().key("command.ban.reason-too-long");
+    TranslatableComponent.Builder COMMAND_UNBAN_SUCCESS = Component.translatable().key("command.unban.success");
+    TranslatableComponent.Builder COMMAND_UNBAN_NONE = Component.translatable().key("command.unban.none");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_TITLE = Component.translatable().key("command.ban-history.title");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_TITLE_ALL = Component.translatable().key("command.ban-history.title-all");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_FILTER_OPERATOR = Component.translatable().key("command.ban-history.filter-operator");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_FILTER_WITHIN = Component.translatable().key("command.ban-history.filter-within");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_FILTER_ACTIVE = Component.translatable().key("command.ban-history.filter-active");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_ROW = Component.translatable().key("command.ban-history.row");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_HOVER = Component.translatable().key("command.ban-history.hover");
+    TranslatableComponent.Builder COMMAND_BAN_HISTORY_REVOKED = Component.translatable().key("command.ban-history.revoked");
+    TranslatableComponent.Builder BAN_KICK_PLAYER = Component.translatable().key("ban.kick.player");
+    TranslatableComponent.Builder BAN_KICK_IP = Component.translatable().key("ban.kick.ip");
+    TranslatableComponent.Builder BAN_NOTIFY_BAN = Component.translatable().key("ban.notify.ban");
+    TranslatableComponent.Builder BAN_NOTIFY_UNBAN = Component.translatable().key("ban.notify.unban");
+    TranslatableComponent.Builder BAN_REASON_NONE = Component.translatable().key("ban.reason.none");
+    TranslatableComponent.Builder BAN_EXPIRY_PERMANENT = Component.translatable().key("ban.expiry.permanent");
+    TranslatableComponent.Builder BAN_EXPIRY_TEMPORARY = Component.translatable().key("ban.expiry.temporary");
+    TranslatableComponent.Builder BAN_STATUS_ACTIVE = Component.translatable().key("ban.status.active");
+    TranslatableComponent.Builder BAN_STATUS_EXPIRED = Component.translatable().key("ban.status.expired");
+    TranslatableComponent.Builder BAN_STATUS_REVOKED = Component.translatable().key("ban.status.revoked");
 
     TranslatableComponent.Builder MAINTENANCE_KICK = Component.translatable().key("maintenance.kick");
     TranslatableComponent.Builder KICK_SCREEN = Component.translatable().key("kick.screen");

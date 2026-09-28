@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.feature;
 
+import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.head.HeadFeature;
 import net.momirealms.sparrow.feature.highlight.HighlightFeature;
@@ -43,6 +44,7 @@ public final class FeatureManager {
         this.features.put(HeadFeature.ID, new HeadFeature(plugin));
         this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
         this.features.put(PlayerLimitFeature.ID, new PlayerLimitFeature(plugin));
+        this.features.put(BanFeature.ID, new BanFeature(plugin));
     }
 
     public void onEnable() {

@@ -19,12 +19,24 @@ public final class PostgresSchemaMigrator {
     private static final int NETWORK_TIMEOUT_MILLIS = 30 * 60 * 1000;
 
     private final PluginLogger logger;
+    private final String component;     // meta 中记录完成版本的 id
+    private final List<String> tables;  // 该组件的业务表, 不含前缀, 用于识别缺少版本记录的旧表
     private final int currentVersion;
     private final BiConsumer<Handle, String> initializer;
     private final List<PostgresSchemaMigration> migrations;
 
-    public PostgresSchemaMigrator(@NotNull PluginLogger logger, int currentVersion, @NotNull BiConsumer<Handle, String> initializer, @NotNull List<PostgresSchemaMigration> migrations) {
+    // 各组件的版本分开记录, 共用同一把迁移锁
+    public PostgresSchemaMigrator(
+            @NotNull PluginLogger logger,
+            @NotNull String component,
+            @NotNull List<String> tables,
+            int currentVersion,
+            @NotNull BiConsumer<Handle, String> initializer,
+            @NotNull List<PostgresSchemaMigration> migrations
+    ) {
         this.logger = logger;
+        this.component = component;
+        this.tables = List.copyOf(tables);
         this.currentVersion = currentVersion;
         this.initializer = initializer;
         this.migrations = List.copyOf(migrations);
@@ -62,13 +74,13 @@ public final class PostgresSchemaMigrator {
     private void migrateLocked(Handle handle, String prefix) {
         String meta = "\"" + prefix + "meta\"";
         handle.execute("CREATE TABLE IF NOT EXISTS " + meta + " (id VARCHAR(32) COLLATE \"C\" PRIMARY KEY, value BIGINT NOT NULL)");
-        long stored = handle.createQuery("SELECT value FROM " + meta + " WHERE id = 'schema'").mapTo(Long.class).findOne().orElse(0L);
+        long stored = handle.createQuery("SELECT value FROM " + meta + " WHERE id = :id").bind("id", this.component).mapTo(Long.class).findOne().orElse(0L);
         if (stored < 0 || stored > this.currentVersion) {
             throw new IllegalStateException("Unsupported PostgreSQL schema version " + stored + ", supported up to " + this.currentVersion);
         }
         if (stored == 0) {
             long existing = handle.createQuery("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema() AND table_name IN (<tables>)")
-                    .bindList("tables", prefix + "data").mapTo(Long.class).one();
+                    .bindList("tables", this.tables.stream().map(table -> prefix + table).toList()).mapTo(Long.class).one();
             if (existing != 0) {
                 throw new IllegalStateException("PostgreSQL business tables exist without a schema version");
             }
@@ -87,7 +99,7 @@ public final class PostgresSchemaMigrator {
     }
 
     private void complete(Handle handle, String meta, int target) {
-        handle.createUpdate("INSERT INTO " + meta + " (id, value) VALUES ('schema', :version) ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value")
+        handle.createUpdate("INSERT INTO " + meta + " (id, value) VALUES (:id, :version) ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value").bind("id", this.component)
                 .bind("version", target).execute();
     }
 }

@@ -36,7 +36,14 @@ public final class MariaDbDataStorage extends MysqlDataStorage {
             connected.setInitializationFailTimeout(10_000);
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
             Jdbi jdbi = Jdbi.create(connected);
-            new MysqlSchemaMigrator(this.logger, MysqlSchema.CURRENT_VERSION, MysqlSchema::initialize, MIGRATIONS).migrate(jdbi, this.namePrefix());
+            new MysqlSchemaMigrator(
+                    this.logger,
+                    MysqlSchema.DATA_COMPONENT,
+                    MysqlSchema.DATA_TABLES,
+                    DependencyVersions.DATA_SCHEMA_VERSION,
+                    MysqlSchema::initializeData,
+                    MIGRATIONS
+            ).migrate(jdbi, this.namePrefix());
             this.pool = connected;
             this.jdbi = jdbi;
         } catch (RuntimeException exception) {

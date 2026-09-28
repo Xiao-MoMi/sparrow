@@ -238,6 +238,21 @@ public final class CommandsConfig {
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
         // feature: 模块自带的命令, 由模块安装时注册, 按模块 ID 排序
+        // ban 模块
+        @BlankLineBefore
+        CommandConfig ban = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ban", "/ban"), DependencyVersions.PROJECT_ID + ".command.ban");
+
+        @BlankLineBefore
+        @YamlProperty("ban-history")
+        CommandConfig banHistory = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ban-history", "/ban-history"), DependencyVersions.PROJECT_ID + ".command.ban-history");
+
+        @BlankLineBefore
+        @YamlProperty("ban-ip")
+        CommandConfig banIp = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ban-ip", "/ban-ip"), DependencyVersions.PROJECT_ID + ".command.ban-ip");
+
+        @BlankLineBefore
+        CommandConfig unban = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " unban", "/unban"), DependencyVersions.PROJECT_ID + ".command.unban");
+
         @BlankLineBefore
         CommandConfig head = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " head", "/head"), DependencyVersions.PROJECT_ID + ".command.head");
 
@@ -317,6 +332,10 @@ public final class CommandsConfig {
                 case "workbench" -> this.workbench;
                 case "world" -> this.world;
                 // feature
+                case "ban" -> this.ban;
+                case "ban-history" -> this.banHistory;
+                case "ban-ip" -> this.banIp;
+                case "unban" -> this.unban;
                 case "head" -> this.head;
                 case "highlight" -> this.highlight;
                 case "maintenance" -> this.maintenance;

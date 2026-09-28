@@ -1,11 +1,13 @@
 package net.momirealms.sparrow.database.mongo;
 
 import com.mongodb.client.MongoClients;
+import net.momirealms.sparrow.database.BanStoreContract;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.IpRange;
 import org.bson.Document;
@@ -64,17 +66,18 @@ class MongoDataStorageTest {
             assertEquals(now + 2, saved.updatedAt());
             assertEquals("$survival", saved.lastLogoutServer());
             assertEquals(location, saved.lastLogoutLocation());
+            BanStoreContract.verify(storage.banStore(), second);
             try (var client = MongoClients.create(options.mongodb().url()); var translations = mockStatic(TranslationManager.class)) {
                 var database = client.getDatabase(options.mongodb().database());
                 var collection = database.getCollection(prefix + "data");
                 collection.createIndex(new Document("stale", 1));
-                IndexReconciler.reconcile(mock(PluginLogger.class), database, prefix);
+                IndexReconciler.reconcile(mock(PluginLogger.class), database, prefix, MongoDataStorage.SCHEMA_ID, DependencyVersions.MONGODB_DATA_INDEX_VERSION, MongoDataStorage.INDEXES);
                 var indexes = collection.listIndexes().into(new ArrayList<>());
                 assertEquals(3, indexes.size());
                 var meta = database.getCollection(prefix + "meta");
                 assertEquals(1, meta.find(new Document("_id", "schema")).first().getInteger("version"));
                 meta.updateOne(new Document("_id", "schema"), new Document("$set", new Document("version", 2)));
-                assertThrows(IllegalStateException.class, () -> IndexReconciler.reconcile(mock(PluginLogger.class), database, prefix));
+                assertThrows(IllegalStateException.class, () -> IndexReconciler.reconcile(mock(PluginLogger.class), database, prefix, MongoDataStorage.SCHEMA_ID, DependencyVersions.MONGODB_DATA_INDEX_VERSION, MongoDataStorage.INDEXES));
                 assertEquals(2, meta.find(new Document("_id", "schema")).first().getInteger("version"));
             }
         } finally {
@@ -82,6 +85,7 @@ class MongoDataStorageTest {
             try (var client = MongoClients.create(options.mongodb().url())) {
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "data").drop();
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "meta").drop();
+                client.getDatabase(options.mongodb().database()).getCollection(prefix + "bans").drop();
             }
         }
     }

@@ -5,10 +5,14 @@ config-version = "2"
 commands-config-version = "2"
 features-config-version = "1"
 server-config-version = "1"
-lang-version = "10"
-mysql-schema-version = "1"
-postgresql-schema-version = "1"
-mongodb-index-version = "1"
+lang-version = "11"
+
+# Database
+# MySQL 与 PostgreSQL 共用同一个表结构版本, 两边一起升级
+data-schema-version = "1"
+mongodb-data-index-version = "1"
+ban-schema-version = "1"
+mongodb-ban-index-version = "1"
 
 # Build
 run-task = "3.0.2"
