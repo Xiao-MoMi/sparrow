@@ -16,11 +16,14 @@ import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.util.IpRange;
 import org.bson.Document;
 import org.bson.UuidRepresentation;
+import org.bson.conversions.Bson;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 public final class MongoDataStorage extends DataStorage {
     private static final String USER_NAME = "name";
     private static final String USER_UPDATED_AT = "updated_at";
+    private static final String USER_LOGIN_IP = "last_login_ip";
 
     private MongoClient client;
     private MongoCollection<Document> data;
@@ -67,17 +71,17 @@ public final class MongoDataStorage extends DataStorage {
 
     @Override
     @NotNull
-    public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long timestamp) {
-        return this.save(player, name, timestamp, null, null);
+    public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long ip, long timestamp) {
+        return this.save(player, name, timestamp, ip, null, null);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Void> saveLogout(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location) {
-        return this.save(player, name, timestamp, server, location);
+        return this.save(player, name, timestamp, IpRange.NONE, server, location);
     }
 
-    private CompletableFuture<Void> save(UUID player, String name, long timestamp, String server, WorldLocation location) {
+    private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, String server, WorldLocation location) {
         boolean logout = location != null;
         String time = logout ? "last_logout" : "last_login";
         Document newer = new Document("$gte", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L))));
@@ -90,6 +94,9 @@ public final class MongoDataStorage extends DataStorage {
             Document values = new Document("last_server", server).append("last_location", Document.parse(location.toJson()));
             values.forEach((key, value) -> fields.append(key, new Document("$cond", List.of(newer, new Document("$literal", value), "$" + key))));
         }
+        if (ip != IpRange.NONE) {
+            fields.append(USER_LOGIN_IP, new Document("$cond", List.of(newer, ip, "$" + USER_LOGIN_IP)));
+        }
         return CompletableFuture.runAsync(() -> this.data().updateOne(Filters.eq("_id", player), List.of(new Document("$set", fields)), new UpdateOptions().upsert(true)), this.executor);
     }
 
@@ -98,11 +105,36 @@ public final class MongoDataStorage extends DataStorage {
     public CompletableFuture<Optional<PlayerData>> loadPlayer(@NotNull UUID player) {
         return CompletableFuture.supplyAsync(() -> {
             Document document = this.data().find(Filters.eq("_id", player)).first();
-            if (document == null) return Optional.empty();
-            Document stored = document.get("last_location", Document.class);
-            WorldLocation location = stored == null ? null : WorldLocation.fromJson(stored.toJson());
-            return Optional.of(new PlayerData(player, document.getString(USER_NAME), document.getLong("last_login"), document.getLong("last_logout"), document.getString("last_server"), location, document.getLong(USER_UPDATED_AT)));
+            return document == null ? Optional.empty() : Optional.of(readPlayer(document));
         }, this.executor);
+    }
+
+    @Override
+    @NotNull
+    public CompletableFuture<Long> countPlayersOnIp(@NotNull IpRange range) {
+        Bson filter = ipFilter(range);
+        return CompletableFuture.supplyAsync(() -> this.data().countDocuments(filter), this.executor);
+    }
+
+    @Override
+    @NotNull
+    public CompletableFuture<List<PlayerData>> listPlayersOnIp(@NotNull IpRange range, int offset, int limit) {
+        Bson filter = ipFilter(range);
+        return CompletableFuture.supplyAsync(() -> this.data().find(filter).sort(Sorts.descending("last_login", "_id")).skip(offset).limit(limit)
+                .map(MongoDataStorage::readPlayer).into(new ArrayList<>()), this.executor);
+    }
+
+    // IPv4 按 Long 比较
+    private static Bson ipFilter(IpRange range) {
+        return Filters.and(Filters.gte(USER_LOGIN_IP, range.start()), Filters.lte(USER_LOGIN_IP, range.end()));
+    }
+
+    private static PlayerData readPlayer(Document document) {
+        Document stored = document.get("last_location", Document.class);
+        WorldLocation location = stored == null ? null : WorldLocation.fromJson(stored.toJson());
+        Long ip = document.getLong(USER_LOGIN_IP);
+        return new PlayerData(document.get("_id", UUID.class), document.getString(USER_NAME), document.getLong("last_login"), document.getLong("last_logout"),
+                document.getString("last_server"), location, ip == null ? null : IpRange.format(ip), document.getLong(USER_UPDATED_AT));
     }
 
     @Override

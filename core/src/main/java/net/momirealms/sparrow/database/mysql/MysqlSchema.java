@@ -18,6 +18,7 @@ public final class MysqlSchema {
         handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "data` ("
                 + "player BINARY(16) PRIMARY KEY, name VARCHAR(64) NOT NULL, "
                 + "last_login BIGINT NOT NULL DEFAULT 0, last_logout BIGINT NOT NULL DEFAULT 0, "
-                + "last_server VARCHAR(255), last_location JSON, updated_at BIGINT NOT NULL, KEY data_name_updated (name, updated_at))" + TABLE_OPTIONS);
+                + "last_server VARCHAR(255), last_location JSON, last_login_ip BIGINT, updated_at BIGINT NOT NULL, "
+                + "KEY data_name_updated (name, updated_at), KEY data_login_ip (last_login_ip))" + TABLE_OPTIONS);
     }
 }

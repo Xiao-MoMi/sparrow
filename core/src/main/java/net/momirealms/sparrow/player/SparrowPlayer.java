@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,6 +21,9 @@ public interface SparrowPlayer {
 
     @NotNull
     ServerPlayer nmsPlayer();
+
+    @NotNull
+    Player platformPlayer();
 
     /**
      * 返回当前选中槽位持有的原版物品, 修改会直接作用于背包;

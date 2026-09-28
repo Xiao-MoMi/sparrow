@@ -4,7 +4,6 @@ import net.momirealms.sparrow.util.AdventureHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.configuration.CommandsConfig;
 import net.momirealms.sparrow.plugin.Plugin;
@@ -36,16 +35,6 @@ public abstract class AbstractCommandManager implements CommandManager {
     private final CloudCaptionFormatter captionFormatter;
     private final MinecraftExceptionHandler.Decorator<CommandSender> decorator = (formatter, ctx, msg) -> msg;
     private TriConsumer<CommandSender, String, Component> feedbackConsumer;
-    private final TranslatableComponentRenderer<Locale> feedbackRenderer = new TranslatableComponentRenderer<>() {
-        @Override
-        protected Component renderTranslatable(TranslatableComponent component, Locale locale) {
-            if (!AbstractCommandManager.this.plugin.translationManager().translationKeys().contains(component.key())) {
-                return super.renderTranslatable(component, locale);
-            }
-            Component rendered = AbstractCommandManager.this.plugin.translationManager().render(component, locale).mergeStyle(component);
-            return this.render(rendered, locale);
-        }
-    };
 
     protected AbstractCommandManager(Plugin plugin, org.incendo.cloud.CommandManager<CommandSender> commandManager, boolean asynchronousCompletion) {
         this.commandManager = commandManager;
@@ -159,12 +148,12 @@ public abstract class AbstractCommandManager implements CommandManager {
     @Override
     public void handleCommandFeedback(CommandSender sender, TranslatableComponent.Builder key, Component... args) {
         TranslatableComponent component = ((TranslatableComponent) key.asComponent()).arguments(args);
-        this.feedbackConsumer.accept(sender, component.key(), this.feedbackRenderer.render(component, this.getLocale(sender)));
+        this.feedbackConsumer.accept(sender, component.key(), this.plugin.translationManager().renderNested(component, this.getLocale(sender)));
     }
 
     @Override
     public void handleCommandFeedback(CommandSender sender, String node, Component component) {
-        this.feedbackConsumer.accept(sender, node, this.feedbackRenderer.render(component, this.getLocale(sender)));
+        this.feedbackConsumer.accept(sender, node, this.plugin.translationManager().renderNested(component, this.getLocale(sender)));
     }
 
     /**

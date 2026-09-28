@@ -51,6 +51,7 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
         this.nmsPlayer = ((CraftPlayer) platformPlayer).getHandle();
     }
 
+    @Override
     @NotNull
     public Player platformPlayer() {
         return this.platformPlayer;

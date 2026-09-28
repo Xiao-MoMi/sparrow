@@ -236,6 +236,21 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
+        @BlankLineBefore
+        @YamlProperty("ip-history")
+        CommandConfig ipHistory = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ip-history", "/ip-history"), DependencyVersions.PROJECT_ID + ".command.ip-history");
+
+        @BlankLineBefore
+        CommandConfig ip = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ip", "/ip"), DependencyVersions.PROJECT_ID + ".command.ip");
+
+        @BlankLineBefore
+        @YamlProperty("player-uuid")
+        CommandConfig playerUuid = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " player-uuid", "/player-uuid"), DependencyVersions.PROJECT_ID + ".command.player-uuid");
+
+        @BlankLineBefore
+        @YamlProperty("player-name")
+        CommandConfig playerName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " player-name", "/player-name"), DependencyVersions.PROJECT_ID + ".command.player-name");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -274,6 +289,10 @@ public final class CommandsConfig {
                 case "enchantment-table" -> this.enchantmentTable;
                 case "tp-offline" -> this.tpOffline;
                 case "world" -> this.world;
+                case "ip-history" -> this.ipHistory;
+                case "ip" -> this.ip;
+                case "player-uuid" -> this.playerUuid;
+                case "player-name" -> this.playerName;
                 case "fly-speed" -> this.flySpeed;
                 case "walk-speed" -> this.walkSpeed;
                 case "suicide" -> this.suicide;

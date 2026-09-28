@@ -12,5 +12,6 @@ public record PlayerData(@NotNull UUID player,
                          long lastLogout,
                          @Nullable String lastServer,
                          @Nullable WorldLocation lastLocation,
+                         @Nullable String lastLoginIp,
                          long updatedAt) {
 }

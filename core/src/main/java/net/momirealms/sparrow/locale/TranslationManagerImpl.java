@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -44,6 +45,16 @@ public final class TranslationManagerImpl implements TranslationManager {
     // TranslationKey -> (Lang -> Value)
     private final Map<String, ServerLangData> serverLangData = new HashMap<>();
     private Map<Locale, CachedTranslation> cachedTranslations = Map.of();
+    // 本插件的翻译键渲染后再次遍历结果, 参数里嵌套的翻译键也会被翻译; 其他键交给 Adventure 默认处理
+    private final TranslatableComponentRenderer<Locale> nestedRenderer = new TranslatableComponentRenderer<>() {
+        @Override
+        @NotNull
+        protected Component renderTranslatable(@NotNull TranslatableComponent component, @Nullable Locale locale) {
+            if (!TranslationManagerImpl.this.serverLangData.containsKey(component.key())) return super.renderTranslatable(component, locale);
+            Component rendered = TranslationManagerImpl.this.render(component, locale).mergeStyle(component);
+            return this.render(rendered, locale);
+        }
+    };
 
     public TranslationManagerImpl(Plugin plugin) {
         if (instance != null) {
@@ -144,6 +155,12 @@ public final class TranslationManagerImpl implements TranslationManager {
         } else {
             return resultingComponent.append(component.children());
         }
+    }
+
+    @Override
+    @NotNull
+    public Component renderNested(@NotNull Component component, @Nullable Locale locale) {
+        return this.nestedRenderer.render(component, locale);
     }
 
     @Override
