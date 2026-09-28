@@ -33,10 +33,6 @@ public final class PatrolCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<Player> context) {
         PatrolFeature patrol = this.plugin().featureManager().feature(PatrolFeature.ID, PatrolFeature.class);
-        if (!patrol.enabled()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(PatrolFeature.ID));
-            return;
-        }
         Player patroller = context.sender();
         MultiplePlayerSelector selector = context.getOrDefault("targets", null);
         Collection<? extends Player> candidates = selector != null ? selector.values() : Bukkit.getOnlinePlayers();

@@ -4,6 +4,7 @@ import net.momirealms.sparrow.util.AdventureHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.util.ArrayUtils;
@@ -17,6 +18,7 @@ import org.incendo.cloud.caption.StandardCaptionKeys;
 import org.incendo.cloud.exception.*;
 import org.incendo.cloud.exception.handling.ExceptionContext;
 import org.incendo.cloud.minecraft.extras.MinecraftExceptionHandler;
+import org.incendo.cloud.permission.Permission;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -27,7 +29,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractCommandManager implements CommandManager {
-    private final Map<String, CommandFeature> features = new ConcurrentHashMap<>(); // 已注册的命令, 模块热安装时会在运行中新增
+    private final Map<String, CommandFeature> features = new ConcurrentHashMap<>(); // 已注册的命令, 插件启用时写入, 之后可能在异步线程读取
     protected final org.incendo.cloud.CommandManager<CommandSender> commandManager;
     protected final Plugin plugin;
     private final boolean asynchronousCompletion;
@@ -80,6 +82,12 @@ public abstract class AbstractCommandManager implements CommandManager {
         injectExceptionHandler(NoPermissionException.class, MinecraftExceptionHandler.createDefaultNoPermissionHandler(), StandardCaptionKeys.EXCEPTION_NO_PERMISSION);
         injectExceptionHandler(ArgumentParseException.class, MinecraftExceptionHandler.createDefaultArgumentParsingHandler(), StandardCaptionKeys.EXCEPTION_INVALID_ARGUMENT);
         injectExceptionHandler(CommandExecutionException.class, MinecraftExceptionHandler.createDefaultCommandExecutionHandler(), StandardCaptionKeys.EXCEPTION_UNEXPECTED);
+        // 后注册的处理器先执行. 模块未启用导致的无权限改为提示模块未启用, 其余交回默认处理器
+        getCommandManager().exceptionController().registerHandler(NoPermissionException.class, ctx -> {
+            FeaturePermission disabled = FeaturePermission.findDisabled(ctx.exception().permissionResult().permission());
+            if (disabled == null) throw ctx.exception();
+            this.handleCommandFeedback(ctx.context().sender(), MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(disabled.featureId()));
+        });
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -109,10 +117,13 @@ public abstract class AbstractCommandManager implements CommandManager {
     }
 
     @Override
-    public void registerFeature(@NotNull CommandFeature feature) {
+    public void registerFeature(@NotNull CommandFeature feature, @Nullable Permission requirement) {
         CommandConfig config = this.plugin.configurationManager().commandsConfig().configDefinition().command(feature.getFeatureID());
         if (!config.isEnable() || !feature.isAvailable()) return;
         for (Command.Builder<CommandSender> builder : this.buildCommandBuilders(config)) {
+            if (requirement != null) {
+                builder = builder.permission(Permission.allOf(Permission.of(config.getPermission()), requirement));
+            }
             feature.registerCommand(this.commandManager, builder);
         }
         feature.registerRelatedFunctions();
@@ -125,12 +136,12 @@ public abstract class AbstractCommandManager implements CommandManager {
         List<CommandFeature> features = this.defaultFeatures();
         int size = features.size();
         for (int i = 0; i < size; i++) {
-            this.registerFeature(features.get(i));
+            this.registerFeature(features.get(i), null);
         }
     }
 
     /**
-     * 不属于任何模块的命令, 插件启用时注册. 模块自带的命令在模块安装时注册.
+     * 不属于任何模块的命令, 插件启用时注册.
      */
     @NotNull
     protected abstract List<CommandFeature> defaultFeatures();

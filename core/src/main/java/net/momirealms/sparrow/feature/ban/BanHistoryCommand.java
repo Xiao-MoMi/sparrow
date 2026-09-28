@@ -56,10 +56,6 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
-        if (!this.feature.enabled()) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(BanFeature.ID));
-            return;
-        }
         String input = context.<Optional<String>>getOrDefault("target", Optional.empty()).orElse(null);
         Filters filters = new Filters(context.flags().getValue("operator", null), context.flags().getValue("within", null), context.flags().hasFlag("active"));
         int page = context.flags().getValue("page", 1);

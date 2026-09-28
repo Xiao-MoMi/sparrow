@@ -237,7 +237,7 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
-        // feature: 模块自带的命令, 由模块安装时注册, 按模块 ID 排序
+        // feature: 模块自带的命令, 插件启用时全部注册, 模块未启用时对玩家隐藏, 按模块 ID 排序
         // ban 模块
         @BlankLineBefore
         CommandConfig ban = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ban", "/ban"), DependencyVersions.PROJECT_ID + ".command.ban");

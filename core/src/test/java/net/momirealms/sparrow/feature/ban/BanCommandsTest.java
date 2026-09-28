@@ -40,7 +40,6 @@ class BanCommandsTest {
         this.plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
         CommandManager feedback = mock(CommandManager.class);
         when(this.sender.getName()).thenReturn("Tester");
-        when(this.feature.enabled()).thenReturn(true);
         when(this.feature.store()).thenReturn(this.store);
         new BanCommand(feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban", CommandMeta.empty()));
         new BanIpCommand(feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban-ip", CommandMeta.empty()));

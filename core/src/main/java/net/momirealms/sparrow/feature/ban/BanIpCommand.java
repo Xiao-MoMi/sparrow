@@ -36,10 +36,6 @@ public final class BanIpCommand extends BukkitCommandFeature {
     // -s 隐藏给执行人的成功提示, 也不通知管理员, 错误照常提示
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
-        if (!this.feature.enabled()) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(BanFeature.ID));
-            return;
-        }
         String input = context.get("ip");
         IpRange range;
         try {

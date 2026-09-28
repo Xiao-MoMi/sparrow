@@ -1,6 +1,5 @@
 package net.momirealms.sparrow.feature.highlight;
 
-import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -46,10 +45,6 @@ public final class HighlightCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<CommandSender> context) {
         HighlightFeature feature = this.plugin().featureManager().feature(HighlightFeature.ID, HighlightFeature.class);
-        if (!feature.enabled()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(HighlightFeature.ID));
-            return;
-        }
         Location first = context.flags().getValue("from", null);
         Location second = context.flags().getValue("to", null);
         if ((first == null) != (second == null)) {

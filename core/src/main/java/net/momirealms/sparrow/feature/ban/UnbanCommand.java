@@ -33,10 +33,6 @@ public final class UnbanCommand extends BukkitCommandFeature {
     // -s 隐藏给执行人的成功提示, 也不通知管理员, 其余提示照常发送
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
-        if (!this.feature.enabled()) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(BanFeature.ID));
-            return;
-        }
         String input = context.get("target");
         boolean silent = context.flags().hasFlag("silent");
         CompletableFuture<Optional<BanTarget>> resolved;
