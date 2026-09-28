@@ -1,7 +1,6 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.maintenance;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;

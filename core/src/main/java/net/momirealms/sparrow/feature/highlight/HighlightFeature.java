@@ -9,6 +9,7 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerConnection;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import org.bukkit.Location;
 import org.bukkit.Difficulty;
@@ -33,6 +34,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public final class HighlightFeature extends Feature<HighlightSettings> implements Listener {
     public static final String ID = "highlight";
@@ -62,6 +64,11 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
     @Override
     protected void onLoad() {
         this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+    }
+
+    @Override
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
+        register.accept(new HighlightCommand(this.plugin.commandManager(), this.plugin));
     }
 
     @Override

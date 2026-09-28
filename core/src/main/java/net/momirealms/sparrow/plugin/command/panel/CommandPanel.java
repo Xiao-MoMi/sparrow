@@ -60,9 +60,14 @@ public final class CommandPanel {
      * @return 玩家收到可点击按钮, 控制台收到完整命令文本, 不可用或无权限时显示禁用状态
      */
     @NotNull
-    public static Component action(@NotNull CommandManager manager, @NotNull CommandSender sender, @NotNull String label, @NotNull String featureId,
-                                   @NotNull String arguments, boolean suggest, @Nullable String unavailable) {
-        CommandFeature feature = manager.features().value(featureId);
+    public static Component action(@NotNull CommandManager manager,
+                                   @NotNull CommandSender sender,
+                                   @NotNull String label,
+                                   @NotNull String featureId,
+                                   @NotNull String arguments,
+                                   boolean suggest,
+                                   @Nullable String unavailable) {
+        CommandFeature feature = manager.feature(featureId);
         CommandConfig config = feature == null ? null : feature.commandConfig();
         Component caption = tr("label." + label);
         String usage = config != null && config.isEnable() ? firstUsage(config.getUsages()) : null;

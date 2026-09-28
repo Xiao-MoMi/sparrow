@@ -1,7 +1,6 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.playerlimit;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.feature.playerlimit.PlayerLimitFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -13,6 +12,7 @@ import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
 
 public final class MaxPlayersCommand extends BukkitCommandFeature {
+
     public MaxPlayersCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }

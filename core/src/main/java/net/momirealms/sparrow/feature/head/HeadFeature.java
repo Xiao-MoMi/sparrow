@@ -4,6 +4,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.util.DurationUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 
 public final class HeadFeature extends Feature<HeadSettings> {
     public static final String ID = "head";
@@ -41,6 +43,11 @@ public final class HeadFeature extends Feature<HeadSettings> {
         HeadSettings settings = this.plugin.configurationManager().featuresConfig().config().head();
         settings.validate();
         this.config = settings;
+    }
+
+    @Override
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
+        register.accept(new HeadCommand(this.plugin.commandManager(), this.plugin));
     }
 
     @Override

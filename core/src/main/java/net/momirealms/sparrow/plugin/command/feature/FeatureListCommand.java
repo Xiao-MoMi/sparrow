@@ -69,7 +69,7 @@ public final class FeatureListCommand extends BukkitCommandFeature {
 
     @NotNull
     private Component action(@NotNull CommandSender sender, @NotNull String label, @NotNull String commandId, @NotNull String arguments, @Nullable String unavailable) {
-        CommandFeature commandFeature = this.commandManager.features().value(commandId);
+        CommandFeature commandFeature = this.commandManager.feature(commandId);
         CommandConfig config = commandFeature == null ? null : commandFeature.commandConfig();
         Component caption = this.tr("label." + label);
         String usage = null;

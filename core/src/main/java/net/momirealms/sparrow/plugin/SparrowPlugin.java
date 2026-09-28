@@ -170,11 +170,12 @@ public class SparrowPlugin implements Plugin {
         this.playerManager.onEnable();
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
-        this.featureManager = new FeatureManager(this);
-        this.featureManager.onEnable();
         // 命令管理器
         this.commandManager = new BukkitCommandManager(this);
         this.commandManager.registerDefaultFeatures();
+        // 模块管理器
+        this.featureManager = new FeatureManager(this);
+        this.featureManager.onEnable();
         // 延迟初始化事件
         this.isInitializing = true;
         this.initASMProxies(); // Proxy 类测试, 仅 dev 模式下生效
@@ -548,6 +549,11 @@ public class SparrowPlugin implements Plugin {
     @NotNull
     public PlayerManager playerManager() {
         return this.playerManager;
+    }
+
+    @NotNull
+    public CommandManager commandManager() {
+        return this.commandManager;
     }
 
     @Override

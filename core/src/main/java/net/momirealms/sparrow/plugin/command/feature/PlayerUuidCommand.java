@@ -36,7 +36,11 @@ public final class PlayerUuidCommand extends BukkitCommandFeature {
             String uuid = found.get().uuid().toString();
             this.handleFeedback(sender, MessageConstants.COMMAND_PLAYER_UUID_SUCCESS, Component.text(found.get().name()),
                     Component.text(uuid).hoverEvent(Component.text(uuid)).clickEvent(ClickEvent.copyToClipboard(uuid)));
-        }).exceptionally(error -> LookupSupport.failed(this, sender, error));
+        }).exceptionally(error -> {
+            this.plugin().logger().warn("Failed to query the UUID of " + name, error);
+            this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
+            return null;
+        });
     }
 
     @Override

@@ -2,6 +2,7 @@ package net.momirealms.sparrow.feature.playerlimit;
 
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.Bukkit;
@@ -9,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * 动态调整服务器人数上限, 并允许拥有绕过权限的玩家在满员时进入.
@@ -39,6 +41,11 @@ public final class PlayerLimitFeature extends Feature<PlayerLimitSettings> {
         this.defaultMaxPlayers = Bukkit.getMaxPlayers();
         Listener listener = VersionHelper.hasPaperPatch ? new PaperPlayerLimitListener(this) : new SpigotPlayerLimitListener(this);
         Bukkit.getPluginManager().registerEvents(listener, this.plugin.javaPlugin());
+    }
+
+    @Override
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
+        register.accept(new MaxPlayersCommand(this.plugin.commandManager(), this.plugin));
     }
 
     @Override

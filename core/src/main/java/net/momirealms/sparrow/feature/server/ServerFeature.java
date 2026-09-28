@@ -1,24 +1,31 @@
 package net.momirealms.sparrow.feature.server;
 
 import net.momirealms.sparrow.feature.Feature;
-import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public final class ServerFeature extends Feature<ServerSettings> {
     public static final String ID = "server";
 
-    private final FeaturesConfig featuresConfig;
+    private final SparrowPlugin plugin;
 
-    public ServerFeature(@NotNull FeaturesConfig featuresConfig) {
+    public ServerFeature(@NotNull SparrowPlugin plugin) {
         super(ID);
-        this.featuresConfig = featuresConfig;
+        this.plugin = plugin;
     }
 
     @Override
     public void loadConfig() {
-        this.config = this.featuresConfig.config().server();
+        this.config = this.plugin.configurationManager().featuresConfig().config().server();
+    }
+
+    @Override
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
+        register.accept(new ServerCommand(this.plugin.commandManager(), this.plugin));
     }
 
     /**

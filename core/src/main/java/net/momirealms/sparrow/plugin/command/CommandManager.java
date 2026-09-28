@@ -2,11 +2,11 @@ package net.momirealms.sparrow.plugin.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.util.Index;
 import net.momirealms.sparrow.util.TriConsumer;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -18,14 +18,12 @@ public interface CommandManager {
     boolean asynchronousCompletion();
 
     /**
-     * 使用给定命令实现与命令配置注册一个命令功能.
+     * 按 commands.yml 注册一个命令. 配置中关闭或当前环境不可用的命令直接跳过.
+     * 插件启用后调用时 Cloud 会刷新在线玩家的命令树, 模块热安装时注册模块自带的命令.
      *
      * @param feature 待注册的命令实现
-     * @param config 功能对应的命令配置
      */
-    void registerFeature(CommandFeature feature, CommandConfig config);
-
-    void unregisterFeatures();
+    void registerFeature(@NotNull CommandFeature feature);
 
     /**
      * 注册默认的命令功能.
@@ -33,9 +31,13 @@ public interface CommandManager {
     void registerDefaultFeatures();
 
     /**
-     * 当前命令系统已声明的全部命令功能.
+     * 按 ID 获取已注册的命令.
+     *
+     * @param id 命令 ID
+     * @return 已注册的命令, 未注册或在配置中关闭时为 null
      */
-    Index<String, CommandFeature> features();
+    @Nullable
+    CommandFeature feature(@NotNull String id);
 
     /**
      * 设置命令反馈的输出.

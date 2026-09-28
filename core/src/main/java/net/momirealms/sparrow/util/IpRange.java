@@ -21,6 +21,18 @@ public record IpRange(long start, long end) {
     }
 
     /**
+     * 当输入来源为玩家ID或IP时, 判断输入是否应按 IP 处理.
+     */
+    public static boolean looksLikeIp(@NotNull String input) {
+        int length = input.length();
+        for (int i = 0; i < length; i++) {
+            char c = input.charAt(i);
+            if (c == '.' || c == '*') return true;
+        }
+        return false;
+    }
+
+    /**
      * 解析 IPv4 地址, 或末尾若干段为 {@code *} 的通配地址.
      *
      * @param input 待解析的文本

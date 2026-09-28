@@ -90,7 +90,7 @@ public class MysqlDataStorage extends DataStorage {
         boolean logout = location != null;
         boolean withIp = ip != IpRange.NONE;
         String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_server, last_location" : "") + (withIp ? ", last_login_ip" : "");
+        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
         String values = ":player, :name, :time, :time" + (logout ? ", :server, :location" : "") + (withIp ? ", :ip" : "");
         String updates = "name = CASE WHEN :time >= updated_at THEN :name ELSE name END";
         // MySQL 按书写顺序赋值, 需要在 last_login 更新之前比较
@@ -98,7 +98,7 @@ public class MysqlDataStorage extends DataStorage {
             updates += ", last_login_ip = CASE WHEN :time >= last_login THEN :ip ELSE last_login_ip END";
         }
         if (logout) {
-            String[] fields = {"last_server", "last_location"};
+            String[] fields = {"last_logout_server", "last_logout_location"};
             for (int i = 0; i < fields.length; i++) {
                 String field = fields[i];
                 String parameter = field.replace("last_", "");
@@ -150,12 +150,12 @@ public class MysqlDataStorage extends DataStorage {
     }
 
     private static PlayerData readPlayer(ResultSet result) throws SQLException {
-        String json = result.getString("last_location");
+        String json = result.getString("last_logout_location");
         WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
         long ip = result.getLong("last_login_ip");
         String lastIp = result.wasNull() ? null : IpRange.format(ip);
         return new PlayerData(UUIDUtils.fromBytes(result.getBytes("player")), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
-                result.getString("last_server"), location, lastIp, result.getLong("updated_at"));
+                result.getString("last_logout_server"), location, lastIp, result.getLong("updated_at"));
     }
 
     @Override

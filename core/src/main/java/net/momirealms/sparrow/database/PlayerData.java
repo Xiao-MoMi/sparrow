@@ -10,8 +10,8 @@ public record PlayerData(@NotNull UUID player,
                          @NotNull String name,
                          long lastLogin,
                          long lastLogout,
-                         @Nullable String lastServer,
-                         @Nullable WorldLocation lastLocation,
+                         @Nullable String lastLogoutServer,
+                         @Nullable WorldLocation lastLogoutLocation,
                          @Nullable String lastLoginIp,
                          long updatedAt) {
 }

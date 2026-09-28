@@ -1,8 +1,6 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.head;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.feature.head.HeadData;
-import net.momirealms.sparrow.feature.head.HeadFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;

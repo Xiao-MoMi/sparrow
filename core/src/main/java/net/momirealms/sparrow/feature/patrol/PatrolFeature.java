@@ -1,7 +1,8 @@
 package net.momirealms.sparrow.feature.patrol;
 
 import net.momirealms.sparrow.feature.Feature;
-import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -10,7 +11,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.function.Consumer;
 
 /**
  * 按"最久没被巡查"的顺序轮流挑选巡查对象. 刚进服的玩家优先, 玩家退出后移出队列.
@@ -27,29 +28,32 @@ public final class PatrolFeature extends Feature<PatrolSettings> implements List
     public static final String ID = "patrol";
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.patrol"; // 拥有此权限的玩家不会被巡查
 
-    private final JavaPlugin plugin;
-    private final FeaturesConfig featuresConfig;
+    private final SparrowPlugin plugin;
     // 队首最久没被巡查. Folia 上命令与进退服事件来自不同线程, 并发时可能短暂重复或让两名巡查者选中同一玩家, 不影响后续轮换
     private final ConcurrentLinkedDeque<UUID> queue = new ConcurrentLinkedDeque<>();
 
-    public PatrolFeature(@NotNull JavaPlugin plugin, @NotNull FeaturesConfig featuresConfig) {
+    public PatrolFeature(@NotNull SparrowPlugin plugin) {
         super(ID);
         this.plugin = plugin;
-        this.featuresConfig = featuresConfig;
     }
 
     @Override
     public void loadConfig() {
-        this.config = this.featuresConfig.config().patrol();
+        this.config = this.plugin.configurationManager().featuresConfig().config().patrol();
     }
 
     // 队列从安装起持续维护, 停用只由命令入口拒绝新巡查
     @Override
     protected void onLoad() {
-        for (Player player : this.plugin.getServer().getOnlinePlayers()) {
+        for (Player player : this.plugin.javaPlugin().getServer().getOnlinePlayers()) {
             this.queue.addLast(player.getUniqueId());
         }
-        this.plugin.getServer().getPluginManager().registerEvents(this, this.plugin);
+        this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+    }
+
+    @Override
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
+        register.accept(new PatrolCommand(this.plugin.commandManager(), this.plugin));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

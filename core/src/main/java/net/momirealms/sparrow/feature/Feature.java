@@ -1,8 +1,11 @@
 package net.momirealms.sparrow.feature;
 
+import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.ui.state.MutableSignal;
 import net.momirealms.sparrow.ui.state.Signal;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.function.Consumer;
 
 public abstract class Feature<C extends FeatureSettings> {
     private final String id;
@@ -14,14 +17,15 @@ public abstract class Feature<C extends FeatureSettings> {
         this.id = id;
     }
 
-    // 同步读取配置, 按开关安装并启动功能.
-    final void install() {
+    // 同步读取配置, 按开关安装并启动功能. onLoad 完成后注册模块自带的命令.
+    final void install(@NotNull Consumer<CommandFeature> registrar) {
         if (this.installed) return;
         this.loadConfig();
         if (!this.config.enabled()) return;
         try {
             this.installed = true;
             this.onLoad();
+            this.registerCommand(registrar);
             this.state.set(FeatureState.DISABLED);
             this.start();
         } catch (RuntimeException exception) {
@@ -72,6 +76,9 @@ public abstract class Feature<C extends FeatureSettings> {
     public abstract void loadConfig();
 
     protected void onLoad() {
+    }
+
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
     }
 
     protected void onEnable() {
