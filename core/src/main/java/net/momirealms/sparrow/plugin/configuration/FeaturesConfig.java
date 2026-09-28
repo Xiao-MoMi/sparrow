@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.configuration;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.feature.ban.BanSettings;
 import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
@@ -145,6 +146,16 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "使用 /max-players 动态修改人数上限, 拥有绕过权限的玩家可以在满员时进入.")
         private PlayerLimitSettings playerLimit = new PlayerLimitSettings();
 
+        @BlankLineBefore
+        @Comment("Network-wide bans by account, IP or IP wildcard, checked on login.")
+        @Comment(lang = "zh", value = "按账号、IP 或通配 IP 全服封禁, 在登录时检查.")
+        private BanSettings ban = new BanSettings();
+
+        @NotNull
+        public BanSettings ban() {
+            return this.ban;
+        }
+
         @NotNull
         public MaintenanceSettings maintenance() {
             return this.maintenance;
@@ -191,6 +202,7 @@ public final class FeaturesConfig {
                 case "head" -> this.head;
                 case "maintenance" -> this.maintenance;
                 case "player-limit" -> this.playerLimit;
+                case "ban" -> this.ban;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

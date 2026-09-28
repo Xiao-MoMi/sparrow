@@ -97,6 +97,10 @@ public abstract class DataStorage implements AutoCloseable {
     @NotNull
     public abstract CompletableFuture<Optional<String>> lookupName(@NotNull UUID player);
 
+    // 封禁模块的存储, 取用时不会访问数据库
+    @NotNull
+    public abstract BanStore banStore();
+
     // 建表或建集合时使用的名称前缀
     @NotNull
     protected String namePrefix() {

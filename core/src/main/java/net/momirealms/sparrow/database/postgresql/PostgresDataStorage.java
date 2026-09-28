@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.database.postgresql;
 
 import com.zaxxer.hikari.HikariDataSource;
+import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.database.postgresql.upgrade.PostgresSchemaMigration;
@@ -26,12 +27,14 @@ public final class PostgresDataStorage extends DataStorage {
     private static final List<PostgresSchemaMigration> MIGRATIONS = List.of();
 
     private final String data;
+    private final PostgresBanStore banStore;
     private HikariDataSource pool;
     private Jdbi jdbi;
 
     public PostgresDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
         this.data = "\"" + this.namePrefix() + "data\"";
+        this.banStore = new PostgresBanStore(this::sql, executor, logger, this.namePrefix());
     }
 
     @Override
@@ -51,7 +54,7 @@ public final class PostgresDataStorage extends DataStorage {
             connected.setInitializationFailTimeout(10_000);
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
             Jdbi jdbi = Jdbi.create(connected);
-            new PostgresSchemaMigrator(this.logger, PostgresSchema.CURRENT_VERSION, PostgresSchema::initialize, MIGRATIONS).migrate(jdbi, this.namePrefix());
+            new PostgresSchemaMigrator(this.logger, PostgresSchema.DATA_COMPONENT, PostgresSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, PostgresSchema::initializeData, MIGRATIONS).migrate(jdbi, this.namePrefix());
             this.pool = connected;
             this.jdbi = jdbi;
         } catch (RuntimeException exception) {
@@ -156,6 +159,12 @@ public final class PostgresDataStorage extends DataStorage {
     public CompletableFuture<Optional<String>> lookupName(@NotNull UUID player) {
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE player = :player")
                 .bind("player", player).mapTo(String.class).findOne()), this.executor);
+    }
+
+    @Override
+    @NotNull
+    public BanStore banStore() {
+        return this.banStore;
     }
 
     private Jdbi sql() {

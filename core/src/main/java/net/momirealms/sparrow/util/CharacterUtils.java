@@ -1,5 +1,9 @@
 package net.momirealms.sparrow.util;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.stream.IntStream;
 
 public final class CharacterUtils {
@@ -183,5 +187,59 @@ public final class CharacterUtils {
             }
         }
         return sb.toString();
+    }
+
+    // 聊天栏默认字体的像素宽度. ASCII 字形宽度含右侧间距, 其他字符按全角宽度估算.
+    public static int chatWidth(@NotNull String text) {
+        int width = 0;
+        int length = text.length();
+        for (int i = 0; i < length;) {
+            int character = text.codePointAt(i);
+            width += switch (character) {
+                case '!', '\'', ',', '.', ':', ';', 'i', '|' -> 2;
+                case '`', 'l' -> 3;
+                case ' ', '"', '(', ')', '*', 'I', '[', ']', 't', '{', '}' -> 4;
+                case '<', '>', 'f', 'k' -> 5;
+                case '@', '~' -> 7;
+                default -> character < 128 ? 6 : 9;
+            };
+            i += Character.charCount(character);
+        }
+        return width;
+    }
+
+    // 选出能用 4 / 5 像素空格补齐的最小公共宽度, 供面板按钮纵向对齐. 最多比最宽行增加 12 像素
+    public static int alignedChatWidth(int @NotNull [] widths) {
+        int target = 0;
+        int size = widths.length;
+        for (int i = 0; i < size; i++) {
+            target = Math.max(target, widths[i]);
+        }
+        for (int i = 0; i < size;) {
+            int padding = target - widths[i];
+            if (padding < padding % 4 * 5) {
+                target++;
+                i = 0;
+            } else {
+                i++;
+            }
+        }
+        return target;
+    }
+
+    // 普通空格宽 4 像素, 粗体空格宽 5 像素. pixels 取 alignedChatWidth 与行宽之差
+    @NotNull
+    public static Component chatPadding(int pixels) {
+        int boldSpaces = pixels % 4;
+        int spaces = (pixels - boldSpaces * 5) / 4;
+        return Component.text(" ".repeat(spaces)).decoration(TextDecoration.BOLD, false)
+                .append(Component.text(" ".repeat(boldSpaces)).decoration(TextDecoration.BOLD, true));
+    }
+
+    // 超过 max 个码点时截断, 末尾用 ... 表示
+    @NotNull
+    public static String truncate(@NotNull String text, int max) {
+        if (text.codePointCount(0, text.length()) <= max) return text;
+        return text.substring(0, text.offsetByCodePoints(0, max - 3)) + "...";
     }
 }

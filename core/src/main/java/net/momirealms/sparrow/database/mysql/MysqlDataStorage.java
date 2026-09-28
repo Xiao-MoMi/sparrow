@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.database.mysql;
 
 import com.zaxxer.hikari.HikariDataSource;
+import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
@@ -30,12 +31,14 @@ public class MysqlDataStorage extends DataStorage {
     protected static final List<MysqlSchemaMigration> MIGRATIONS = List.of();
 
     private final String data;
+    private final MysqlBanStore banStore;
     protected HikariDataSource pool;
     protected Jdbi jdbi;
 
     public MysqlDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
         this.data = "`" + this.namePrefix() + "data`";
+        this.banStore = new MysqlBanStore(this::sql, executor, logger, this.namePrefix());
     }
 
     @Override
@@ -56,7 +59,7 @@ public class MysqlDataStorage extends DataStorage {
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
             Jdbi jdbi = Jdbi.create(connected);
             this.verifyServerVersion(jdbi);
-            new MysqlSchemaMigrator(this.logger, MysqlSchema.CURRENT_VERSION, MysqlSchema::initialize, MIGRATIONS).migrate(jdbi, this.namePrefix());
+            new MysqlSchemaMigrator(this.logger, MysqlSchema.DATA_COMPONENT, MysqlSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, MysqlSchema::initializeData, MIGRATIONS).migrate(jdbi, this.namePrefix());
             this.pool = connected;
             this.jdbi = jdbi;
         } catch (RuntimeException exception) {
@@ -85,7 +88,6 @@ public class MysqlDataStorage extends DataStorage {
         return this.save(player, name, timestamp, IpRange.NONE, server, location);
     }
 
-    // todo 修复
     private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, String server, WorldLocation location) {
         boolean logout = location != null;
         boolean withIp = ip != IpRange.NONE;
@@ -98,12 +100,8 @@ public class MysqlDataStorage extends DataStorage {
             updates += ", last_login_ip = CASE WHEN :time >= last_login THEN :ip ELSE last_login_ip END";
         }
         if (logout) {
-            String[] fields = {"last_logout_server", "last_logout_location"};
-            for (int i = 0; i < fields.length; i++) {
-                String field = fields[i];
-                String parameter = field.replace("last_", "");
-                updates += ", " + field + " = CASE WHEN :time >= " + time + " THEN :" + parameter + " ELSE " + field + " END";
-            }
+            updates += ", last_logout_server = CASE WHEN :time >= last_logout THEN :server ELSE last_logout_server END"
+                    + ", last_logout_location = CASE WHEN :time >= last_logout THEN :location ELSE last_logout_location END";
         }
         // 两服的异步写入可能交错, 登录与下线各自按事件时间更新.
         updates += ", " + time + " = GREATEST(" + time + ", :time), updated_at = GREATEST(updated_at, :time)";
@@ -171,6 +169,12 @@ public class MysqlDataStorage extends DataStorage {
     public CompletableFuture<Optional<String>> lookupName(@NotNull UUID player) {
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE player = :player")
                 .bind("player", UUIDUtils.toBytes(player)).mapTo(String.class).findOne()), this.executor);
+    }
+
+    @Override
+    @NotNull
+    public BanStore banStore() {
+        return this.banStore;
     }
 
     private Jdbi sql() {

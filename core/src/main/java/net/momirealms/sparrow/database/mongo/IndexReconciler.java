@@ -6,7 +6,6 @@ import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReplaceOptions;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
-import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
@@ -18,34 +17,39 @@ import java.util.Map;
 import java.util.Objects;
 
 final class IndexReconciler {
-    private static final int SCHEMA_VERSION = DependencyVersions.MONGODB_INDEX_VERSION; // 业务集合的索引声明版本
-    private static final String SCHEMA_DOCUMENT_ID = "schema";
     private static final String SCHEMA_FIELD_VERSION = "version";
 
-    private static final List<IndexDeclaration> DATA_INDEXES = List.of(
-            new IndexDeclaration(new Document("name", 1).append("updated_at", -1).append("_id", -1), false, "data_name_updated"),
-            new IndexDeclaration(new Document("last_login_ip", 1), false, "data_login_ip")
-    );
-
-    // 按当前版本准备业务索引
+    /**
+     * 按当前版本准备一组集合的索引. 各组件的版本记在 meta 中各自的文档里.
+     *
+     * @param schemaId 组件版本在 meta 中的文档 id
+     * @param version 当前索引声明的版本
+     * @param collections 集合名 (不含前缀) -> 该集合的全部业务索引
+     * @throws IllegalStateException 当数据库中的版本比当前声明更新时
+     */
     static void reconcile(
             @NotNull PluginLogger logger,
             @NotNull MongoDatabase database,
-            @NotNull String prefix
+            @NotNull String prefix,
+            @NotNull String schemaId,
+            int version,
+            @NotNull Map<String, List<IndexDeclaration>> collections
     ) {
         MongoCollection<Document> metaCollection = database.getCollection(prefix + "meta");
         // 新版本可能已经换过索引, 旧插件继续启动会把数据库改回自己的声明
-        Document schema = metaCollection.find(new Document("_id", SCHEMA_DOCUMENT_ID)).first();
+        Document schema = metaCollection.find(new Document("_id", schemaId)).first();
         int stored = schema != null && schema.get(SCHEMA_FIELD_VERSION) instanceof Number number ? number.intValue() : 0;
-        if (stored > SCHEMA_VERSION) {
-            logger.error(TranslationManager.console(LogConstants.STORAGE_SCHEMA_TOO_NEW, String.valueOf(stored), String.valueOf(SCHEMA_VERSION)));
-            throw new IllegalStateException("database schema generation " + stored + " is newer than this plugin supports (" + SCHEMA_VERSION + ")");
+        if (stored > version) {
+            logger.error(TranslationManager.console(LogConstants.STORAGE_SCHEMA_TOO_NEW, String.valueOf(stored), String.valueOf(version)));
+            throw new IllegalStateException("database schema generation " + stored + " is newer than this plugin supports (" + version + ")");
         }
-        reconcileIndexes(logger, database, database.getCollection(prefix + "data"), DATA_INDEXES);
+        for (Map.Entry<String, List<IndexDeclaration>> entry : collections.entrySet()) {
+            reconcileIndexes(logger, database, database.getCollection(prefix + entry.getKey()), entry.getValue());
+        }
         // 索引都准备好后再记版本, 中途失败不会留下错误的完成标记
         metaCollection.replaceOne(
-                new Document("_id", SCHEMA_DOCUMENT_ID),
-                new Document("_id", SCHEMA_DOCUMENT_ID).append(SCHEMA_FIELD_VERSION, SCHEMA_VERSION),
+                new Document("_id", schemaId),
+                new Document("_id", schemaId).append(SCHEMA_FIELD_VERSION, version),
                 new ReplaceOptions().upsert(true)
         );
     }
@@ -111,6 +115,6 @@ final class IndexReconciler {
         return true;
     }
 
-    private record IndexDeclaration(Document keys, boolean unique, String name) {
+    record IndexDeclaration(Document keys, boolean unique, String name) {
     }
 }
