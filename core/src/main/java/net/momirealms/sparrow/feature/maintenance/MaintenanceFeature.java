@@ -130,9 +130,9 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
         else if (player.hasPermission(BYPASS_PERMISSION)) {
             this.showBossBar(player);
         }
-        // 无权限, 踢出. 退出回调会移除 BossBar 记录
+        // 无权限, 踢出.
         else {
-            player.kick(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, player.locale()));
+            player.kickFromServer(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, player.locale()));
         }
     }
 

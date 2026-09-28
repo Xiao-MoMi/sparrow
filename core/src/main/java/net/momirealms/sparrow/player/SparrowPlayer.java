@@ -58,11 +58,20 @@ public interface SparrowPlayer {
     boolean hasPermission(@NotNull String permission);
 
     /**
-     * 以插件原因踢出玩家, 会触发踢出事件. 需要在玩家所属线程调用.
+     * 踢出玩家. 本服在代理后面时由代理断开玩家的整个连接, 玩家不会被转到其他服务器.
+     * <strong>需要在玩家所属线程调用</strong>.
+     *
+     * @param reason 显示给玩家的原因, 由本服直接踢出时点击和悬浮内容会丢失
+     */
+    void kick(@NotNull Component reason);
+
+    /**
+     * 踢出玩家.
+     * <strong>需要在玩家所属线程调用</strong>.
      *
      * @param reason 显示给玩家的原因, 点击和悬浮内容会丢失
      */
-    void kick(@NotNull Component reason);
+    void kickFromServer(@NotNull Component reason);
 
     /**
      * 从眼睛下方朝视线方向抛出物品, 拾取延迟为 0, 不扣除背包物品.
