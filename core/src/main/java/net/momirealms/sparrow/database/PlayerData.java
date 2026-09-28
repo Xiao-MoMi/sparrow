@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.database;
 
-import net.momirealms.sparrow.world.WorldLocation;
+import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

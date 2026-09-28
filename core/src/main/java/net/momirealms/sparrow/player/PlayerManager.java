@@ -18,7 +18,7 @@ import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
 import net.momirealms.sparrow.util.VersionHelper;
-import net.momirealms.sparrow.world.WorldLocation;
+import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

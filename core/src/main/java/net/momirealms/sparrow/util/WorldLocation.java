@@ -1,8 +1,7 @@
-package net.momirealms.sparrow.world;
+package net.momirealms.sparrow.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import net.momirealms.sparrow.util.GsonHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;

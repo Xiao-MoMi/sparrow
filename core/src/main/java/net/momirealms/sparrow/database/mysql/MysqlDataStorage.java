@@ -6,7 +6,7 @@ import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
-import net.momirealms.sparrow.world.WorldLocation;
+import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;

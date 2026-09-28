@@ -4,7 +4,7 @@ import net.momirealms.sparrow.database.mariadb.MariaDbDataStorage;
 import net.momirealms.sparrow.database.mongo.MongoDataStorage;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
 import net.momirealms.sparrow.database.postgresql.PostgresDataStorage;
-import net.momirealms.sparrow.world.WorldLocation;
+import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.jetbrains.annotations.NotNull;
