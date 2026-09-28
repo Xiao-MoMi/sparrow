@@ -6,7 +6,7 @@ import net.minecraft.SharedConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerManager;
-import net.momirealms.sparrow.world.WorldLocation;
+import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
