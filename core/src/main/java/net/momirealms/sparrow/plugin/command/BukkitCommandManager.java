@@ -92,7 +92,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
     private BukkitCommandManager(SparrowPlugin plugin, LegacyPaperCommandManager<CommandSender> manager) {
         super(plugin, manager, manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) || manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION));
         this.plugin = plugin;
-        // 不属于任何模块的命令, 模块自带的命令在模块安装时注册
+        // 不属于任何模块的命令, 模块自带的命令由 FeatureManager 注册
         this.defaultFeatures = List.of(
                 // base
                 new ReloadCommand(this, plugin),

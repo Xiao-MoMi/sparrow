@@ -17,15 +17,14 @@ public abstract class Feature<C extends FeatureSettings> {
         this.id = id;
     }
 
-    // 同步读取配置, 按开关安装并启动功能. onLoad 完成后注册模块自带的命令.
-    final void install(@NotNull Consumer<CommandFeature> registrar) {
+    // 同步读取配置, 按开关安装并启动功能.
+    final void install() {
         if (this.installed) return;
         this.loadConfig();
         if (!this.config.enabled()) return;
         try {
             this.installed = true;
             this.onLoad();
-            this.registerCommand(registrar);
             this.state.set(FeatureState.DISABLED);
             this.start();
         } catch (RuntimeException exception) {
@@ -78,6 +77,8 @@ public abstract class Feature<C extends FeatureSettings> {
     protected void onLoad() {
     }
 
+    // 插件启用时调用一次, 与模块是否开启无关.
+    // 注册的命令由 FeatureManager 绑定模块状态, 模块未启用时对玩家隐藏
     protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
     }
 

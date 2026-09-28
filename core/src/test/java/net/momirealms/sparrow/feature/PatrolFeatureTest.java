@@ -31,7 +31,7 @@ class PatrolFeatureTest {
         SparrowPlugin plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
         when(plugin.configurationManager().featuresConfig().config().patrol()).thenReturn(this.settings);
         this.patrol = new PatrolFeature(plugin);
-        ((Feature<?>) this.patrol).install(command -> {});
+        ((Feature<?>) this.patrol).install();
         this.admin = this.player("admin");
     }
 

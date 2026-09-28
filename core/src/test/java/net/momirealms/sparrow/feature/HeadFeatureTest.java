@@ -395,7 +395,7 @@ class HeadFeatureTest {
         }
 
         private void start() {
-            ((Feature<?>) this.head).install(command -> {});
+            ((Feature<?>) this.head).install();
         }
 
         @Override

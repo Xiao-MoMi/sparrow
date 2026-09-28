@@ -5,6 +5,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.util.TriConsumer;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
+import org.incendo.cloud.permission.Permission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,11 +20,12 @@ public interface CommandManager {
 
     /**
      * 按 commands.yml 注册一个命令. 配置中关闭或当前环境不可用的命令直接跳过.
-     * 插件启用后调用时 Cloud 会刷新在线玩家的命令树, 模块热安装时注册模块自带的命令.
+     * <strong>只能在插件启用阶段调用</strong>.
      *
      * @param feature 待注册的命令实现
+     * @param requirement 配置权限之外还要满足的条件, 例如 {@link FeaturePermission}, 为 null 时只检查配置权限
      */
-    void registerFeature(@NotNull CommandFeature feature);
+    void registerFeature(@NotNull CommandFeature feature, @Nullable Permission requirement);
 
     /**
      * 注册默认的命令功能.

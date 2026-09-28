@@ -1,6 +1,5 @@
 package net.momirealms.sparrow.feature.maintenance;
 
-import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -26,10 +25,6 @@ public final class MaintenanceCommand extends BukkitCommandFeature {
     // 不带参数时查询当前状态
     private void execute(CommandContext<CommandSender> context) {
         MaintenanceFeature feature = this.plugin().featureManager().feature(MaintenanceFeature.ID, MaintenanceFeature.class);
-        if (!feature.enabled()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(MaintenanceFeature.ID));
-            return;
-        }
         Boolean active = context.getOrDefault("active", null);
         if (active == null) {
             this.handleFeedback(context, feature.active() ? MessageConstants.COMMAND_MAINTENANCE_ACTIVE : MessageConstants.COMMAND_MAINTENANCE_INACTIVE);

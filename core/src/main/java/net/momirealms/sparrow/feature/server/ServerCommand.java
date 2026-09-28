@@ -54,10 +54,6 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<CommandSender> context) {
         ServerFeature feature = this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class);
-        if (!feature.enabled()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(ServerFeature.ID));
-            return;
-        }
         String server = context.get("server");
         if (!feature.allowed(server)) {
             this.handleFeedback(context, MessageConstants.COMMAND_SERVER_NOT_ALLOWED, Component.text(server));

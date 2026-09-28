@@ -53,7 +53,7 @@ class PlayerLimitFeatureTest {
 
     @Test
     void keepsServerPropertiesValueByDefault() {
-        ((Feature<?>) this.feature).install(command -> {});
+        ((Feature<?>) this.feature).install();
         assertEquals(20, this.feature.maxPlayers());
         assertEquals(20, this.feature.defaultMaxPlayers());
     }
@@ -61,7 +61,7 @@ class PlayerLimitFeatureTest {
     @Test
     void savedLimitIsAppliedOnEnableAndRestoredOnDisable() {
         this.settings.maxPlayers(50);
-        ((Feature<?>) this.feature).install(command -> {});
+        ((Feature<?>) this.feature).install();
         assertEquals(50, this.feature.maxPlayers());
         ((Feature<?>) this.feature).stop();
         assertEquals(20, this.feature.maxPlayers());
@@ -73,7 +73,7 @@ class PlayerLimitFeatureTest {
 
     @Test
     void commandChangesAreSavedAndCanBeReset() {
-        ((Feature<?>) this.feature).install(command -> {});
+        ((Feature<?>) this.feature).install();
         this.feature.maxPlayers(0);
         verify(this.featuresConfig).saveMaxPlayers(0);
         assertEquals(0, this.feature.maxPlayers());

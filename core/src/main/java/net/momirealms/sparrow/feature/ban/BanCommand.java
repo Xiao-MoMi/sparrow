@@ -40,10 +40,6 @@ public final class BanCommand extends BukkitCommandFeature {
     // -s 隐藏给执行人的成功提示, 也不通知管理员, 错误照常提示
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
-        if (!this.feature.enabled()) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(BanFeature.ID));
-            return;
-        }
         String input = context.get("player");
         String reason = context.getOrDefault("reason", "");
         if (reason.codePointCount(0, reason.length()) > BanRecord.MAX_REASON_LENGTH) {

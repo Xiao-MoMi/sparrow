@@ -9,9 +9,13 @@ import net.momirealms.sparrow.feature.playerlimit.PlayerLimitFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
 import net.momirealms.sparrow.feature.server.ServerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
+import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
+import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import net.momirealms.sparrow.util.ExceptionCollector;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -21,13 +25,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
 
 public final class FeatureManager {
     private final FeaturesConfig config;
     private final Executor asyncExecutor;
-    private final Executor platformExecutor;
-    private final Consumer<CommandFeature> commands;
+    private final PlatformExecutor platformExecutor;
+    private final CommandManager commandManager;
     private final Map<String, Feature<?>> features = new LinkedHashMap<>();
     private volatile boolean closed;
 
@@ -35,7 +38,7 @@ public final class FeatureManager {
         this.config = plugin.configurationManager().featuresConfig();
         this.asyncExecutor = plugin.scheduler().async();
         this.platformExecutor = plugin.scheduler().platform();
-        this.commands = plugin.commandManager()::registerFeature;
+        this.commandManager = plugin.commandManager();
 
         this.features.put(QuickShulkerFeature.ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
         this.features.put(PatrolFeature.ID, new PatrolFeature(plugin));
@@ -47,9 +50,14 @@ public final class FeatureManager {
         this.features.put(BanFeature.ID, new BanFeature(plugin));
     }
 
+    // 模块命令只在插件启用时注册一次, 此后命令树不再变化, 模块开关只决定这些命令是否可见
     public void onEnable() {
         for (Feature<?> feature : this.features.values()) {
-            feature.install(this.commands);
+            FeaturePermission requirement = new FeaturePermission(feature.id(), feature::enabled);
+            feature.registerCommand(command -> this.commandManager.registerFeature(command, requirement));
+        }
+        for (Feature<?> feature : this.features.values()) {
+            feature.install();
         }
     }
 
@@ -76,12 +84,13 @@ public final class FeatureManager {
         for (Feature<?> feature : this.features.values()) {
             if (feature.hotToggleable()) {
                 if (!feature.installed()) {
-                    feature.install(this.commands);
+                    feature.install();
                 } else if (feature.config().enabled()) {
                     feature.start();
                 }
             }
         }
+        this.refreshCommands();
     }
 
     public void onDisable() {
@@ -111,7 +120,7 @@ public final class FeatureManager {
         if (!enabled) {
             feature.stop();
         } else if (!feature.installed()) {
-            feature.install(this.commands);
+            feature.install();
         } else if (!feature.enabled()) {
             return CompletableFuture.runAsync(() -> {
                 this.requireOpen();
@@ -119,10 +128,17 @@ public final class FeatureManager {
             }, this.asyncExecutor).thenApplyAsync(ignored -> {
                 this.requireOpen();
                 feature.start();
+                this.refreshCommands();
                 return feature.state().get();
             }, this.platformExecutor);
         }
+        this.refreshCommands();
         return CompletableFuture.completedFuture(feature.state().get());
+    }
+
+    // 模块开关变化后重发命令树, 玩家看到的模块命令随之显示或隐藏
+    private void refreshCommands() {
+        for (Player player : Bukkit.getOnlinePlayers()) player.updateCommands();
     }
 
     private void requireOpen() {

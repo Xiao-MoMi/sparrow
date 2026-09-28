@@ -71,7 +71,7 @@ class MaintenanceFeatureTest {
         this.bukkit.when(Bukkit::getPluginManager).thenReturn(mock(PluginManager.class));
 
         this.feature = new MaintenanceFeature(this.plugin);
-        ((Feature<?>) this.feature).install(command -> {});
+        ((Feature<?>) this.feature).install();
     }
 
     @AfterEach

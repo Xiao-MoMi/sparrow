@@ -48,10 +48,6 @@ public final class HeadCommand extends BukkitCommandFeature {
     private void execute(@NotNull CommandContext<CommandSender> context) {
         SparrowPlugin plugin = this.plugin();
         HeadFeature feature = plugin.featureManager().feature(HeadFeature.ID, HeadFeature.class);
-        if (!feature.enabled()) {
-            this.handleFeedback(context.sender(), MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(HeadFeature.ID));
-            return;
-        }
         String source = context.<Optional<String>>getOrDefault("source", Optional.empty()).orElse(context.sender() instanceof Player player ? player.getName() : null);
         if (source == null) {
             this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_SOURCE_REQUIRED);
