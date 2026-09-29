@@ -14,9 +14,11 @@ import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.redis.proxy.DisconnectMessage;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
+import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -38,6 +40,7 @@ import java.util.function.Consumer;
 public final class BanFeature extends Feature<BanSettings> implements Listener {
     public static final String ID = "ban";
     public static final String NOTIFY_PERMISSION = DependencyVersions.PROJECT_ID + ".notify.ban";
+    private static final long PROXY_DISCONNECT_WAIT_MILLIS = 1000;
 
     private final SparrowPlugin plugin;
 
@@ -96,7 +99,17 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
         if (ban == null) return;
         boolean account = event.getUniqueId().equals(ban.player());
         Component screen = this.kickScreen(account, ban.id(), ban.reason(), ban.operatorName(), ban.expiresAt(), now, null);
+        // 先拒绝登录
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, AdventureHelper.componentToLegacy(screen));
+        // 本服拒绝登录会被代理转到下一个服务器, 所以先让代理断开整条连接, 等待期间代理没有处理再由本服拒绝.
+        if (VersionHelper.isBehindProxy()) {
+            this.plugin.messageBrokerManager().proxyBroker().publishOneWay(new DisconnectMessage(event.getUniqueId(), AdventureHelper.componentToJson(screen)), "");
+            try {
+                Thread.sleep(PROXY_DISCONNECT_WAIT_MILLIS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
 
     /**
