@@ -12,7 +12,6 @@ val proxyJarName = "$projectName-proxy.jarinjar"
 plugins {
     id("sparrow.run-servers")
     id("sparrow.run-spigot")
-    id("sparrow.run-velocity")
     alias(libs.plugins.plugin.yml)
     alias(libs.plugins.bukkit.plugin.yml)
     alias(libs.plugins.buildconfig)
