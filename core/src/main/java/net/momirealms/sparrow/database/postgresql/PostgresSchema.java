@@ -15,6 +15,10 @@ public final class PostgresSchema {
     public static final String BAN_COMPONENT = "ban_schema";
     public static final List<String> BAN_TABLES = List.of("bans");
 
+    // warp 模块
+    public static final String WARP_COMPONENT = "warp_schema";
+    public static final List<String> WARP_TABLES = List.of("warps");
+
     private PostgresSchema() {
     }
 
@@ -40,5 +44,16 @@ public final class PostgresSchema {
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "bans_ip\" ON " + bans + " (ip_start, ip_end)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "bans_operator\" ON " + bans + " (LOWER(operator_name))");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "bans_created\" ON " + bans + " (created_at)");
+    }
+
+    // name_key 是小写后的名称, 个别字符转小写后会变长, 所以比 name 宽
+    public static void initializeWarps(@NotNull Handle handle, @NotNull String prefix) {
+        String warps = "\"" + prefix + "warps\"";
+        handle.execute("CREATE TABLE IF NOT EXISTS " + warps + " ("
+                + "id UUID PRIMARY KEY, name_key VARCHAR(64) COLLATE \"C\" NOT NULL, name VARCHAR(32) NOT NULL, description VARCHAR(256) NOT NULL, "
+                + "server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE PRECISION NOT NULL, y DOUBLE PRECISION NOT NULL, z DOUBLE PRECISION NOT NULL, "
+                + "yaw REAL NOT NULL, pitch REAL NOT NULL, creator UUID, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL)");
+        handle.execute("CREATE UNIQUE INDEX IF NOT EXISTS \"" + prefix + "warps_name\" ON " + warps + " (name_key)");
+        handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "warps_location\" ON " + warps + " (server, world)");
     }
 }

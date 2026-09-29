@@ -14,6 +14,7 @@ import com.mongodb.client.model.UpdateOptions;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
+import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -49,6 +50,7 @@ public final class MongoDataStorage extends DataStorage {
     private static final String USER_LOGIN_IP = "last_login_ip";
 
     private final MongoBanStore banStore;
+    private final MongoWarpStore warpStore;
     private MongoClient client;
     private MongoDatabase database;
     private MongoCollection<Document> data;
@@ -56,6 +58,7 @@ public final class MongoDataStorage extends DataStorage {
     public MongoDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
         this.banStore = new MongoBanStore(this::database, executor, logger, this.namePrefix());
+        this.warpStore = new MongoWarpStore(this::database, executor, logger, this.namePrefix());
     }
 
     @Override
@@ -173,6 +176,12 @@ public final class MongoDataStorage extends DataStorage {
     @NotNull
     public BanStore banStore() {
         return this.banStore;
+    }
+
+    @Override
+    @NotNull
+    public WarpStore warpStore() {
+        return this.warpStore;
     }
 
     private MongoDatabase database() {

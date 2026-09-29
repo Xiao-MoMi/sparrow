@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
+import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.database.postgresql.upgrade.PostgresSchemaMigration;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
@@ -28,6 +29,7 @@ public final class PostgresDataStorage extends DataStorage {
 
     private final String data;
     private final PostgresBanStore banStore;
+    private final PostgresWarpStore warpStore;
     private HikariDataSource pool;
     private Jdbi jdbi;
 
@@ -35,6 +37,7 @@ public final class PostgresDataStorage extends DataStorage {
         super(options, executor, logger);
         this.data = "\"" + this.namePrefix() + "data\"";
         this.banStore = new PostgresBanStore(this::sql, executor, logger, this.namePrefix());
+        this.warpStore = new PostgresWarpStore(this::sql, executor, logger, this.namePrefix());
     }
 
     @Override
@@ -165,6 +168,12 @@ public final class PostgresDataStorage extends DataStorage {
     @NotNull
     public BanStore banStore() {
         return this.banStore;
+    }
+
+    @Override
+    @NotNull
+    public WarpStore warpStore() {
+        return this.warpStore;
     }
 
     private Jdbi sql() {

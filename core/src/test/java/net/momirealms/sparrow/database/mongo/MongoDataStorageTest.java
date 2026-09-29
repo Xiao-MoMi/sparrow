@@ -4,6 +4,7 @@ import com.mongodb.client.MongoClients;
 import net.momirealms.sparrow.database.BanStoreContract;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
+import net.momirealms.sparrow.database.WarpStoreContract;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
@@ -67,6 +68,7 @@ class MongoDataStorageTest {
             assertEquals("$survival", saved.lastLogoutServer());
             assertEquals(location, saved.lastLogoutLocation());
             BanStoreContract.verify(storage.banStore(), second);
+            WarpStoreContract.verify(storage.warpStore());
             try (var client = MongoClients.create(options.mongodb().url()); var translations = mockStatic(TranslationManager.class)) {
                 var database = client.getDatabase(options.mongodb().database());
                 var collection = database.getCollection(prefix + "data");
@@ -86,6 +88,7 @@ class MongoDataStorageTest {
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "data").drop();
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "meta").drop();
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "bans").drop();
+                client.getDatabase(options.mongodb().database()).getCollection(prefix + "warps").drop();
             }
         }
     }
