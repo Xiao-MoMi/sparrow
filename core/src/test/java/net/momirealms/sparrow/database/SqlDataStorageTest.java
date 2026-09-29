@@ -102,6 +102,7 @@ class SqlDataStorageTest {
                 assertEquals(0L, storage.countPlayersOnIp(IpRange.parse("10.0.0.3")).join());
                 assertEquals(uuid, storage.listPlayersOnIp(IpRange.parse("10.0.*.*"), 0, 10).join().getFirst().player());
                 BanStoreContract.verify(storage.banStore(), uuid);
+                WarpStoreContract.verify(storage.warpStore());
                 try (var connection = DriverManager.getConnection(url, user, password); var statement = connection.createStatement()) {
                     try (var result = statement.executeQuery("SELECT " + quote + "value" + quote + " FROM " + meta + " WHERE id = 'schema'")) {
                         assertTrue(result.next());
@@ -117,6 +118,7 @@ class SqlDataStorageTest {
             try (var connection = DriverManager.getConnection(url, user, password); var statement = connection.createStatement()) {
                 statement.execute("DROP TABLE IF EXISTS " + table);
                 statement.execute("DROP TABLE IF EXISTS " + quote + prefix + "bans" + quote);
+                statement.execute("DROP TABLE IF EXISTS " + quote + prefix + "warps" + quote);
                 statement.execute("DROP TABLE IF EXISTS " + meta);
             }
         }

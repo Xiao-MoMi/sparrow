@@ -78,6 +78,8 @@ buildConfig {
     buildConfigField("MONGODB_DATA_INDEX_VERSION", libs.versions.mongodb.data.index.version.get().toInt())
     buildConfigField("BAN_SCHEMA_VERSION", libs.versions.ban.schema.version.get().toInt())
     buildConfigField("MONGODB_BAN_INDEX_VERSION", libs.versions.mongodb.ban.index.version.get().toInt())
+    buildConfigField("WARP_SCHEMA_VERSION", libs.versions.warp.schema.version.get().toInt())
+    buildConfigField("MONGODB_WARP_INDEX_VERSION", libs.versions.mongodb.warp.index.version.get().toInt())
 
     buildConfigField("PROJECT_PACKAGE", projectPackage)
     buildConfigField("PROJECT_ID", projectId)

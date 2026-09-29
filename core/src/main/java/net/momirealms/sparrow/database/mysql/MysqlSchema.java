@@ -15,6 +15,10 @@ public final class MysqlSchema {
     public static final String BAN_COMPONENT = "ban_schema";
     public static final List<String> BAN_TABLES = List.of("bans");
 
+    // warp 模块
+    public static final String WARP_COMPONENT = "warp_schema";
+    public static final List<String> WARP_TABLES = List.of("warps");
+
     private static final String TABLE_OPTIONS = " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin";
 
     private MysqlSchema() {
@@ -36,5 +40,14 @@ public final class MysqlSchema {
                 + "reason VARCHAR(256) NOT NULL, operator_name VARCHAR(64) NOT NULL, server VARCHAR(255) NOT NULL, "
                 + "created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL DEFAULT 0, revoked_at BIGINT NOT NULL DEFAULT 0, revoked_by VARCHAR(64), "
                 + "KEY bans_player (player, revoked_at), KEY bans_ip (ip_start, ip_end), KEY bans_created (created_at))" + TABLE_OPTIONS);
+    }
+
+    // name_key 是小写后的名称, 个别字符转小写后会变长, 所以比 name 宽
+    public static void initializeWarps(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "warps` ("
+                + "id BINARY(16) PRIMARY KEY, name_key VARCHAR(64) NOT NULL, name VARCHAR(32) NOT NULL, description VARCHAR(256) NOT NULL, "
+                + "server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, "
+                + "yaw FLOAT NOT NULL, pitch FLOAT NOT NULL, creator BINARY(16), created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, "
+                + "UNIQUE KEY warps_name (name_key), KEY warps_location (server, world))" + TABLE_OPTIONS);
     }
 }

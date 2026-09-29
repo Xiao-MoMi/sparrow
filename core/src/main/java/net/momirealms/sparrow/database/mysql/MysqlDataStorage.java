@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerData;
+import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
@@ -32,6 +33,7 @@ public class MysqlDataStorage extends DataStorage {
 
     private final String data;
     private final MysqlBanStore banStore;
+    private final MysqlWarpStore warpStore;
     protected HikariDataSource pool;
     protected Jdbi jdbi;
 
@@ -39,6 +41,7 @@ public class MysqlDataStorage extends DataStorage {
         super(options, executor, logger);
         this.data = "`" + this.namePrefix() + "data`";
         this.banStore = new MysqlBanStore(this::sql, executor, logger, this.namePrefix());
+        this.warpStore = new MysqlWarpStore(this::sql, executor, logger, this.namePrefix());
     }
 
     @Override
@@ -175,6 +178,12 @@ public class MysqlDataStorage extends DataStorage {
     @NotNull
     public BanStore banStore() {
         return this.banStore;
+    }
+
+    @Override
+    @NotNull
+    public WarpStore warpStore() {
+        return this.warpStore;
     }
 
     private Jdbi sql() {
