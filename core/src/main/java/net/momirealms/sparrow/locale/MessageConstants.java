@@ -60,6 +60,12 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_SUDO_FAILURE = Component.translatable().key("command.sudo.failure");
     TranslatableComponent.Builder COMMAND_TOP_BLOCK_UNAVAILABLE = Component.translatable().key("command.top-block.unavailable");
     TranslatableComponent.Builder COMMAND_TELEPORT_FAILURE = Component.translatable().key("command.teleport.failure");
+    TranslatableComponent.Builder COMMAND_BACK_SUCCESS = Component.translatable().key("command.back.success");
+    TranslatableComponent.Builder COMMAND_BACK_CONNECTING = Component.translatable().key("command.back.connecting");
+    TranslatableComponent.Builder COMMAND_BACK_NONE = Component.translatable().key("command.back.none");
+    TranslatableComponent.Builder COMMAND_BACK_SERVER_OFFLINE = Component.translatable().key("command.back.server-offline");
+    TranslatableComponent.Builder COMMAND_BACK_INVALID = Component.translatable().key("command.back.invalid");
+    TranslatableComponent.Builder COMMAND_BACK_TIMEOUT = Component.translatable().key("command.back.timeout");
     TranslatableComponent.Builder COMMAND_BED_SUCCESS = Component.translatable().key("command.bed.success");
     TranslatableComponent.Builder COMMAND_BED_MISSING = Component.translatable().key("command.bed.missing");
     TranslatableComponent.Builder COMMAND_HAT_SUCCESS = Component.translatable().key("command.hat.success");

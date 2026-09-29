@@ -20,12 +20,14 @@ public final class PlayerConnection {
     private final String name;
     private final ChannelHandler handle;
     private final Channel channel;
+    private final long connectedAt;
 
     PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name) {
         this.handle = handle;
         this.channel = (Channel) ConnectionProxy.INSTANCE.getChannel(handle);
         this.uniqueId = uniqueId;
         this.name = name;
+        this.connectedAt = System.currentTimeMillis();
     }
 
     @NotNull
@@ -51,6 +53,10 @@ public final class PlayerConnection {
     @NotNull
     public Channel channel() {
         return this.channel;
+    }
+
+    public long connectedAt() {
+        return this.connectedAt;
     }
 
     /**

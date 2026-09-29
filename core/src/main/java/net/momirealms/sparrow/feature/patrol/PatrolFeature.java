@@ -1,16 +1,13 @@
 package net.momirealms.sparrow.feature.patrol;
 
 import net.momirealms.sparrow.feature.Feature;
+import net.momirealms.sparrow.player.PlayerListener;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +21,7 @@ import java.util.function.Consumer;
 /**
  * 按"最久没被巡查"的顺序轮流挑选巡查对象. 刚进服的玩家优先, 玩家退出后移出队列.
  */
-public final class PatrolFeature extends Feature<PatrolSettings> implements Listener {
+public final class PatrolFeature extends Feature<PatrolSettings> implements PlayerListener {
     public static final String ID = "patrol";
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.patrol"; // 拥有此权限的玩家不会被巡查
 
@@ -48,7 +45,7 @@ public final class PatrolFeature extends Feature<PatrolSettings> implements List
         for (Player player : this.plugin.javaPlugin().getServer().getOnlinePlayers()) {
             this.queue.addLast(player.getUniqueId());
         }
-        this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        this.plugin.playerManager().registerListener(this);
     }
 
     @Override
@@ -56,15 +53,20 @@ public final class PatrolFeature extends Feature<PatrolSettings> implements List
         register.accept(new PatrolCommand(this.plugin.commandManager(), this.plugin));
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(@NotNull PlayerJoinEvent event) {
-        this.queue.addFirst(event.getPlayer().getUniqueId());
+    @Override
+    protected void onUnload() {
+        this.plugin.playerManager().unregisterListener(this);
+    }
+
+    @Override
+    public void onJoin(@NotNull SparrowPlayer player) {
+        this.queue.addFirst(player.uniqueId());
     }
 
     // 并发移动可能留下重复记录, 退出时全部移除
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onQuit(@NotNull PlayerQuitEvent event) {
-        UUID id = event.getPlayer().getUniqueId();
+    @Override
+    public void onQuit(@NotNull SparrowPlayer player) {
+        UUID id = player.uniqueId();
         this.queue.removeIf(id::equals);
     }
 

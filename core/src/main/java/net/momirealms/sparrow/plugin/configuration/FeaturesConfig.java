@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.configuration;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.feature.back.BackSettings;
 import net.momirealms.sparrow.feature.ban.BanSettings;
 import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.feature.highlight.HighlightSettings;
@@ -151,9 +152,19 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "按账号、IP 或通配 IP 全服封禁, 在登录时检查.")
         private BanSettings ban = new BanSettings();
 
+        @BlankLineBefore
+        @Comment("Return to the previous location with /back, including the death location and the previous server.")
+        @Comment(lang = "zh", value = "使用 /back 回到上一个位置, 包括死亡位置和上一个服务器离开时的位置.")
+        private BackSettings back = new BackSettings();
+
         @NotNull
         public BanSettings ban() {
             return this.ban;
+        }
+
+        @NotNull
+        public BackSettings back() {
+            return this.back;
         }
 
         @NotNull
@@ -203,6 +214,7 @@ public final class FeaturesConfig {
                 case "maintenance" -> this.maintenance;
                 case "player-limit" -> this.playerLimit;
                 case "ban" -> this.ban;
+                case "back" -> this.back;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }
