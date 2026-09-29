@@ -89,6 +89,9 @@ command.custom-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 command.custom-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:1></color> 的主手物品自定义名称设为 <arg:0>.</color>'
 command.custom-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手物品没有自定义显示名称.</color>'
 
+# command.del-warp
+command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已删除 warp <color:#C7BCE7><arg:0></color></color>'
+
 # command.demo
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示演示版提示</color>'
 
@@ -328,6 +331,11 @@ command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 command.server.not_allowed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>不允许切换到服务器 <color:#F2F4FF><arg:0></color></color>'
 command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 发送至服务器 <color:#C7BCE7><arg:1></color></color>'
 
+# command.set-warp
+command.set-warp.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已在你的位置创建 warp <color:#C7BCE7><arg:0></color></color>'
+command.set-warp.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#C7BCE7><arg:0></color> 已存在</color>'
+command.set-warp.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 warp <color:#C7BCE7><arg:0></color> 移到你的位置</color>'
+
 # command.smithing-table
 command.smithing-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开锻造台</color>'
 
@@ -379,6 +387,20 @@ command.unban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 
 # command.walk-speed
 command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的行走速度设为 <color:#C7BCE7><arg:1></color></color>'
+
+# command.warp
+command.warp.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在将 <color:#C7BCE7><arg:0></color> 送往 <color:#C7BCE7><arg:2></color> 上的 warp <color:#C7BCE7><arg:1></color></color>'
+command.warp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#C7BCE7><arg:1></color> 所在的世界已不存在</color>'
+command.warp.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp 名称 <color:#F2F4FF><arg:0></color> 无效, 最多 <arg:1> 个字, 只能使用文字、数字、_ 和 -</color>'
+command.warp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#C7BCE7><arg:1></color> 所在的服务器 <color:#F2F4FF><arg:2></color> 不在线</color>'
+command.warp.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法保存 warp <color:#C7BCE7><arg:0></color>, 详情见控制台</color>'
+command.warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到 warp <color:#C7BCE7><arg:1></color></color>'
+command.warp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标服务器未在 5 秒内响应</color>'
+command.warp.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#F2F4FF><arg:0></color> 不存在</color>'
+
+# command.warp-list
+command.warp-list.entry: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9><arg:1> · <arg:2></color> <color:#F2F4FF><arg:3></color>'
+command.warp-list.title: 'warp 列表'
 
 # command.workbench
 command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开工作台</color>'

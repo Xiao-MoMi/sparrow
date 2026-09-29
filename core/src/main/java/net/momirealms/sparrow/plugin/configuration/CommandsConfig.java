@@ -285,6 +285,22 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig server = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"), DependencyVersions.PROJECT_ID + ".command.server");
 
+        // warp 模块
+        @BlankLineBefore
+        CommandConfig warp = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " warp", "/warp"), DependencyVersions.PROJECT_ID + ".command.warp");
+
+        @BlankLineBefore
+        @YamlProperty("set-warp")
+        CommandConfig setWarp = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " set-warp", "/set-warp"), DependencyVersions.PROJECT_ID + ".command.set-warp");
+
+        @BlankLineBefore
+        @YamlProperty("del-warp")
+        CommandConfig delWarp = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " del-warp", "/del-warp"), DependencyVersions.PROJECT_ID + ".command.del-warp");
+
+        @BlankLineBefore
+        @YamlProperty("warp-list")
+        CommandConfig warpList = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " warp-list", "/warp-list"), DependencyVersions.PROJECT_ID + ".command.warp-list");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -358,6 +374,10 @@ public final class CommandsConfig {
                 case "patrol" -> this.patrol;
                 case "max-players" -> this.maxPlayers;
                 case "server" -> this.server;
+                case "warp" -> this.warp;
+                case "set-warp" -> this.setWarp;
+                case "del-warp" -> this.delWarp;
+                case "warp-list" -> this.warpList;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }
