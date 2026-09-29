@@ -22,6 +22,9 @@ java {
 
 val versionCatalog = libs
 subprojects {
+    // proxy 只是代理端模块的目录, 本身不产出 jar
+    if (path == ":proxy") return@subprojects
+
     apply(plugin = "java")
     apply(plugin = "java-library")
     apply(plugin = "com.gradleup.shadow")
@@ -71,9 +74,24 @@ subprojects {
             dependsOn(shadowJar)
         }
 
-        shadowJar {
-            // Relocate
+        shadowJar relocation@{
             val libs = "$projectPackage.libraries"
+            // 代理端直接使用平台自带的 Adventure 和 netty, 只重定位自己打包进去的库
+            if (project.path.startsWith(":proxy:")) {
+                relocate("net.momirealms.sparrow.yaml", "$libs.yaml")
+                relocate("net.momirealms.sparrow.redis.messagebroker", "$libs.redis.messagebroker")
+                relocate("com.github.benmanes.caffeine", "$libs.caffeine")
+                relocate("com.google.errorprone", "$libs.errorprone")
+                relocate("org.jspecify", "$libs.jspecify")
+                relocate("io.lettuce", "$libs.lettuce")
+                relocate("reactor", "$libs.reactor")
+                relocate("org.reactivestreams", "$libs.reactivestreams")
+                relocate("io.netty.handler.codec.dns", "$libs.netty.handler.codec.dns")
+                relocate("io.netty.resolver.dns", "$libs.netty.resolver.dns")
+                return@relocation
+            }
+
+            // Relocate
             relocate("net.kyori", libs)
             relocate("net.momirealms.sparrow.yaml", "$libs.yaml")
             relocate("net.momirealms.sparrow.ui", "$libs.ui")

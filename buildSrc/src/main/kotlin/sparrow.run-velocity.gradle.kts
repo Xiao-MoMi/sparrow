@@ -1,4 +1,5 @@
 import buildlogic.InitializeRunDirectory
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.jvm.toolchain.JvmVendorSpec
@@ -15,6 +16,7 @@ val java25 = javaToolchains.launcherFor {
 /**
  * 配置和注册 Velocity 运行测试.
  */
+val projectJar = tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
 val prepareProxyVelocity = tasks.register<InitializeRunDirectory>("prepareProxyVelocity") {
     templateDirectories.from(runTemplatesDirectory.dir("velocity"))
     targetDirectory.set(velocityDirectory)
@@ -26,6 +28,7 @@ tasks.register<RunVelocity>("runProxyVelocity") {
 
     velocityVersion("4.1.1")
     runDirectory.set(velocityDirectory)
+    pluginJars.from(projectJar)
     pluginJars.from(rootProject.fileTree("buildSrc/velocity-plugin") {
         include("*.jar")
     })

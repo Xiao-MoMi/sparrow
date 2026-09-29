@@ -6,6 +6,7 @@ commands-config-version = "2"
 features-config-version = "1"
 server-config-version = "1"
 lang-version = "11"
+proxy-config-version = "1"
 
 # Database
 data-schema-version = "1"
@@ -21,6 +22,8 @@ paperweight = "2.0.0-beta.21"
 paper-api = "1.21.11-R0.1-SNAPSHOT"
 datafixerupper = "8.0.16"
 jetbrains-annotations = "26.0.2"
+velocity-api = "4.1.1"
+bungeecord-api = "1.21-R0.4-SNAPSHOT"
 
 # Dependency Loader
 asm = "9.9.1"
@@ -74,6 +77,8 @@ jackson-annotations = "2.22"
 jackson-datatype = "2.22.0"
 netty = "4.1.132.Final"
 reactor = "3.8.5"
+# 代理端打包的 Lettuce 依赖的 netty 版本, 不能高于代理平台自带的 netty
+proxy-netty = "4.2.13.Final"
 
 # Test
 junit = "6.0.1"
@@ -85,6 +90,7 @@ shadow = { id = "com.gradleup.shadow", version = "9.3.2" }
 paper-weight = { id = "io.papermc.paperweight.userdev", version.ref = "paperweight" }
 plugin-yml = { id = "de.eldoria.plugin-yml.paper", version = "0.9.0" }
 bukkit-plugin-yml = { id = "de.eldoria.plugin-yml.bukkit", version = "0.9.0" }
+bungee-plugin-yml = { id = "de.eldoria.plugin-yml.bungee", version = "0.9.0" }
 run-paper = { id = "xyz.jpenilla.run-paper", version.ref = "run-task" }
 buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
 
@@ -97,6 +103,8 @@ luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
 paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 datafixerupper = { module = "com.mojang:datafixerupper", version.ref = "datafixerupper" }
 jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrains-annotations" }
+velocity-api = { module = "com.velocitypowered:velocity-api", version.ref = "velocity-api" }
+bungeecord-api = { module = "net.md-5:bungeecord-api", version.ref = "bungeecord-api" }
 
 # Dependency Loader
 asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
@@ -111,6 +119,10 @@ mysql-connector-j = { module = "com.mysql:mysql-connector-j", version.ref = "mys
 mariadb-driver = { module = "org.mariadb.jdbc:mariadb-java-client", version.ref = "mariadb-driver" }
 postgresql-driver = { module = "org.postgresql:postgresql", version.ref = "postgresql-driver" }
 checker-qual = { module = "org.checkerframework:checker-qual", version.ref = "checker-qual" }
+reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor" }
+proxy-netty-handler = { module = "io.netty:netty-handler", version.ref = "proxy-netty" }
+proxy-netty-resolver-dns = { module = "io.netty:netty-resolver-dns", version.ref = "proxy-netty" }
+proxy-netty-codec-dns = { module = "io.netty:netty-codec-dns", version.ref = "proxy-netty" }
 
 # Command
 mojang-brigadier = { module = "com.mojang:brigadier", version.ref = "mojang-brigadier" }

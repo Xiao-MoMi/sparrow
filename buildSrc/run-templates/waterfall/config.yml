@@ -1,0 +1,33 @@
+online_mode: true
+ip_forward: true
+forge_support: false
+player_limit: -1
+listeners:
+  - host: 0.0.0.0:25565
+    motd: '&bPlugin Proxy Test'
+    max_players: 2
+    priorities:
+      - paper
+      - folia
+    force_default_server: false
+    forced_hosts: {}
+    query_enabled: false
+    query_port: 25565
+    ping_passthrough: false
+    proxy_protocol: false
+    tab_list: GLOBAL_PING
+    tab_size: 60
+    bind_local_address: true
+servers:
+  paper:
+    address: 127.0.0.1:25566
+    motd: 'Paper Test'
+    restricted: false
+  folia:
+    address: 127.0.0.1:25567
+    motd: 'Folia Test'
+    restricted: false
+  spigot:
+    address: 127.0.0.1:25568
+    motd: 'Spigot Test'
+    restricted: false
