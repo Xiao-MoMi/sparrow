@@ -101,6 +101,9 @@ public final class CommandsConfig {
         CommandConfig anvil = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " anvil", "/anvil"), DependencyVersions.PROJECT_ID + ".command.anvil");
 
         @BlankLineBefore
+        CommandConfig bed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " bed", "/bed"), DependencyVersions.PROJECT_ID + ".command.bed");
+
+        @BlankLineBefore
         CommandConfig broadcast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " broadcast", "/broadcast"), DependencyVersions.PROJECT_ID + ".command.broadcast");
 
         @BlankLineBefore
@@ -158,6 +161,9 @@ public final class CommandsConfig {
         CommandConfig grindstone = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"), DependencyVersions.PROJECT_ID + ".command.grindstone");
 
         @BlankLineBefore
+        CommandConfig hat = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " hat", "/hat"), DependencyVersions.PROJECT_ID + ".command.hat");
+
+        @BlankLineBefore
         CommandConfig heal = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " heal", "/heal"), DependencyVersions.PROJECT_ID + ".command.heal");
 
         @BlankLineBefore
@@ -181,6 +187,9 @@ public final class CommandsConfig {
 
         @BlankLineBefore
         CommandConfig kick = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " kick", "/kick"), DependencyVersions.PROJECT_ID + ".command.kick");
+
+        @BlankLineBefore
+        CommandConfig knockback = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " knockback", "/knockback"), DependencyVersions.PROJECT_ID + ".command.knockback");
 
         @BlankLineBefore
         CommandConfig look = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " look", "/look"), DependencyVersions.PROJECT_ID + ".command.look");
@@ -291,6 +300,7 @@ public final class CommandsConfig {
                 // a-z
                 case "actionbar" -> this.actionbar;
                 case "anvil" -> this.anvil;
+                case "bed" -> this.bed;
                 case "broadcast" -> this.broadcast;
                 case "burn" -> this.burn;
                 case "cartography-table" -> this.cartographyTable;
@@ -308,6 +318,7 @@ public final class CommandsConfig {
                 case "fly" -> this.fly;
                 case "fly-speed" -> this.flySpeed;
                 case "grindstone" -> this.grindstone;
+                case "hat" -> this.hat;
                 case "heal" -> this.heal;
                 case "ip" -> this.ip;
                 case "ip-history" -> this.ipHistory;
@@ -315,6 +326,7 @@ public final class CommandsConfig {
                 case "item-lore" -> this.itemLore;
                 case "item-name" -> this.itemName;
                 case "kick" -> this.kick;
+                case "knockback" -> this.knockback;
                 case "look" -> this.look;
                 case "more" -> this.more;
                 case "player-name" -> this.playerName;

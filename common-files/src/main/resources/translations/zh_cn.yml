@@ -45,6 +45,10 @@ command.ban-history.row: '<arg:2> <color:#C7BCE7><arg:0></color> <color:#FFE3A3>
 command.ban-history.title: '<arg:0> 的封禁记录'
 command.ban-history.title-all: '全部封禁记录'
 
+# command.bed
+command.bed.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 没有可以返回的床</color>'
+command.bed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到床边</color>'
+
 # command.broadcast
 command.broadcast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送广播</color>'
 
@@ -160,6 +164,11 @@ command.fly-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 # command.grindstone
 command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开砂轮</color>'
 
+# command.hat
+command.hat.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 头上的物品带有绑定诅咒, 无法摘下</color>'
+command.hat.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手没有物品.</color>'
+command.hat.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 主手的物品戴到头上</color>'
+
 # command.heal
 command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已治疗 <color:#C7BCE7><arg:0></color></color>'
 
@@ -228,6 +237,9 @@ command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 # command.kick
 command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 不在任何服务器上</color>'
 command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 从 <color:#C7BCE7><arg:1></color> 踢出</color>'
+
+# command.knockback
+command.knockback.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已对 <color:#C7BCE7><arg:0></color> 施加击退 <color:#C7BCE7>(<arg:1>, <arg:2>, <arg:3>)</color></color>'
 
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 与朝向目标不在同一个世界</color>'
