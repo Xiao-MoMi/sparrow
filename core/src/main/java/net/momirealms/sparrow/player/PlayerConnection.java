@@ -28,13 +28,11 @@ public final class PlayerConnection {
         this.name = name;
     }
 
-    // 登录时的 UUID
     @NotNull
     public UUID uniqueId() {
         return this.uniqueId;
     }
 
-    // 登录时的玩家名
     @NotNull
     public String name() {
         return this.name;
@@ -56,9 +54,7 @@ public final class PlayerConnection {
     }
 
     /**
-     * 向客户端发送原版 NMS 数据包, 经过连接现有的出站处理器.
-     * 可在任意线程调用, 实际发送在连接的 event loop 执行; 返回不表示客户端已收到.
-     * 玩家 Join 前也可调用, <strong>包的方向和协议阶段必须与连接当前状态匹配</strong>.
+     * 向客户端发送原版 NMS 数据包.
      *
      * @param packet 当前服务端版本的客户端方向 NMS Packet, 调用后交由连接处理
      * @throws IllegalArgumentException 参数不是 NMS Packet
@@ -71,9 +67,7 @@ public final class PlayerConnection {
     }
 
     /**
-     * 模拟客户端发送原版 NMS 数据包, 从原版解码器之后进入入站处理链.
-     * 可在任意线程调用, 实际注入在连接的 event loop 执行, 后续由原版监听器安排处理线程.
-     * 协议切换包会先执行原版的停读和解码器切换准备; 返回不表示服务器已处理完成.
+     * 模拟客户端发送原版 NMS 数据包.
      *
      * @param packet 当前服务端版本的服务端方向 NMS Packet, <strong>必须匹配连接当前协议阶段</strong>
      * @throws IllegalArgumentException 参数不是 NMS Packet
@@ -86,9 +80,7 @@ public final class PlayerConnection {
     }
 
     /**
-     * 向客户端发送当前服务端协议的包 ID 和 payload, 缓冲中不带长度、压缩或加密头.
-     * 线程和完成语义同 {@link #sendPacket(Object)}. 需要推进原版协议状态的包应使用 NMS 入口.
-     * <strong>调用后缓冲所有权交给连接, 调用方不得再修改或释放; 空帧直接释放</strong>.
+     * 向客户端发送当前服务端协议的包 ID 和 payload, 不带长度、压缩或加密头.
      *
      * @param frame 已写入包 ID 和 payload 的可读缓冲
      */
@@ -98,8 +90,6 @@ public final class PlayerConnection {
 
     /**
      * 模拟收到当前服务端协议的包 ID 和 payload, 从原版解码器之前进入入站处理链.
-     * 缓冲中不带长度、压缩或加密头; 线程和完成语义同 {@link #receivePacket(Object)}.
-     * <strong>调用后缓冲所有权交给连接, 调用方不得再修改或释放; 空帧直接释放</strong>.
      *
      * @param frame 与当前入站协议匹配的包 ID 和 payload 缓冲
      */
