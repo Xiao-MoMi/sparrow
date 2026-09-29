@@ -4,8 +4,10 @@ import net.kyori.adventure.util.TriState;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
 import java.util.UUID;
 
 public final class LuckPermsHook {
@@ -28,5 +30,15 @@ public final class LuckPermsHook {
             case FALSE -> TriState.FALSE;
             case UNDEFINED -> TriState.NOT_SET;
         };
+    }
+
+    /**
+     * 在线玩家在当前上下文下已解析好的全部权限节点, 包括继承来的节点.
+     *
+     * @return 节点到权限值的映射, <strong>只读</strong>
+     */
+    @NotNull
+    public Map<String, Boolean> permissionMap(@NotNull Player player) {
+        return this.api.getPlayerAdapter(Player.class).getPermissionData(player).getPermissionMap();
     }
 }
