@@ -89,6 +89,9 @@ command.custom-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 command.custom-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand custom name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
 command.custom-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no custom display name.</color>'
 
+# command.del-warp
+command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Deleted warp <color:#C7BCE7><arg:0></color></color>'
+
 # command.demo
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for <color:#C7BCE7><arg:0></color></color>'
 
@@ -328,6 +331,11 @@ command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 command.server.not_allowed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:0></color> is not allowed</color>'
 command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> to server <color:#C7BCE7><arg:1></color></color>'
 
+# command.set-warp
+command.set-warp.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Created warp <color:#C7BCE7><arg:0></color> at your location</color>'
+command.set-warp.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Warp <color:#C7BCE7><arg:0></color> already exists</color>'
+command.set-warp.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Moved warp <color:#C7BCE7><arg:0></color> to your location</color>'
+
 # command.smithing-table
 command.smithing-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened smithing table for <color:#C7BCE7><arg:0></color></color>'
 
@@ -379,6 +387,20 @@ command.unban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 
 # command.walk-speed
 command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color>''s walk speed to <color:#C7BCE7><arg:1></color></color>'
+
+# command.warp
+command.warp.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending <color:#C7BCE7><arg:0></color> to warp <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:2></color></color>'
+command.warp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The world of warp <color:#C7BCE7><arg:1></color> no longer exists</color>'
+command.warp.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid warp name <color:#F2F4FF><arg:0></color>. Use at most <arg:1> letters, digits, _ or -</color>'
+command.warp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:2></color> of warp <color:#C7BCE7><arg:1></color> is offline</color>'
+command.warp.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not save warp <color:#C7BCE7><arg:0></color>, see the console for details</color>'
+command.warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to warp <color:#C7BCE7><arg:1></color></color>'
+command.warp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target server did not respond within 5 seconds</color>'
+command.warp.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Warp <color:#F2F4FF><arg:0></color> does not exist</color>'
+
+# command.warp-list
+command.warp-list.entry: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9><arg:1> · <arg:2></color> <color:#F2F4FF><arg:3></color>'
+command.warp-list.title: 'Warps'
 
 # command.workbench
 command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened crafting table for <color:#C7BCE7><arg:0></color></color>'

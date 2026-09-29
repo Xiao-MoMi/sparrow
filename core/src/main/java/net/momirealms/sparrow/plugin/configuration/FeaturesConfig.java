@@ -10,6 +10,7 @@ import net.momirealms.sparrow.feature.playerlimit.PlayerLimitSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
+import net.momirealms.sparrow.feature.warp.WarpSettings;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;
@@ -157,6 +158,11 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "使用 /back 回到上一个位置, 包括死亡位置和上一个服务器离开时的位置.")
         private BackSettings back = new BackSettings();
 
+        @BlankLineBefore
+        @Comment("Warps shared by every server, used with /warp, /set-warp, /del-warp and /warp-list.")
+        @Comment(lang = "zh", value = "所有服务器共用的 warp, 使用 /warp、/set-warp、/del-warp 和 /warp-list.")
+        private WarpSettings warp = new WarpSettings();
+
         @NotNull
         public BanSettings ban() {
             return this.ban;
@@ -165,6 +171,11 @@ public final class FeaturesConfig {
         @NotNull
         public BackSettings back() {
             return this.back;
+        }
+
+        @NotNull
+        public WarpSettings warp() {
+            return this.warp;
         }
 
         @NotNull
@@ -215,6 +226,7 @@ public final class FeaturesConfig {
                 case "player-limit" -> this.playerLimit;
                 case "ban" -> this.ban;
                 case "back" -> this.back;
+                case "warp" -> this.warp;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }
