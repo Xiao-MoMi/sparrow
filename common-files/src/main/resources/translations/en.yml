@@ -45,6 +45,10 @@ command.ban-history.row: '<arg:2> <color:#C7BCE7><arg:0></color> <color:#FFE3A3>
 command.ban-history.title: 'Bans of <arg:0>'
 command.ban-history.title-all: 'All bans'
 
+# command.bed
+command.bed.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no bed to return to</color>'
+command.bed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to their bed</color>'
+
 # command.broadcast
 command.broadcast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a broadcast to <color:#C7BCE7><arg:0></color></color>'
 
@@ -160,6 +164,11 @@ command.fly-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 # command.grindstone
 command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened grindstone for <color:#C7BCE7><arg:0></color></color>'
 
+# command.hat
+command.hat.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The helmet of <color:#C7BCE7><arg:0></color> has Curse of Binding and cannot be taken off</color>'
+command.hat.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
+command.hat.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Put the main hand item of <color:#C7BCE7><arg:0></color> on their head</color>'
+
 # command.heal
 command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed <color:#C7BCE7><arg:0></color></color>'
 
@@ -228,6 +237,9 @@ command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 # command.kick
 command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online on any server.</color>'
 command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked <color:#C7BCE7><arg:0></color> from <color:#C7BCE7><arg:1></color>.</color>'
+
+# command.knockback
+command.knockback.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied knockback <color:#C7BCE7>(<arg:1>, <arg:2>, <arg:3>)</color> to <color:#C7BCE7><arg:0></color></color>'
 
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> and the look target are in different worlds</color>'
