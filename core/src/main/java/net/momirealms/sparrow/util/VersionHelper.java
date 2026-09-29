@@ -2,6 +2,7 @@ package net.momirealms.sparrow.util;
 
 import com.google.gson.JsonObject;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import org.bukkit.Bukkit;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -96,6 +97,10 @@ public final class VersionHelper {
 
     private VersionHelper() {}
 
+    public static boolean isBehindProxy() {
+        return ProxyMode.ENABLED;
+    }
+
     public static int parseVersionToInteger(String versionString) {
         int v1 = 0;
         int v2 = 0;
@@ -181,5 +186,13 @@ public final class VersionHelper {
 
     private static boolean checkPurpur() {
         return exists("org.purpurmc.purpur.PurpurConfig");
+    }
+
+    // Paper 与 Folia 同时覆盖两种代理, Spigot 只有 BungeeCord 模式
+    private static final class ProxyMode {
+        @SuppressWarnings({"removal"})
+        private static final boolean ENABLED = hasPaperPatch
+                ? Bukkit.getServerConfig().isProxyEnabled()
+                : Bukkit.spigot().getConfig().getBoolean("settings.bungeecord");
     }
 }

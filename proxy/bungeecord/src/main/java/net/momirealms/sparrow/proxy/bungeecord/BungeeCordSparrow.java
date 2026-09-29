@@ -1,23 +1,46 @@
 package net.momirealms.sparrow.proxy.bungeecord;
 
+import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.momirealms.sparrow.proxy.common.config.ProxyConfig;
-import net.momirealms.sparrow.proxy.common.redis.RedisConnector;
+import net.md_5.bungee.chat.ComponentSerializer;
+import net.momirealms.sparrow.proxy.common.ProxyPlatform;
+import net.momirealms.sparrow.proxy.common.SparrowProxy;
+import net.momirealms.sparrow.proxy.common.logger.ProxyLogger;
+import org.jetbrains.annotations.NotNull;
 
-public final class BungeeCordSparrow extends Plugin {
-    private RedisConnector redis;
+import java.nio.file.Path;
+import java.util.UUID;
+
+public final class BungeeCordSparrow extends Plugin implements ProxyPlatform {
+    private final SparrowProxy sparrow = new SparrowProxy(this);
 
     @Override
     public void onEnable() {
-        ProxyConfig config = ProxyConfig.load(this.getDataFolder().toPath());
-        this.redis = new RedisConnector(config.redis());
-        this.redis.initialize();
-        this.getLogger().info("Connected to Redis");
+        this.sparrow.enable();
     }
 
     @Override
     public void onDisable() {
-        // 读取配置失败时连接器还没有创建
-        if (this.redis != null) this.redis.close();
+        this.sparrow.disable();
+    }
+
+    @Override
+    @NotNull
+    public Path dataFolderPath() {
+        return this.getDataFolder().toPath();
+    }
+
+    // 插件实例创建后才会注入平台日志, 所以按需包装
+    @Override
+    @NotNull
+    public ProxyLogger logger() {
+        return new JavaProxyLogger(this.getLogger());
+    }
+
+    @Override
+    public void disconnect(@NotNull UUID player, @NotNull String jsonReason) {
+        ProxiedPlayer target = this.getProxy().getPlayer(player);
+        if (target == null) return;
+        target.disconnect(ComponentSerializer.deserialize(jsonReason));
     }
 }

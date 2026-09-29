@@ -18,6 +18,7 @@ public final class RedisConnector implements AutoCloseable {
     private RedisClient client;
     private StatefulRedisConnection<byte[], byte[]> connection;
     private PubSubRedisConnection brokerConnection;
+    private int database;
 
     public RedisConnector(@NotNull ProxyConfig.RedisOptions options) {
         this.options = options;
@@ -38,6 +39,7 @@ public final class RedisConnector implements AutoCloseable {
             try {
                 connected.sync().ping();
                 this.brokerConnection = new PubSubRedisConnection(connectedClient);
+                this.database = uri.getDatabase();
                 this.client = connectedClient;
                 this.connection = connected;
             } catch (RuntimeException exception) {
@@ -60,6 +62,10 @@ public final class RedisConnector implements AutoCloseable {
     public StatefulRedisConnection<byte[], byte[]> connection() {
         if (this.connection == null) throw new IllegalStateException("Redis is not initialized");
         return this.connection;
+    }
+
+    public int database() {
+        return this.database;
     }
 
     @NotNull
