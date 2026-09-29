@@ -2,12 +2,11 @@ package net.momirealms.sparrow.feature;
 
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -111,15 +110,18 @@ class PatrolFeatureTest {
     }
 
     private void join(Player player) {
-        PlayerJoinEvent event = mock(PlayerJoinEvent.class);
-        when(event.getPlayer()).thenReturn(player);
-        this.patrol.onJoin(event);
+        this.patrol.onJoin(this.sparrow(player));
     }
 
     private void quit(Player player) {
-        PlayerQuitEvent event = mock(PlayerQuitEvent.class);
-        when(event.getPlayer()).thenReturn(player);
-        this.patrol.onQuit(event);
+        this.patrol.onQuit(this.sparrow(player));
+    }
+
+    private SparrowPlayer sparrow(Player player) {
+        SparrowPlayer sparrow = mock(SparrowPlayer.class);
+        UUID id = player.getUniqueId();
+        when(sparrow.uniqueId()).thenReturn(id);
+        return sparrow;
     }
 
     private static void set(Object target, String name, Object value) throws ReflectiveOperationException {

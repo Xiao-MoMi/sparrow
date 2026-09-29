@@ -1,22 +1,14 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.teleport.TeleportRequest;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
-import net.momirealms.sparrow.plugin.command.parser.ServerParser;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.util.VersionHelper;
-import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
@@ -28,7 +20,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class TpOfflineCommand extends BukkitCommandFeature {
@@ -73,7 +64,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION, Component.text(name));
                         return CompletableFuture.completedFuture(null);
                     }
-                    List<CompletableFuture<Void>> transfers = targets.stream().map(player -> this.teleport(player, data).thenAccept(result -> {
+                    List<CompletableFuture<Void>> transfers = targets.stream().map(player -> this.plugin().playerManager().teleports().transfer(player, data.lastLogoutServer(), data.lastLogoutLocation()).thenAccept(result -> {
                         var message = switch (result) {
                             case SUCCESS -> MessageConstants.COMMAND_TP_OFFLINE_SUCCESS;
                             case CONNECTING -> MessageConstants.COMMAND_TP_OFFLINE_CONNECTING;
@@ -96,36 +87,8 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                 });
     }
 
-    private CompletableFuture<Result> teleport(Player player, PlayerData data) {
-        if (ServerConfig.serverId().equals(data.lastLogoutServer())) {
-            Location location = data.lastLogoutLocation().resolve();
-            if (location == null) return CompletableFuture.completedFuture(Result.INVALID);
-            CompletableFuture<Boolean> teleport = VersionHelper.hasPaperPatch
-                    ? player.teleportAsync(location, TeleportCause.PLUGIN)
-                    : CompletableFuture.supplyAsync(() -> player.teleport(location, TeleportCause.PLUGIN), this.plugin().scheduler().platform());
-            return teleport.thenApply(success -> success ? Result.SUCCESS : Result.FAILED);
-        }
-        return this.plugin().serverHeartBeats().isOnline(data.lastLogoutServer()).thenCompose(online -> {
-            if (!online) return CompletableFuture.completedFuture(Result.SERVER_OFFLINE);
-            return this.plugin().messageBrokerManager().broker().publishTwoWay(new TeleportRequest(player.getUniqueId(), data.lastLogoutLocation()), data.lastLogoutServer())
-                    .orTimeout(5, TimeUnit.SECONDS).thenApply(response -> {
-                        if (!response.accepted()) return Result.INVALID;
-                        if (!player.isOnline()) return Result.FAILED;
-                        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                        out.writeUTF("Connect");
-                        out.writeUTF(data.lastLogoutServer());
-                        player.sendPluginMessage(this.plugin().javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
-                        return Result.CONNECTING;
-                    });
-        });
-    }
-
     @Override
     public String getFeatureID() {
         return "tp-offline";
-    }
-
-    private enum Result {
-        SUCCESS, CONNECTING, SERVER_OFFLINE, INVALID, FAILED
     }
 }

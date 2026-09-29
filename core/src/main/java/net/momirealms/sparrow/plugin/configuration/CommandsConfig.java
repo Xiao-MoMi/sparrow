@@ -247,6 +247,9 @@ public final class CommandsConfig {
         CommandConfig world = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"), DependencyVersions.PROJECT_ID + ".command.world");
 
         // feature: 模块自带的命令, 插件启用时全部注册, 模块未启用时对玩家隐藏, 按模块 ID 排序
+        @BlankLineBefore
+        CommandConfig back = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " back", "/back"), DependencyVersions.PROJECT_ID + ".command.back");
+
         // ban 模块
         @BlankLineBefore
         CommandConfig ban = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " ban", "/ban"), DependencyVersions.PROJECT_ID + ".command.ban");
@@ -344,6 +347,7 @@ public final class CommandsConfig {
                 case "workbench" -> this.workbench;
                 case "world" -> this.world;
                 // feature
+                case "back" -> this.back;
                 case "ban" -> this.ban;
                 case "ban-history" -> this.banHistory;
                 case "ban-ip" -> this.banIp;
