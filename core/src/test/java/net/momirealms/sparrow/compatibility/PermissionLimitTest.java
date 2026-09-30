@@ -35,6 +35,18 @@ class PermissionLimitTest {
     }
 
     @Test
+    void minimumTakesTheLowestNodeEvenAboveTheDefault() {
+        this.grant("sparrow.teleport-warmup.5", "sparrow.teleport-warmup.2");
+        assertEquals(2, this.compatibility.permissionMinimum(this.player, "sparrow.teleport-warmup", 3));
+        this.grant("sparrow.teleport-warmup.10");
+        assertEquals(10, this.compatibility.permissionMinimum(this.player, "sparrow.teleport-warmup", 3));
+        this.grant("sparrow.teleport-warmup.0", "sparrow.teleport-warmup.abc");
+        assertEquals(0, this.compatibility.permissionMinimum(this.player, "sparrow.teleport-warmup", 3));
+        this.grant();
+        assertEquals(3, this.compatibility.permissionMinimum(this.player, "sparrow.teleport-warmup", 3));
+    }
+
+    @Test
     void unlimitedWinsOverNumericNodes() {
         this.grant("sparrow.max-homes.3");
         when(this.player.hasPermission(NODE + ".unlimited")).thenReturn(true);

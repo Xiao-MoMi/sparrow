@@ -57,7 +57,7 @@ public final class KickMessage extends OneWayMessage<ByteBuf> {
         if (target == null) return;
         Component reason = this.reason.isEmpty() ? MessageConstants.KICK_REASON_NONE.build() : Component.text(this.reason);
         // 文本在当前线程按玩家语言渲染, 踢出放到玩家所属线程
-        Component screen = plugin.translationManager().renderNested(MessageConstants.KICK_SCREEN.build().arguments(reason, Component.text(this.operatorName)), target.locale());
+        Component screen = target.translate(MessageConstants.KICK_SCREEN, reason, Component.text(this.operatorName));
         plugin.scheduler().platform().run(() -> target.kick(screen), () -> {}, target.platformPlayer());
     }
 }

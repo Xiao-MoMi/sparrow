@@ -1,11 +1,13 @@
 package net.momirealms.sparrow.player;
 
 import com.mojang.datafixers.util.Pair;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
 import net.momirealms.sparrow.advancement.ToastPackets;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.network.protocol.game.ClientboundGameTestHighlightPosPacket;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -17,7 +19,11 @@ import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.network.protocol.game.ClientboundSoundEntityPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.component.DeathProtection;
@@ -184,6 +190,29 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
         }
         packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.OFFHAND, offHand))));
         this.connection.sendPacket(new ClientboundBundlePacket(packets));
+    }
+
+    @Override
+    public void playSound(@NotNull Sound sound) {
+        Holder<SoundEvent> event = Holder.direct(SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value())));
+        long seed = sound.seed().orElseGet(() -> ThreadLocalRandom.current().nextLong());
+        this.connection.sendPacket(new ClientboundSoundEntityPacket(event, source(sound.source()), this.nmsPlayer, sound.volume(), sound.pitch(), seed));
+    }
+
+    private static SoundSource source(Sound.Source source) {
+        return switch (source) {
+            case MASTER -> SoundSource.MASTER;
+            case MUSIC -> SoundSource.MUSIC;
+            case RECORD -> SoundSource.RECORDS;
+            case WEATHER -> SoundSource.WEATHER;
+            case BLOCK -> SoundSource.BLOCKS;
+            case HOSTILE -> SoundSource.HOSTILE;
+            case NEUTRAL -> SoundSource.NEUTRAL;
+            case PLAYER -> SoundSource.PLAYERS;
+            case AMBIENT -> SoundSource.AMBIENT;
+            case VOICE -> SoundSource.VOICE;
+            case UI -> SoundSource.UI;
+        };
     }
 
     @Override

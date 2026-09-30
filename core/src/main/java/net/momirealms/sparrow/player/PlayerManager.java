@@ -13,6 +13,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.command.parser.ServerParser;
 import net.momirealms.sparrow.player.teleport.TeleportManager;
+import net.momirealms.sparrow.player.teleport.TeleportService;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
@@ -43,6 +44,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final SparrowPlugin plugin;
     private final ClusterRoster cluster;
     private final TeleportManager teleports;
+    private final TeleportService teleportService;
     private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>(); // 配置阶段起登记, 连接关闭或退出时移除
     private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();     // Join 时创建, 退出时移除
     private final List<PlayerListener> listeners = new CopyOnWriteArrayList<>();
@@ -51,6 +53,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.plugin = plugin;
         this.cluster = new ClusterRoster(plugin, this);
         this.teleports = new TeleportManager(plugin);
+        this.teleportService = new TeleportService(plugin, this.teleports);
     }
 
     public void onEnable() {
@@ -60,6 +63,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         Listener loginListener = VersionHelper.hasPaperPatch ? new PaperLoginListener(this) : new SpigotLoginListener(this);
         javaPlugin.getServer().getPluginManager().registerEvents(loginListener, javaPlugin);
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
+        javaPlugin.getServer().getPluginManager().registerEvents(this.teleportService, javaPlugin);
         this.cluster.onEnable();
     }
 
@@ -121,6 +125,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         if (leaving != null) {
             for (PlayerListener listener : this.listeners) listener.onQuit(leaving);
         }
+        this.teleportService.onQuit(player.getUniqueId());
         String name = player.getName();
         this.plugin.dataStorage()
                 .saveLogout(player.getUniqueId(), name, System.currentTimeMillis(), ServerConfig.serverId(), WorldLocation.from(player.getLocation()))
@@ -152,6 +157,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     // 需要在 Redis 连接关闭前调用
     @ApiStatus.Internal
     public void shutdown() {
+        this.teleportService.shutdown();
         this.teleports.shutdown();
         this.cluster.shutdown();
         for (Channel channel : this.connections.keys()) {
@@ -231,6 +237,16 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @NotNull
     public TeleportManager teleports() {
         return this.teleports;
+    }
+
+    /**
+     * 带冷却与预热的传送服务
+     *
+     * @return 传送服务
+     */
+    @NotNull
+    public TeleportService teleportService() {
+        return this.teleportService;
     }
 
     /**

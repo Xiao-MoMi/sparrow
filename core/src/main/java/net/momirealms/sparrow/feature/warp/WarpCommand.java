@@ -2,6 +2,7 @@ package net.momirealms.sparrow.feature.warp;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.teleport.TeleportOptions;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -10,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
@@ -25,13 +27,15 @@ public final class WarpCommand extends BukkitCommandFeature {
         this.feature = feature;
     }
 
-    // 名称用贪婪参数, 中文名称不受 Brigadier 单词规则限制; 送别人过去需要额外的 .other 权限
+    // 名称用贪婪参数, 中文名称不受 Brigadier 单词规则限制; 送别人过去、指定预热和跳过检查各需要额外的权限
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         String permission = this.plugin().configurationManager().commandsConfig().configDefinition().command(this.getFeatureID()).getPermission();
         return builder.required("name", StringParser.greedyFlagYieldingStringParser(),
                         SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.remainingInput())))
                 .flag(manager.flagBuilder("player").withAliases("p").withComponent(PlayerParser.playerParser()).withPermission(permission + ".other"))
+                .flag(manager.flagBuilder("warmup").withComponent(IntegerParser.integerParser(0)).withPermission(permission + ".warmup"))
+                .flag(manager.flagBuilder("ignore-check").withPermission(permission + ".ignore-check"))
                 .handler(this::execute);
     }
 
@@ -48,14 +52,21 @@ public final class WarpCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;
         }
-        this.plugin().playerManager().teleports().transfer(target, warp.server(), warp.location()).thenAccept(result -> {
+        TeleportOptions options = this.feature.config().teleportOptions().resolve(target,
+                target == context.sender(),
+                context.flags().getValue("warmup", null),
+                context.flags().hasFlag("ignore-check"));
+        this.plugin().playerManager().teleportService().teleport(target, warp.server(), warp.location(), options).thenAccept(result -> {
             var message = switch (result) {
                 case SUCCESS -> MessageConstants.COMMAND_WARP_SUCCESS;
                 case CONNECTING -> MessageConstants.COMMAND_WARP_CONNECTING;
                 case SERVER_OFFLINE -> MessageConstants.COMMAND_WARP_SERVER_OFFLINE;
                 case INVALID -> MessageConstants.COMMAND_WARP_INVALID;
                 case FAILED -> MessageConstants.COMMAND_TELEPORT_FAILURE;
+                // 冷却与取消的原因已经提示给玩家本人
+                case COOLDOWN, CANCELLED -> null;
             };
+            if (message == null) return;
             this.handleFeedback(context, message, Component.text(target.getName()), Component.text(warp.name()), Component.text(warp.server()));
         }).exceptionally(error -> {
             Throwable cause = error instanceof CompletionException ? error.getCause() : error;

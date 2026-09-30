@@ -479,3 +479,9 @@ log.translation.read_failed: '读取语言文件失败：<arg:0>'
 # maintenance
 maintenance.boss_bar: '<color:#FFE3A3>服务器维护中</color>'
 maintenance.kick: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>服务器正在维护，请稍后再来</color>'
+
+# teleport
+teleport.cancelled.damaged: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你受到了伤害, 传送已取消</color>'
+teleport.cancelled.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你移动了, 传送已取消</color>'
+teleport.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送冷却中, 还需等待 <color:#F2F4FF><arg:0></color> 秒</color>'
+teleport.warmup: '<color:#FFE3A3><color:#F2F4FF><arg:0></color> 秒后传送, 请不要移动</color>'

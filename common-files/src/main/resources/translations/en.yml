@@ -479,3 +479,9 @@ log.translation.read_failed: 'Failed to read translation file: <arg:0>'
 # maintenance
 maintenance.boss_bar: '<color:#FFE3A3>Server under maintenance</color>'
 maintenance.kick: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>The server is under maintenance. Please come back later.</color>'
+
+# teleport
+teleport.cancelled.damaged: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You took damage, the teleport was cancelled</color>'
+teleport.cancelled.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You moved, the teleport was cancelled</color>'
+teleport.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can teleport again in <color:#F2F4FF><arg:0></color> seconds</color>'
+teleport.warmup: '<color:#FFE3A3>Teleporting in <color:#F2F4FF><arg:0></color> seconds, do not move</color>'
