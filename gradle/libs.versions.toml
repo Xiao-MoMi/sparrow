@@ -3,9 +3,9 @@
 project-version = "26.9-SNAPSHOT-2"
 config-version = "2"
 commands-config-version = "3"
-features-config-version = "2"
+features-config-version = "3"
 server-config-version = "1"
-lang-version = "14"
+lang-version = "15"
 proxy-config-version = "1"
 
 # Database

@@ -1,9 +1,8 @@
 package net.momirealms.sparrow.player.teleport;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.minecraft.SharedConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
+import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -48,16 +47,12 @@ class TeleportManagerTest {
         SharedConstants.tryDetectVersion();
         SparrowPlugin plugin = mock(SparrowPlugin.class);
         PlayerManager players = mock(PlayerManager.class);
-        TranslationManager translations = mock(TranslationManager.class);
         BukkitSparrowPlayer receiver = mock(BukkitSparrowPlayer.class);
         Player player = mock(Player.class);
         UUID uuid = UUID.randomUUID();
         when(player.getUniqueId()).thenReturn(uuid);
         when(plugin.playerManager()).thenReturn(players);
-        when(plugin.translationManager()).thenReturn(translations);
         when(players.getPlayer(player)).thenReturn(receiver);
-        Component feedback = Component.text("invalid");
-        when(translations.render(any(TranslatableComponent.Builder.class), any())).thenReturn(feedback);
         TeleportManager manager = new TeleportManager(plugin);
         World world = mock(World.class);
         when(world.getName()).thenReturn("world");
@@ -70,9 +65,9 @@ class TeleportManagerTest {
             bukkit.when(() -> Bukkit.getWorld("world")).thenReturn(null);
             assertNull(manager.consumeSpawn(uuid));
             manager.onJoin(player);
-            verify(receiver).sendMessage(feedback);
+            verify(receiver).sendMessage(same(MessageConstants.COMMAND_TP_OFFLINE_INVALID), any(Component[].class));
             manager.onJoin(player);
-            verify(receiver, times(1)).sendMessage(feedback);
+            verify(receiver, times(1)).sendMessage(same(MessageConstants.COMMAND_TP_OFFLINE_INVALID), any(Component[].class));
         }
     }
 }

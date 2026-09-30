@@ -83,20 +83,42 @@ public final class CompatibilityManager {
      */
     public int permissionLimit(@NotNull Player player, @NotNull String node, int defaultValue) {
         if (player.hasPermission(node + ".unlimited")) return UNLIMITED;
-        String prefix = node + ".";
-        int highest = -1;
+        int highest = this.permissionValue(player, node + ".", true);
+        return highest < 0 ? defaultValue : highest;
+    }
+
+    /**
+     * 读取在线玩家 {@code <node>.<数字>} 形式的数值并取最小的一个.
+     *
+     * @param node 不带数字的节点, 例如 {@code sparrow.teleport-warmup}
+     */
+    public int permissionMinimum(@NotNull Player player, @NotNull String node, int defaultValue) {
+        int lowest = this.permissionValue(player, node + ".", false);
+        return lowest < 0 ? defaultValue : lowest;
+    }
+
+    // 扫描 prefix 后接非负整数且值为 true 的节点, 返回其中最大或最小的数, 没有时返回 -1
+    private int permissionValue(Player player, String prefix, boolean highest) {
+        int result = -1;
         // 有 LuckPerms 时读它缓存好的权限表, 继承与上下文已经算好
         LuckPermsHook hook = this.luckPerms;
         if (hook != null) {
             for (Map.Entry<String, Boolean> entry : hook.permissionMap(player).entrySet()) {
-                if (entry.getValue()) highest = Math.max(highest, suffixValue(entry.getKey(), prefix));
+                if (entry.getValue()) result = pick(result, suffixValue(entry.getKey(), prefix), highest);
             }
         } else {
             for (PermissionAttachmentInfo info : player.getEffectivePermissions()) {
-                if (info.getValue()) highest = Math.max(highest, suffixValue(info.getPermission(), prefix));
+                if (info.getValue()) result = pick(result, suffixValue(info.getPermission(), prefix), highest);
             }
         }
-        return highest < 0 ? defaultValue : highest;
+        return result;
+    }
+
+    // -1 表示没有值, 不参与比较
+    private static int pick(int current, int candidate, boolean highest) {
+        if (candidate < 0) return current;
+        if (current < 0) return candidate;
+        return highest ? Math.max(current, candidate) : Math.min(current, candidate);
     }
 
     // 节点以 prefix 开头且其余部分是非负整数时返回该整数, 否则返回 -1

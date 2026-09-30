@@ -78,6 +78,10 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_SET_WARP_MOVED = Component.translatable().key("command.set-warp.moved");
     TranslatableComponent.Builder COMMAND_SET_WARP_EXISTS = Component.translatable().key("command.set-warp.exists");
     TranslatableComponent.Builder COMMAND_DEL_WARP_SUCCESS = Component.translatable().key("command.del-warp.success");
+    TranslatableComponent.Builder TELEPORT_WARMUP = Component.translatable().key("teleport.warmup");
+    TranslatableComponent.Builder TELEPORT_COOLDOWN = Component.translatable().key("teleport.cooldown");
+    TranslatableComponent.Builder TELEPORT_CANCELLED_MOVED = Component.translatable().key("teleport.cancelled.moved");
+    TranslatableComponent.Builder TELEPORT_CANCELLED_DAMAGED = Component.translatable().key("teleport.cancelled.damaged");
     TranslatableComponent.Builder COMMAND_BED_SUCCESS = Component.translatable().key("command.bed.success");
     TranslatableComponent.Builder COMMAND_BED_MISSING = Component.translatable().key("command.bed.missing");
     TranslatableComponent.Builder COMMAND_HAT_SUCCESS = Component.translatable().key("command.hat.success");

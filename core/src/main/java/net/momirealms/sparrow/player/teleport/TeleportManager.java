@@ -95,7 +95,7 @@ public final class TeleportManager {
         Arrival arrival = this.arrivals.asMap().remove(player.getUniqueId());
         if (arrival != null && arrival.invalid) {
             SparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
-            receiver.sendMessage(this.plugin.translationManager().render(MessageConstants.COMMAND_TP_OFFLINE_INVALID, receiver.locale()));
+            receiver.sendMessage(MessageConstants.COMMAND_TP_OFFLINE_INVALID);
         }
     }
 

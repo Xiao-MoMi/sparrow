@@ -1,5 +1,7 @@
 package net.momirealms.sparrow.plugin.configuration;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -13,6 +15,7 @@ import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.YamlProperty;
 import net.momirealms.sparrow.yaml.upgrade.YamlUpgradePipeline;
 import net.momirealms.sparrow.yaml.upgrade.version.FieldVersionExtractor;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -91,6 +94,11 @@ public final class PluginConfig {
         @Comment("Default text parsing options for actionbar, broadcast, title and toast commands.")
         @Comment(lang = "zh", value = "ActionBar、广播、标题和进度提示命令的默认文本解析选项.")
         TextOptions textOptions = new TextOptions();
+
+        @BlankLineBefore
+        @Comment("How teleport warmups look and sound. Warmup and cooldown seconds are set by each feature.")
+        @Comment(lang = "zh", value = "传送预热的显示与音效. 预热和冷却秒数由各功能自己设置.")
+        TeleportDisplay teleport = new TeleportDisplay();
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -245,8 +253,58 @@ public final class PluginConfig {
         }
     }
 
+    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
+    public static class TeleportDisplay {
+        @Comment("Where the warmup countdown is shown: ACTION_BAR, TITLE, CHAT or NONE.")
+        @Comment(lang = "zh", value = "预热倒计时显示的位置: ACTION_BAR (动作栏)、TITLE (屏幕中央)、CHAT (聊天栏) 或 NONE (不显示).")
+        WarmupDisplay warmupDisplay = WarmupDisplay.ACTION_BAR;
+
+        @Comment("Sound keys, such as entity.enderman.teleport. Leave empty to play nothing.")
+        @Comment(lang = "zh", value = "音效名称, 例如 entity.enderman.teleport. 留空表示不播放.")
+        String warmupSound = "block.note_block.banjo";
+        String completeSound = "entity.enderman.teleport";
+        String cancelSound = "entity.item.break";
+
+        public WarmupDisplay warmupDisplay() {
+            return this.warmupDisplay;
+        }
+
+        @Nullable
+        public Sound warmupSound() {
+            return sound(this.warmupSound);
+        }
+
+        @Nullable
+        public Sound completeSound() {
+            return sound(this.completeSound);
+        }
+
+        @Nullable
+        public Sound cancelSound() {
+            return sound(this.cancelSound);
+        }
+
+        // 留空或不是合法的键时不播放
+        @Nullable
+        private static Sound sound(String key) {
+            if (key.isEmpty() || !Key.parseable(key)) return null;
+            return Sound.sound(Key.key(key), Sound.Source.MASTER, 1.0f, 1.0f);
+        }
+    }
+
+    public enum WarmupDisplay {
+        ACTION_BAR,
+        TITLE,
+        CHAT,
+        NONE
+    }
+
     public static TextOptions text() {
         return config.textOptions;
+    }
+
+    public static TeleportDisplay teleport() {
+        return config.teleport;
     }
 
     public static RedisOptions redis() {

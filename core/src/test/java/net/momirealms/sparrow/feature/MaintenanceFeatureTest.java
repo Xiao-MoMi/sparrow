@@ -193,6 +193,8 @@ class MaintenanceFeatureTest {
         when(player.name()).thenReturn(name);
         when(player.uniqueId()).thenReturn(UUID.randomUUID());
         when(player.locale()).thenReturn(Locale.ROOT);
+        // 翻译结果为翻译键本身
+        when(player.translate(any(), any(Component[].class))).thenAnswer(invocation -> Component.text(((TranslatableComponent) invocation.<TranslatableComponent.Builder>getArgument(0).asComponent()).key()));
         when(player.hasPermission(MaintenanceFeature.BYPASS_PERMISSION)).thenReturn(bypass);
         ServerPlayer handle = mock(ServerPlayer.class);
         when(handle.getBukkitEntity()).thenReturn(mock(CraftPlayer.class));

@@ -2,7 +2,10 @@ package net.momirealms.sparrow.feature.warp;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.teleport.TransferResult;
+import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.player.teleport.TeleportResult;
+import net.momirealms.sparrow.player.teleport.TeleportService;
+import net.momirealms.sparrow.player.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
@@ -38,6 +41,7 @@ class WarpCommandsTest {
     private final SparrowPlugin plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
     private final CommandManager feedback = mock(CommandManager.class);
     private final Player player = mock(Player.class);
+    private final TeleportService teleport = mock(TeleportService.class);
     private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
         @Override
         public boolean hasPermission(CommandSender sender, String permission) {
@@ -45,12 +49,11 @@ class WarpCommandsTest {
         }
     };
     private MockedStatic<ServerConfig> serverConfig;
+    private MockedStatic<SparrowPlugin> pluginInstance;
     private WarpFeature feature;
 
     @BeforeEach
     void setUp() {
-        this.serverConfig = mockStatic(ServerConfig.class);
-        this.serverConfig.when(ServerConfig::serverId).thenReturn("lobby");
         when(this.plugin.configurationManager().featuresConfig().config().warp()).thenReturn(this.settings);
         when(this.plugin.dataStorage().warpStore()).thenReturn(this.store);
         PlatformExecutor platform = this.plugin.scheduler().platform();
@@ -58,13 +61,20 @@ class WarpCommandsTest {
             invocation.<Runnable>getArgument(0).run();
             return null;
         }).when(platform).run(any(Runnable.class), any(Runnable.class), any(Entity.class));
-        when(this.plugin.playerManager().teleports().transfer(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(TransferResult.SUCCESS));
+        when(this.plugin.playerManager().teleportService()).thenReturn(this.teleport);
+        when(this.plugin.compatibilityManager().permissionMinimum(any(), any(), anyInt())).thenAnswer(invocation -> invocation.getArgument(2));
+        when(this.teleport.teleport(any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(TeleportResult.SUCCESS));
         World world = mock(World.class);
         when(world.getName()).thenReturn("world");
         when(this.player.getName()).thenReturn("Steve");
         when(this.player.getUniqueId()).thenReturn(UUID.randomUUID());
         when(this.player.getLocation()).thenReturn(new Location(world, 10.5, 70, -3.25, 45, 10));
         this.store.put(warp("Spawn", "lobby"), warp("Shop", "survival"), warp("shrine", "lobby"), warp("矿场", "survival"));
+        // 静态模拟放在最后创建, 前面的配置出错时不会遗留给其他测试
+        this.serverConfig = mockStatic(ServerConfig.class);
+        this.serverConfig.when(ServerConfig::serverId).thenReturn("lobby");
+        this.pluginInstance = mockStatic(SparrowPlugin.class);
+        this.pluginInstance.when(SparrowPlugin::instance).thenReturn(this.plugin);
         this.feature = new WarpFeature(this.plugin);
         this.feature.loadConfig();
         this.feature.onLoad();
@@ -78,6 +88,7 @@ class WarpCommandsTest {
     void tearDown() {
         this.feature.onDisable();
         this.serverConfig.close();
+        this.pluginInstance.close();
     }
 
     @Test
@@ -93,7 +104,7 @@ class WarpCommandsTest {
     void teleportsToWarpsIncludingChineseNames() {
         this.execute(this.player, "warp 矿场");
         Warp mine = this.feature.registry().get("矿场");
-        verify(this.plugin.playerManager().teleports()).transfer(this.player, "survival", mine.location());
+        verify(this.teleport).teleport(this.player, "survival", mine.location(), this.settings.teleportOptions());
         this.verifyFeedback(this.player, MessageConstants.COMMAND_WARP_SUCCESS);
         // 不存在的 warp 不会传送
         this.execute(this.player, "warp nowhere");
@@ -105,13 +116,22 @@ class WarpCommandsTest {
     }
 
     @Test
+    void passesWarmupAndIgnoreCheckFlags() {
+        this.execute(this.player, "warp 矿场 --warmup 5 --ignore-check");
+        verify(this.teleport).teleport(any(), any(), any(), eq(new TeleportOptions(TeleportType.WARP, 5, 0, true, true)));
+        // 预热秒数不能为负
+        assertThrows(java.util.concurrent.CompletionException.class, () -> this.execute(this.player, "warp 矿场 --warmup -1"));
+        verify(this.teleport, times(1)).teleport(any(), any(), any(), any());
+    }
+
+    @Test
     void hidesWarpsWithoutPermissionWhenRestricted() throws Exception {
         set(this.settings, "permissionRestrict", true);
         when(this.player.hasPermission(WarpFeature.PERMISSION_PREFIX + "shop")).thenReturn(true);
         assertEquals(List.of("Shop"), this.suggest("warp s"));
         this.execute(this.player, "warp spawn");
         this.verifyFeedback(this.player, MessageConstants.COMMAND_WARP_UNKNOWN);
-        verify(this.plugin.playerManager().teleports(), never()).transfer(any(), any(), any());
+        verify(this.teleport, never()).teleport(any(), any(), any(), any());
     }
 
     @Test

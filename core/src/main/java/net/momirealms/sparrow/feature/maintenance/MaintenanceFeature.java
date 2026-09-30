@@ -132,7 +132,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
         }
         // 无权限, 踢出.
         else {
-            player.kickFromServer(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, player.locale()));
+            player.kickFromServer(player.translate(MessageConstants.MAINTENANCE_KICK));
         }
     }
 
@@ -140,7 +140,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     private void showBossBar(SparrowPlayer player) {
         MaintenanceSettings.BossBarOptions options = this.config.bossBar();
         if (!options.enabled() || !this.bossBarViewers.add(player.uniqueId())) return;
-        Component title = this.plugin.translationManager().render(MessageConstants.MAINTENANCE_BOSS_BAR, player.locale());
+        Component title = player.translate(MessageConstants.MAINTENANCE_BOSS_BAR);
         player.showBossBar(this.bossBarId, title, 1.0f, options.color(), options.overlay());
     }
 }
