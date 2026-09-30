@@ -390,11 +390,13 @@ command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 
 # command.warp
 command.warp.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在将 <color:#C7BCE7><arg:0></color> 送往 <color:#C7BCE7><arg:2></color> 上的 warp <color:#C7BCE7><arg:1></color></color>'
+command.warp.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在前往 <color:#C7BCE7><arg:2></color> 上的 warp <color:#C7BCE7><arg:1></color></color>'
 command.warp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#C7BCE7><arg:1></color> 所在的世界已不存在</color>'
 command.warp.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp 名称 <color:#F2F4FF><arg:0></color> 无效, 最多 <arg:1> 个字, 只能使用文字、数字、_ 和 -</color>'
 command.warp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#C7BCE7><arg:1></color> 所在的服务器 <color:#F2F4FF><arg:2></color> 不在线</color>'
 command.warp.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法保存 warp <color:#C7BCE7><arg:0></color>, 详情见控制台</color>'
 command.warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到 warp <color:#C7BCE7><arg:1></color></color>'
+command.warp.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到 warp <color:#C7BCE7><arg:1></color></color>'
 command.warp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标服务器未在 5 秒内响应</color>'
 command.warp.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#F2F4FF><arg:0></color> 不存在</color>'
 

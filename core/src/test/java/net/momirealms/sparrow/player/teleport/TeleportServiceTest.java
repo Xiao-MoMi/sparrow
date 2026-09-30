@@ -20,8 +20,10 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -93,9 +95,25 @@ class TeleportServiceTest {
         this.location = new Location(this.world, 0.3, 64, 0.3);
         this.tick(1);
         assertEquals(TeleportResult.SUCCESS, result.join());
-        verify(this.teleports).transfer(this.player, "lobby", DESTINATION);
+        // 先清掉动作栏上的倒计时再传送
+        InOrder order = inOrder(this.receiver, this.teleports);
+        order.verify(this.receiver).sendActionBar(Component.empty());
+        order.verify(this.teleports).transfer(this.player, "lobby", DESTINATION);
         verify(this.receiver).playSound(this.display.completeSound());
         verify(this.task).cancel();
+    }
+
+    @Test
+    void clearsTitleCountdownWhenFinished() throws ReflectiveOperationException {
+        Field display = PluginConfig.TeleportDisplay.class.getDeclaredField("warmupDisplay");
+        display.setAccessible(true);
+        display.set(this.display, PluginConfig.WarmupDisplay.TITLE);
+        CompletableFuture<TeleportResult> result = this.service.teleport(this.player, "lobby", DESTINATION, options(3, 0, true, true));
+        this.location = new Location(this.world, 1, 64, 0);
+        this.tick(1);
+        assertEquals(TeleportResult.CANCELLED, result.join());
+        verify(this.receiver).clearTitle();
+        verify(this.receiver, never()).sendActionBar(any(Component.class));
     }
 
     @Test

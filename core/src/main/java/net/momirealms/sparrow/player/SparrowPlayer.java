@@ -72,6 +72,8 @@ public interface SparrowPlayer {
 
     void sendTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut);
 
+    void clearTitle();
+
     void playSound(@NotNull Sound sound);
 
     void showBossBar(@NotNull UUID id, @NotNull Component title, float progress, @NotNull BossEvent.BossBarColor color, @NotNull BossEvent.BossBarOverlay overlay);
