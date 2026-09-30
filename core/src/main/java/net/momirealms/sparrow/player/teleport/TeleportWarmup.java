@@ -92,6 +92,18 @@ final class TeleportWarmup {
     private boolean stop(boolean completed) {
         if (this.task != null) this.task.cancel();
         this.service.finished(this.player.uniqueId(), this);
+        if (this.result.isDone()) return false;
+        this.clearCountdown();
         return this.result.complete(completed);
+    }
+
+    // 主动清除动作栏和标题
+    private void clearCountdown() {
+        switch (PluginConfig.teleport().warmupDisplay()) {
+            case ACTION_BAR -> this.player.sendActionBar(Component.empty());
+            case TITLE -> this.player.clearTitle();
+            case CHAT, NONE -> {
+            }
+        }
     }
 }

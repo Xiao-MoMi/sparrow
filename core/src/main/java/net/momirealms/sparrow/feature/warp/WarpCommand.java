@@ -52,14 +52,15 @@ public final class WarpCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;
         }
+        boolean self = target == context.sender();
         TeleportOptions options = this.feature.config().teleportOptions().resolve(target,
-                target == context.sender(),
+                self,
                 context.flags().getValue("warmup", null),
                 context.flags().hasFlag("ignore-check"));
         this.plugin().playerManager().teleportService().teleport(target, warp.server(), warp.location(), options).thenAccept(result -> {
             var message = switch (result) {
-                case SUCCESS -> MessageConstants.COMMAND_WARP_SUCCESS;
-                case CONNECTING -> MessageConstants.COMMAND_WARP_CONNECTING;
+                case SUCCESS -> self ? MessageConstants.COMMAND_WARP_SUCCESS_SELF : MessageConstants.COMMAND_WARP_SUCCESS;
+                case CONNECTING -> self ? MessageConstants.COMMAND_WARP_CONNECTING_SELF : MessageConstants.COMMAND_WARP_CONNECTING;
                 case SERVER_OFFLINE -> MessageConstants.COMMAND_WARP_SERVER_OFFLINE;
                 case INVALID -> MessageConstants.COMMAND_WARP_INVALID;
                 case FAILED -> MessageConstants.COMMAND_TELEPORT_FAILURE;

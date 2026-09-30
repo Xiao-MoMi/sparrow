@@ -67,7 +67,9 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_BACK_INVALID = Component.translatable().key("command.back.invalid");
     TranslatableComponent.Builder COMMAND_BACK_TIMEOUT = Component.translatable().key("command.back.timeout");
     TranslatableComponent.Builder COMMAND_WARP_SUCCESS = Component.translatable().key("command.warp.success");
+    TranslatableComponent.Builder COMMAND_WARP_SUCCESS_SELF = Component.translatable().key("command.warp.success-self");
     TranslatableComponent.Builder COMMAND_WARP_CONNECTING = Component.translatable().key("command.warp.connecting");
+    TranslatableComponent.Builder COMMAND_WARP_CONNECTING_SELF = Component.translatable().key("command.warp.connecting-self");
     TranslatableComponent.Builder COMMAND_WARP_UNKNOWN = Component.translatable().key("command.warp.unknown");
     TranslatableComponent.Builder COMMAND_WARP_SERVER_OFFLINE = Component.translatable().key("command.warp.server-offline");
     TranslatableComponent.Builder COMMAND_WARP_INVALID = Component.translatable().key("command.warp.invalid");

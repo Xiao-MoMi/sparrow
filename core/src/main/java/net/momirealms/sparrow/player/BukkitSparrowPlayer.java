@@ -13,6 +13,7 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBossEventPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundClearTitlesPacket;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
@@ -157,6 +158,11 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
                 new ClientboundSetSubtitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(subtitle))),
                 new ClientboundSetTitlesAnimationPacket(fadeIn, stay, fadeOut)
         )));
+    }
+
+    @Override
+    public void clearTitle() {
+        this.connection.sendPacket(new ClientboundClearTitlesPacket(true));
     }
 
     @Override

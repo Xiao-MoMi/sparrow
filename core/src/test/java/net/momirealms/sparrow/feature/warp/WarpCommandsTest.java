@@ -105,7 +105,7 @@ class WarpCommandsTest {
         this.execute(this.player, "warp 矿场");
         Warp mine = this.feature.registry().get("矿场");
         verify(this.teleport).teleport(this.player, "survival", mine.location(), this.settings.teleportOptions());
-        this.verifyFeedback(this.player, MessageConstants.COMMAND_WARP_SUCCESS);
+        this.verifyFeedback(this.player, MessageConstants.COMMAND_WARP_SUCCESS_SELF);
         // 不存在的 warp 不会传送
         this.execute(this.player, "warp nowhere");
         this.verifyFeedback(this.player, MessageConstants.COMMAND_WARP_UNKNOWN);
