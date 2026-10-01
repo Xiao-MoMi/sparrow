@@ -36,14 +36,16 @@ public final class LookCommand extends BukkitCommandFeature {
     // face <方向>, location <坐标>, entity <实体> 三种朝向方式各是一条子命令, 目标放在最后, 省略时调整自己
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(this.withTargets(builder.literal("location").required("location", LocationParser.locationParser())));
-        manager.command(this.withTargets(builder.literal("entity").required("entity", SingleEntitySelectorParser.singleEntitySelectorParser())));
-        manager.command(this.withTargets(builder.literal("face").required("face", EnumParser.enumParser(BlockFace.class))));
+        this.registerWithTargets(manager, builder.literal("location").required("location", LocationParser.locationParser()));
+        this.registerWithTargets(manager, builder.literal("entity").required("entity", SingleEntitySelectorParser.singleEntitySelectorParser()));
+        this.registerWithTargets(manager, builder.literal("face").required("face", EnumParser.enumParser(BlockFace.class)));
     }
 
-    private Command.Builder<CommandSender> withTargets(Command.Builder<CommandSender> builder) {
-        return builder.optional("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
-                .handler(this::execute);
+    private void registerWithTargets(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+                .permission(this.otherPermission(builder))
+                .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     // 三条子命令共用, 每条只会带有 location、face、entity 中的一个
@@ -81,7 +83,7 @@ public final class LookCommand extends BukkitCommandFeature {
                 Location rotation = entity.getLocation();
                 if (destination != null) {
                     if (!rotation.getWorld().equals(destination.getWorld())) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD, Component.text(entity.getName()));
+                        this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD_SELF : MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD), Component.text(entity.getName()));
                         return;
                     }
                     double eyeHeight = entity instanceof LivingEntity living ? living.getEyeHeight() : 0;
@@ -117,7 +119,10 @@ public final class LookCommand extends BukkitCommandFeature {
                     if (error != null) {
                         this.plugin().logger().warn("Failed to rotate " + name, error);
                     }
-                    this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_LOOK_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
+                    boolean self = entity == context.sender();
+                    var message = error == null && success ? (self ? MessageConstants.COMMAND_LOOK_SUCCESS_SELF : MessageConstants.COMMAND_LOOK_SUCCESS)
+                            : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
+                    this.handleFeedback(context, message, Component.text(name));
                 });
             }, () -> {}, entity);
         }

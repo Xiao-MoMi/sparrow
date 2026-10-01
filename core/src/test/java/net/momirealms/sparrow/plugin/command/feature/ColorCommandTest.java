@@ -8,12 +8,12 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.DyedItemColor;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import org.bukkit.Bukkit;
@@ -28,12 +28,11 @@ import org.incendo.cloud.meta.CommandMeta;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 
 import java.util.EnumMap;
-import java.util.Locale;
 import java.util.Map;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -69,7 +68,7 @@ class ColorCommandTest {
         Fixture fixture = new Fixture();
         fixture.hold(ItemStack.EMPTY);
         fixture.execute("color #ffffff");
-        fixture.assertFeedback(MessageConstants.COMMAND_COLOR_ITEMLESS);
+        fixture.assertFeedback(MessageConstants.COMMAND_COLOR_ITEMLESS_SELF);
         clearInvocations(fixture.platform);
         assertThrows(RuntimeException.class, () -> fixture.execute("color"));
         assertThrows(RuntimeException.class, () -> fixture.execute("color #notacolor"));
@@ -84,29 +83,44 @@ class ColorCommandTest {
         fixture.hold(new ItemStack(Items.STONE));
         // flag 只能写在所有位置参数之后, 省略玩家时不能带 flag
         assertThrows(RuntimeException.class, () -> fixture.execute("color #000000 --silent"));
-        fixture.execute("color #000000 Tester hand --silent");
+        fixture.execute("color #000000 Tester --silent");
         assertEquals(0, fixture.written().get(DataComponents.DYED_COLOR).rgb());
         verifyNoInteractions(fixture.feedback);
     }
 
-    @ParameterizedTest
-    @EnumSource(EquipmentSlot.class)
-    void readsAndWritesOnlyTheSelectedSlot(EquipmentSlot slot) {
+    @Test
+    void targetedColorOnlyChangesMainHandAndRejectsSlotArgument() {
         Fixture fixture = new Fixture();
         ItemStack original = new ItemStack(Items.STONE, 3);
-        fixture.items.put(slot, original);
-        String target = " Tester " + slot.name().toLowerCase(Locale.ROOT);
-        fixture.execute("color #abcdef" + target);
-        ItemStack changed = fixture.written(slot);
+        ItemStack offHand = new ItemStack(Items.STONE);
+        fixture.hold(original);
+        fixture.items.put(EquipmentSlot.OFF_HAND, offHand);
+        fixture.execute("color #abcdef Tester");
+        ItemStack changed = fixture.written();
         assertEquals(0xabcdef, changed.get(DataComponents.DYED_COLOR).rgb());
         assertEquals(3, changed.getCount());
         assertSame(original, changed);
-        verify(fixture.handle).getItemBySlot(CraftEquipmentSlot.getNMS(slot));
+        assertNull(offHand.get(DataComponents.DYED_COLOR));
+        verify(fixture.handle).getItemBySlot(CraftEquipmentSlot.getNMS(EquipmentSlot.HAND));
         verifyNoMoreInteractions(fixture.handle);
+        assertThrows(RuntimeException.class, () -> fixture.execute("color #abcdef Tester off_hand"));
+    }
 
+    @Test
+    void selfColorNeedsOnlyBasePermissionButExplicitSelfRequiresOther() {
+        Fixture fixture = new Fixture();
+        fixture.otherAllowed = false;
+        fixture.hold(new ItemStack(Items.STONE));
+        fixture.execute("color #abcdef");
+        assertEquals(0xabcdef, fixture.written().get(DataComponents.DYED_COLOR).rgb());
+        clearInvocations(fixture.platform);
+        assertThrows(RuntimeException.class, () -> fixture.execute("color #000000 Tester --silent"));
+        verifyNoInteractions(fixture.platform);
+        assertEquals(0xabcdef, fixture.written().get(DataComponents.DYED_COLOR).rgb());
     }
 
     private static final class Fixture {
+        private boolean otherAllowed = true;
         private final CraftPlayer player = mock(CraftPlayer.class);
         private final ServerPlayer handle = mock(ServerPlayer.class);
         private final Map<EquipmentSlot, ItemStack> items = new EnumMap<>(EquipmentSlot.class);
@@ -115,7 +129,7 @@ class ColorCommandTest {
         private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
             @Override
             public boolean hasPermission(CommandSender sender, String permission) {
-                return true;
+                return !permission.endsWith(".other") || Fixture.this.otherAllowed;
             }
         };
 
@@ -136,7 +150,8 @@ class ColorCommandTest {
                 return null;
             }).when(this.platform).run(any(Runnable.class), any(Runnable.class), same(this.player));
             ColorCommand command = new ColorCommand(this.feedback, plugin);
-            command.registerCommand(this.manager, Command.newBuilder("color", CommandMeta.empty()));
+            command.setCommandConfig(new CommandConfig(true, List.of("/color"), "sparrow.command.color"));
+            command.registerCommand(this.manager, Command.<CommandSender>newBuilder("color", CommandMeta.empty()).permission("sparrow.command.color"));
         }
 
         private void hold(ItemStack item) {

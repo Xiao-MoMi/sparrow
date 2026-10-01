@@ -51,6 +51,8 @@ class TranslationGroupingTest {
             assertNotNull(document.getString(Route.from("command.custom-model-data.success")));
             assertNotNull(document.getString(Route.from("command.item-lore.success")));
             assertNotNull(document.getString(Route.from("command.head.timeout")));
+            assertNotNull(document.getString(Route.from("command.heal.success-self")));
+            assertNotNull(document.getString(Route.from("command.color.success-self")));
         } finally {
             TranslationManagerImpl.instance = previous;
         }

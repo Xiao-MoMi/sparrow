@@ -62,22 +62,22 @@ public final class EnchantCommand extends BukkitCommandFeature {
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
                 if (!(entity instanceof LivingEntity livingEntity)) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ENTITY, Component.text(entity.getName()));
+                    this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_ENTITY_SELF : MessageConstants.COMMAND_ENCHANT_ENTITY), Component.text(entity.getName()));
                     return;
                 }
                 EntityEquipment equipment = livingEntity.getEquipment();
                 if (equipment == null) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ENTITY, Component.text(entity.getName()));
+                    this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_ENTITY_SELF : MessageConstants.COMMAND_ENCHANT_ENTITY), Component.text(entity.getName()));
                     return;
                 }
                 ItemStack item = equipment.getItem(slot);
                 if (item.getType().isAir() || item.getAmount() <= 0) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ITEMLESS, Component.text(entity.getName()));
+                    this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_ITEMLESS_SELF : MessageConstants.COMMAND_ENCHANT_ITEMLESS), Component.text(entity.getName()));
                     return;
                 }
                 ItemMeta meta = item.getItemMeta();
                 if (check && !applicable(enchantment, item, meta)) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE, Component.text(entity.getName()), Component.text(enchantment.getKey().toString()));
+                    this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE_SELF : MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE), Component.text(entity.getName()), Component.text(enchantment.getKey().toString()));
                     return;
                 }
                 if (level < 0) {
@@ -92,7 +92,11 @@ public final class EnchantCommand extends BukkitCommandFeature {
                 }
                 item.setItemMeta(meta);
                 equipment.setItem(slot, item);
-                this.handleFeedback(context, level < 0 ? MessageConstants.COMMAND_ENCHANT_REMOVED : level == 0 ? MessageConstants.COMMAND_ENCHANT_ZERO : MessageConstants.COMMAND_ENCHANT_SUCCESS,
+                boolean self = entity == context.sender();
+                var message = level < 0 ? (self ? MessageConstants.COMMAND_ENCHANT_REMOVED_SELF : MessageConstants.COMMAND_ENCHANT_REMOVED)
+                        : level == 0 ? (self ? MessageConstants.COMMAND_ENCHANT_ZERO_SELF : MessageConstants.COMMAND_ENCHANT_ZERO)
+                        : (self ? MessageConstants.COMMAND_ENCHANT_SUCCESS_SELF : MessageConstants.COMMAND_ENCHANT_SUCCESS);
+                this.handleFeedback(context, message,
                         Component.text(entity.getName()), Component.text(enchantment.getKey().toString()), Component.text(level));
             }, () -> {}, entity);
         }

@@ -61,7 +61,7 @@ public final class WarpCommand extends BukkitCommandFeature {
                 case CONNECTING -> self ? MessageConstants.COMMAND_WARP_CONNECTING_SELF : MessageConstants.COMMAND_WARP_CONNECTING;
                 case SERVER_OFFLINE -> MessageConstants.COMMAND_WARP_SERVER_OFFLINE;
                 case INVALID -> MessageConstants.COMMAND_WARP_INVALID;
-                case FAILED -> MessageConstants.COMMAND_TELEPORT_FAILURE;
+                case FAILED -> self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
                 // 冷却与取消的原因已经提示给玩家本人
                 case COOLDOWN, CANCELLED -> null;
             };
@@ -73,7 +73,7 @@ public final class WarpCommand extends BukkitCommandFeature {
                 this.handleFeedback(context, MessageConstants.COMMAND_WARP_TIMEOUT);
             } else {
                 this.plugin().logger().warn("Failed to send " + target.getName() + " to warp " + warp.name(), cause);
-                this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(target.getName()));
+                this.handleFeedback(context, self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(target.getName()));
             }
             return null;
         });

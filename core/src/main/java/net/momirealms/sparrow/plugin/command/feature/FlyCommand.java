@@ -21,9 +21,11 @@ public final class FlyCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("player", PlayerParser.playerParser())
+        manager.command(builder.required("player", PlayerParser.playerParser())
                 .optional("enabled", BooleanParser.booleanParser())
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -41,7 +43,10 @@ public final class FlyCommand extends BukkitCommandFeature {
                 player.setFlying(false);
                 player.setAllowFlight(false);
             }
-            this.handleFeedback(context, enabled ? MessageConstants.COMMAND_FLY_ENABLED : MessageConstants.COMMAND_FLY_DISABLED, Component.text(player.getName()));
+            boolean self = player == context.sender();
+            var message = enabled ? (self ? MessageConstants.COMMAND_FLY_ENABLED_SELF : MessageConstants.COMMAND_FLY_ENABLED)
+                    : (self ? MessageConstants.COMMAND_FLY_DISABLED_SELF : MessageConstants.COMMAND_FLY_DISABLED);
+            this.handleFeedback(context, message, Component.text(player.getName()));
         }, () -> {}, player);
     }
 

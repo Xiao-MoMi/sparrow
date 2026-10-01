@@ -26,22 +26,29 @@ argument.parse.failure.flag.unknown: '<color:#FFB6CB>未知选项：<color:#F2F4
 
 # command.actionbar
 command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送 ActionBar</color>'
+command.actionbar.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你发送 ActionBar</color>'
 
 # command.anvil
 command.anvil.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开铁砧</color>'
+command.anvil.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开铁砧</color>'
 
 # command.back
 command.back.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在将 <color:#C7BCE7><arg:0></color> 送回 <color:#C7BCE7><arg:1></color> 上的上一个位置</color>'
+command.back.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在送你回到 <color:#C7BCE7><arg:1></color> 上的上一个位置</color>'
 command.back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>上一个位置所在的世界已不存在</color>'
 command.back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 没有可以返回的位置</color>'
+command.back.none-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有可以返回的位置</color>'
 command.back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>服务器 <color:#F2F4FF><arg:1></color> 不在线, 无法返回</color>'
 command.back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 送回上一个位置</color>'
+command.back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已送你回到上一个位置</color>'
 command.back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标服务器未在 5 秒内响应</color>'
 
 # command.ban
 command.ban.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>封禁原因不能超过 <color:#F2F4FF><arg:0></color> 个字符</color>'
 command.ban.replaced: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>已覆盖 <color:#C7BCE7><arg:0></color> 之前的封禁</color>'
+command.ban.replaced-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>已覆盖你之前的封禁.</color>'
 command.ban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已封禁 <color:#C7BCE7><arg:0></color></color> <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:1></color> <color:#C8E4E9>到期：</color><arg:2> <color:#C8E4E9>处罚 ID：</color><color:#F2F4FF><arg:3></color>'
+command.ban.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已封禁你. 原因: <color:#C7BCE7><arg:1></color> 到期: <color:#C7BCE7><arg:2></color> 处罚 ID: <color:#C7BCE7><arg:3></color></color>'
 
 # command.ban-history
 command.ban-history.filter-active: ' · 仅生效'
@@ -55,23 +62,31 @@ command.ban-history.title-all: '全部封禁记录'
 
 # command.bed
 command.bed.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 没有可以返回的床</color>'
+command.bed.missing-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有可以返回的床</color>'
 command.bed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到床边</color>'
+command.bed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到你的床</color>'
 
 # command.broadcast
 command.broadcast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送广播</color>'
+command.broadcast.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你发送广播</color>'
 
 # command.burn
 command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已使 <color:#C7BCE7><arg:0></color> 燃烧 <color:#C7BCE7><arg:1></color> tick</color>'
+command.burn.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已使你燃烧 <color:#C7BCE7><arg:1></color> tick</color>'
 
 # command.cartography-table
 command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开制图台</color>'
+command.cartography-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开制图台</color>'
 
 # command.color
 command.color.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 的 <color:#F2F4FF><arg:1></color> 槽位没有物品.</color>'
+command.color.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的 <color:#F2F4FF><arg:1></color> 槽位没有物品.</color>'
 command.color.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将玩家 <color:#C7BCE7><arg:0></color> 的 <color:#C7BCE7><arg:2></color> 槽位物品染色组件设为 <color:#C7BCE7><arg:1></color>.</color>'
+command.color.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你的 <color:#C7BCE7><arg:2></color> 槽位物品染色组件设为 <color:#C7BCE7><arg:1></color>.</color>'
 
 # command.credits
 command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示终末之诗</color>'
+command.credits.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你显示终末之诗</color>'
 
 # command.custom-model-data
 command.custom-model-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>主手没有物品.</color>'
@@ -83,15 +98,20 @@ command.custom-model-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>
 command.custom-name.edit: '<color:#F2F4FF>点击填入编辑命令</color>'
 command.custom-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>名称格式无效, 请检查 JSON 或文本标签.</color>'
 command.custom-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手没有物品.</color>'
+command.custom-name.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的主手没有物品.</color>'
 command.custom-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:3></color> 的主手物品自定义名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.custom-name.query-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>你的主手物品自定义名称: <color:#C7BCE7><arg:0></color><newline>JSON: <color:#C7BCE7><arg:1></color><newline>MiniMessage: <color:#C7BCE7><arg:2></color></color>'
 command.custom-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:1></color> 的主手物品自定义名称设为 <arg:0>.</color>'
+command.custom-name.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你的主手物品自定义名称设为 <color:#C7BCE7><arg:0></color>.</color>'
 command.custom-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手物品没有自定义显示名称.</color>'
+command.custom-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的主手物品没有自定义显示名称.</color>'
 
 # command.del-warp
 command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已删除 warp <color:#C7BCE7><arg:0></color></color>'
 
 # command.demo
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示演示版提示</color>'
+command.demo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你显示演示版提示</color>'
 
 # command.distance
 command.distance.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>视线方向 <color:#F2F4FF><arg:0></color> 格内没有找到目标方块.</color>'
@@ -99,22 +119,32 @@ command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project
 
 # command.enchant
 command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 没有可操作的装备栏。</color>'
+command.enchant.entity-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有可操作的装备栏.</color>'
 command.enchant.incompatible: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的物品不支持附魔 <color:#F2F4FF><arg:1></color>，或与已有附魔冲突。</color>'
+command.enchant.incompatible-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的物品不支持附魔 <color:#F2F4FF><arg:1></color>, 或与已有附魔冲突.</color>'
 command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的指定装备槽位为空。</color>'
+command.enchant.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的指定装备槽位为空.</color>'
 command.enchant.level: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>等级 <color:#F2F4FF><arg:0></color> 超过了 <color:#F2F4FF><arg:1></color> 支持的最高等级 <color:#F2F4FF><arg:2></color>。</color>'
 command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已移除 <color:#C7BCE7><arg:0></color> 装备上的 <color:#C7BCE7><arg:1></color>。</color>'
+command.enchant.removed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已移除你装备上的 <color:#C7BCE7><arg:1></color>.</color>'
 command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 的装备附加 <color:#C7BCE7><arg:1></color> <color:#C7BCE7><arg:2></color> 级。</color>'
+command.enchant.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你的装备附加 <color:#C7BCE7><arg:1></color> <color:#C7BCE7><arg:2></color> 级.</color>'
 command.enchant.zero: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 装备上的 <color:#C7BCE7><arg:1></color> 设为 0 级。</color>'
+command.enchant.zero-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你装备上的 <color:#C7BCE7><arg:1></color> 设为 0 级.</color>'
 
 # command.enchantment-table
 command.enchantment-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开附魔台。</color>'
+command.enchantment-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开附魔台.</color>'
 
 # command.ender-chest
 command.ender-chest.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能为 <color:#F2F4FF><arg:0></color> 打开末影箱.</color>'
+command.ender-chest.failed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能打开你的末影箱.</color>'
 command.ender-chest.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开其末影箱.</color>'
+command.ender-chest.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已打开你的末影箱.</color>'
 
 # command.extinguish
 command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 灭火</color>'
+command.extinguish.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你灭火</color>'
 
 # command.feature
 command.feature.busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在重载，请稍后再切换模块</color>'
@@ -162,24 +192,33 @@ command.features.unavailable: '此命令未启用'
 
 # command.feed
 command.feed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已喂食 <color:#C7BCE7><arg:0></color></color>'
+command.feed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你补满饥饿值</color>'
 
 # command.fly
 command.fly.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 关闭飞行</color>'
+command.fly.disabled-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已关闭你的飞行</color>'
 command.fly.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 开启飞行</color>'
+command.fly.enabled-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已开启你的飞行</color>'
 
 # command.fly-speed
 command.fly-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的飞行速度设为 <color:#C7BCE7><arg:1></color></color>'
+command.fly-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你的飞行速度设为 <color:#C7BCE7><arg:1></color></color>'
 
 # command.grindstone
 command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开砂轮</color>'
+command.grindstone.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开砂轮</color>'
 
 # command.hat
 command.hat.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 头上的物品带有绑定诅咒, 无法摘下</color>'
+command.hat.bound-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你头上的物品带有绑定诅咒, 无法摘下</color>'
 command.hat.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手没有物品.</color>'
+command.hat.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的主手没有物品.</color>'
 command.hat.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 主手的物品戴到头上</color>'
+command.hat.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你主手的物品戴到头上</color>'
 
 # command.heal
 command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已治疗 <color:#C7BCE7><arg:0></color></color>'
+command.heal.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你恢复生命值和饥饿值</color>'
 
 # command.head
 command.head.source_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定头颅来源的玩家名或 UUID。</color>'
@@ -191,6 +230,7 @@ command.head.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.head.invalid_response: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>皮肤服务返回了无效资料，请检查 head 的接口配置。</color>'
 command.head.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>头颅请求已失效：模块已停用、重载或接收玩家已退出。</color>'
 command.head.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:2></color> 发放 <color:#C7BCE7><arg:0></color> 个来自 <color:#C7BCE7><arg:1></color> 的头颅。</color>'
+command.head.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你发放 <color:#C7BCE7><arg:0></color> 个来自 <color:#C7BCE7><arg:1></color> 的头颅.</color>'
 
 # command.highlight
 command.highlight.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>已取消高亮选点.</color>'
@@ -239,20 +279,28 @@ command.item-lore.up: '上移'
 command.item-name.edit: '<color:#F2F4FF>点击填入编辑命令</color>'
 command.item-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>名称格式无效, 请检查 JSON 或文本标签.</color>'
 command.item-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手没有物品.</color>'
+command.item-name.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的主手没有物品.</color>'
 command.item-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:3></color> 的主手物品名称: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.item-name.query-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>你的主手物品名称: <color:#C7BCE7><arg:0></color><newline>JSON: <color:#C7BCE7><arg:1></color><newline>MiniMessage: <color:#C7BCE7><arg:2></color></color>'
 command.item-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:1></color> 的主手物品名称设为 <arg:0>.</color>'
+command.item-name.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你的主手物品名称设为 <color:#C7BCE7><arg:0></color>.</color>'
 command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的主手物品没有物品名称组件.</color>'
+command.item-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的主手物品没有物品名称组件.</color>'
 
 # command.kick
 command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 不在任何服务器上</color>'
 command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 从 <color:#C7BCE7><arg:1></color> 踢出</color>'
+command.kick.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你从 <color:#C7BCE7><arg:1></color> 踢出.</color>'
 
 # command.knockback
 command.knockback.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已对 <color:#C7BCE7><arg:0></color> 施加击退 <color:#C7BCE7>(<arg:1>, <arg:2>, <arg:3>)</color></color>'
+command.knockback.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已对你施加击退 (<color:#C7BCE7><arg:1></color>, <color:#C7BCE7><arg:2></color>, <color:#C7BCE7><arg:3></color>)</color>'
 
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 与朝向目标不在同一个世界</color>'
+command.look.different_world-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你与朝向目标不在同一个世界</color>'
 command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整 <color:#C7BCE7><arg:0></color> 的朝向</color>'
+command.look.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整你的朝向</color>'
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
 
 # command.lookup
@@ -276,7 +324,9 @@ command.max-players.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proj
 
 # command.more
 command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#C7BCE7><arg:0></color> 的主手为空或数量已满, 没有增加物品.</color>'
+command.more.no_change-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>你的主手为空或数量已满, 没有增加物品.</color>'
 command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 增加 <color:#C7BCE7><arg:1></color> 个物品.</color>'
+command.more.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你增加 <color:#C7BCE7><arg:1></color> 个物品.</color>'
 command.more.too_many: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>此物品单次最多额外复制 <color:#F2F4FF><arg:0></color> 个（100 组）.</color>'
 
 # command.panel
@@ -310,6 +360,7 @@ command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 
 # command.player
 command.player.dead: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法治疗已死亡的玩家 <arg:0></color>'
+command.player.dead-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你已死亡, 无法治疗</color>'
 command.player.required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定目标玩家；只有玩家可以省略 player 参数</color>'
 
 # command.player-name
@@ -327,6 +378,7 @@ command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>当前已在服务器 <color:#F2F4FF><arg:0></color></color>'
 command.server.not_allowed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>不允许切换到服务器 <color:#F2F4FF><arg:0></color></color>'
 command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 发送至服务器 <color:#C7BCE7><arg:1></color></color>'
+command.server.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已送你前往服务器 <color:#C7BCE7><arg:1></color></color>'
 
 # command.set-warp
 command.set-warp.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已在你的位置创建 warp <color:#C7BCE7><arg:0></color></color>'
@@ -335,46 +387,59 @@ command.set-warp.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 
 # command.smithing-table
 command.smithing-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开锻造台</color>'
+command.smithing-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开锻造台</color>'
 
 # command.stonecutter
 command.stonecutter.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开切石机</color>'
+command.stonecutter.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开切石机</color>'
 
 # command.sudo
 command.sudo.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请输入要执行的命令</color>'
 command.sudo.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 未能执行该命令</color>'
+command.sudo.failure-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你未能执行该命令</color>'
 command.sudo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已让 <color:#C7BCE7><arg:0></color> 执行命令</color>'
+command.sudo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已让你执行命令</color>'
 
 # command.suicide
 command.suicide.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> 已自杀</color>'
+command.suicide.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>你已自杀</color>'
 
 # command.targets
 command.targets.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有选中任何实体</color>'
 
 # command.teleport
 command.teleport.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能完成 <color:#C7BCE7><arg:0></color> 的传送或朝向调整</color>'
+command.teleport.failure-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能完成你的传送或朝向调整</color>'
 
 # command.title
 command.title.format: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>标题只能包含主标题和副标题，使用一个 \n 分隔</color>'
 command.title.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送标题</color>'
+command.title.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你发送标题</color>'
 
 # command.toast
 command.toast.invalid-icon: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>进度提示图标不能是空气</color>'
 command.toast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 显示进度提示</color>'
+command.toast.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你显示进度提示</color>'
 
 # command.top-block
 command.top-block.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送至最高方块上方</color>'
+command.top-block.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你传送至最高方块上方</color>'
 command.top-block.unavailable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 所在位置没有可用的登顶落点</color>'
+command.top-block.unavailable-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你所在位置没有可用的登顶落点</color>'
 
 # command.totem-animation
 command.totem-animation.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>动画物品必须是不死图腾</color>'
 command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 播放图腾动画</color>'
+command.totem-animation.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你播放图腾动画</color>'
 
 # command.tp-offline
 command.tp-offline.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>目标服务器已接受请求, 正在将 <color:#C7BCE7><arg:0></color> 送往 <color:#C7BCE7><arg:2></color> 上 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
+command.tp-offline.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>目标服务器已接受请求, 正在送你前往 <color:#C7BCE7><arg:2></color> 上 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
 command.tp-offline.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标世界或坐标无效, 未修改出生位置或执行传送.</color>'
 command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 尚未保存下线位置.</color>'
 command.tp-offline.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>服务器 <color:#F2F4FF><arg:2></color> 的心跳不存在, 无法传送.</color>'
 command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
+command.tp-offline.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你传送到 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
 command.tp-offline.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标服务器未在 5 秒内响应传送请求.</color>'
 command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>找不到玩家 <color:#F2F4FF><arg:0></color> 的数据库记录.</color>'
 
@@ -384,6 +449,7 @@ command.unban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 
 # command.walk-speed
 command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的行走速度设为 <color:#C7BCE7><arg:1></color></color>'
+command.walk-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你的行走速度设为 <color:#C7BCE7><arg:1></color></color>'
 
 # command.warp
 command.warp.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在将 <color:#C7BCE7><arg:0></color> 送往 <color:#C7BCE7><arg:2></color> 上的 warp <color:#C7BCE7><arg:1></color></color>'
@@ -403,11 +469,13 @@ command.warp-list.title: 'warp 列表'
 
 # command.workbench
 command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 打开工作台</color>'
+command.workbench.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开工作台</color>'
 
 # command.world
 command.world.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有其他已加载世界可供切换。</color>'
 command.world.no_space: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>世界 <color:#F2F4FF><arg:0></color> 的目标位置上方没有足够空间。</color>'
 command.world.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送至 <color:#C7BCE7><arg:1></color>。</color>'
+command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你传送至 <color:#C7BCE7><arg:1></color>.</color>'
 
 # ban
 ban.expiry.permanent: '<color:#FFB6CB>永久</color>'

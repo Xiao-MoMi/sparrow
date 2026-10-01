@@ -1,7 +1,9 @@
 package net.momirealms.sparrow.feature.ban;
 
+import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.PlayerData;
+import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.util.IpRange;
@@ -14,6 +16,7 @@ import org.incendo.cloud.meta.CommandMeta;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -27,10 +30,11 @@ class BanCommandsTest {
     private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
         @Override
         public boolean hasPermission(CommandSender sender, String permission) {
-            return true;
+            return !permission.endsWith(".other");
         }
     };
     private final Player sender = mock(Player.class);
+    private final CommandManager feedback = mock(CommandManager.class);
     private final BanFeature feature = mock(BanFeature.class);
     private final BanStore store = mock(BanStore.class);
     private SparrowPlugin plugin;
@@ -38,13 +42,13 @@ class BanCommandsTest {
     @BeforeEach
     void setUp() {
         this.plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
-        CommandManager feedback = mock(CommandManager.class);
         when(this.sender.getName()).thenReturn("Tester");
+        when(this.sender.getUniqueId()).thenReturn(UUID.randomUUID());
         when(this.feature.store()).thenReturn(this.store);
-        new BanCommand(feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban", CommandMeta.empty()));
-        new BanIpCommand(feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban-ip", CommandMeta.empty()));
-        new UnbanCommand(feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("unban", CommandMeta.empty()));
-        new BanHistoryCommand(feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban-history", CommandMeta.empty()));
+        new BanCommand(this.feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban", CommandMeta.empty()));
+        new BanIpCommand(this.feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban-ip", CommandMeta.empty()));
+        new UnbanCommand(this.feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("unban", CommandMeta.empty()));
+        new BanHistoryCommand(this.feedback, this.plugin, this.feature).registerCommand(this.manager, Command.newBuilder("ban-history", CommandMeta.empty()));
     }
 
     @Test
@@ -90,6 +94,23 @@ class BanCommandsTest {
         assertTrue(query.getValue().activeOnly());
         assertTrue(query.getValue().since() >= before - 604_800_000L && query.getValue().since() <= query.getValue().now() - 604_800_000L);
         verify(this.feature, never()).resolveTarget(anyString());
+    }
+
+    @Test
+    void selfBanUsesSelfFeedbackWithoutOtherPermission() {
+        UUID uuid = this.sender.getUniqueId();
+        BanTarget.PlayerTarget target = new BanTarget.PlayerTarget(uuid, "Tester");
+        when(this.feature.resolvePlayer("Tester")).thenReturn(CompletableFuture.completedFuture(Optional.of(target)));
+        BanRecord record = new BanRecord("AB12CD34", uuid, "Tester", null, "test reason", "Tester", "survival", 0, 1, 0, null);
+        when(this.feature.ban(any(), any(), anyString(), anyLong(), anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(new BanFeature.Result(record, true)));
+        try (MockedStatic<BanTexts> texts = mockStatic(BanTexts.class)) {
+            texts.when(() -> BanTexts.reason(record.reason())).thenReturn(Component.text(record.reason()));
+            texts.when(() -> BanTexts.expiry(eq(record.expiresAt()), anyLong())).thenReturn(Component.text("1h"));
+            texts.when(() -> BanTexts.id(record.id())).thenReturn(Component.text(record.id()));
+            this.execute("ban Tester test reason -t 1h");
+        }
+        verify(this.feedback).handleCommandFeedback(same(this.sender), same(MessageConstants.COMMAND_BAN_SUCCESS_SELF), any(Component[].class));
+        verify(this.feedback).handleCommandFeedback(same(this.sender), same(MessageConstants.COMMAND_BAN_REPLACED_SELF), any(Component[].class));
     }
 
     private void execute(String input) {

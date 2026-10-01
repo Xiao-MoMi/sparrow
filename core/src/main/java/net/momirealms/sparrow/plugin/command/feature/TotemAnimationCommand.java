@@ -49,7 +49,7 @@ public final class TotemAnimationCommand extends BukkitCommandFeature {
         }
         for (Player player : players) {
             this.plugin().playerManager().getPlayer(player).sendTotemAnimation(item);
-            this.handleFeedback(context, MessageConstants.COMMAND_TOTEM_ANIMATION_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TOTEM_ANIMATION_SUCCESS_SELF : MessageConstants.COMMAND_TOTEM_ANIMATION_SUCCESS), Component.text(player.getName()));
         }
     }
 

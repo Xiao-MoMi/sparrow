@@ -22,8 +22,10 @@ public final class AnvilCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("player", PlayerParser.playerParser())
+        manager.command(builder.required("player", PlayerParser.playerParser())
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -34,7 +36,7 @@ public final class AnvilCommand extends BukkitCommandFeature {
         }
         this.plugin().scheduler().platform().run(() -> {
             player.openInventory(MenuType.ANVIL.create(player, InventoryType.ANVIL.getDefaultTitle()));
-            this.handleFeedback(context, MessageConstants.COMMAND_ANVIL_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_ANVIL_SUCCESS_SELF : MessageConstants.COMMAND_ANVIL_SUCCESS), Component.text(player.getName()));
         }, () -> {}, player);
     }
 

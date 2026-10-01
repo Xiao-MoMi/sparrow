@@ -45,7 +45,7 @@ public final class SudoCommand extends BukkitCommandFeature {
         for (Player entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
                 boolean executed = entity.performCommand(command);
-                this.handleFeedback(context, executed ? MessageConstants.COMMAND_SUDO_SUCCESS : MessageConstants.COMMAND_SUDO_FAILURE, Component.text(entity.getName()));
+                this.handleFeedback(context, executed ? (entity == context.sender() ? MessageConstants.COMMAND_SUDO_SUCCESS_SELF : MessageConstants.COMMAND_SUDO_SUCCESS) : (entity == context.sender() ? MessageConstants.COMMAND_SUDO_FAILURE_SELF : MessageConstants.COMMAND_SUDO_FAILURE), Component.text(entity.getName()));
             }, () -> {}, entity);
         }
     }

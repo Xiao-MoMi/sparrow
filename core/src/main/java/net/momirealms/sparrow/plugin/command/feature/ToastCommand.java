@@ -65,7 +65,7 @@ public final class ToastCommand extends BukkitCommandFeature {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             Component component = Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, message) : message, legacy);
             receiver.sendToast(component, icon, type);
-            this.handleFeedback(context, MessageConstants.COMMAND_TOAST_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TOAST_SUCCESS_SELF : MessageConstants.COMMAND_TOAST_SUCCESS), Component.text(player.getName()));
         }
     }
 

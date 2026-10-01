@@ -27,7 +27,7 @@ public final class SuicideCommand extends BukkitCommandFeature {
         Player player = context.sender();
         this.plugin().scheduler().platform().run(() -> {
             player.setHealth(0.0);
-            this.handleFeedback(context, MessageConstants.COMMAND_SUICIDE_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, MessageConstants.COMMAND_SUICIDE_SUCCESS_SELF, Component.text(player.getName()));
         }, () -> {}, player);
     }
 

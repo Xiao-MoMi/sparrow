@@ -5,6 +5,7 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.CommandConfig;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -25,6 +26,7 @@ import net.minecraft.server.Bootstrap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -51,7 +53,7 @@ class HeadCommandTest {
                 queryThread.complete(Thread.currentThread());
                 return fixture.result;
             });
-            fixture.execute("head Tester Tester 65 true");
+            fixture.execute("head Tester 65 Tester true");
             assertNotSame(caller, queryThread.get(2, TimeUnit.SECONDS));
             fixture.result.complete(new HeadData(UUID.randomUUID(), "Tester", "texture", null));
             Runnable delivery = fixture.deliveries.poll(2, TimeUnit.SECONDS);
@@ -66,7 +68,7 @@ class HeadCommandTest {
     void timeoutIsReportedEvenWithSilentAndNeverSchedulesDelivery() throws Exception {
         try (Fixture fixture = new Fixture()) {
             // flag 只能写在所有位置参数之后
-            fixture.execute("head Tester Tester 1 false --silent");
+            fixture.execute("head Tester 1 Tester false --silent");
             verify(fixture.head, timeout(2000)).fetchByName("Tester", false);
             fixture.result.completeExceptionally(new TimeoutException());
             verify(fixture.feedback, timeout(2000)).handleCommandFeedback(same(fixture.player), same(MessageConstants.COMMAND_HEAD_TIMEOUT), any(Component[].class));
@@ -90,14 +92,68 @@ class HeadCommandTest {
     void dashedAndCompactUuidsUseUuidLookup() throws Exception {
         try (Fixture fixture = new Fixture()) {
             UUID id = UUID.randomUUID();
-            fixture.execute("head " + id + " Tester 1 true");
+            fixture.execute("head " + id + " 1 Tester true");
             fixture.execute("head " + id.toString().replace("-", ""));
             verify(fixture.head, timeout(2000)).fetchByUuid(id, true);
             verify(fixture.head, timeout(2000)).fetchByUuid(id, false);
         }
     }
 
+    @Test
+    void headSourceDoesNotRequireOtherPermission() {
+        try (Fixture fixture = new Fixture()) {
+            fixture.otherAllowed = false;
+            fixture.execute("head Other");
+            verify(fixture.head, timeout(2000)).fetchByName("Other", false);
+        }
+    }
+
+    @Test
+    void explicitRecipientRequiresOtherBeforeFetchingEvenWithSilent() {
+        try (Fixture fixture = new Fixture()) {
+            fixture.otherAllowed = false;
+            assertThrows(CompletionException.class, () -> fixture.execute("head Tester 1 Tester false --silent"));
+            verify(fixture.head, never()).fetchByName(anyString(), anyBoolean());
+            assertTrue(fixture.deliveries.isEmpty());
+        }
+    }
+
+    @Test
+    void amountWithoutRecipientUsesBasePermissionAndGivesToSelf() throws Exception {
+        try (Fixture fixture = new Fixture()) {
+            fixture.otherAllowed = false;
+            fixture.execute("head Other 65");
+            verify(fixture.head, timeout(2000)).fetchByName("Other", false);
+            fixture.result.complete(new HeadData(UUID.randomUUID(), "Other", "texture", null));
+            Runnable delivery = fixture.deliveries.poll(2, TimeUnit.SECONDS);
+            assertNotNull(delivery);
+            delivery.run();
+            verify(fixture.head).give(same(fixture.player), any(), eq(65), eq(1L));
+            verify(fixture.feedback).handleCommandFeedback(same(fixture.player), same(MessageConstants.COMMAND_HEAD_SUCCESS_SELF), any(Component[].class));
+        }
+    }
+
+    @Test
+    void bareCommandUsesSenderAsSourceAndRecipient() {
+        try (Fixture fixture = new Fixture()) {
+            fixture.otherAllowed = false;
+            fixture.execute("head");
+            verify(fixture.head, timeout(2000)).fetchByName("Tester", false);
+        }
+    }
+
+    @Test
+    void forceCannotBeUsedWithoutOtherPermission() {
+        try (Fixture fixture = new Fixture()) {
+            fixture.otherAllowed = false;
+            assertThrows(CompletionException.class, () -> fixture.execute("head Tester 1 Tester true"));
+            assertThrows(CompletionException.class, () -> fixture.execute("head Tester 1 true"));
+            verify(fixture.head, never()).fetchByName(anyString(), anyBoolean());
+        }
+    }
+
     private static final class Fixture implements AutoCloseable {
+        private boolean otherAllowed = true;
         private final ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor();
         private final Player player = mock(Player.class);
         private final CommandManager feedback = mock(CommandManager.class);
@@ -106,7 +162,7 @@ class HeadCommandTest {
         private final LinkedBlockingQueue<Runnable> deliveries = new LinkedBlockingQueue<>();
         private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
             @Override
-            public boolean hasPermission(CommandSender sender, String permission) { return true; }
+            public boolean hasPermission(CommandSender sender, String permission) { return !permission.endsWith(".other") || Fixture.this.otherAllowed; }
         };
 
         private Fixture() {
@@ -140,7 +196,9 @@ class HeadCommandTest {
             };
             try (MockedStatic<MultiplePlayerSelectorParser> selectors = mockStatic(MultiplePlayerSelectorParser.class)) {
                 selectors.when(MultiplePlayerSelectorParser::multiplePlayerSelectorParser).thenReturn(ParserDescriptor.of(selectorParser, MultiplePlayerSelector.class));
-                new HeadCommand(this.feedback, plugin).registerCommand(this.manager, Command.newBuilder("head", CommandMeta.empty()));
+                HeadCommand command = new HeadCommand(this.feedback, plugin);
+                command.setCommandConfig(new CommandConfig(true, List.of("/head"), "sparrow.command.head"));
+                command.registerCommand(this.manager, Command.<CommandSender>newBuilder("head", CommandMeta.empty()).permission("sparrow.command.head"));
             }
         }
 
