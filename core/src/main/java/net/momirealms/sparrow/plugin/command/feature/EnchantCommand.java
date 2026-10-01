@@ -22,6 +22,7 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.EnumParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.Set;
@@ -32,13 +33,13 @@ public final class EnchantCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
                 .required("enchantment", EnchantmentParser.enchantmentParser())
                 .optional("level", IntegerParser.integerParser())
                 .flag(manager.flagBuilder("slot").withComponent(EnumParser.enumParser(EquipmentSlot.class)))
                 .flag(manager.flagBuilder("check"))
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

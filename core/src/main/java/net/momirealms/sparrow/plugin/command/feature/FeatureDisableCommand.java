@@ -14,6 +14,7 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,10 +29,10 @@ public final class FeatureDisableCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder
                 .required("feature", StringParser.stringParser(), (context, input) -> CompletableFuture.completedFuture(this.suggestions().stream().map(Suggestion::suggestion).toList()))
-                .handler(context -> this.plugin().scheduler().platform().execute(() -> this.execute(context)));
+                .handler(context -> this.plugin().scheduler().platform().execute(() -> this.execute(context))));
     }
 
     private List<String> suggestions() {

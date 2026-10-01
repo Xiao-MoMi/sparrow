@@ -21,6 +21,7 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.util.List;
@@ -44,14 +45,14 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         // 只写筛选选项时对象留空, flag 交给后面的解析器
-        return builder.optional("target", OptionalWordParser.optionalWordParser(), (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().cluster().suggest(input.peekString())))
+        manager.command(builder.optional("target", OptionalWordParser.optionalWordParser(), (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().cluster().suggest(input.peekString())))
                 .flag(manager.flagBuilder("operator").withAliases("o").withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster())))
                 .flag(manager.flagBuilder("within").withAliases("w").withComponent(DurationParser.durationParser()))
                 .flag(manager.flagBuilder("active").withAliases("a"))
                 .flag(manager.flagBuilder("page").withAliases("p").withComponent(IntegerParser.integerParser(1)))
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

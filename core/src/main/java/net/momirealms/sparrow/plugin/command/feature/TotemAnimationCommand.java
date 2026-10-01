@@ -16,6 +16,7 @@ import org.incendo.cloud.bukkit.parser.ItemStackParser;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 
@@ -25,11 +26,11 @@ public final class TotemAnimationCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .required("item", ItemStackParser.itemStackParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
