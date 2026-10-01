@@ -30,9 +30,12 @@ public final class WorldCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("world", WorldParser.worldParser())
-                .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+        Command.Builder<CommandSender> command = builder.required("world", WorldParser.worldParser());
+        manager.command(command.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+                .permission(this.otherPermission(command))
                 .handler(this::execute));
+        manager.command(command.handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -80,7 +83,10 @@ public final class WorldCommand extends BukkitCommandFeature {
                             if (error != null) {
                                 this.plugin().logger().warn("Failed to change world for " + player.getName(), error);
                             }
-                            this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_WORLD_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE,
+                            boolean self = player == context.sender();
+                            var message = error == null && success ? (self ? MessageConstants.COMMAND_WORLD_SUCCESS_SELF : MessageConstants.COMMAND_WORLD_SUCCESS)
+                                    : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
+                            this.handleFeedback(context, message,
                                     Component.text(player.getName()), Component.text(target.getName()));
                         });
                     }, () -> {}, player);

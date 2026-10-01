@@ -26,8 +26,10 @@ public final class HatCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("player", PlayerParser.playerParser())
+        manager.command(builder.required("player", PlayerParser.playerParser())
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -41,13 +43,13 @@ public final class HatCommand extends BukkitCommandFeature {
             ServerPlayer handle = receiver.nmsPlayer();
             ItemStack hand = receiver.getItemInMainHand();
             if (hand.isEmpty()) {
-                this.handleFeedback(context, MessageConstants.COMMAND_HAT_ITEMLESS, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_HAT_ITEMLESS_SELF : MessageConstants.COMMAND_HAT_ITEMLESS), Component.text(player.getName()));
                 return;
             }
             // 和原版一样, 非创造模式下摘不下带绑定诅咒的头盔
             ItemStack helmet = handle.getItemBySlot(EquipmentSlot.HEAD);
             if (!helmet.isEmpty() && !handle.isCreative() && EnchantmentHelper.has(helmet, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
-                this.handleFeedback(context, MessageConstants.COMMAND_HAT_BOUND, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_HAT_BOUND_SELF : MessageConstants.COMMAND_HAT_BOUND), Component.text(player.getName()));
                 return;
             }
             // 头上只戴一个, 其余留在主手
@@ -60,7 +62,7 @@ public final class HatCommand extends BukkitCommandFeature {
                     handle.getInventory().placeItemBackInInventory(helmet);
                 }
             }
-            this.handleFeedback(context, MessageConstants.COMMAND_HAT_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_HAT_SUCCESS_SELF : MessageConstants.COMMAND_HAT_SUCCESS), Component.text(player.getName()));
         }, () -> {}, player);
     }
 

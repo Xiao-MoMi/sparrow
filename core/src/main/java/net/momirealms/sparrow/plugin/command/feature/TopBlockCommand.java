@@ -29,7 +29,10 @@ public final class TopBlockCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser()).handler(this::execute));
+        manager.command(builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+                .permission(this.otherPermission(builder))
+                .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -57,7 +60,7 @@ public final class TopBlockCommand extends BukkitCommandFeature {
                         || !world.getBlockAt(location.getBlockX(), y, location.getBlockZ()).isPassable()
                         || !world.getBlockAt(location.getBlockX(), y + 1, location.getBlockZ()).isPassable()
                         || block.isEmpty()) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE, Component.text(entity.getName()));
+                    this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE_SELF : MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE), Component.text(entity.getName()));
                     return;
                 }
                 location.setY(y);
@@ -66,7 +69,7 @@ public final class TopBlockCommand extends BukkitCommandFeature {
                     if (error != null) {
                         this.plugin().logger().warn("Failed to teleport " + name + " to the highest block", error);
                     }
-                    this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
+                    this.handleFeedback(context, error == null && success ? (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS_SELF : MessageConstants.COMMAND_TOP_BLOCK_SUCCESS) : (entity == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE), Component.text(name));
                 });
             }, () -> {}, entity);
         }

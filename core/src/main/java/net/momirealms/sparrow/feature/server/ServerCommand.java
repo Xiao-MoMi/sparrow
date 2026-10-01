@@ -48,9 +48,11 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("server", ParserDescriptor.of(this.parser, String.class))
-                .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+        Command.Builder<CommandSender> command = builder.required("server", ParserDescriptor.of(this.parser, String.class));
+        manager.command(command.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+                .permission(this.otherPermission(command))
                 .handler(this::execute));
+        manager.command(command.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -80,7 +82,7 @@ public final class ServerCommand extends BukkitCommandFeature {
         }
         for (Player player : players) {
             this.connect(player, server);
-            this.handleFeedback(context, MessageConstants.COMMAND_SERVER_SUCCESS, Component.text(player.getName()), Component.text(server));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_SERVER_SUCCESS_SELF : MessageConstants.COMMAND_SERVER_SUCCESS), Component.text(player.getName()), Component.text(server));
         }
     }
 

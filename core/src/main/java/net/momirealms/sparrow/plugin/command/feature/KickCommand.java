@@ -9,6 +9,7 @@ import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
@@ -41,7 +42,8 @@ public final class KickCommand extends BukkitCommandFeature {
         }
         String reason = context.getOrDefault("reason", "");
         this.plugin().messageBrokerManager().broker().publishOneWay(new KickMessage(target.uuid(), reason, sender.getName()), target.server());
-        this.handleFeedback(context, MessageConstants.COMMAND_KICK_SUCCESS, Component.text(target.name()), Component.text(target.server()));
+        boolean self = sender instanceof Player player && player.getUniqueId().equals(target.uuid());
+        this.handleFeedback(context, self ? MessageConstants.COMMAND_KICK_SUCCESS_SELF : MessageConstants.COMMAND_KICK_SUCCESS, Component.text(target.name()), Component.text(target.server()));
     }
 
     @Override

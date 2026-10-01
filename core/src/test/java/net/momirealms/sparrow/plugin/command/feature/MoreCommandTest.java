@@ -14,6 +14,7 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import org.bukkit.command.CommandSender;
@@ -86,7 +87,7 @@ class MoreCommandTest {
         fixture.execute("more");
         assertSame(full, fixture.inventory.getSelectedItem());
         assertEquals(64, full.getCount());
-        verify(fixture.feedback, times(2)).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_MORE_NO_CHANGE), any(Component[].class));
+        verify(fixture.feedback, times(2)).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_MORE_NO_CHANGE_SELF), any(Component[].class));
         verify(fixture.receiver, never()).dropItem(any());
     }
 
@@ -120,7 +121,9 @@ class MoreCommandTest {
                 invocation.<Runnable>getArgument(0).run();
                 return null;
             }).when(platform).run(any(Runnable.class), any(Runnable.class), same(this.player));
-            new MoreCommand(this.feedback, plugin).registerCommand(this.manager, Command.newBuilder("more", CommandMeta.empty()));
+            MoreCommand command = new MoreCommand(this.feedback, plugin);
+            command.setCommandConfig(new CommandConfig(true, List.of("/more"), "sparrow.command.more"));
+            command.registerCommand(this.manager, Command.newBuilder("more", CommandMeta.empty()));
         }
 
         private void execute(String input) {

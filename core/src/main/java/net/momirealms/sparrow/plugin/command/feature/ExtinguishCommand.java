@@ -25,8 +25,10 @@ public final class ExtinguishCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+        manager.command(builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -47,7 +49,7 @@ public final class ExtinguishCommand extends BukkitCommandFeature {
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
                 entity.setFireTicks(0);
-                this.handleFeedback(context, MessageConstants.COMMAND_EXTINGUISH_SUCCESS, Component.text(entity.getName()));
+                this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_EXTINGUISH_SUCCESS_SELF : MessageConstants.COMMAND_EXTINGUISH_SUCCESS), Component.text(entity.getName()));
             }, () -> {}, entity);
         }
     }

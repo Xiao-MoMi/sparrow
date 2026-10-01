@@ -64,7 +64,7 @@ public final class TitleCommand extends BukkitCommandFeature {
             Component main = Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[0]) : parts[0], legacy);
             Component subtitle = parts.length == 2 ? Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[1]) : parts[1], legacy) : Component.empty();
             receiver.sendTitle(main, subtitle, fadeIn, stay, fadeOut);
-            this.handleFeedback(context, MessageConstants.COMMAND_TITLE_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TITLE_SUCCESS_SELF : MessageConstants.COMMAND_TITLE_SUCCESS), Component.text(player.getName()));
         }
     }
 

@@ -20,9 +20,11 @@ public final class EnderChestCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("player", PlayerParser.playerParser())
+        manager.command(builder.required("player", PlayerParser.playerParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -33,10 +35,10 @@ public final class EnderChestCommand extends BukkitCommandFeature {
         }
         this.plugin().scheduler().platform().run(() -> {
             if (player.openInventory(player.getEnderChest()) == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_ENDER_CHEST_FAILED, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_FAILED_SELF : MessageConstants.COMMAND_ENDER_CHEST_FAILED), Component.text(player.getName()));
                 return;
             }
-            this.handleFeedback(context, MessageConstants.COMMAND_ENDER_CHEST_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_SUCCESS_SELF : MessageConstants.COMMAND_ENDER_CHEST_SUCCESS), Component.text(player.getName()));
         }, () -> {}, player);
     }
 

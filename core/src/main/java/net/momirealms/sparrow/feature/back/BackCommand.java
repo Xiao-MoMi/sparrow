@@ -27,8 +27,10 @@ public final class BackCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("player", PlayerParser.playerParser())
+        manager.command(builder.required("player", PlayerParser.playerParser())
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -47,7 +49,7 @@ public final class BackCommand extends BukkitCommandFeature {
             SparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
             transfer = this.plugin().dataStorage().loadPlayer(player.getUniqueId()).thenCompose(found -> {
                 if (sparrow == null || found.isEmpty() || !back.switchedFrom(sparrow, found.get())) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_BACK_NONE, Component.text(player.getName()));
+                    this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_BACK_NONE_SELF : MessageConstants.COMMAND_BACK_NONE), Component.text(player.getName()));
                     return CompletableFuture.completedFuture(null);
                 }
                 return this.send(context, player, found.get().lastLogoutServer(), found.get().lastLogoutLocation());
@@ -59,7 +61,7 @@ public final class BackCommand extends BukkitCommandFeature {
                 this.handleFeedback(context, MessageConstants.COMMAND_BACK_TIMEOUT);
             } else {
                 this.plugin().logger().warn("Failed to send " + player.getName() + " back", cause);
-                this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE), Component.text(player.getName()));
             }
             return null;
         });
@@ -68,11 +70,11 @@ public final class BackCommand extends BukkitCommandFeature {
     private CompletableFuture<Void> send(CommandContext<CommandSender> context, Player player, String server, WorldLocation location) {
         return this.plugin().playerManager().teleports().transfer(player, server, location).thenAccept(result -> {
             var message = switch (result) {
-                case SUCCESS -> MessageConstants.COMMAND_BACK_SUCCESS;
-                case CONNECTING -> MessageConstants.COMMAND_BACK_CONNECTING;
+                case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_BACK_SUCCESS_SELF : MessageConstants.COMMAND_BACK_SUCCESS);
+                case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_BACK_CONNECTING_SELF : MessageConstants.COMMAND_BACK_CONNECTING);
                 case SERVER_OFFLINE -> MessageConstants.COMMAND_BACK_SERVER_OFFLINE;
                 case INVALID -> MessageConstants.COMMAND_BACK_INVALID;
-                case FAILED -> MessageConstants.COMMAND_TELEPORT_FAILURE;
+                case FAILED -> (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
             };
             this.handleFeedback(context, message, Component.text(player.getName()), Component.text(server));
         });

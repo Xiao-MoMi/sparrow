@@ -32,7 +32,7 @@ public final class DemoCommand extends BukkitCommandFeature {
         }
 
         this.plugin().playerManager().getPlayer(player).sendDemo();
-        this.handleFeedback(context, MessageConstants.COMMAND_DEMO_SUCCESS, Component.text(player.getName()));
+        this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_DEMO_SUCCESS_SELF : MessageConstants.COMMAND_DEMO_SUCCESS), Component.text(player.getName()));
     }
 
     @Override

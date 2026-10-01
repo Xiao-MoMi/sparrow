@@ -120,6 +120,7 @@ public abstract class AbstractCommandManager implements CommandManager {
     public void registerFeature(@NotNull CommandFeature feature, @Nullable Permission requirement) {
         CommandConfig config = this.plugin.configurationManager().commandsConfig().configDefinition().command(feature.getFeatureID());
         if (!config.isEnable() || !feature.isAvailable()) return;
+        ((AbstractCommandFeature) feature).setCommandConfig(config);
         for (Command.Builder<CommandSender> builder : this.buildCommandBuilders(config)) {
             if (requirement != null) {
                 builder = builder.permission(Permission.allOf(Permission.of(config.getPermission()), requirement));
@@ -127,7 +128,6 @@ public abstract class AbstractCommandManager implements CommandManager {
             feature.registerCommand(this.commandManager, builder);
         }
         feature.registerRelatedFunctions();
-        ((AbstractCommandFeature) feature).setCommandConfig(config);
         this.features.put(feature.getFeatureID(), feature);
     }
 

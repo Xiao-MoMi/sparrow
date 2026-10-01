@@ -25,8 +25,10 @@ public final class BedCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("player", PlayerParser.playerParser())
+        manager.command(builder.required("player", PlayerParser.playerParser())
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -44,7 +46,7 @@ public final class BedCommand extends BukkitCommandFeature {
             }
             Location bed = player.getPotentialRespawnLocation();
             if (bed == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_BED_MISSING, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_BED_MISSING_SELF : MessageConstants.COMMAND_BED_MISSING), Component.text(player.getName()));
                 return;
             }
             platform.run(() -> {
@@ -57,7 +59,7 @@ public final class BedCommand extends BukkitCommandFeature {
     // 床被拆除或被挡住时重生点为 null
     private void teleport(CommandContext<CommandSender> context, Player player, @Nullable Location destination) {
         if (destination == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_BED_MISSING, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_BED_MISSING_SELF : MessageConstants.COMMAND_BED_MISSING), Component.text(player.getName()));
             return;
         }
         String name = player.getName();
@@ -65,7 +67,7 @@ public final class BedCommand extends BukkitCommandFeature {
             if (error != null) {
                 this.plugin().logger().warn("Failed to teleport " + name + " to the bed", error);
             }
-            this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_BED_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
+            this.handleFeedback(context, error == null && success ? (player == context.sender() ? MessageConstants.COMMAND_BED_SUCCESS_SELF : MessageConstants.COMMAND_BED_SUCCESS) : (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE), Component.text(name));
         });
     }
 

@@ -15,6 +15,7 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import org.bukkit.command.CommandSender;
@@ -25,6 +26,8 @@ import org.incendo.cloud.internal.CommandRegistrationHandler;
 import org.incendo.cloud.meta.CommandMeta;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -46,7 +49,7 @@ class HatCommandTest {
         fixture.execute("hat");
         assertEquals(Items.CARVED_PUMPKIN, fixture.equipment.get(EquipmentSlot.HEAD).getItem());
         assertSame(helmet, fixture.inventory.getSelectedItem());
-        verify(fixture.feedback).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_HAT_SUCCESS), any(Component[].class));
+        verify(fixture.feedback).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_HAT_SUCCESS_SELF), any(Component[].class));
     }
 
     @Test
@@ -84,7 +87,7 @@ class HatCommandTest {
         fixture.equipment.set(EquipmentSlot.HEAD, helmet);
         fixture.execute("hat");
         assertSame(helmet, fixture.equipment.get(EquipmentSlot.HEAD));
-        verify(fixture.feedback).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_HAT_ITEMLESS), any(Component[].class));
+        verify(fixture.feedback).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_HAT_ITEMLESS_SELF), any(Component[].class));
     }
 
     private static final class Fixture {
@@ -121,7 +124,9 @@ class HatCommandTest {
                 invocation.<Runnable>getArgument(0).run();
                 return null;
             }).when(platform).run(any(Runnable.class), any(Runnable.class), same(this.player));
-            new HatCommand(this.feedback, plugin).registerCommand(this.manager, Command.newBuilder("hat", CommandMeta.empty()));
+            HatCommand command = new HatCommand(this.feedback, plugin);
+            command.setCommandConfig(new CommandConfig(true, List.of("/hat"), "sparrow.command.hat"));
+            command.registerCommand(this.manager, Command.newBuilder("hat", CommandMeta.empty()));
         }
 
         private void execute(String input) {

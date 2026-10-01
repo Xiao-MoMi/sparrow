@@ -43,7 +43,7 @@ public final class CustomNameCommand extends BukkitCommandFeature {
         this.plugin().scheduler().platform().run(() -> {
             ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
             if (item.isEmpty()) {
-                this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_ITEMLESS, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_ITEMLESS_SELF : MessageConstants.COMMAND_CUSTOM_NAME_ITEMLESS), Component.text(player.getName()));
                 return;
             }
             if (input != null) {
@@ -60,12 +60,12 @@ public final class CustomNameCommand extends BukkitCommandFeature {
                     return;
                 }
                 item.set(DataComponents.CUSTOM_NAME, minecraftName);
-                this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS, name, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS_SELF : MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS), name, Component.text(player.getName()));
                 return;
             }
             net.minecraft.network.chat.Component name = item.get(DataComponents.CUSTOM_NAME);
             if (name == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED_SELF : MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED), Component.text(player.getName()));
                 return;
             }
             String json = CraftChatMessage.toJSON(name);
@@ -77,7 +77,7 @@ public final class CustomNameCommand extends BukkitCommandFeature {
                     .clickEvent(ClickEvent.suggestCommand(usage + " " + json + " --json"));
             Component miniMessageEditor = Component.text(miniMessage, NamedTextColor.WHITE).hoverEvent(editHint)
                     .clickEvent(ClickEvent.suggestCommand(usage + " " + miniMessage));
-            this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_QUERY, preview, jsonEditor, miniMessageEditor, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_QUERY_SELF : MessageConstants.COMMAND_CUSTOM_NAME_QUERY), preview, jsonEditor, miniMessageEditor, Component.text(player.getName()));
         }, () -> {}, player);
     }
 

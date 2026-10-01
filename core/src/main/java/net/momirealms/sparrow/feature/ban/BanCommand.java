@@ -10,6 +10,7 @@ import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
 import net.momirealms.sparrow.plugin.command.parser.DurationParser;
 import net.momirealms.sparrow.util.IpRange;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
@@ -79,10 +80,11 @@ public final class BanCommand extends BukkitCommandFeature {
     // 覆盖了旧封禁时追加一行提示
     private void sendResult(CommandContext<CommandSender> context, BanFeature.Result result) {
         BanRecord record = result.record();
-        this.handleFeedback(context, MessageConstants.COMMAND_BAN_SUCCESS, Component.text(record.display()), BanTexts.reason(record.reason()),
+        boolean self = context.sender() instanceof Player player && player.getUniqueId().equals(record.player());
+        this.handleFeedback(context, self ? MessageConstants.COMMAND_BAN_SUCCESS_SELF : MessageConstants.COMMAND_BAN_SUCCESS, Component.text(record.display()), BanTexts.reason(record.reason()),
                 BanTexts.expiry(record.expiresAt(), System.currentTimeMillis()), BanTexts.id(record.id()));
         if (result.replaced()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_BAN_REPLACED, Component.text(record.display()));
+            this.handleFeedback(context, self ? MessageConstants.COMMAND_BAN_REPLACED_SELF : MessageConstants.COMMAND_BAN_REPLACED, Component.text(record.display()));
         }
     }
 

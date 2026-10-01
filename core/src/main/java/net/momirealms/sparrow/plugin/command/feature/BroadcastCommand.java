@@ -51,7 +51,7 @@ public final class BroadcastCommand extends BukkitCommandFeature {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             Component component = Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, message) : message, legacy);
             receiver.sendMessage(component);
-            this.handleFeedback(context, MessageConstants.COMMAND_BROADCAST_SUCCESS, Component.text(player.getName()));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_BROADCAST_SUCCESS_SELF : MessageConstants.COMMAND_BROADCAST_SUCCESS), Component.text(player.getName()));
         }
     }
 

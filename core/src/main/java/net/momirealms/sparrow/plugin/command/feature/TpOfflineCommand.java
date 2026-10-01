@@ -67,11 +67,11 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                     }
                     List<CompletableFuture<Void>> transfers = targets.stream().map(player -> this.plugin().playerManager().teleports().transfer(player, data.lastLogoutServer(), data.lastLogoutLocation()).thenAccept(result -> {
                         var message = switch (result) {
-                            case SUCCESS -> MessageConstants.COMMAND_TP_OFFLINE_SUCCESS;
-                            case CONNECTING -> MessageConstants.COMMAND_TP_OFFLINE_CONNECTING;
+                            case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS);
+                            case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_CONNECTING_SELF : MessageConstants.COMMAND_TP_OFFLINE_CONNECTING);
                             case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
                             case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
-                            case FAILED -> MessageConstants.COMMAND_TELEPORT_FAILURE;
+                            case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
                         };
                         this.handleFeedback(context, message, Component.text(player.getName()), Component.text(name), Component.text(data.lastLogoutServer()));
                     })).toList();
@@ -82,7 +82,9 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_TIMEOUT);
                     } else {
                         this.plugin().logger().warn("Failed to teleport to the saved location of " + name, cause);
-                        this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
+                        for (Player player : targets) {
+                            this.handleFeedback(context, player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(player.getName()));
+                        }
                     }
                     return null;
                 });

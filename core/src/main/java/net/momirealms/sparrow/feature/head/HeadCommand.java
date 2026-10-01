@@ -7,7 +7,6 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.command.parser.OptionalWordParser;
 import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -17,13 +16,13 @@ import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.BooleanParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
+import org.incendo.cloud.parser.standard.StringParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import java.net.http.HttpTimeoutException;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -38,24 +37,28 @@ public final class HeadCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("source", OptionalWordParser.optionalWordParser(), (context, input) -> CompletableFuture.completedFuture(
-                        this.plugin().playerManager().getOnlinePlayers().stream().map(player -> Suggestion.suggestion(player.name())).toList()))
-                .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
-                .optional("amount", IntegerParser.integerParser(1, 6400))
+        Command.Builder<CommandSender> command = builder.handler(context -> this.plugin().scheduler().executeAsync(() -> this.execute(context)));
+        Command.Builder<CommandSender> source = command.required("source", StringParser.stringParser(), (context, input) -> CompletableFuture.completedFuture(
+                this.plugin().playerManager().getOnlinePlayers().stream().map(player -> Suggestion.suggestion(player.name())).toList()));
+        Command.Builder<CommandSender> amount = source.required("amount", IntegerParser.integerParser(1, 6400));
+        manager.command(amount.required("player", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .optional("force", BooleanParser.booleanParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
-                .handler(context -> this.plugin().scheduler().executeAsync(() -> this.execute(context))));
+                .permission(this.otherPermission(amount)));
+        manager.command(amount);
+        manager.command(source);
+        manager.command(command);
     }
 
     private void execute(@NotNull CommandContext<CommandSender> context) {
         SparrowPlugin plugin = this.plugin();
         HeadFeature feature = plugin.featureManager().feature(HeadFeature.ID, HeadFeature.class);
-        String source = context.<Optional<String>>getOrDefault("source", Optional.empty()).orElse(context.sender() instanceof Player player ? player.getName() : null);
+        String source = context.getOrDefault("source", context.sender() instanceof Player player ? player.getName() : null);
         if (source == null) {
             this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_SOURCE_REQUIRED);
             return;
         }
-        MultiplePlayerSelector selector = context.getOrDefault("targets", null);
+        MultiplePlayerSelector selector = context.getOrDefault("player", null);
         List<Player> targets = selector != null ? List.copyOf(selector.values()) : context.sender() instanceof Player player ? List.of(player) : List.of();
         if (targets.isEmpty()) {
             this.handleFeedback(context.sender(), selector != null ? MessageConstants.COMMAND_TARGETS_EMPTY : MessageConstants.COMMAND_PLAYER_REQUIRED);
@@ -103,7 +106,7 @@ public final class HeadCommand extends BukkitCommandFeature {
                 Player target = targets.get(i);
                 plugin.scheduler().platform().run(() -> {
                     if (feature.give(target, data, amount, generation)) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_HEAD_SUCCESS, Component.text(amount), Component.text(source), Component.text(target.getName()));
+                        this.handleFeedback(context, (target == context.sender() ? MessageConstants.COMMAND_HEAD_SUCCESS_SELF : MessageConstants.COMMAND_HEAD_SUCCESS), Component.text(amount), Component.text(source), Component.text(target.getName()));
                     } else {
                         this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
                     }

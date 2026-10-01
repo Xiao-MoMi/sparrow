@@ -4,7 +4,10 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.plugin.Plugin;
 import org.bukkit.command.CommandSender;
+import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.permission.Permission;
+import org.jetbrains.annotations.NotNull;
 
 public abstract class AbstractCommandFeature implements CommandFeature {
     protected final CommandManager commandManager;
@@ -24,6 +27,11 @@ public abstract class AbstractCommandFeature implements CommandFeature {
     @Override
     public void unregisterRelatedFunctions() {
         // empty
+    }
+
+    @NotNull
+    protected Permission otherPermission(@NotNull Command.Builder<CommandSender> builder) {
+        return Permission.allOf(builder.commandPermission(), Permission.of(this.commandConfig().getPermission() + ".other"));
     }
 
     @Override

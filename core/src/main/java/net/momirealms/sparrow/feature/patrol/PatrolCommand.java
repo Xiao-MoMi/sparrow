@@ -49,7 +49,7 @@ public final class PatrolCommand extends BukkitCommandFeature {
             if (error != null) {
                 this.plugin().logger().warn("Failed to teleport " + patroller.getName() + " to " + name, error);
             }
-            this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_PATROL_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
+            this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_PATROL_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE_SELF, Component.text(name));
         });
     }
 

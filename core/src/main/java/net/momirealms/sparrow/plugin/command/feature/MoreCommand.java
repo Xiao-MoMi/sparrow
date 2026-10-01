@@ -42,18 +42,18 @@ public final class MoreCommand extends BukkitCommandFeature {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             ItemStack item = receiver.getItemInMainHand();
             if (item.isEmpty()) {
-                this.handleFeedback(context, MessageConstants.COMMAND_MORE_NO_CHANGE, Component.text(player.getName()));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF : MessageConstants.COMMAND_MORE_NO_CHANGE), Component.text(player.getName()));
                 return;
             }
             int maxStack = item.getItem().components().getOrDefault(DataComponents.MAX_STACK_SIZE, 64);
             if (amount == 0) {
                 int added = maxStack - item.getCount();
                 if (added <= 0) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_MORE_NO_CHANGE, Component.text(player.getName()));
+                    this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF : MessageConstants.COMMAND_MORE_NO_CHANGE), Component.text(player.getName()));
                     return;
                 }
                 item.setCount(maxStack);
-                this.handleFeedback(context, MessageConstants.COMMAND_MORE_SUCCESS, Component.text(player.getName()), Component.text(added));
+                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_SUCCESS_SELF : MessageConstants.COMMAND_MORE_SUCCESS), Component.text(player.getName()), Component.text(added));
                 return;
             }
             if (amount > maxStack * 100) {
@@ -66,7 +66,7 @@ public final class MoreCommand extends BukkitCommandFeature {
                 receiver.dropItem(CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copyWithCount(count)));
                 remaining -= count;
             }
-            this.handleFeedback(context, MessageConstants.COMMAND_MORE_SUCCESS, Component.text(player.getName()), Component.text(amount));
+            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_SUCCESS_SELF : MessageConstants.COMMAND_MORE_SUCCESS), Component.text(player.getName()), Component.text(amount));
         }, () -> {}, player);
     }
 
