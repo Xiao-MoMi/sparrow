@@ -81,6 +81,7 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_SET_WARP_EXISTS = Component.translatable().key("command.set-warp.exists");
     TranslatableComponent.Builder COMMAND_DEL_WARP_SUCCESS = Component.translatable().key("command.del-warp.success");
     TranslatableComponent.Builder TELEPORT_WARMUP = Component.translatable().key("teleport.warmup");
+    TranslatableComponent.Builder TELEPORT_PROCESSING = Component.translatable().key("teleport.processing");
     TranslatableComponent.Builder TELEPORT_COOLDOWN = Component.translatable().key("teleport.cooldown");
     TranslatableComponent.Builder TELEPORT_CANCELLED_MOVED = Component.translatable().key("teleport.cancelled.moved");
     TranslatableComponent.Builder TELEPORT_CANCELLED_DAMAGED = Component.translatable().key("teleport.cancelled.damaged");
@@ -102,7 +103,6 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_SERVER_SUCCESS = Component.translatable().key("command.server.success");
     TranslatableComponent.Builder COMMAND_SERVER_NOT_ALLOWED = Component.translatable().key("command.server.not_allowed");
     TranslatableComponent.Builder COMMAND_SERVER_CURRENT = Component.translatable().key("command.server.current");
-    TranslatableComponent.Builder COMMAND_LOOK_OPTIONS = Component.translatable().key("command.look.options");
     TranslatableComponent.Builder COMMAND_LOOK_TARGET_MISSING = Component.translatable().key("command.look.target_missing");
     TranslatableComponent.Builder COMMAND_LOOK_DIFFERENT_WORLD = Component.translatable().key("command.look.different_world");
     TranslatableComponent.Builder COMMAND_PLAYER_REQUIRED = Component.translatable().key("command.player.required");
@@ -133,9 +133,7 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_CUSTOM_MODEL_DATA_QUERY = Component.translatable().key("command.custom-model-data.query");
     TranslatableComponent.Builder COMMAND_CUSTOM_MODEL_DATA_SUCCESS = Component.translatable().key("command.custom-model-data.success");
     TranslatableComponent.Builder COMMAND_COLOR_ITEMLESS = Component.translatable().key("command.color.itemless");
-    TranslatableComponent.Builder COMMAND_COLOR_MISSING = Component.translatable().key("command.color.missing");
     TranslatableComponent.Builder COMMAND_COLOR_SUCCESS = Component.translatable().key("command.color.success");
-    TranslatableComponent.Builder COMMAND_COLOR_QUERY = Component.translatable().key("command.color.query");
     TranslatableComponent.Builder COMMAND_MORE_SUCCESS = Component.translatable().key("command.more.success");
     TranslatableComponent.Builder COMMAND_MORE_NO_CHANGE = Component.translatable().key("command.more.no_change");
     TranslatableComponent.Builder COMMAND_MORE_TOO_MANY = Component.translatable().key("command.more.too_many");

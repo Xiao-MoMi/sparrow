@@ -6,7 +6,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.util.EntityUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.CommandSender;
@@ -16,44 +15,41 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.data.MultipleEntitySelector;
-import org.incendo.cloud.bukkit.parser.PlayerParser;
+import org.incendo.cloud.bukkit.data.SingleEntitySelector;
 import org.incendo.cloud.bukkit.parser.location.LocationParser;
 import org.incendo.cloud.bukkit.parser.selector.MultipleEntitySelectorParser;
+import org.incendo.cloud.bukkit.parser.selector.SingleEntitySelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.EnumParser;
-import org.incendo.cloud.parser.standard.UUIDParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.UUID;
 
 public final class LookCommand extends BukkitCommandFeature {
     public LookCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
 
+    // face <方向>, location <坐标>, entity <实体> 三种朝向方式各是一条子命令, 目标放在最后, 省略时调整自己
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(this.withTargets(builder.literal("location").required("location", LocationParser.locationParser())));
+        manager.command(this.withTargets(builder.literal("entity").required("entity", SingleEntitySelectorParser.singleEntitySelectorParser())));
+        return this.withTargets(builder.literal("face").required("face", EnumParser.enumParser(BlockFace.class)));
+    }
+
+    private Command.Builder<CommandSender> withTargets(Command.Builder<CommandSender> builder) {
         return builder.optional("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
-                .flag(manager.flagBuilder("location").withComponent(LocationParser.locationParser()))
-                .flag(manager.flagBuilder("face").withComponent(EnumParser.enumParser(BlockFace.class)))
-                .flag(manager.flagBuilder("player").withComponent(PlayerParser.playerParser()))
-                .flag(manager.flagBuilder("entity_uuid").withComponent(UUIDParser.uuidParser()))
                 .handler(this::execute);
     }
 
+    // 三条子命令共用, 每条只会带有 location、face、entity 中的一个
     private void execute(CommandContext<CommandSender> context) {
-        Location location = context.flags().<Location>getValue("location").orElse(null);
-        BlockFace face = context.flags().<BlockFace>getValue("face").orElse(null);
-        Player targetPlayer = context.flags().<Player>getValue("player").orElse(null);
-        UUID uuid = context.flags().<UUID>getValue("entity_uuid").orElse(null);
-        int options = (location != null ? 1 : 0) + (face != null ? 1 : 0) + (targetPlayer != null ? 1 : 0) + (uuid != null ? 1 : 0);
-        if (options != 1) {
-            this.handleFeedback(context, MessageConstants.COMMAND_LOOK_OPTIONS);
-            return;
-        }
+        Location location = context.<Location>optional("location").orElse(null);
+        BlockFace face = context.<BlockFace>optional("face").orElse(null);
+        Entity target = context.<SingleEntitySelector>optional("entity").map(SingleEntitySelector::single).orElse(null);
         MultipleEntitySelector selector = context.getOrDefault("targets", null);
         Collection<Entity> entities;
         if (selector != null) {
@@ -68,12 +64,7 @@ public final class LookCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_TARGETS_EMPTY);
             return;
         }
-        if (targetPlayer != null || uuid != null) {
-            Entity target = targetPlayer != null ? targetPlayer : Bukkit.getEntity(uuid);
-            if (target == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_LOOK_TARGET_MISSING);
-                return;
-            }
+        if (target != null) {
             this.plugin().scheduler().platform().run(() -> {
                 Location destination = target instanceof LivingEntity living ? living.getEyeLocation() : target.getLocation();
                 this.schedule(context, entities, destination, null);

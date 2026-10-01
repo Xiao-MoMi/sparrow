@@ -25,13 +25,13 @@ public final class MoreCommand extends BukkitCommandFeature {
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder.optional("amount", IntegerParser.integerParser(1, 6400))
-                .flag(manager.flagBuilder("player").withComponent(PlayerParser.playerParser()))
+                .optional("player", PlayerParser.playerParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(this::execute);
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        Player player = context.flags().getValue("player", context.sender() instanceof Player sender ? sender : null);
+        Player player = context.getOrDefault("player", context.sender() instanceof Player sender ? sender : null);
         if (player == null) {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;

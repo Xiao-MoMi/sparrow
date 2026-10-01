@@ -2,7 +2,6 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.Bootstrap;
@@ -17,6 +16,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.CraftEquipmentSlot;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -27,7 +27,7 @@ import org.incendo.cloud.internal.CommandRegistrationHandler;
 import org.incendo.cloud.meta.CommandMeta;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -65,39 +65,15 @@ class ColorCommandTest {
     }
 
     @Test
-    void queriesColorWithoutWritingAndProvidesCopyableHex() {
-        Fixture fixture = new Fixture();
-        ItemStack original = new ItemStack(Items.STONE);
-        original.set(DataComponents.DYED_COLOR, new DyedItemColor(0x123456));
-        fixture.hold(original);
-        ItemStack beforeQuery = original.copy();
-        fixture.execute("color");
-        assertTrue(ItemStack.matches(beforeQuery, original));
-        ArgumentCaptor<Component[]> args = ArgumentCaptor.forClass(Component[].class);
-        verify(fixture.feedback).handleCommandFeedback(eq(fixture.player), same(MessageConstants.COMMAND_COLOR_QUERY), args.capture());
-        assertEquals(ClickEvent.copyToClipboard("#123456"), args.getValue()[1].clickEvent());
-        verify(fixture.handle, never()).setItemSlot(any(), any());
-    }
-
-    @Test
-    void reportsMissingComponentWithoutAddingADefault() {
-        Fixture fixture = new Fixture();
-        fixture.hold(new ItemStack(Items.STONE));
-        fixture.execute("color");
-        fixture.assertFeedback(MessageConstants.COMMAND_COLOR_MISSING);
-        assertNull(fixture.items.get(EquipmentSlot.HAND).get(DataComponents.DYED_COLOR));
-        verify(fixture.handle, never()).setItemSlot(any(), any());
-    }
-
-    @Test
     void emptyHandAndInvalidInputDoNotWrite() {
         Fixture fixture = new Fixture();
         fixture.hold(ItemStack.EMPTY);
         fixture.execute("color #ffffff");
         fixture.assertFeedback(MessageConstants.COMMAND_COLOR_ITEMLESS);
         clearInvocations(fixture.platform);
+        assertThrows(RuntimeException.class, () -> fixture.execute("color"));
         assertThrows(RuntimeException.class, () -> fixture.execute("color #notacolor"));
-        assertThrows(RuntimeException.class, () -> fixture.execute("color #ffffff --slot invalid"));
+        assertThrows(RuntimeException.class, () -> fixture.execute("color #ffffff Tester invalid"));
         verifyNoInteractions(fixture.platform);
         verify(fixture.handle, never()).setItemSlot(any(), any());
     }
@@ -106,7 +82,9 @@ class ColorCommandTest {
     void silentStillWritesColor() {
         Fixture fixture = new Fixture();
         fixture.hold(new ItemStack(Items.STONE));
-        fixture.execute("color #000000 --silent");
+        // flag 只能写在所有位置参数之后, 省略玩家时不能带 flag
+        assertThrows(RuntimeException.class, () -> fixture.execute("color #000000 --silent"));
+        fixture.execute("color #000000 Tester hand --silent");
         assertEquals(0, fixture.written().get(DataComponents.DYED_COLOR).rgb());
         verifyNoInteractions(fixture.feedback);
     }
@@ -117,8 +95,8 @@ class ColorCommandTest {
         Fixture fixture = new Fixture();
         ItemStack original = new ItemStack(Items.STONE, 3);
         fixture.items.put(slot, original);
-        String flag = " --slot " + slot.name().toLowerCase(Locale.ROOT);
-        fixture.execute("color #abcdef" + flag);
+        String target = " Tester " + slot.name().toLowerCase(Locale.ROOT);
+        fixture.execute("color #abcdef" + target);
         ItemStack changed = fixture.written(slot);
         assertEquals(0xabcdef, changed.get(DataComponents.DYED_COLOR).rgb());
         assertEquals(3, changed.getCount());
@@ -126,12 +104,6 @@ class ColorCommandTest {
         verify(fixture.handle).getItemBySlot(CraftEquipmentSlot.getNMS(slot));
         verifyNoMoreInteractions(fixture.handle);
 
-        clearInvocations(fixture.handle, fixture.feedback);
-        fixture.items.put(slot, changed);
-        fixture.execute("color" + flag);
-        fixture.assertFeedback(MessageConstants.COMMAND_COLOR_QUERY);
-        verify(fixture.handle).getItemBySlot(CraftEquipmentSlot.getNMS(slot));
-        verifyNoMoreInteractions(fixture.handle);
     }
 
     private static final class Fixture {
@@ -171,8 +143,12 @@ class ColorCommandTest {
             this.items.put(EquipmentSlot.HAND, item);
         }
 
+        // 解析玩家参数时按名称查找在线玩家
         private void execute(String input) {
-            this.manager.commandExecutor().executeCommand(this.player, input).join();
+            try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+                bukkit.when(() -> Bukkit.getPlayer("Tester")).thenReturn(this.player);
+                this.manager.commandExecutor().executeCommand(this.player, input).join();
+            }
         }
 
         private ItemStack written() {

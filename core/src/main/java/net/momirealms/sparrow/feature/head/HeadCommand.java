@@ -15,6 +15,7 @@ import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.parser.standard.BooleanParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
@@ -38,9 +39,9 @@ public final class HeadCommand extends BukkitCommandFeature {
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         return builder.optional("source", OptionalWordParser.optionalWordParser(), (context, input) -> CompletableFuture.completedFuture(
                         this.plugin().playerManager().getOnlinePlayers().stream().map(player -> Suggestion.suggestion(player.name())).toList()))
-                .flag(manager.flagBuilder("player").withComponent(MultiplePlayerSelectorParser.multiplePlayerSelectorParser()))
-                .flag(manager.flagBuilder("amount").withComponent(IntegerParser.integerParser(1, 6400)))
-                .flag(manager.flagBuilder("force"))
+                .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+                .optional("amount", IntegerParser.integerParser(1, 6400))
+                .optional("force", BooleanParser.booleanParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(context -> this.plugin().scheduler().executeAsync(() -> this.execute(context)));
     }
@@ -53,7 +54,7 @@ public final class HeadCommand extends BukkitCommandFeature {
             this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_SOURCE_REQUIRED);
             return;
         }
-        MultiplePlayerSelector selector = context.flags().getValue("player", null);
+        MultiplePlayerSelector selector = context.getOrDefault("targets", null);
         List<Player> targets = selector != null ? List.copyOf(selector.values()) : context.sender() instanceof Player player ? List.of(player) : List.of();
         if (targets.isEmpty()) {
             this.handleFeedback(context.sender(), selector != null ? MessageConstants.COMMAND_TARGETS_EMPTY : MessageConstants.COMMAND_PLAYER_REQUIRED);
@@ -61,10 +62,10 @@ public final class HeadCommand extends BukkitCommandFeature {
         }
         BukkitSparrowPlayer sender = context.sender() instanceof Player player ? plugin.playerManager().getPlayer(player) : null;
         long generation = feature.generation();
-        int amount = context.flags().getValue("amount", 1);
+        int amount = context.getOrDefault("amount", 1);
         CompletableFuture<HeadData> future;
         try {
-            boolean force = context.flags().hasFlag("force");
+            boolean force = context.getOrDefault("force", false);
             if (source.length() == 32 || source.length() == 36) {
                 future = feature.fetchByUuid(UUIDUtils.fromString(source), force);
             } else {

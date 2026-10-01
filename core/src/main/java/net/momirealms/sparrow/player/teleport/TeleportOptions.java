@@ -4,7 +4,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * 一次传送的预热与冷却参数.
@@ -26,29 +25,18 @@ public record TeleportOptions(@NotNull TeleportType type,
 
     /**
      * 以当前参数为默认值, 按统一规则得出本次传送的参数.
-     * 显式指定的预热秒数总是生效; 跳过检查时不预热也不冷却;
-     * 其余情况只有玩家自己发起时才使用默认值, 预热取默认值与 {@code sparrow.teleport-warmup.<秒>} 中最小的节点, 拥有绕过权限时对应项为 0.
+     * 只有玩家自己发起时才预热和冷却, 传送别人立即执行且不记录冷却.
+     * 预热取默认值与 {@code sparrow.teleport-warmup.<秒>} 中最小的节点.
      *
      * @param player 被传送的玩家
      * @param self 是否由玩家自己发起
-     * @param warmup 命令里显式指定的预热秒数, 没有指定时为 null
-     * @param ignoreCheck 是否跳过冷却与默认预热
      */
     @NotNull
-    public TeleportOptions resolve(@NotNull Player player,
-                                   boolean self,
-                                   @Nullable Integer warmup,
-                                   boolean ignoreCheck) {
-        boolean useDefaults = self && !ignoreCheck;
-        int warmupSeconds;
-        if (warmup != null) {
-            warmupSeconds = warmup;
-        } else if (useDefaults && !player.hasPermission(BYPASS_WARMUP)) {
-            warmupSeconds = SparrowPlugin.instance().compatibilityManager().permissionMinimum(player, WARMUP_NODE, this.warmupSeconds);
-        } else {
-            warmupSeconds = 0;
-        }
-        int cooldownSeconds = useDefaults && !player.hasPermission(BYPASS_COOLDOWN) ? this.cooldownSeconds : 0;
+    public TeleportOptions resolve(@NotNull Player player, boolean self) {
+        int warmupSeconds = self && !player.hasPermission(BYPASS_WARMUP)
+                ? SparrowPlugin.instance().compatibilityManager().permissionMinimum(player, WARMUP_NODE, this.warmupSeconds)
+                : 0;
+        int cooldownSeconds = self && !player.hasPermission(BYPASS_COOLDOWN) ? this.cooldownSeconds : 0;
         return new TeleportOptions(this.type, warmupSeconds, cooldownSeconds, this.cancelOnMove, this.cancelOnDamage);
     }
 }

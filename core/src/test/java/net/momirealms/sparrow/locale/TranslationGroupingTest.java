@@ -33,7 +33,7 @@ class TranslationGroupingTest {
         when(plugin.resourceStream(anyString()))
                 .thenAnswer(invocation -> this.getClass().getClassLoader().getResourceAsStream(invocation.getArgument(0)));
         Path file = this.directory.resolve(language + ".yml");
-        Files.writeString(file, "__version__: '4'\ncommand.color.query: 'custom translation'\n");
+        Files.writeString(file, "__version__: '4'\ncommand.color.success: 'custom translation'\n");
         TranslationManager previous = TranslationManagerImpl.instance;
         TranslationManagerImpl.instance = null;
         try {
@@ -46,7 +46,7 @@ class TranslationGroupingTest {
             assertTrue(updated.contains("# command.head"));
             assertTrue(updated.contains("# log.storage"));
             var document = yaml.load(file);
-            assertEquals("custom translation", document.getString(Route.from("command.color.query")));
+            assertEquals("custom translation", document.getString(Route.from("command.color.success")));
             assertEquals(DependencyVersions.LANG_VERSION, document.getString(Route.from("__version__")));
             assertNotNull(document.getString(Route.from("command.custom-model-data.success")));
             assertNotNull(document.getString(Route.from("command.item-lore.success")));

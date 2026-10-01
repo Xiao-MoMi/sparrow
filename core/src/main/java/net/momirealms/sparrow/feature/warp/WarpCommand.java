@@ -6,13 +6,13 @@ import net.momirealms.sparrow.player.teleport.TeleportOptions;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
-import org.incendo.cloud.parser.standard.IntegerParser;
-import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.permission.Permission;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,16 +27,16 @@ public final class WarpCommand extends BukkitCommandFeature {
         this.feature = feature;
     }
 
-    // 名称用贪婪参数, 中文名称不受 Brigadier 单词规则限制; 送别人过去、指定预热和跳过检查各需要额外的权限
+    // /warp <name> 传送自己, /warp <name> <player> 送别人; 后者还需要命令权限加 .other, 没有时客户端看不到目标参数
+    // 名称读到空格为止, 中文名称不受 Brigadier 单词规则限制
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        String permission = this.plugin().configurationManager().commandsConfig().configDefinition().command(this.getFeatureID()).getPermission();
-        return builder.required("name", StringParser.greedyFlagYieldingStringParser(),
-                        SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.remainingInput())))
-                .flag(manager.flagBuilder("player").withAliases("p").withComponent(PlayerParser.playerParser()).withPermission(permission + ".other"))
-                .flag(manager.flagBuilder("warmup").withComponent(IntegerParser.integerParser(0)).withPermission(permission + ".warmup"))
-                .flag(manager.flagBuilder("ignore-check").withPermission(permission + ".ignore-check"))
-                .handler(this::execute);
+        Command.Builder<CommandSender> named = builder.required("name", TokenParser.tokenParser(), SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.peekString())));
+        String other = this.plugin().configurationManager().commandsConfig().configDefinition().command(this.getFeatureID()).getPermission() + ".other";
+        manager.command(named.required("player", PlayerParser.playerParser())
+                .permission(Permission.allOf(builder.commandPermission(), Permission.of(other)))
+                .handler(this::execute));
+        return named.handler(this::execute);
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -47,16 +47,13 @@ public final class WarpCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
             return;
         }
-        Player target = context.flags().getValue("player", context.sender() instanceof Player sender ? sender : null);
+        Player target = context.getOrDefault("player", context.sender() instanceof Player sender ? sender : null);
         if (target == null) {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;
         }
         boolean self = target == context.sender();
-        TeleportOptions options = this.feature.config().teleportOptions().resolve(target,
-                self,
-                context.flags().getValue("warmup", null),
-                context.flags().hasFlag("ignore-check"));
+        TeleportOptions options = this.feature.config().teleportOptions().resolve(target, self);
         this.plugin().playerManager().teleportService().teleport(target, warp.server(), warp.location(), options).thenAccept(result -> {
             var message = switch (result) {
                 case SUCCESS -> self ? MessageConstants.COMMAND_WARP_SUCCESS_SELF : MessageConstants.COMMAND_WARP_SUCCESS;

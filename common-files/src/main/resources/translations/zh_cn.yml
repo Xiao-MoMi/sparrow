@@ -68,8 +68,6 @@ command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>
 
 # command.color
 command.color.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 的 <color:#F2F4FF><arg:1></color> 槽位没有物品.</color>'
-command.color.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 的 <color:#F2F4FF><arg:1></color> 槽位物品没有 minecraft:dyed_color 组件.</color>'
-command.color.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>玩家 <color:#C7BCE7><arg:0></color> 的 <color:#C7BCE7><arg:6></color> 槽位物品染色为 <arg:1> (点击复制), RGB (<color:#C7BCE7><arg:2></color>, <color:#C7BCE7><arg:3></color>, <color:#C7BCE7><arg:4></color>), 十进制 <color:#C7BCE7><arg:5></color>.</color>'
 command.color.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将玩家 <color:#C7BCE7><arg:0></color> 的 <color:#C7BCE7><arg:2></color> 槽位物品染色组件设为 <color:#C7BCE7><arg:1></color>.</color>'
 
 # command.credits
@@ -254,7 +252,6 @@ command.knockback.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 
 # command.look
 command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 与朝向目标不在同一个世界</color>'
-command.look.options: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请且仅指定一个朝向选项：--location、--face、--player 或 --entity_uuid</color>'
 command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已调整 <color:#C7BCE7><arg:0></color> 的朝向</color>'
 command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标实体不存在或已离开</color>'
 
@@ -486,4 +483,5 @@ maintenance.kick: '<color:#FFE08A><b>${project_name}</b></color><newline><newlin
 teleport.cancelled.damaged: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你受到了伤害, 传送已取消</color>'
 teleport.cancelled.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你移动了, 传送已取消</color>'
 teleport.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送冷却中, 还需等待 <color:#F2F4FF><arg:0></color> 秒</color>'
+teleport.processing: '<color:#FFE3A3>正在传送…</color>'
 teleport.warmup: '<color:#FFE3A3><color:#F2F4FF><arg:0></color> 秒后传送, 请不要移动</color>'

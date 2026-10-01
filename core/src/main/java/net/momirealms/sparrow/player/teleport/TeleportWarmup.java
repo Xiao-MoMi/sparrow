@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.CompletableFuture;
 
-// todo 优化
 final class TeleportWarmup {
     private static final double MOVE_TOLERANCE_SQUARED = 0.25; // 允许 0.5 格以内的晃动
 
@@ -69,11 +68,8 @@ final class TeleportWarmup {
             case NONE -> {
             }
         }
-        this.play(PluginConfig.teleport().warmupSound());
-    }
-
-    private void play(@Nullable Sound sound) {
-        if (sound != null) this.player.playSound(sound);
+        Sound warmupSound = PluginConfig.teleport().warmupSound();
+        if (warmupSound != null) this.player.playSound(warmupSound);
     }
 
     private boolean moved() {
@@ -85,7 +81,8 @@ final class TeleportWarmup {
     void cancel(@Nullable TranslatableComponent.Builder reason) {
         if (!this.stop(false) || reason == null) return;
         this.player.sendMessage(reason);
-        this.play(PluginConfig.teleport().cancelSound());
+        Sound cancelSound = PluginConfig.teleport().cancelSound();
+        if (cancelSound != null) this.player.playSound(cancelSound);
     }
 
     // 多个线程同时结束时只有一方生效, 返回是否由本次结束
@@ -93,11 +90,22 @@ final class TeleportWarmup {
         if (this.task != null) this.task.cancel();
         this.service.finished(this.player.uniqueId(), this);
         if (this.result.isDone()) return false;
-        this.clearCountdown();
+        // 先替换掉倒计时再交出结果, 避免传送后客户端还显示着剩余秒数
+        if (completed) {
+            // 走完时在倒计时的位置显示正在传送;
+            switch (PluginConfig.teleport().warmupDisplay()) {
+                case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_PROCESSING);
+                case TITLE -> this.player.sendTitle(Component.empty(), this.player.translate(MessageConstants.TELEPORT_PROCESSING), 0, 20, 5);
+                case CHAT, NONE -> {
+                }
+            }
+        } else {
+            this.clearCountdown();
+        }
         return this.result.complete(completed);
     }
 
-    // 主动清除动作栏和标题
+    // 取消时主动清除动作栏和标题
     private void clearCountdown() {
         switch (PluginConfig.teleport().warmupDisplay()) {
             case ACTION_BAR -> this.player.sendActionBar(Component.empty());

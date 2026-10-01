@@ -95,9 +95,9 @@ class TeleportServiceTest {
         this.location = new Location(this.world, 0.3, 64, 0.3);
         this.tick(1);
         assertEquals(TeleportResult.SUCCESS, result.join());
-        // 先清掉动作栏上的倒计时再传送
+        // 先把倒计时换成正在传送再传送
         InOrder order = inOrder(this.receiver, this.teleports);
-        order.verify(this.receiver).sendActionBar(Component.empty());
+        order.verify(this.receiver).sendActionBar(same(MessageConstants.TELEPORT_PROCESSING), any(Component[].class));
         order.verify(this.teleports).transfer(this.player, "lobby", DESTINATION);
         verify(this.receiver).playSound(this.display.completeSound());
         verify(this.task).cancel();
@@ -123,6 +123,8 @@ class TeleportServiceTest {
         this.tick(1);
         assertEquals(TeleportResult.CANCELLED, moved.join());
         verify(this.receiver).sendMessage(same(MessageConstants.TELEPORT_CANCELLED_MOVED), any(Component[].class));
+        // 取消时清掉倒计时
+        verify(this.receiver).sendActionBar(Component.empty());
         verify(this.receiver).playSound(this.display.cancelSound());
 
         CompletableFuture<TeleportResult> damaged = this.service.teleport(this.player, "lobby", DESTINATION, options(3, 0, true, true));
