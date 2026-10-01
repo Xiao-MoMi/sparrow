@@ -11,6 +11,7 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import net.momirealms.sparrow.util.WorldLocation;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -30,6 +31,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -45,7 +47,7 @@ class WarpCommandsTest {
     private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
         @Override
         public boolean hasPermission(CommandSender sender, String permission) {
-            return true;
+            return permission.isEmpty() || sender.hasPermission(permission);
         }
     };
     private MockedStatic<ServerConfig> serverConfig;
@@ -54,6 +56,7 @@ class WarpCommandsTest {
 
     @BeforeEach
     void setUp() {
+        when(this.plugin.configurationManager().commandsConfig().configDefinition().command("warp").getPermission()).thenReturn("sparrow.command.warp");
         when(this.plugin.configurationManager().featuresConfig().config().warp()).thenReturn(this.settings);
         when(this.plugin.dataStorage().warpStore()).thenReturn(this.store);
         PlatformExecutor platform = this.plugin.scheduler().platform();
@@ -109,19 +112,35 @@ class WarpCommandsTest {
         // 不存在的 warp 不会传送
         this.execute(this.player, "warp nowhere");
         this.verifyFeedback(this.player, MessageConstants.COMMAND_WARP_UNKNOWN);
-        // 控制台需要用 --player 指定玩家
+        // 控制台需要指定玩家
         CommandSender console = mock(CommandSender.class);
         this.execute(console, "warp spawn");
         this.verifyFeedback(console, MessageConstants.COMMAND_PLAYER_REQUIRED);
     }
 
     @Test
-    void passesWarmupAndIgnoreCheckFlags() {
-        this.execute(this.player, "warp 矿场 --warmup 5 --ignore-check");
-        verify(this.teleport).teleport(any(), any(), any(), eq(new TeleportOptions(TeleportType.WARP, 5, 0, true, true)));
-        // 预热秒数不能为负
-        assertThrows(java.util.concurrent.CompletionException.class, () -> this.execute(this.player, "warp 矿场 --warmup -1"));
-        verify(this.teleport, times(1)).teleport(any(), any(), any(), any());
+    void sendingOthersNeedsOtherPermissionAndSkipsChecks() {
+        Player other = mock(Player.class);
+        when(other.getName()).thenReturn("Alex");
+        TeleportOptions immediate = new TeleportOptions(TeleportType.WARP, 0, 0, true, true);
+        try (MockedStatic<Bukkit> bukkit = mockStatic(Bukkit.class)) {
+            bukkit.when(() -> Bukkit.getPlayer("Alex")).thenReturn(other);
+            bukkit.when(() -> Bukkit.getPlayer("Steve")).thenReturn(this.player);
+            // 没有 .other 权限时无法执行; 客户端补全靠 Brigadier 节点的权限要求隐藏, Cloud 自身的补全不过滤参数节点
+            assertThrows(CompletionException.class, () -> this.execute(this.player, "warp 矿场 Alex"));
+            verify(this.teleport, never()).teleport(any(), any(), any(), any());
+            // 有权限时立即传送, 不预热也不冷却
+            when(this.player.hasPermission("sparrow.command.warp.other")).thenReturn(true);
+            this.execute(this.player, "warp 矿场 Alex");
+            verify(this.teleport).teleport(same(other), eq("survival"), any(), eq(immediate));
+            this.verifyFeedback(this.player, MessageConstants.COMMAND_WARP_SUCCESS);
+            // 显式指定自己仍按自己传送处理
+            this.execute(this.player, "warp 矿场 Steve");
+            verify(this.teleport).teleport(same(this.player), eq("survival"), any(), eq(this.settings.teleportOptions()));
+            // 找不到的玩家不会传送
+            assertThrows(CompletionException.class, () -> this.execute(this.player, "warp 矿场 Nobody"));
+        }
+        verify(this.teleport, times(2)).teleport(any(), any(), any(), any());
     }
 
     @Test

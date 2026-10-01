@@ -52,6 +52,9 @@ import net.momirealms.sparrow.plugin.command.feature.FeatureDisableCommand;
 import net.momirealms.sparrow.plugin.command.feature.FeatureListCommand;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.util.ReflectionUtils;
+import io.leangen.geantyref.TypeToken;
+import net.minecraft.commands.arguments.GameProfileArgument;
+import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -155,6 +158,8 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         if (manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER)) {
             manager.registerBrigadier();
             manager.brigadierManager().setNativeNumberSuggestions(true);
+            // 读到空格为止且不限字符的原版参数.
+            manager.brigadierManager().registerMapping(new TypeToken<TokenParser<CommandSender>>() {}, builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile()));
         } else if (manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             manager.registerAsynchronousCompletions();
         }

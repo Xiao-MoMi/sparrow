@@ -8,14 +8,21 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
+import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
+import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.execution.ExecutionCoordinator;
 import org.incendo.cloud.internal.CommandRegistrationHandler;
 import org.incendo.cloud.meta.CommandMeta;
+import org.incendo.cloud.parser.ArgumentParseResult;
+import org.incendo.cloud.parser.ArgumentParser;
+import org.incendo.cloud.parser.ParserDescriptor;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
+import org.mockito.MockedStatic;
 import net.minecraft.SharedConstants;
 import net.minecraft.server.Bootstrap;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -36,7 +43,7 @@ class HeadCommandTest {
     }
 
     @Test
-    void forceWithoutSourceUsesSelfAndEntireHandlerStartsOffTheCommandThread() throws Exception {
+    void amountAndForceArgumentsAndEntireHandlerStartsOffTheCommandThread() throws Exception {
         try (Fixture fixture = new Fixture()) {
             Thread caller = Thread.currentThread();
             CompletableFuture<Thread> queryThread = new CompletableFuture<>();
@@ -44,7 +51,7 @@ class HeadCommandTest {
                 queryThread.complete(Thread.currentThread());
                 return fixture.result;
             });
-            fixture.execute("head --force --amount 65");
+            fixture.execute("head Tester Tester 65 true");
             assertNotSame(caller, queryThread.get(2, TimeUnit.SECONDS));
             fixture.result.complete(new HeadData(UUID.randomUUID(), "Tester", "texture", null));
             Runnable delivery = fixture.deliveries.poll(2, TimeUnit.SECONDS);
@@ -58,7 +65,8 @@ class HeadCommandTest {
     @Test
     void timeoutIsReportedEvenWithSilentAndNeverSchedulesDelivery() throws Exception {
         try (Fixture fixture = new Fixture()) {
-            fixture.execute("head Tester --silent");
+            // flag 只能写在所有位置参数之后
+            fixture.execute("head Tester Tester 1 false --silent");
             verify(fixture.head, timeout(2000)).fetchByName("Tester", false);
             fixture.result.completeExceptionally(new TimeoutException());
             verify(fixture.feedback, timeout(2000)).handleCommandFeedback(same(fixture.player), same(MessageConstants.COMMAND_HEAD_TIMEOUT), any(Component[].class));
@@ -82,7 +90,7 @@ class HeadCommandTest {
     void dashedAndCompactUuidsUseUuidLookup() throws Exception {
         try (Fixture fixture = new Fixture()) {
             UUID id = UUID.randomUUID();
-            fixture.execute("head " + id + " --force");
+            fixture.execute("head " + id + " Tester 1 true");
             fixture.execute("head " + id.toString().replace("-", ""));
             verify(fixture.head, timeout(2000)).fetchByUuid(id, true);
             verify(fixture.head, timeout(2000)).fetchByUuid(id, false);
@@ -123,7 +131,17 @@ class HeadCommandTest {
                 this.deliveries.add(invocation.getArgument(0));
                 return null;
             }).when(platform).run(any(Runnable.class), any(Runnable.class), same(this.player));
-            new HeadCommand(this.feedback, plugin).registerCommand(this.manager, Command.newBuilder("head", CommandMeta.empty()));
+            // 测试中没有原版实体选择器, 改用按名称匹配的解析器
+            ArgumentParser<CommandSender, MultiplePlayerSelector> selectorParser = (context, input) -> {
+                String name = input.readString();
+                MultiplePlayerSelector selector = mock(MultiplePlayerSelector.class);
+                when(selector.values()).thenReturn(name.equals("Tester") ? List.of(this.player) : List.of());
+                return ArgumentParseResult.success(selector);
+            };
+            try (MockedStatic<MultiplePlayerSelectorParser> selectors = mockStatic(MultiplePlayerSelectorParser.class)) {
+                selectors.when(MultiplePlayerSelectorParser::multiplePlayerSelectorParser).thenReturn(ParserDescriptor.of(selectorParser, MultiplePlayerSelector.class));
+                new HeadCommand(this.feedback, plugin).registerCommand(this.manager, Command.newBuilder("head", CommandMeta.empty()));
+            }
         }
 
         private void execute(String input) {
