@@ -8,6 +8,7 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
+import org.jspecify.annotations.NonNull;
 
 public final class ReloadCommand extends BukkitCommandFeature {
 
@@ -16,8 +17,8 @@ public final class ReloadCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder
                 .flag(FlagKeys.SILENT_FLAG)
                 .handler(context -> this.plugin().scheduler().platform().execute(() -> {
                     if (this.plugin().isReloading()) {
@@ -35,7 +36,7 @@ public final class ReloadCommand extends BukkitCommandFeature {
                                 Component.text(reloadResult.syncTime())
                         );
                     });
-                }));
+                })));
     }
 
     @Override

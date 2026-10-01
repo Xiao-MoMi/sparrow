@@ -11,6 +11,7 @@ import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,9 +27,9 @@ public final class WarpListCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.optional("page", IntegerParser.integerParser(1))
-                .handler(this::execute);
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.optional("page", IntegerParser.integerParser(1))
+                .handler(this::execute));
     }
 
     // 列表只读内存, 权限限制下只列出执行者能用的 warp

@@ -17,6 +17,7 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 
@@ -26,8 +27,8 @@ public final class TitleCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .required("fadeIn", IntegerParser.integerParser(0))
                 .required("stay", IntegerParser.integerParser(0))
                 .required("fadeOut", IntegerParser.integerParser(0))
@@ -35,7 +36,7 @@ public final class TitleCommand extends BukkitCommandFeature {
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .flag(manager.flagBuilder("legacy-color").withAliases("l"))
                 .flag(manager.flagBuilder("parse").withAliases("p"))
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

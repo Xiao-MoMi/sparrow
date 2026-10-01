@@ -12,6 +12,7 @@ import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.UUID;
 
@@ -23,9 +24,9 @@ public final class PlayerNameCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("uuid", StringParser.stringParser())
-                .handler(this::execute);
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("uuid", StringParser.stringParser())
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

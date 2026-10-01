@@ -19,6 +19,7 @@ import org.incendo.cloud.parser.standard.BooleanParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.net.http.HttpTimeoutException;
 import java.util.List;
@@ -36,14 +37,14 @@ public final class HeadCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.optional("source", OptionalWordParser.optionalWordParser(), (context, input) -> CompletableFuture.completedFuture(
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.optional("source", OptionalWordParser.optionalWordParser(), (context, input) -> CompletableFuture.completedFuture(
                         this.plugin().playerManager().getOnlinePlayers().stream().map(player -> Suggestion.suggestion(player.name())).toList()))
                 .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .optional("amount", IntegerParser.integerParser(1, 6400))
                 .optional("force", BooleanParser.booleanParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
-                .handler(context -> this.plugin().scheduler().executeAsync(() -> this.execute(context)));
+                .handler(context -> this.plugin().scheduler().executeAsync(() -> this.execute(context))));
     }
 
     private void execute(@NotNull CommandContext<CommandSender> context) {

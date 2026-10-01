@@ -13,6 +13,7 @@ import org.incendo.cloud.bukkit.data.MultipleEntitySelector;
 import org.incendo.cloud.bukkit.parser.selector.MultipleEntitySelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 
@@ -22,10 +23,10 @@ public final class BurnCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
                 .required("time", TimeParser.timeParser())
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

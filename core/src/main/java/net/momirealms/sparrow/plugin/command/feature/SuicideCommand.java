@@ -10,6 +10,7 @@ import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 public final class SuicideCommand extends BukkitCommandFeature {
     public SuicideCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
@@ -17,9 +18,9 @@ public final class SuicideCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.senderType(Player.class)
-                .handler(this::execute);
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.senderType(Player.class)
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<Player> context) {

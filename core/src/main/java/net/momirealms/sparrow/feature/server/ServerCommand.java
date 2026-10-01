@@ -18,6 +18,7 @@ import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.ParserDescriptor;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -46,10 +47,10 @@ public final class ServerCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("server", ParserDescriptor.of(this.parser, String.class))
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("server", ParserDescriptor.of(this.parser, String.class))
                 .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

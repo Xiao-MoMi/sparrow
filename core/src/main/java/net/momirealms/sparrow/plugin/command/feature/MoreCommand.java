@@ -16,6 +16,7 @@ import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 public final class MoreCommand extends BukkitCommandFeature {
     public MoreCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
@@ -23,11 +24,11 @@ public final class MoreCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.optional("amount", IntegerParser.integerParser(1, 6400))
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.optional("amount", IntegerParser.integerParser(1, 6400))
                 .optional("player", PlayerParser.playerParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

@@ -11,6 +11,7 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 public final class DelWarpCommand extends BukkitCommandFeature {
     private final WarpFeature feature;
@@ -21,10 +22,10 @@ public final class DelWarpCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("name", StringParser.greedyFlagYieldingStringParser(),
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("name", StringParser.greedyFlagYieldingStringParser(),
                         SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.remainingInput())))
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

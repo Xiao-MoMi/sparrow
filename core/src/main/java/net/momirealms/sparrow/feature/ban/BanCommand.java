@@ -14,6 +14,7 @@ import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -28,13 +29,13 @@ public final class BanCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
                 .optional("reason", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("time").withAliases("t").withComponent(DurationParser.durationParser()))
                 .flag(manager.flagBuilder("ip").withAliases("I"))
                 .flag(manager.flagBuilder("silent").withAliases("s"))
-                .handler(this::execute);
+                .handler(this::execute));
     }
 
     // -s 隐藏给执行人的成功提示, 也不通知管理员, 错误照常提示

@@ -23,6 +23,7 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.EnumParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,10 +35,10 @@ public final class LookCommand extends BukkitCommandFeature {
 
     // face <方向>, location <坐标>, entity <实体> 三种朝向方式各是一条子命令, 目标放在最后, 省略时调整自己
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(this.withTargets(builder.literal("location").required("location", LocationParser.locationParser())));
         manager.command(this.withTargets(builder.literal("entity").required("entity", SingleEntitySelectorParser.singleEntitySelectorParser())));
-        return this.withTargets(builder.literal("face").required("face", EnumParser.enumParser(BlockFace.class)));
+        manager.command(this.withTargets(builder.literal("face").required("face", EnumParser.enumParser(BlockFace.class))));
     }
 
     private Command.Builder<CommandSender> withTargets(Command.Builder<CommandSender> builder) {

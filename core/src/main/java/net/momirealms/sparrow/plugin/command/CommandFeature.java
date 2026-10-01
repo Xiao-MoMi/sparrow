@@ -6,10 +6,11 @@ import net.momirealms.sparrow.plugin.Plugin;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
+import org.jetbrains.annotations.NotNull;
 
 public interface CommandFeature {
 
-    Command<CommandSender> registerCommand(org.incendo.cloud.CommandManager<CommandSender> cloudCommandManager, Command.Builder<CommandSender> builder);
+    void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> cloudCommandManager, @NotNull Command.Builder<CommandSender> builder);
 
     String getFeatureID();
 

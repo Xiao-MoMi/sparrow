@@ -10,6 +10,7 @@ import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
+import org.jspecify.annotations.NonNull;
 
 public final class MaxPlayersCommand extends BukkitCommandFeature {
 
@@ -18,9 +19,9 @@ public final class MaxPlayersCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.optional("amount", IntegerParser.integerParser(-1))
-                .handler(this::execute);
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.optional("amount", IntegerParser.integerParser(-1))
+                .handler(this::execute));
     }
 
     // 不带参数时查询, -1 恢复为 server.properties 的值
