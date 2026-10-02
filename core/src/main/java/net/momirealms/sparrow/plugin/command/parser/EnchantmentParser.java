@@ -52,10 +52,15 @@ public final class EnchantmentParser<C> implements ArgumentParser.FutureArgument
     @Override
     @NotNull
     public CompletableFuture<List<Suggestion>> suggestionsFuture(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
-        return CompletableFuture.completedFuture(Registry.ENCHANTMENT.stream()
+        return CompletableFuture.completedFuture(SuggestionsHolder.SUGGESTIONS);
+    }
+
+    private static final class SuggestionsHolder {
+        // 首次补全时构建, 所有解析器实例共用这份只读候选和提示信息.
+        private static final List<Suggestion> SUGGESTIONS = Registry.ENCHANTMENT.stream()
                 .<Suggestion>map(enchantment -> TooltipSuggestion.suggestion(enchantment.getKey().toString(), CraftEnchantment.bukkitToMinecraftHolder(enchantment).value().description()))
                 .sorted(Comparator.comparing(Suggestion::suggestion))
-                .toList());
+                .toList();
     }
 
     private static final class ParseException extends ParserException {

@@ -3,6 +3,7 @@ package net.momirealms.sparrow.feature.head;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.cluster.ClusterRoster;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.CommandConfig;
@@ -17,6 +18,7 @@ import org.incendo.cloud.meta.CommandMeta;
 import org.incendo.cloud.parser.ArgumentParseResult;
 import org.incendo.cloud.parser.ArgumentParser;
 import org.incendo.cloud.parser.ParserDescriptor;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeAll;
 import org.mockito.MockedStatic;
@@ -42,6 +44,21 @@ class HeadCommandTest {
     static void initializeMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
+    }
+
+    @Test
+    void sourceCompletionIncludesClusterPlayersWithoutOtherPermissionOrHeadLookup() {
+        try (Fixture fixture = new Fixture()) {
+            fixture.otherAllowed = false;
+            when(fixture.cluster.suggest("re")).thenReturn(List.of(Suggestion.suggestion("RemotePlayer")));
+
+            List<String> suggestions = fixture.manager.suggestionFactory().suggestImmediately(fixture.player, "head re").list().stream().map(Suggestion::suggestion).toList();
+
+            assertEquals(List.of("RemotePlayer"), suggestions);
+            verify(fixture.cluster).suggest("re");
+            verify(fixture.head, never()).fetchByName(anyString(), anyBoolean());
+            verify(fixture.head, never()).fetchByUuid(any(), anyBoolean());
+        }
     }
 
     @Test
@@ -158,6 +175,7 @@ class HeadCommandTest {
         private final Player player = mock(Player.class);
         private final CommandManager feedback = mock(CommandManager.class);
         private final HeadFeature head = mock(HeadFeature.class);
+        private final ClusterRoster cluster = mock(ClusterRoster.class);
         private final CompletableFuture<HeadData> result = new CompletableFuture<>();
         private final LinkedBlockingQueue<Runnable> deliveries = new LinkedBlockingQueue<>();
         private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
@@ -172,6 +190,7 @@ class HeadCommandTest {
             var platform = scheduler.platform();
             when(this.player.getName()).thenReturn("Tester");
             when(plugin.playerManager().getPlayer(this.player)).thenReturn(mock(BukkitSparrowPlayer.class));
+            when(plugin.playerManager().cluster()).thenReturn(this.cluster);
             doReturn(this.head).when(features).feature(HeadFeature.ID, HeadFeature.class);
             when(this.head.enabled()).thenReturn(true);
             when(this.head.generation()).thenReturn(1L);
