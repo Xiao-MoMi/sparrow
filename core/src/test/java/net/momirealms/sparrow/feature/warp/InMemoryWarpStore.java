@@ -39,10 +39,22 @@ final class InMemoryWarpStore implements WarpStore {
     }
 
     @Override
-    public CompletableFuture<Boolean> save(Warp warp) {
+    public CompletableFuture<SaveResult> create(Warp warp) {
         boolean taken = this.warps.values().stream().anyMatch(other -> other.key().equals(warp.key()) && !other.id().equals(warp.id()));
-        if (!taken) this.warps.put(warp.id(), warp);
-        return CompletableFuture.completedFuture(!taken);
+        if (taken) return CompletableFuture.completedFuture(new SaveResult(Status.DUPLICATE_NAME, null));
+        this.warps.put(warp.id(), warp);
+        return CompletableFuture.completedFuture(new SaveResult(Status.SUCCESS, warp));
+    }
+
+    @Override
+    public CompletableFuture<SaveResult> update(Warp warp) {
+        Warp current = this.warps.get(warp.id());
+        if (current == null) return CompletableFuture.completedFuture(new SaveResult(Status.NOT_FOUND, null));
+        boolean taken = this.warps.values().stream().anyMatch(other -> other.key().equals(warp.key()) && !other.id().equals(warp.id()));
+        if (taken) return CompletableFuture.completedFuture(new SaveResult(Status.DUPLICATE_NAME, null));
+        Warp saved = new Warp(warp.id(), warp.name(), warp.description(), warp.server(), warp.location(), current.creator(), current.createdAt(), warp.updatedAt());
+        this.warps.put(saved.id(), saved);
+        return CompletableFuture.completedFuture(new SaveResult(Status.SUCCESS, saved));
     }
 
     @Override

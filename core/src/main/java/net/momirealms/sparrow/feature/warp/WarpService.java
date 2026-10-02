@@ -1,0 +1,158 @@
+package net.momirealms.sparrow.feature.warp;
+
+import net.momirealms.sparrow.database.WarpStore;
+import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.util.UUIDUtils;
+import net.momirealms.sparrow.util.WorldLocation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
+
+public final class WarpService {
+    private final WarpStore store;
+    private final WarpRegistry registry;
+    private final String serverId;
+    private final Consumer<WarpMessage> publisher;
+    private final PluginLogger logger;
+    private final Supplier<WarpSettings> settings;
+    private final LongSupplier clock;
+
+    public WarpService(@NotNull WarpStore store, @NotNull WarpRegistry registry, @NotNull String serverId, @NotNull Consumer<WarpMessage> publisher, @NotNull PluginLogger logger, @NotNull Supplier<WarpSettings> settings) {
+        this(store, registry, serverId, publisher, logger, settings, System::currentTimeMillis);
+    }
+
+    WarpService(WarpStore store, WarpRegistry registry, String serverId, Consumer<WarpMessage> publisher, PluginLogger logger, Supplier<WarpSettings> settings, LongSupplier clock) {
+        this.store = store;
+        this.registry = registry;
+        this.serverId = serverId;
+        this.publisher = publisher;
+        this.logger = logger;
+        this.settings = settings;
+        this.clock = clock;
+    }
+
+    // 覆盖或新建一个 Warp.
+    @NotNull
+    public CompletableFuture<Result> set(@NotNull String name, @NotNull String server, @NotNull WorldLocation location, @Nullable UUID creator) {
+        if (!this.validName(name)) return this.result(Status.INVALID_NAME);
+        return this.store.findByName(name).thenCompose(existing -> {
+            long now = this.clock.getAsLong();
+            if (existing.isEmpty()) {
+                Warp warp = new Warp(UUIDUtils.createV7(), name, "", server, location, creator, now, now);
+                return this.save(this.store.create(warp), Status.CREATED);
+            }
+            if (!this.settings.get().overwriteExisting()) return this.result(Status.DUPLICATE_NAME);
+            Warp warp = existing.get();
+            return this.save(this.store.update(new Warp(warp.id(), name, warp.description(), server, location, warp.creator(), warp.createdAt(), now)), Status.UPDATED);
+        });
+    }
+
+    // 按 Warp UUID 改名.
+    @NotNull
+    public CompletableFuture<Result> rename(@NotNull UUID id, @NotNull String name) {
+        if (!this.validName(name)) return this.result(Status.INVALID_NAME);
+        return this.edit(id, warp -> new Warp(warp.id(), name, warp.description(), warp.server(), warp.location(), warp.creator(), warp.createdAt(), this.clock.getAsLong()));
+    }
+
+    // 修改描述, 空字符串用于清空描述.
+    @NotNull
+    public CompletableFuture<Result> setDescription(@NotNull UUID id, @NotNull String description) {
+        if (description.length() > Warp.MAX_DESCRIPTION_LENGTH) return this.result(Status.DESCRIPTION_TOO_LONG);
+        return this.edit(id, warp -> new Warp(warp.id(), warp.name(), description, warp.server(), warp.location(), warp.creator(), warp.createdAt(), this.clock.getAsLong()));
+    }
+
+    // 修改服务器与位置.
+    @NotNull
+    public CompletableFuture<Result> relocate(@NotNull UUID id, @NotNull String server, @NotNull WorldLocation location) {
+        return this.edit(id, warp -> new Warp(warp.id(), warp.name(), warp.description(), server, location, warp.creator(), warp.createdAt(), this.clock.getAsLong()));
+    }
+
+    private boolean validName(String name) {
+        return name.length() <= Warp.MAX_NAME_LENGTH && Pattern.matches(this.settings.get().namePattern(), name);
+    }
+
+    private CompletableFuture<Result> edit(UUID id, UnaryOperator<Warp> edit) {
+        return this.store.find(id).thenCompose(found -> found.isEmpty()
+                ? this.result(Status.NOT_FOUND) : this.save(this.store.update(edit.apply(found.get())), Status.UPDATED));
+    }
+
+    private CompletableFuture<Result> result(Status status) {
+        return CompletableFuture.completedFuture(new Result(status, null));
+    }
+
+    private CompletableFuture<Result> save(CompletableFuture<WarpStore.SaveResult> write, Status success) {
+        return write.thenApply(saved -> {
+            if (saved.status() != WarpStore.Status.SUCCESS) {
+                Status status = switch (saved.status()) {
+                    case DUPLICATE_NAME -> Status.DUPLICATE_NAME;
+                    case NOT_FOUND -> Status.NOT_FOUND;
+                    case SUCCESS -> throw new AssertionError();
+                };
+                return new Result(status, null);
+            }
+            this.registry.put(saved.warp());
+            this.publish(WarpMessage.save(this.serverId, saved.warp()));
+            return new Result(success, saved.warp());
+        });
+    }
+
+    // 删除指定 Warp
+    @NotNull
+    public CompletableFuture<Boolean> delete(@NotNull UUID id) {
+        return this.store.delete(id).thenApply(deleted -> {
+            if (deleted) {
+                this.registry.remove(id);
+                this.publish(WarpMessage.delete(this.serverId, id));
+            }
+            return deleted;
+        });
+    }
+
+    // 删除指定服务器和世界的记录, 返回数据库实际删除数量.
+    @NotNull
+    public CompletableFuture<Integer> deleteByWorld(@NotNull String server, @NotNull String world) {
+        return this.store.deleteByWorld(server, world).thenCompose(this::reloadAfterBulkDelete);
+    }
+
+    // 删除指定服务器的记录, 返回数据库实际删除数量.
+    @NotNull
+    public CompletableFuture<Integer> deleteByServer(@NotNull String server) {
+        return this.store.deleteByServer(server).thenCompose(this::reloadAfterBulkDelete);
+    }
+
+    private CompletableFuture<Integer> reloadAfterBulkDelete(int deleted) {
+        if (deleted == 0) return CompletableFuture.completedFuture(0);
+        this.publish(WarpMessage.reload(this.serverId));
+        return this.store.loadAll().handle((warps, failure) -> {
+            if (failure == null) {
+                this.registry.replaceAll(warps);
+            } else {
+                this.logger.warn("Warp deletion committed, but reloading the local cache failed", failure);
+            }
+            return deleted;
+        });
+    }
+
+    // 广播故障单独报告, 已提交的数据库操作仍返回成功.
+    private void publish(WarpMessage message) {
+        try {
+            this.publisher.accept(message);
+        } catch (RuntimeException failure) {
+            this.logger.warn("Warp database change committed, but publishing failed", failure);
+        }
+    }
+
+    public enum Status {
+        CREATED, UPDATED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, DESCRIPTION_TOO_LONG
+    }
+
+    public record Result(@NotNull Status status, @Nullable Warp warp) {
+    }
+}

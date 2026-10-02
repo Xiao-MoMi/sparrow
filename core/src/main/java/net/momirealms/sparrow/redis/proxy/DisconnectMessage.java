@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.redis.proxy;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public final class DisconnectMessage extends OneWayMessage<ByteBuf> {
+public final class DisconnectMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "disconnect");
-    public static final MessageCodec<ByteBuf, DisconnectMessage> CODEC = RedisMessage.codec(DisconnectMessage::write, DisconnectMessage::new);
+    public static final MessageCodec<FriendlyByteBuf, DisconnectMessage> CODEC = RedisMessage.codec(DisconnectMessage::write, DisconnectMessage::new);
 
     private final UUID player;
     private final String reason;    // Json 格式的组件
@@ -22,17 +22,16 @@ public final class DisconnectMessage extends OneWayMessage<ByteBuf> {
         this.reason = reason;
     }
 
-    private DisconnectMessage(ByteBuf buffer) {
+    private DisconnectMessage(FriendlyByteBuf buffer) {
         super(buffer);
-        this.player = new UUID(buffer.readLong(), buffer.readLong());
+        this.player = buffer.readUUID();
         this.reason = ByteBufHelper.readUtf8(buffer, 262144);
     }
 
     @Override
-    protected void write(ByteBuf buffer) {
+    protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
-        buffer.writeLong(this.player.getMostSignificantBits());
-        buffer.writeLong(this.player.getLeastSignificantBits());
+        buffer.writeUUID(this.player);
         ByteBufHelper.writeUtf8(buffer, this.reason, 262144);
     }
 

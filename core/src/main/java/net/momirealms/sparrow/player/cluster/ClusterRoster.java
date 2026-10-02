@@ -3,7 +3,7 @@ package net.momirealms.sparrow.player.cluster;
 import io.lettuce.core.RedisException;
 import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.async.RedisAsyncCommands;
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.PlayerManager;
@@ -80,7 +80,7 @@ public final class ClusterRoster {
         } else {
             commands.hdel(this.rosterKey, UUIDUtils.toBytes(uuid));
         }
-        MessageBroker<ByteBuf> broker = this.plugin.messageBrokerManager().broker();
+        MessageBroker<FriendlyByteBuf> broker = this.plugin.messageBrokerManager().broker();
         commands.publish(broker.channel(), broker.encode(message));
     }
 

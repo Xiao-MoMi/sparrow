@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.redis.proxy;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import io.netty.buffer.ByteBufUtil;
 import io.netty.buffer.Unpooled;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ class DisconnectMessageTest {
     void encodesTheLayoutTheProxyReads() {
         DisconnectMessage message = new DisconnectMessage(new UUID(0x0123456789abcdefL, 0xfedcba9876543210L), "{\"text\":\"bye\"}");
         message.setTargetServer("");
-        ByteBuf buffer = Unpooled.buffer();
+        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
         DisconnectMessage.CODEC.encode(buffer, message);
         assertEquals(ENCODED, ByteBufUtil.hexDump(buffer));
     }

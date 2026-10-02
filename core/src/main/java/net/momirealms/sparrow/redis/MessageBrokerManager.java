@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.redis;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.feature.ban.BanMessage;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.player.KickMessage;
@@ -21,8 +21,8 @@ import java.nio.charset.StandardCharsets;
 
 public final class MessageBrokerManager {
     private final SparrowPlugin plugin;
-    private volatile MessageBroker<ByteBuf> broker;
-    private volatile MessageBroker<ByteBuf> proxyBroker;
+    private volatile MessageBroker<FriendlyByteBuf> broker;
+    private volatile MessageBroker<FriendlyByteBuf> proxyBroker;
 
     public MessageBrokerManager(@NotNull SparrowPlugin plugin) {
         this.plugin = plugin;
@@ -31,7 +31,7 @@ public final class MessageBrokerManager {
     public void onLoad() {
         RedisConnector connector = this.plugin.redisConnector();
         // Redis Pub/Sub 跨数据库后端共享频道.
-        this.broker = MessageBroker.builder(buffer -> buffer)
+        this.broker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":messages").getBytes(StandardCharsets.UTF_8))
                 .serverId(ServerConfig.serverId())
                 .logger(new BrokerLogger(this.plugin.logger()))
@@ -47,7 +47,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
         this.broker.subscribe();
         // Redis Pub/Sub Proxy 代理频道.
-        this.proxyBroker = MessageBroker.builder(buffer -> buffer)
+        this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":proxy").getBytes(StandardCharsets.UTF_8))
                 .serverId(ServerConfig.serverId())
                 .logger(new BrokerLogger(this.plugin.logger()))
@@ -57,20 +57,20 @@ public final class MessageBrokerManager {
     }
 
     @NotNull
-    public MessageBroker<ByteBuf> broker() {
+    public MessageBroker<FriendlyByteBuf> broker() {
         return this.broker;
     }
 
     @NotNull
-    public MessageBroker<ByteBuf> proxyBroker() {
+    public MessageBroker<FriendlyByteBuf> proxyBroker() {
         return this.proxyBroker;
     }
 
     public void onDisable() {
-        MessageBroker<ByteBuf> broker = this.broker;
+        MessageBroker<FriendlyByteBuf> broker = this.broker;
         this.broker = null;
         if (broker != null) broker.unsubscribe();
-        MessageBroker<ByteBuf> proxyBroker = this.proxyBroker;
+        MessageBroker<FriendlyByteBuf> proxyBroker = this.proxyBroker;
         this.proxyBroker = null;
         if (proxyBroker != null) proxyBroker.unsubscribe();
     }

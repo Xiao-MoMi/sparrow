@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.feature.ban;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterRoster;
@@ -28,7 +28,7 @@ class BanFeaturePublishTest {
     private final BanStore store = mock(BanStore.class);
     private final ClusterRoster cluster = mock(ClusterRoster.class);
     @SuppressWarnings("unchecked")
-    private final MessageBroker<ByteBuf> broker = mock(MessageBroker.class);
+    private final MessageBroker<FriendlyByteBuf> broker = mock(MessageBroker.class);
     private SparrowPlugin plugin;
     private MockedStatic<ServerConfig> config;
     private BanFeature feature;

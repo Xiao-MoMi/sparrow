@@ -4,7 +4,7 @@ import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClients;
 import com.zaxxer.hikari.HikariDataSource;
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import io.netty.buffer.Unpooled;
 import net.momirealms.sparrow.feature.warp.Warp;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
@@ -138,7 +138,7 @@ class WarpLoadBenchmark {
             runs[i] = time(() -> store.loadAll().join());
         }
         Arrays.sort(runs);
-        WarpRegistry registry = new WarpRegistry(store, "bench", message -> {});
+        WarpRegistry registry = new WarpRegistry(store, "bench");
         long registryLoad = time(registry::load);
         // 跨服同步时按 id 回查一条记录的往返耗时
         int lookups = 500;
@@ -153,7 +153,7 @@ class WarpLoadBenchmark {
 
     // 与数据库无关的部分: 建索引、补全、同步消息
     private void memory(List<Warp> warps) {
-        WarpRegistry registry = new WarpRegistry(new PreloadedStore(warps), "bench", message -> {});
+        WarpRegistry registry = new WarpRegistry(new PreloadedStore(warps), "bench");
         long build = time(registry::load);
         int rounds = 100_000;
         long emptyPrefix = time(() -> {
@@ -169,7 +169,7 @@ class WarpLoadBenchmark {
         int messageSize = encode(WarpMessage.save("bench", sample)).readableBytes();
         long codec = time(() -> {
             for (int i = 0; i < rounds; i++) {
-                ByteBuf buffer = encode(WarpMessage.save("bench", sample));
+                FriendlyByteBuf buffer = encode(WarpMessage.save("bench", sample));
                 WarpMessage.CODEC.decode(buffer);
             }
         }) / rounds;
@@ -243,9 +243,9 @@ class WarpLoadBenchmark {
         }
     }
 
-    private static ByteBuf encode(WarpMessage message) {
+    private static FriendlyByteBuf encode(WarpMessage message) {
         message.setTargetServer("");
-        ByteBuf buffer = Unpooled.buffer();
+        FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
         WarpMessage.CODEC.encode(buffer, message);
         return buffer;
     }
@@ -293,8 +293,13 @@ class WarpLoadBenchmark {
         }
 
         @Override
-        public CompletableFuture<Boolean> save(Warp warp) {
-            return CompletableFuture.completedFuture(true);
+        public CompletableFuture<SaveResult> create(Warp warp) {
+            return CompletableFuture.completedFuture(new SaveResult(Status.SUCCESS, warp));
+        }
+
+        @Override
+        public CompletableFuture<SaveResult> update(Warp warp) {
+            return CompletableFuture.completedFuture(new SaveResult(Status.NOT_FOUND, null));
         }
 
         @Override

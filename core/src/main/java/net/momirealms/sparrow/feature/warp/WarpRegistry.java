@@ -13,22 +13,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public final class WarpRegistry {
     private final WarpStore store;
     private final String serverId;
-    private final Consumer<WarpMessage> publisher;
     private final ConcurrentChainedObject2ObjectHashTable<UUID, Warp> byId = new ConcurrentChainedObject2ObjectHashTable<>();
     private final ConcurrentChainedObject2ObjectHashTable<String, Warp> byKey = new ConcurrentChainedObject2ObjectHashTable<>();
     private volatile Index index = Index.EMPTY; // 按名称键排好序的快照, 供补全和列表使用
 
-    public WarpRegistry(@NotNull WarpStore store, @NotNull String serverId, @NotNull Consumer<WarpMessage> publisher) {
+    public WarpRegistry(@NotNull WarpStore store, @NotNull String serverId) {
         this.store = store;
         this.serverId = serverId;
-        this.publisher = publisher;
     }
 
     /**
@@ -80,53 +76,6 @@ public final class WarpRegistry {
     }
 
     /**
-     * 写入数据库, 成功后更新内存并通知其他服务器.
-     *
-     * @return 写入任务, 名称已被另一个 warp 占用时结果为 false
-     */
-    @NotNull
-    public CompletableFuture<Boolean> save(@NotNull Warp warp) {
-        return this.store.save(warp).thenApply(saved -> {
-            if (saved) {
-                this.put(warp);
-                this.publisher.accept(WarpMessage.save(this.serverId, warp));
-            }
-            return saved;
-        });
-    }
-
-    @NotNull
-    public CompletableFuture<Boolean> delete(@NotNull UUID id) {
-        return this.store.delete(id).thenApply(deleted -> {
-            if (deleted) {
-                this.remove(id);
-                this.publisher.accept(WarpMessage.delete(this.serverId, id));
-            }
-            return deleted;
-        });
-    }
-
-    // 批量删除后整表重读, 其他服务器也各自重读
-    @NotNull
-    public CompletableFuture<Integer> deleteByWorld(@NotNull String server, @NotNull String world) {
-        return this.store.deleteByWorld(server, world).thenCompose(this::reloadAfterBulkDelete);
-    }
-
-    @NotNull
-    public CompletableFuture<Integer> deleteByServer(@NotNull String server) {
-        return this.store.deleteByServer(server).thenCompose(this::reloadAfterBulkDelete);
-    }
-
-    private CompletableFuture<Integer> reloadAfterBulkDelete(int deleted) {
-        if (deleted == 0) return CompletableFuture.completedFuture(0);
-        return this.store.loadAll().thenApply(warps -> {
-            this.replaceAll(warps);
-            this.publisher.accept(WarpMessage.reload(this.serverId));
-            return deleted;
-        });
-    }
-
-    /**
      * 处理其他服务器的变更通知, 在 Redis 线程上调用.
      */
     public void accept(@NotNull WarpMessage message) {
@@ -138,11 +87,9 @@ public final class WarpRegistry {
         }
     }
 
-    // 写入只来自本服命令和 Redis 通知, 频率很低, 串行执行后重建排序快照
-    private synchronized void put(Warp warp) {
+    // 本服服务和 Redis 通知按到达顺序更新索引, 修改时间仅用于展示.
+    synchronized void put(Warp warp) {
         Warp current = this.byId.get(warp.id());
-        // 来得更晚的旧通知不覆盖新数据
-        if (current != null && current.updatedAt() > warp.updatedAt()) return;
         if (current != null) this.byKey.remove(current.key(), current);
         Warp occupant = this.byKey.put(warp.key(), warp);
         // 数据库保证名称唯一, 本地同名的另一条是还没收到改名或删除通知的旧数据
@@ -154,7 +101,7 @@ public final class WarpRegistry {
         this.index = index.with(warp);
     }
 
-    private synchronized void remove(UUID id) {
+    synchronized void remove(UUID id) {
         Warp removed = this.byId.remove(id);
         if (removed == null) return;
         this.byKey.remove(removed.key(), removed);
@@ -162,7 +109,7 @@ public final class WarpRegistry {
     }
 
     // 先写入新数据再删除已不存在的条目, 重读期间的查找不会落空
-    private synchronized void replaceAll(List<Warp> warps) {
+    synchronized void replaceAll(List<Warp> warps) {
         int size = warps.size();
         Set<UUID> ids = new HashSet<>(size * 2);
         for (int i = 0; i < size; i++) {

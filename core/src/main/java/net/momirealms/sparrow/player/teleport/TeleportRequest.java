@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.player.teleport;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
@@ -13,9 +13,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class TeleportRequest extends TwoWayRequestMessage<ByteBuf, TeleportResponse> {
+public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf, TeleportResponse> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "teleport_request");
-    public static final MessageCodec<ByteBuf, TeleportRequest> CODEC = RedisMessage.codec(TeleportRequest::write, TeleportRequest::new);
+    public static final MessageCodec<FriendlyByteBuf, TeleportRequest> CODEC = RedisMessage.codec(TeleportRequest::write, TeleportRequest::new);
     private static volatile TeleportManager manager;
 
     private final UUID player;
@@ -26,17 +26,16 @@ public final class TeleportRequest extends TwoWayRequestMessage<ByteBuf, Telepor
         this.location = location;
     }
 
-    private TeleportRequest(ByteBuf buffer) {
+    private TeleportRequest(FriendlyByteBuf buffer) {
         super(buffer);
-        this.player = new UUID(buffer.readLong(), buffer.readLong());
+        this.player = buffer.readUUID();
         this.location = new WorldLocation(ByteBufHelper.readUtf8(buffer, 255), buffer.readDouble(), buffer.readDouble(), buffer.readDouble(), buffer.readFloat(), buffer.readFloat());
     }
 
     @Override
-    protected void write(ByteBuf buffer) {
+    protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
-        buffer.writeLong(this.player.getMostSignificantBits());
-        buffer.writeLong(this.player.getLeastSignificantBits());
+        buffer.writeUUID(this.player);
         ByteBufHelper.writeUtf8(buffer, this.location.world(), 255);
         buffer.writeDouble(this.location.x()).writeDouble(this.location.y()).writeDouble(this.location.z());
         buffer.writeFloat(this.location.yaw()).writeFloat(this.location.pitch());
