@@ -17,7 +17,6 @@ import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.BooleanParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
-import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -38,8 +37,9 @@ public final class HeadCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         Command.Builder<CommandSender> command = builder.handler(context -> this.plugin().scheduler().executeAsync(() -> this.execute(context)));
-        Command.Builder<CommandSender> source = command.required("source", StringParser.stringParser(), (context, input) -> CompletableFuture.completedFuture(
-                this.plugin().playerManager().getOnlinePlayers().stream().map(player -> Suggestion.suggestion(player.name())).toList()));
+        Command.Builder<CommandSender> source = command.required("source", StringParser.stringParser(), (context, input) ->
+                CompletableFuture.completedFuture(this.plugin().playerManager().cluster().suggest(input.peekString()))
+        );
         Command.Builder<CommandSender> amount = source.required("amount", IntegerParser.integerParser(1, 6400));
         manager.command(amount.required("player", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .optional("force", BooleanParser.booleanParser())

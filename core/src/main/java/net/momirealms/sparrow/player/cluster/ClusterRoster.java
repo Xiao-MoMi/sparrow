@@ -214,22 +214,11 @@ public final class ClusterRoster {
      * 按前缀返回集群在线玩家名的命令补全项, 前缀忽略大小写, 空前缀返回全部.
      *
      * @param prefix 已输入的名字前缀
-     * @return 按名字排序的补全项
+     * @return 按名字排序的只读补全快照
      */
     @NotNull
     public List<Suggestion> suggest(@NotNull String prefix) {
-        OnlineView current = this.view;
-        if (prefix.isEmpty()) return current.suggestions();
-        List<Suggestion> result = new ArrayList<>();
-        List<Suggestion> candidates = current.suggestions();
-        int size = candidates.size();
-        for (int i = 0; i < size; i++) {
-            Suggestion candidate = candidates.get(i);
-            if (candidate.suggestion().regionMatches(true, 0, prefix, 0, prefix.length())) {
-                result.add(candidate);
-            }
-        }
-        return result;
+        return this.view.suggest(prefix);
     }
 
     // 需要在 Redis 连接关闭前调用, 删除命令排在本服已发出的名单写入之后.
@@ -253,6 +242,34 @@ public final class ClusterRoster {
     private record OnlineView(List<ClusterPlayer> players, Map<String, ClusterPlayer> byName, Map<UUID, ClusterPlayer> byUuid, List<Suggestion> suggestions) {
         private static final OnlineView EMPTY = new OnlineView(List.of(), Map.of(), Map.of(), List.of());
 
+        // 在排序名单中定位前缀范围, 返回共享 Suggestion 对象的只读子列表.
+        private List<Suggestion> suggest(String prefix) {
+            if (prefix.isEmpty()) return this.suggestions;
+            int low = 0;
+            int high = this.suggestions.size();
+            // 找到第一个不小于前缀的名字, 包含所有大小写等价的重复名字.
+            while (low < high) {
+                int middle = (low + high) >>> 1;
+                if (String.CASE_INSENSITIVE_ORDER.compare(this.suggestions.get(middle).suggestion(), prefix) < 0) {
+                    low = middle + 1;
+                } else {
+                    high = middle;
+                }
+            }
+            int start = low;
+            high = this.suggestions.size();
+            // 从起点往后的匹配项连续排列, 定位其后的第一个名字.
+            while (low < high) {
+                int middle = (low + high) >>> 1;
+                if (this.suggestions.get(middle).suggestion().regionMatches(true, 0, prefix, 0, prefix.length())) {
+                    low = middle + 1;
+                } else {
+                    high = middle;
+                }
+            }
+            return start == low ? List.of() : this.suggestions.subList(start, low);
+        }
+
         // 排序在名单变化时完成, 补全直接复用同一份顺序和 Suggestion 对象
         private static OnlineView of(Map<UUID, ClusterPlayer> byUuid) {
             List<ClusterPlayer> players = byUuid.values().stream().sorted(Comparator.comparing(ClusterPlayer::name, String.CASE_INSENSITIVE_ORDER)).toList();
@@ -264,7 +281,7 @@ public final class ClusterRoster {
                 byName.put(player.name().toLowerCase(Locale.ROOT), player);
                 suggestions.add(Suggestion.suggestion(player.name()));
             }
-            return new OnlineView(players, byName, byUuid, suggestions);
+            return new OnlineView(players, byName, byUuid, List.copyOf(suggestions));
         }
     }
 }
