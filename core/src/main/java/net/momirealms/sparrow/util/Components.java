@@ -5,11 +5,17 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
 public final class Components {
     private Components() {}
+
+    @NotNull
+    public static Component translatable(@NotNull String key, @NotNull Component... arguments) {
+        return Component.empty().append(Component.translatable(key).arguments(arguments));
+    }
 
     public static String toPlain(Component component) {
         return component == null ? null : PlainTextComponentSerializer.plainText().serialize(component);

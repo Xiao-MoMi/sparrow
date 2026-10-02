@@ -117,6 +117,14 @@ command.demo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 command.distance.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>视线方向 <color:#F2F4FF><arg:0></color> 格内没有找到目标方块.</color>'
 command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>直线距离: <color:#C7BCE7><arg:0></color> 格, 曼哈顿距离: <color:#C7BCE7><arg:1></color> 格.</color>'
 
+# command.edit-warp
+command.edit-warp.confirm-delete: '<color:#FFB6CB>确认删除 warp <color:#C7BCE7><arg:0></color>?</color>'
+command.edit-warp.console: '控制台'
+command.edit-warp.description: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已更新 warp <color:#C7BCE7><arg:0></color> 的描述</color>'
+command.edit-warp.description-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>描述最多允许 <arg:0> 个字符</color>'
+command.edit-warp.info: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>· Warp</color> <color:#C7BCE7><arg:0></color><newline><color:#C8E4E9>UUID:</color> <color:#F2F4FF><arg:1></color> <color:#C8E4E9>名称键:</color> <color:#F2F4FF><arg:2></color><newline><color:#C8E4E9>描述:</color> <color:#F2F4FF><arg:3></color><newline><color:#C8E4E9>服务器 / 世界:</color> <color:#F2F4FF><arg:4> / <arg:5></color><newline><color:#C8E4E9>坐标:</color> <color:#F2F4FF><arg:6>, <arg:7>, <arg:8></color><newline><color:#C8E4E9>朝向:</color> <color:#F2F4FF><arg:9>, <arg:10></color><newline><color:#C8E4E9>创建者:</color> <color:#F2F4FF><arg:11></color><newline><color:#C8E4E9>创建时间:</color> <color:#F2F4FF><arg:12></color><newline><color:#C8E4E9>修改时间:</color> <color:#F2F4FF><arg:13></color>'
+command.edit-warp.renamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 warp <color:#C7BCE7><arg:0></color> 重命名为 <color:#C7BCE7><arg:1></color></color>'
+
 # command.enchant
 command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 没有可操作的装备栏。</color>'
 command.enchant.entity-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有可操作的装备栏.</color>'
@@ -330,11 +338,9 @@ command.more.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 command.more.too_many: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>此物品单次最多额外复制 <color:#F2F4FF><arg:0></color> 个（100 组）.</color>'
 
 # command.panel
-command.panel.action.ip_history: '<color:#C7BCE7><arg:0></color>'
-command.panel.action.next: '<color:#C9F2C7><arg:0></color>'
-command.panel.action.previous: '<color:#C9F2C7><arg:0></color>'
-command.panel.action.refresh: '<color:#C7BCE7><arg:0></color>'
-command.panel.action.unban: '<color:#FFB6CB><arg:0></color>'
+command.panel.button.normal: '<color:#C7BCE7><arg:0></color>'
+command.panel.button.positive: '<color:#C9F2C7><arg:0></color>'
+command.panel.button.danger: '<color:#FFB6CB><arg:0></color>'
 command.panel.confirm: '<color:#FFB6CB>点击填入命令，按回车后执行</color><newline><color:#F2F4FF><arg:0></color>'
 command.panel.console.action: '<arg:0> <arg:1>'
 command.panel.console.disabled: '<color:#7D98BF><arg:0> (<arg:1>)</color>'
@@ -343,15 +349,23 @@ command.panel.empty: '<color:#C8E4E9>这一页没有记录</color>'
 command.panel.first_page: '已经是第一页'
 command.panel.header: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><arg:0></color> <color:#C8E4E9>·</color> <color:#FFE08A><arg:1>/<arg:2></color> <color:#C8E4E9>页 · 共</color> <color:#FFE08A><arg:3></color> <color:#C8E4E9>条</color>'
 command.panel.inactive: '这条封禁已经失效'
+command.panel.label.cancel: '[取消]'
+command.panel.label.confirm_delete: '[确认删除]'
+command.panel.label.delete: '[删除]'
+command.panel.label.description: '[改描述]'
+command.panel.label.edit: '[编辑]'
 command.panel.label.ip_history: '[同 IP 玩家]'
 command.panel.label.next: '[下一页]'
 command.panel.label.previous: '[上一页]'
 command.panel.label.refresh: '[刷新]'
+command.panel.label.relocate: '[移到当前位置]'
+command.panel.label.rename: '[重命名]'
 command.panel.label.unban: '[解封]'
 command.panel.last_page: '已经是最后一页'
 command.panel.message: '<arg:0>'
 command.panel.navigation: '<arg:0> <color:#FFE08A><arg:1>/<arg:2></color> <arg:3> <arg:4>'
 command.panel.no_permission: '你没有权限执行此命令'
+command.panel.player_required: '此操作需要由玩家执行'
 command.panel.unavailable: '当前无法执行此操作'
 
 # command.patrol

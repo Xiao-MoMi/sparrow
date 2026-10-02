@@ -53,6 +53,12 @@ class TranslationGroupingTest {
             assertNotNull(document.getString(Route.from("command.head.timeout")));
             assertNotNull(document.getString(Route.from("command.heal.success-self")));
             assertNotNull(document.getString(Route.from("command.color.success-self")));
+            assertNotNull(document.getString(Route.from("command.edit-warp.info")));
+            assertNotNull(document.getString(Route.from("command.edit-warp.confirm-delete")));
+            assertNotNull(document.getString(Route.from("command.panel.button.normal")));
+            assertNotNull(document.getString(Route.from("command.panel.button.positive")));
+            assertNotNull(document.getString(Route.from("command.panel.button.danger")));
+            assertNotNull(document.getString(Route.from("command.panel.label.rename")));
         } finally {
             TranslationManagerImpl.instance = previous;
         }

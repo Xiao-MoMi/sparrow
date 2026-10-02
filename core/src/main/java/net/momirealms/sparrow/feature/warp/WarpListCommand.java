@@ -5,7 +5,9 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
+import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
+import net.momirealms.sparrow.util.Components;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -46,18 +48,21 @@ public final class WarpListCommand extends BukkitCommandFeature {
         int index = Math.min(context.<Integer>getOrDefault("page", 1), pages) - 1;
         int from = index * PAGE_SIZE;
         TextPage<Warp> page = new TextPage<>(index, PAGE_SIZE, visible.size(), visible.subList(from, Math.min(from + PAGE_SIZE, visible.size())));
-        Component panel = CommandPanel.tr("header", Component.translatable("command.warp-list.title"), Component.text(page.index() + 1), Component.text(page.count()), Component.text(page.total()));
+        CommandPanel panel = new CommandPanel(this.commandManager(), sender).header(Component.translatable("command.warp-list.title"), page);
         if (page.content().isEmpty()) {
-            panel = panel.append(Component.newline()).append(CommandPanel.tr("empty"));
+            panel.empty();
         }
         List<Warp> content = page.content();
-        for (int i = 0; i < content.size(); i++) {
+        int contentSize = content.size();
+        for (int i = 0; i < contentSize; i++) {
             Warp warp = content.get(i);
-            panel = panel.append(Component.newline()).append(Component.translatable("command.warp-list.entry").arguments(
-                    Component.text(warp.name()), Component.text(warp.server()), Component.text(warp.location().world()), Component.text(warp.description())));
+            Component entry = Components.translatable("command.warp-list.entry",
+                    panel.run(Component.text(warp.name()), "warp", warp.name()).build(),
+                    Component.text(warp.server()), Component.text(warp.location().world()), Component.text(warp.description()));
+            PanelButton edit = panel.run(CommandPanel.label("edit"), "edit-warp", warp.name());
+            panel.line(edit.available() ? entry.append(Component.space()).append(edit.build()) : entry);
         }
-        panel = panel.append(Component.newline()).append(CommandPanel.navigation(this.commandManager(), sender, this.getFeatureID(), page, String::valueOf));
-        CommandPanel.send(this.commandManager(), sender, panel);
+        panel.navigation(this.getFeatureID(), page, String::valueOf).send();
     }
 
     @Override

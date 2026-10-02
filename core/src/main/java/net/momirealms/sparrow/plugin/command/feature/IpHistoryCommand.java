@@ -12,6 +12,7 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
 import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
+import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
@@ -85,17 +86,16 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
 
     private void render(CommandSender sender, String input, IpRange range, TextPage<PlayerData> page) {
         Component title = MessageConstants.COMMAND_IP_HISTORY_TITLE.build().arguments(Component.text(input), Component.text(range.toString()));
-        Component panel = CommandPanel.tr("header", title, Component.text(page.index() + 1), Component.text(page.count()), Component.text(page.total()));
+        CommandPanel panel = new CommandPanel(this.commandManager(), sender).header(title, page);
         List<PlayerData> players = page.content();
         int size = players.size();
         for (int i = 0; i < size; i++) {
-            panel = panel.append(Component.newline()).append(this.row(sender, players.get(i)));
+            panel.line(this.row(sender, players.get(i)));
         }
         if (size == 0) {
-            panel = panel.append(Component.newline()).append(CommandPanel.tr("empty"));
+            panel.empty();
         }
-        panel = panel.append(Component.newline()).append(CommandPanel.navigation(this.commandManager(), sender, this.getFeatureID(), page, index -> input + " " + index));
-        CommandPanel.send(this.commandManager(), sender, panel);
+        panel.navigation(this.getFeatureID(), page, index -> input + " " + index).send();
     }
 
     private Component row(CommandSender sender, PlayerData data) {
@@ -106,7 +106,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
                 ? MessageConstants.COMMAND_IP_HISTORY_ONLINE.build().arguments(Component.text(online.server()))
                 : MessageConstants.COMMAND_IP_HISTORY_OFFLINE.build().arguments(Component.text(data.lastLogoutServer() == null ? "-" : data.lastLogoutServer()));
         String ip = data.lastLoginIp() == null ? "-" : data.lastLoginIp();
-        Component time = Component.text(player ? CommandPanel.shortTime(data.lastLogin()) : CommandPanel.fullTime(data.lastLogin()));
+        Component time = Component.text(player ? DateTimeUtils.shortTime(data.lastLogin()) : DateTimeUtils.fullTime(data.lastLogin()));
         // 玩家看到固定宽度的圆点, 绿色在线, 灰色离线, 文字说明放进悬浮
         if (player) {
             name = name.hoverEvent(Component.text(data.player().toString())).clickEvent(ClickEvent.copyToClipboard(data.player().toString()));

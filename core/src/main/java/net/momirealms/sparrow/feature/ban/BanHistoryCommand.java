@@ -8,11 +8,14 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
+import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
 import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
 import net.momirealms.sparrow.plugin.command.parser.DurationParser;
 import net.momirealms.sparrow.plugin.command.parser.OptionalWordParser;
 import net.momirealms.sparrow.util.CharacterUtils;
+import net.momirealms.sparrow.util.Components;
+import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.DurationUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -91,7 +94,7 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
 
     private void render(CommandSender sender, @Nullable String input, @Nullable BanTarget target, Filters filters, TextPage<BanRecord> page, long now) {
         boolean player = sender instanceof Player;
-        Component panel = CommandPanel.tr("header", this.title(target, filters), Component.text(page.index() + 1), Component.text(page.count()), Component.text(page.total()));
+        CommandPanel panel = new CommandPanel(this.commandManager(), sender).header(this.title(target, filters), page);
         List<BanRecord> records = page.content();
         int size = records.size();
         // 按本页各行可变文本的宽度补白, 让解封按钮纵向对齐
@@ -106,16 +109,15 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
         for (int i = 0; i < size; i++) {
             BanRecord record = records.get(i);
             Component padding = player ? CharacterUtils.chatPadding(alignedWidth - rowWidth(record)) : Component.empty();
-            panel = panel.append(Component.newline()).append(this.row(sender, record, now, padding));
+            panel.line(this.row(panel, sender, record, now, padding));
         }
         if (size == 0) {
-            panel = panel.append(Component.newline()).append(CommandPanel.tr("empty"));
+            panel.empty();
         }
         // 翻页链接保留当前的对象和筛选条件
         String prefix = input == null ? "" : input + " ";
         String suffix = filters.arguments();
-        panel = panel.append(Component.newline()).append(CommandPanel.navigation(this.commandManager(), sender, this.getFeatureID(), page, index -> prefix + "--page " + index + suffix));
-        CommandPanel.send(this.commandManager(), sender, panel);
+        panel.navigation(this.getFeatureID(), page, index -> prefix + "--page " + index + suffix).send();
     }
 
     private Component title(@Nullable BanTarget target, Filters filters) {
@@ -135,10 +137,10 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
     }
 
     // 玩家看到截断后的对象和执行人, 完整信息在 ID 的悬浮中; 控制台直接输出完整文本
-    private Component row(CommandSender sender, BanRecord record, long now, Component padding) {
+    private Component row(CommandPanel panel, CommandSender sender, BanRecord record, long now, Component padding) {
         boolean player = sender instanceof Player;
         Component id = BanTexts.id(record.id());
-        Component time = Component.text(player ? CommandPanel.shortTime(record.createdAt()) : CommandPanel.fullTime(record.createdAt()));
+        Component time = Component.text(player ? DateTimeUtils.shortTime(record.createdAt()) : DateTimeUtils.fullTime(record.createdAt()));
         Component target = Component.text(player ? CharacterUtils.truncate(record.display(), TARGET_LENGTH) : record.display());
         Component operator = Component.text(player ? CharacterUtils.truncate(record.operatorName(), OPERATOR_LENGTH) : record.operatorName());
         Component status = BanTexts.status(record, now);
@@ -148,17 +150,18 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
             String copy = record.player() != null ? record.player().toString() : String.valueOf(record.ip());
             target = target.hoverEvent(this.targetDetails(record)).clickEvent(ClickEvent.copyToClipboard(copy));
         }
-        Component unban = CommandPanel.action(this.commandManager(), sender, "unban", "unban", BanRecord.ID_PREFIX + record.id(), true, record.active(now) ? null : "inactive");
+        Component unban = panel.suggest(CommandPanel.label("unban"), "unban", BanRecord.ID_PREFIX + record.id()).style(PanelButton.Style.DANGER)
+                .disabled(record.active(now) ? null : Components.translatable("command.panel.inactive")).build();
         return BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_ROW, id, time, status, target, operator.append(padding), unban);
     }
 
     private Component details(BanRecord record, long now) {
         Component revoked = record.revokedAt() == 0
                 ? BanTexts.status(record, now)
-                : BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_REVOKED, Component.text(String.valueOf(record.revokedBy())), Component.text(CommandPanel.fullTime(record.revokedAt())));
+                : BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_REVOKED, Component.text(String.valueOf(record.revokedBy())), Component.text(DateTimeUtils.fullTime(record.revokedAt())));
         return BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_HOVER, Component.text(BanRecord.ID_PREFIX + record.id()), this.targetDetails(record),
                 BanTexts.reason(record.reason()), Component.text(record.operatorName()), Component.text(record.server()),
-                Component.text(CommandPanel.fullTime(record.createdAt())), BanTexts.expiry(record.expiresAt(), now), revoked);
+                Component.text(DateTimeUtils.fullTime(record.createdAt())), BanTexts.expiry(record.expiresAt(), now), revoked);
     }
 
     // 玩家名 (UUID) 与 IP, 按记录实际包含的部分组合
@@ -171,7 +174,7 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
 
     // 影响按钮位置的可变文本宽度, 单位为聊天字体像素
     private static int rowWidth(BanRecord record) {
-        return CharacterUtils.chatWidth(BanRecord.ID_PREFIX + record.id()) + CharacterUtils.chatWidth(CommandPanel.shortTime(record.createdAt()))
+        return CharacterUtils.chatWidth(BanRecord.ID_PREFIX + record.id()) + CharacterUtils.chatWidth(DateTimeUtils.shortTime(record.createdAt()))
                 + CharacterUtils.chatWidth(CharacterUtils.truncate(record.display(), TARGET_LENGTH)) + CharacterUtils.chatWidth(CharacterUtils.truncate(record.operatorName(), OPERATOR_LENGTH));
     }
 

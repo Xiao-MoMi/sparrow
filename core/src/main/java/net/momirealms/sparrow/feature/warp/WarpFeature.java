@@ -53,6 +53,7 @@ public final class WarpFeature extends Feature<WarpSettings> {
         register.accept(new SetWarpCommand(manager, this.plugin, this));
         register.accept(new DelWarpCommand(manager, this.plugin, this));
         register.accept(new WarpListCommand(manager, this.plugin, this));
+        register.accept(new EditWarpCommand(manager, this.plugin, this));
     }
 
     // 停用期间收不到其他服务器的变更, 每次启用都整表重读. 读完之前阻塞, 启用后的查找一定能命中
