@@ -2,6 +2,8 @@ package net.momirealms.sparrow.feature;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
 import net.minecraft.server.level.ServerPlayer;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
@@ -17,6 +19,7 @@ import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.plugin.PluginManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 import org.mockito.invocation.Invocation;
@@ -42,6 +45,12 @@ class MaintenanceFeatureTest {
     private MockedStatic<Bukkit> bukkit;
     private MaintenanceFeature feature;
 
+    @BeforeAll
+    static void bootstrap() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
+
     @BeforeEach
     void setUp() {
         this.plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
@@ -63,8 +72,8 @@ class MaintenanceFeatureTest {
 
         // 渲染结果为翻译键本身
         TranslationManager manager = mock(TranslationManager.class);
-        when(manager.render(any(TranslatableComponent.Builder.class), any()))
-                .thenAnswer(invocation -> Component.text(((TranslatableComponent) invocation.<TranslatableComponent.Builder>getArgument(0).asComponent()).key()));
+        when(manager.render(any(Component.class), any()))
+                .thenAnswer(invocation -> Component.text(invocation.<TranslatableComponent>getArgument(0).key()));
         when(this.plugin.translationManager()).thenReturn(manager);
 
         this.bukkit = mockStatic(Bukkit.class);
@@ -194,7 +203,7 @@ class MaintenanceFeatureTest {
         when(player.uniqueId()).thenReturn(UUID.randomUUID());
         when(player.locale()).thenReturn(Locale.ROOT);
         // 翻译结果为翻译键本身
-        when(player.translate(any(), any(Component[].class))).thenAnswer(invocation -> Component.text(((TranslatableComponent) invocation.<TranslatableComponent.Builder>getArgument(0).asComponent()).key()));
+        when(player.render(any(Component.class))).thenAnswer(invocation -> Component.text(invocation.<TranslatableComponent>getArgument(0).key()));
         when(player.hasPermission(MaintenanceFeature.BYPASS_PERMISSION)).thenReturn(bypass);
         ServerPlayer handle = mock(ServerPlayer.class);
         when(handle.getBukkitEntity()).thenReturn(mock(CraftPlayer.class));

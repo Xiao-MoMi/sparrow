@@ -16,6 +16,7 @@ import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.redis.proxy.DisconnectMessage;
 import net.momirealms.sparrow.util.AdventureHelper;
+import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
 import net.momirealms.sparrow.util.VersionHelper;
@@ -249,17 +250,17 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     // account 为 true 时提示账号被封禁, 否则提示所用 IP 被封禁
     private Component kickScreen(boolean account, String id, String reason, String operatorName, long expiresAt, long now, @Nullable Locale locale) {
         TranslatableComponent.Builder key = account ? MessageConstants.BAN_KICK_PLAYER : MessageConstants.BAN_KICK_IP;
-        TranslatableComponent screen = BanTexts.translatable(key, BanTexts.reason(reason), Component.text(operatorName), BanTexts.expiry(expiresAt, now), Component.text(BanRecord.ID_PREFIX + id));
-        return this.plugin.translationManager().renderNested(screen, locale);
+        TranslatableComponent screen = Components.translatable(key, BanTexts.reason(reason), Component.text(operatorName), BanTexts.expiry(expiresAt, now), Component.text(BanRecord.ID_PREFIX + id));
+        return this.plugin.translationManager().render(screen, locale);
     }
 
     private Component notifyMessage(BanMessage message, long now, Locale locale) {
         Component target = Component.text(message.display());
         Component operator = Component.text(message.operatorName());
         TranslatableComponent text = message.banned()
-                ? BanTexts.translatable(MessageConstants.BAN_NOTIFY_BAN, target, operator, BanTexts.reason(message.reason()), BanTexts.expiry(message.expiresAt(), now), BanTexts.id(message.banId()))
-                : BanTexts.translatable(MessageConstants.BAN_NOTIFY_UNBAN, target, operator);
-        return this.plugin.translationManager().renderNested(text, locale);
+                ? Components.translatable(MessageConstants.BAN_NOTIFY_BAN, target, operator, BanTexts.reason(message.reason()), BanTexts.expiry(message.expiresAt(), now), BanTexts.id(message.banId()))
+                : Components.translatable(MessageConstants.BAN_NOTIFY_UNBAN, target, operator);
+        return this.plugin.translationManager().render(text, locale);
     }
 
     private static BanTarget.PlayerTarget target(PlayerRef player) {

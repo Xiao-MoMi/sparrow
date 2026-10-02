@@ -122,16 +122,16 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
 
     private Component title(@Nullable BanTarget target, Filters filters) {
         Component title = target == null
-                ? MessageConstants.COMMAND_BAN_HISTORY_TITLE_ALL.build()
-                : BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_TITLE, Component.text(target.display()));
+                ? Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_TITLE_ALL)
+                : Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_TITLE, Component.text(target.display()));
         if (filters.operator() != null) {
-            title = title.append(BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_OPERATOR, Component.text(filters.operator())));
+            title = title.append(Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_OPERATOR, Component.text(filters.operator())));
         }
         if (filters.within() != null) {
-            title = title.append(BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_WITHIN, Component.text(DurationUtils.format(filters.within().toMillis()))));
+            title = title.append(Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_WITHIN, Component.text(DurationUtils.format(filters.within().toMillis()))));
         }
         if (filters.active()) {
-            title = title.append(MessageConstants.COMMAND_BAN_HISTORY_FILTER_ACTIVE.build());
+            title = title.append(Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_ACTIVE));
         }
         return title;
     }
@@ -152,14 +152,14 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
         }
         Component unban = panel.suggest(CommandPanel.label("unban"), "unban", BanRecord.ID_PREFIX + record.id()).style(PanelButton.Style.DANGER)
                 .disabled(record.active(now) ? null : Components.translatable("command.panel.inactive")).build();
-        return BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_ROW, id, time, status, target, operator.append(padding), unban);
+        return Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_ROW, id, time, status, target, operator.append(padding), unban);
     }
 
     private Component details(BanRecord record, long now) {
         Component revoked = record.revokedAt() == 0
                 ? BanTexts.status(record, now)
-                : BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_REVOKED, Component.text(String.valueOf(record.revokedBy())), Component.text(DateTimeUtils.fullTime(record.revokedAt())));
-        return BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_HOVER, Component.text(BanRecord.ID_PREFIX + record.id()), this.targetDetails(record),
+                : Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_REVOKED, Component.text(String.valueOf(record.revokedBy())), Component.text(DateTimeUtils.fullTime(record.revokedAt())));
+        return Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_HOVER, Component.text(BanRecord.ID_PREFIX + record.id()), this.targetDetails(record),
                 BanTexts.reason(record.reason()), Component.text(record.operatorName()), Component.text(record.server()),
                 Component.text(DateTimeUtils.fullTime(record.createdAt())), BanTexts.expiry(record.expiresAt(), now), revoked);
     }

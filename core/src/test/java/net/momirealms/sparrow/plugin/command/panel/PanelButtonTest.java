@@ -133,6 +133,6 @@ class PanelButtonTest {
     }
 
     private TranslatableComponent template(Component component) {
-        return assertInstanceOf(TranslatableComponent.class, component.children().getFirst());
+        return assertInstanceOf(TranslatableComponent.class, component);
     }
 }

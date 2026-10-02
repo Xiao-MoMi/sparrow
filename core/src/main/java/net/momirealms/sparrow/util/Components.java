@@ -1,6 +1,8 @@
 package net.momirealms.sparrow.util;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.ComponentLike;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
@@ -13,8 +15,13 @@ public final class Components {
     private Components() {}
 
     @NotNull
-    public static Component translatable(@NotNull String key, @NotNull Component... arguments) {
-        return Component.empty().append(Component.translatable(key).arguments(arguments));
+    public static TranslatableComponent translatable(@NotNull String key, @NotNull ComponentLike... arguments) {
+        return Component.translatable(key).arguments(arguments);
+    }
+
+    @NotNull
+    public static TranslatableComponent translatable(@NotNull TranslatableComponent.Builder key, @NotNull ComponentLike... arguments) {
+        return ((TranslatableComponent) key.asComponent()).arguments(arguments);
     }
 
     public static String toPlain(Component component) {
