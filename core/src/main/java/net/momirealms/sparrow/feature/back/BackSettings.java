@@ -1,6 +1,9 @@
 package net.momirealms.sparrow.feature.back;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.player.teleport.TeleportType;
+import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
@@ -33,6 +36,20 @@ public final class BackSettings implements FeatureSettings {
     @Comment(lang = "zh", value = "本服没有记录时, 如果玩家是在这么多秒内从上一个服务器切换过来的, /back 会回到上一个服务器离开时的位置.")
     private int serverSwitchWindowSeconds = 30;
 
+    @BlankLineBefore
+    @Comment("Seconds a player must stand still before returning. sparrow.teleport-warmup.<seconds> overrides it (lowest node wins), sparrow.bypass.teleport-warmup skips it.")
+    @Comment(lang = "zh", value = "返回前需要原地等待的秒数. sparrow.teleport-warmup.<秒> 可覆盖该值 (取最小的节点), sparrow.bypass.teleport-warmup 可跳过.")
+    private int warmupSeconds = 3;
+
+    @Comment("Seconds before a player can use /back again, shared across servers. 0 disables it. sparrow.bypass.teleport-cooldown skips it.")
+    @Comment(lang = "zh", value = "两次 /back 之间的冷却秒数, 各服务器共享. 0 表示不限制. sparrow.bypass.teleport-cooldown 可跳过.")
+    private int cooldownSeconds = 0;
+
+    @Comment("Cancel the warmup when the player moves or takes damage.")
+    @Comment(lang = "zh", value = "预热期间移动或受伤时是否取消传送.")
+    private boolean cancelOnMove = true;
+    private boolean cancelOnDamage = true;
+
     @Override
     public boolean enabled() {
         return this.enabled;
@@ -58,5 +75,11 @@ public final class BackSettings implements FeatureSettings {
 
     public int serverSwitchWindowSeconds() {
         return this.serverSwitchWindowSeconds;
+    }
+
+    /** 生成 /back 的默认预热与冷却参数. */
+    @NotNull
+    public TeleportOptions teleportOptions() {
+        return new TeleportOptions(TeleportType.BACK, this.warmupSeconds, this.cooldownSeconds, this.cancelOnMove, this.cancelOnDamage);
     }
 }

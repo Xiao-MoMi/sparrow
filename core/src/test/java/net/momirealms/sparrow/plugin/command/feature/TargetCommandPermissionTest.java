@@ -3,6 +3,8 @@ package net.momirealms.sparrow.plugin.command.feature;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.feature.back.BackCommand;
+import net.momirealms.sparrow.feature.bed.BedCommand;
+import net.momirealms.sparrow.feature.bed.BedFeature;
 import net.momirealms.sparrow.feature.head.HeadCommand;
 import net.momirealms.sparrow.feature.server.ServerCommand;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -358,7 +360,7 @@ class TargetCommandPermissionTest {
                 this.register(new SuicideCommand(this.feedback, this.plugin), "suicide");
                 this.register(new AnvilCommand(this.feedback, this.plugin), "anvil");
                 this.register(new BackCommand(this.feedback, this.plugin), "back");
-                this.register(new BedCommand(this.feedback, this.plugin), "bed");
+                this.register(new BedCommand(this.feedback, this.plugin, new BedFeature(this.plugin)), "bed");
                 this.register(new CartographyTableCommand(this.feedback, this.plugin), "cartography-table");
                 this.register(new ColorCommand(this.feedback, this.plugin), "color");
                 this.register(new EnchantmentTableCommand(this.feedback, this.plugin), "enchantment-table");
