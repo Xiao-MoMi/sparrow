@@ -1,11 +1,9 @@
 package net.momirealms.sparrow.locale;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.translation.Translator;
 import net.momirealms.sparrow.locale.tag.IndexedArgumentTag;
 import net.momirealms.sparrow.util.AdventureHelper;
-import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,7 +30,6 @@ public interface TranslationManager {
             "tt_ru", "tzo_mx", "uk_ua", "val_es", "vec_it", "vi_vn", "vp_vl", "yi_de",
             "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"
     );
-    List<Suggestion> ALL_LANG_SUGGESTIONS = ALL_LANG.stream().map(Suggestion::suggestion).toList();
     Map<String, List<String>> LOCALE_2_COUNTRIES = ALL_LANG.stream()
             .map(lang -> lang.split("_"))
             .filter(split -> split.length >= 2)
@@ -47,7 +44,6 @@ public interface TranslationManager {
 
     /**
      * 按控制台语言生成纯文本日志, 保留 PluginLogger 的级别和插件前缀.
-     * 在翻译管理器创建后调用.
      *
      * @param key 日志翻译键
      * @param arguments 按索引填充的文本参数
@@ -73,32 +69,16 @@ public interface TranslationManager {
     }
 
     /**
-     * 使用指定语言环境渲染一个可翻译组件.
-     *
-     * @param component 需要渲染的可翻译组件
-     * @param locale 目标语言环境, 传入 null 时由实现决定使用当前选定语言
-     * @return 渲染后的 Adventure 组件
-     */
-    Component render(TranslatableComponent component, @Nullable Locale locale);
-
-    default Component render(TranslatableComponent component) {
-        return render(component, null);
-    }
-
-    default Component render(TranslatableComponent.Builder key, @Nullable Locale locale) {
-        return this.render((TranslatableComponent) key.asComponent(), locale);
-    }
-
-    /**
-     * 渲染组件树中所有本插件的翻译键, 参数里嵌套的翻译组件也会一并翻译.
-     * {@link #render(TranslatableComponent, Locale)} 只翻译最外层的键.
-     *
-     * @param component 待渲染的组件
-     * @param locale 目标语言环境, 传入 null 时使用当前选定语言
-     * @return 渲染后的组件
+     * 按指定语言展开组件树中的插件翻译键, 包括参数、子节点和悬浮文本中的翻译组件.
+     * 保留组件样式和交互事件, 其他翻译键交给 Adventure 默认处理.
      */
     @NotNull
-    Component renderNested(@NotNull Component component, @Nullable Locale locale);
+    Component render(@NotNull Component component, @Nullable Locale locale);
+
+    @NotNull
+    default Component render(@NotNull Component component) {
+        return this.render(component, null);
+    }
 
     /**
      * 查询指定翻译键并将结果渲染为纯文本字符串.

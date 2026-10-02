@@ -100,6 +100,6 @@ class CommandPanelTest {
     }
 
     private TranslatableComponent navigation(CommandPanel panel) {
-        return assertInstanceOf(TranslatableComponent.class, panel.build().children().getFirst().children().getFirst());
+        return assertInstanceOf(TranslatableComponent.class, panel.build().children().getFirst());
     }
 }

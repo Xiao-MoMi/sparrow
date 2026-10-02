@@ -12,6 +12,7 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
 import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
+import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
@@ -85,7 +86,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
     }
 
     private void render(CommandSender sender, String input, IpRange range, TextPage<PlayerData> page) {
-        Component title = MessageConstants.COMMAND_IP_HISTORY_TITLE.build().arguments(Component.text(input), Component.text(range.toString()));
+        Component title = Components.translatable(MessageConstants.COMMAND_IP_HISTORY_TITLE, Component.text(input), Component.text(range.toString()));
         CommandPanel panel = new CommandPanel(this.commandManager(), sender).header(title, page);
         List<PlayerData> players = page.content();
         int size = players.size();
@@ -103,8 +104,8 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
         ClusterPlayer online = this.plugin().playerManager().cluster().find(data.player());
         Component name = Component.text(data.name());
         Component status = online != null
-                ? MessageConstants.COMMAND_IP_HISTORY_ONLINE.build().arguments(Component.text(online.server()))
-                : MessageConstants.COMMAND_IP_HISTORY_OFFLINE.build().arguments(Component.text(data.lastLogoutServer() == null ? "-" : data.lastLogoutServer()));
+                ? Components.translatable(MessageConstants.COMMAND_IP_HISTORY_ONLINE, Component.text(online.server()))
+                : Components.translatable(MessageConstants.COMMAND_IP_HISTORY_OFFLINE, Component.text(data.lastLogoutServer() == null ? "-" : data.lastLogoutServer()));
         String ip = data.lastLoginIp() == null ? "-" : data.lastLoginIp();
         Component time = Component.text(player ? DateTimeUtils.shortTime(data.lastLogin()) : DateTimeUtils.fullTime(data.lastLogin()));
         // 玩家看到固定宽度的圆点, 绿色在线, 灰色离线, 文字说明放进悬浮
@@ -112,7 +113,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
             name = name.hoverEvent(Component.text(data.player().toString())).clickEvent(ClickEvent.copyToClipboard(data.player().toString()));
             status = Component.text(STATUS_SYMBOL, online != null ? NamedTextColor.GREEN : NamedTextColor.GRAY).hoverEvent(status);
         }
-        return MessageConstants.COMMAND_IP_HISTORY_ROW.build().arguments(status, name, time, Component.text(ip));
+        return Components.translatable(MessageConstants.COMMAND_IP_HISTORY_ROW, status, name, time, Component.text(ip));
     }
 
     @Override

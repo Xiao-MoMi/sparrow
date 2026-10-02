@@ -9,6 +9,7 @@ import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
+import net.momirealms.sparrow.util.Components;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -55,9 +56,9 @@ public final class KickMessage extends OneWayMessage<ByteBuf> {
         SparrowPlugin plugin = SparrowPlugin.instance();
         SparrowPlayer target = plugin.playerManager().getPlayer(this.player);
         if (target == null) return;
-        Component reason = this.reason.isEmpty() ? MessageConstants.KICK_REASON_NONE.build() : Component.text(this.reason);
+        Component reason = this.reason.isEmpty() ? Components.translatable(MessageConstants.KICK_REASON_NONE) : Component.text(this.reason);
         // 文本在当前线程按玩家语言渲染, 踢出放到玩家所属线程
-        Component screen = target.translate(MessageConstants.KICK_SCREEN, reason, Component.text(this.operatorName));
+        Component screen = target.render(Components.translatable(MessageConstants.KICK_SCREEN, reason, Component.text(this.operatorName)));
         plugin.scheduler().platform().run(() -> target.kick(screen), () -> {}, target.platformPlayer());
     }
 }

@@ -1,10 +1,9 @@
 package net.momirealms.sparrow.feature.ban;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.ComponentLike;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.DurationUtils;
 import org.jetbrains.annotations.NotNull;
@@ -12,12 +11,6 @@ import org.jetbrains.annotations.NotNull;
 final class BanTexts {
 
     private BanTexts() {
-    }
-
-    // MessageConstants 中的 Builder 是共享实例, 先 build 再填参数
-    @NotNull
-    static TranslatableComponent translatable(@NotNull TranslatableComponent.Builder key, @NotNull ComponentLike... args) {
-        return key.build().arguments(args);
     }
 
     // 带 # 前缀的处罚 ID, 点击复制
@@ -29,19 +22,19 @@ final class BanTexts {
 
     @NotNull
     static Component reason(@NotNull String reason) {
-        return reason.isEmpty() ? MessageConstants.BAN_REASON_NONE.build() : Component.text(reason);
+        return reason.isEmpty() ? Components.translatable(MessageConstants.BAN_REASON_NONE) : Component.text(reason);
     }
 
     // 永久, 或到期时间加剩余时长
     @NotNull
     static Component expiry(long expiresAt, long now) {
-        if (expiresAt == 0) return MessageConstants.BAN_EXPIRY_PERMANENT.build();
-        return translatable(MessageConstants.BAN_EXPIRY_TEMPORARY, Component.text(DateTimeUtils.fullTime(expiresAt)), Component.text(DurationUtils.format(expiresAt - now)));
+        if (expiresAt == 0) return Components.translatable(MessageConstants.BAN_EXPIRY_PERMANENT);
+        return Components.translatable(MessageConstants.BAN_EXPIRY_TEMPORARY, Component.text(DateTimeUtils.fullTime(expiresAt)), Component.text(DurationUtils.format(expiresAt - now)));
     }
 
     @NotNull
     static Component status(@NotNull BanRecord record, long now) {
-        if (record.revokedAt() != 0) return MessageConstants.BAN_STATUS_REVOKED.build();
-        return record.active(now) ? MessageConstants.BAN_STATUS_ACTIVE.build() : MessageConstants.BAN_STATUS_EXPIRED.build();
+        if (record.revokedAt() != 0) return Components.translatable(MessageConstants.BAN_STATUS_REVOKED);
+        return record.active(now) ? Components.translatable(MessageConstants.BAN_STATUS_ACTIVE) : Components.translatable(MessageConstants.BAN_STATUS_EXPIRED);
     }
 }

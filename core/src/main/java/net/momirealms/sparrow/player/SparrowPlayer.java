@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.util.Components;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +53,7 @@ public interface SparrowPlayer {
     }
 
     default void sendMessage(@NotNull TranslatableComponent.Builder key, @NotNull Component... arguments) {
-        this.sendMessage(this.translate(key, arguments));
+        this.sendMessage(this.render(Components.translatable(key, arguments)));
     }
 
     default void sendActionBar(@NotNull Component message) {
@@ -60,14 +61,12 @@ public interface SparrowPlayer {
     }
 
     default void sendActionBar(@NotNull TranslatableComponent.Builder key, @NotNull Component... arguments) {
-        this.sendActionBar(this.translate(key, arguments));
+        this.sendActionBar(this.render(Components.translatable(key, arguments)));
     }
 
     @NotNull
-    default Component translate(@NotNull TranslatableComponent.Builder key, @NotNull Component... arguments) {
-        // 消息常量是共享的构建器, 生成新组件填参数
-        TranslatableComponent message = ((TranslatableComponent) key.asComponent()).arguments(arguments);
-        return SparrowPlugin.instance().translationManager().renderNested(message, this.locale());
+    default Component render(@NotNull Component component) {
+        return SparrowPlugin.instance().translationManager().render(component, this.locale());
     }
 
     void sendTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut);

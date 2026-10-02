@@ -46,12 +46,12 @@ public final class TranslationManagerImpl implements TranslationManager {
     private final Map<String, ServerLangData> serverLangData = new HashMap<>();
     private Map<Locale, CachedTranslation> cachedTranslations = Map.of();
     // 本插件的翻译键渲染后再次遍历结果, 参数里嵌套的翻译键也会被翻译; 其他键交给 Adventure 默认处理
-    private final TranslatableComponentRenderer<Locale> nestedRenderer = new TranslatableComponentRenderer<>() {
+    private final TranslatableComponentRenderer<Locale> renderer = new TranslatableComponentRenderer<>() {
         @Override
         @NotNull
         protected Component renderTranslatable(@NotNull TranslatableComponent component, @Nullable Locale locale) {
             if (!TranslationManagerImpl.this.serverLangData.containsKey(component.key())) return super.renderTranslatable(component, locale);
-            Component rendered = TranslationManagerImpl.this.render(component, locale).mergeStyle(component);
+            Component rendered = TranslationManagerImpl.this.renderTranslation(component, locale).mergeStyle(component);
             return this.render(rendered, locale);
         }
     };
@@ -128,19 +128,16 @@ public final class TranslationManagerImpl implements TranslationManager {
         return Optional.ofNullable(serverLangData.translate(locale)).orElse(key);
     }
 
-    /**
-     * 渲染一个可翻译 Adventure 组件.
-     * 该方法会先查询翻译文本, 再根据组件参数决定是否使用 `IndexedArgumentTag` 进行参数填充, 最后保留原组件的 children 结构.
-     * 若翻译为空字符串则返回空组件, 若翻译缺失则回退为原组件或原始键对应结果.
-     *
-     * @param component 需要渲染的可翻译组件
-     * @param locale 目标语言环境, 为 null 时使用当前选定语言
-     * @return 渲染后的 Adventure 组件
-     * @throws RuntimeException 当 MiniMessage 解析失败或参数展开失败时, 底层实现可能抛出运行时异常
-     */
     @Override
-    public Component render(TranslatableComponent component, @Nullable Locale locale) {
-        String miniMessageTranslation = miniMessageTranslation(component.key(), locale);
+    @NotNull
+    public Component render(@NotNull Component component, @Nullable Locale locale) {
+        return this.renderer.render(component, locale);
+    }
+
+    // 展开语言模板和参数, 结果中的翻译键由渲染器继续处理.
+    @NotNull
+    private Component renderTranslation(@NotNull TranslatableComponent component, @Nullable Locale locale) {
+        String miniMessageTranslation = this.miniMessageTranslation(component.key(), locale);
         if (miniMessageTranslation == null) {
             return component;
         }
@@ -155,12 +152,6 @@ public final class TranslationManagerImpl implements TranslationManager {
         } else {
             return resultingComponent.append(component.children());
         }
-    }
-
-    @Override
-    @NotNull
-    public Component renderNested(@NotNull Component component, @Nullable Locale locale) {
-        return this.nestedRenderer.render(component, locale);
     }
 
     @Override
