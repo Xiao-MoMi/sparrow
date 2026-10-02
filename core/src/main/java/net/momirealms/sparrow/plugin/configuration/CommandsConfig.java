@@ -101,9 +101,6 @@ public final class CommandsConfig {
         CommandConfig anvil = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " anvil", "/anvil"), DependencyVersions.PROJECT_ID + ".command.anvil");
 
         @BlankLineBefore
-        CommandConfig bed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " bed", "/bed"), DependencyVersions.PROJECT_ID + ".command.bed");
-
-        @BlankLineBefore
         CommandConfig broadcast = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " broadcast", "/broadcast"), DependencyVersions.PROJECT_ID + ".command.broadcast");
 
         @BlankLineBefore
@@ -264,6 +261,9 @@ public final class CommandsConfig {
 
         @BlankLineBefore
         CommandConfig unban = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " unban", "/unban"), DependencyVersions.PROJECT_ID + ".command.unban");
+
+        @BlankLineBefore
+        CommandConfig bed = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " bed", "/bed"), DependencyVersions.PROJECT_ID + ".command.bed");
 
         @BlankLineBefore
         CommandConfig head = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " head", "/head"), DependencyVersions.PROJECT_ID + ".command.head");

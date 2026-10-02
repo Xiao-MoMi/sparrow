@@ -20,6 +20,8 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InOrder;
 import org.mockito.MockedStatic;
 
@@ -157,22 +159,35 @@ class TeleportServiceTest {
         verify(this.receiver, never()).sendMessage(any(TranslatableComponent.Builder.class), any(Component[].class));
     }
 
-    @Test
-    void checksAndRecordsCooldownInRedis() {
+    @ParameterizedTest
+    @EnumSource(TeleportType.class)
+    void checksAndRecordsCooldownInRedis(TeleportType type) {
+        TeleportOptions options = new TeleportOptions(type, 0, 10, true, true);
         RedisFuture<Long> remaining = redisFuture(1500L);
         when(this.redis.pttl(any())).thenReturn(remaining);
-        assertEquals(TeleportResult.COOLDOWN, this.service.teleport(this.player, "lobby", DESTINATION, options(0, 10, true, true)).join());
+        assertEquals(TeleportResult.COOLDOWN, this.service.teleport(this.player, "lobby", DESTINATION, options).join());
         verify(this.receiver).sendMessage(same(MessageConstants.TELEPORT_COOLDOWN), any(Component[].class));
         verify(this.teleports, never()).transfer(any(), any(), any());
         // 没有冷却记录时传送, 成功后写入带过期时间的键
         RedisFuture<Long> expired = redisFuture(-2L);
         when(this.redis.pttl(any())).thenReturn(expired);
-        assertEquals(TeleportResult.SUCCESS, this.service.teleport(this.player, "lobby", DESTINATION, options(0, 10, true, true)).join());
-        verify(this.redis).set(argThat(key -> new String(key).equals("sparrow:teleport-cooldown:warp:" + this.player.getUniqueId())), any(), any(SetArgs.class));
+        assertEquals(TeleportResult.SUCCESS, this.service.teleport(this.player, "lobby", DESTINATION, options).join());
+        verify(this.redis, times(2)).pttl(argThat(key -> new String(key).equals("sparrow:teleport-cooldown:" + type.id() + ":" + this.player.getUniqueId())));
+        verify(this.redis).set(argThat(key -> new String(key).equals("sparrow:teleport-cooldown:" + type.id() + ":" + this.player.getUniqueId())), any(), any(SetArgs.class));
         // 冷却为 0 时不访问 Redis
         this.service.teleport(this.player, "lobby", DESTINATION, options(0, 0, true, true)).join();
         verify(this.redis, times(2)).pttl(any());
         verify(this.redis, times(1)).set(any(), any(), any(SetArgs.class));
+    }
+
+    @Test
+    void immediateTeleportPlaysArrivalSoundWithoutWarmupOrCooldown() {
+        TeleportOptions immediate = new TeleportOptions(TeleportType.BED, 0, 0, false, false);
+        assertEquals(TeleportResult.SUCCESS, this.service.teleport(this.player, "lobby", DESTINATION, immediate).join());
+        verify(this.receiver).playSound(this.display.completeSound());
+        verifyNoInteractions(this.redis);
+        assertTrue(this.ticking.isEmpty());
+        verify(this.receiver, never()).sendActionBar(any(TranslatableComponent.Builder.class), any(Component[].class));
     }
 
     @Test

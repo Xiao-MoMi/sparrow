@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature;
 
 import net.momirealms.sparrow.feature.back.BackFeature;
+import net.momirealms.sparrow.feature.bed.BedFeature;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
@@ -51,6 +52,7 @@ public final class FeatureManager {
         this.features.put(PlayerLimitFeature.ID, new PlayerLimitFeature(plugin));
         this.features.put(BanFeature.ID, new BanFeature(plugin));
         this.features.put(BackFeature.ID, new BackFeature(plugin));
+        this.features.put(BedFeature.ID, new BedFeature(plugin));
         this.features.put(WarpFeature.ID, new WarpFeature(plugin));
     }
 

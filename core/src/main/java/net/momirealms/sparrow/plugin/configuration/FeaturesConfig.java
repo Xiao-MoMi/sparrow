@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.configuration;
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.feature.back.BackSettings;
 import net.momirealms.sparrow.feature.ban.BanSettings;
+import net.momirealms.sparrow.feature.bed.BedSettings;
 import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
@@ -159,6 +160,11 @@ public final class FeaturesConfig {
         private BackSettings back = new BackSettings();
 
         @BlankLineBefore
+        @Comment("Return to beds with /bed, with configurable warmup and cooldown. Teleporting other players is immediate and does not use cooldowns.")
+        @Comment(lang = "zh", value = "使用 /bed 回到床边, 可设置预热与冷却. 传送其他玩家时立即执行, 不检查或记录冷却.")
+        private BedSettings bed = new BedSettings();
+
+        @BlankLineBefore
         @Comment("Warps shared by every server, used with /warp, /set-warp, /del-warp and /warp-list.")
         @Comment(lang = "zh", value = "所有服务器共用的 warp, 使用 /warp、/set-warp、/del-warp 和 /warp-list.")
         private WarpSettings warp = new WarpSettings();
@@ -171,6 +177,11 @@ public final class FeaturesConfig {
         @NotNull
         public BackSettings back() {
             return this.back;
+        }
+
+        @NotNull
+        public BedSettings bed() {
+            return this.bed;
         }
 
         @NotNull
@@ -226,6 +237,7 @@ public final class FeaturesConfig {
                 case "player-limit" -> this.playerLimit;
                 case "ban" -> this.ban;
                 case "back" -> this.back;
+                case "bed" -> this.bed;
                 case "warp" -> this.warp;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };

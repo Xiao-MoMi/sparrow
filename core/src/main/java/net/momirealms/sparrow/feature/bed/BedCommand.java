@@ -1,13 +1,16 @@
-package net.momirealms.sparrow.plugin.command.feature;
+package net.momirealms.sparrow.feature.bed;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.player.teleport.TeleportResult;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
-import net.momirealms.sparrow.util.EntityUtils;
 import net.momirealms.sparrow.util.VersionHelper;
+import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,8 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 public final class BedCommand extends BukkitCommandFeature {
-    public BedCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
+    private final BedFeature feature;
+
+    public BedCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin, @NotNull BedFeature feature) {
         super(commandManager, plugin);
+        this.feature = feature;
     }
 
     @Override
@@ -63,16 +69,20 @@ public final class BedCommand extends BukkitCommandFeature {
             return;
         }
         String name = player.getName();
-        EntityUtils.teleport(player, destination).whenComplete((success, error) -> {
+        boolean self = player == context.sender();
+        TeleportOptions options = this.feature.config().teleportOptions().resolve(player, self);
+        this.plugin().playerManager().teleportService().teleport(player, ServerConfig.serverId(), WorldLocation.from(destination), options).whenComplete((result, error) -> {
             if (error != null) {
                 this.plugin().logger().warn("Failed to teleport " + name + " to the bed", error);
             }
-            this.handleFeedback(context, error == null && success ? (player == context.sender() ? MessageConstants.COMMAND_BED_SUCCESS_SELF : MessageConstants.COMMAND_BED_SUCCESS) : (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE), Component.text(name));
+            // 冷却和预热取消的原因由传送服务提示.
+            if (result == TeleportResult.COOLDOWN || result == TeleportResult.CANCELLED) return;
+            this.handleFeedback(context, error == null && result == TeleportResult.SUCCESS ? (self ? MessageConstants.COMMAND_BED_SUCCESS_SELF : MessageConstants.COMMAND_BED_SUCCESS) : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE), Component.text(name));
         });
     }
 
     @Override
     public String getFeatureID() {
-        return "bed";
+        return BedFeature.ID;
     }
 }

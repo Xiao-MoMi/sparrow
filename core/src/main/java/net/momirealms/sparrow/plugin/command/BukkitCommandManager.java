@@ -23,7 +23,6 @@ import net.momirealms.sparrow.plugin.command.feature.ItemNameCommand;
 import net.momirealms.sparrow.plugin.command.feature.ItemLoreCommand;
 import net.momirealms.sparrow.plugin.command.feature.KickCommand;
 import net.momirealms.sparrow.plugin.command.feature.KnockbackCommand;
-import net.momirealms.sparrow.plugin.command.feature.BedCommand;
 import net.momirealms.sparrow.plugin.command.feature.HatCommand;
 import net.momirealms.sparrow.plugin.command.feature.CustomNameCommand;
 import net.momirealms.sparrow.plugin.command.feature.ColorCommand;
@@ -108,7 +107,6 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 // a-z
                 new ActionBarCommand(this, plugin),
                 new AnvilCommand(this, plugin),
-                new BedCommand(this, plugin),
                 new BroadcastCommand(this, plugin),
                 new BurnCommand(this, plugin),
                 new CartographyTableCommand(this, plugin),
