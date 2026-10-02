@@ -5,7 +5,7 @@ import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
+import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.DurationUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ final class BanTexts {
     @NotNull
     static Component expiry(long expiresAt, long now) {
         if (expiresAt == 0) return MessageConstants.BAN_EXPIRY_PERMANENT.build();
-        return translatable(MessageConstants.BAN_EXPIRY_TEMPORARY, Component.text(CommandPanel.fullTime(expiresAt)), Component.text(DurationUtils.format(expiresAt - now)));
+        return translatable(MessageConstants.BAN_EXPIRY_TEMPORARY, Component.text(DateTimeUtils.fullTime(expiresAt)), Component.text(DurationUtils.format(expiresAt - now)));
     }
 
     @NotNull

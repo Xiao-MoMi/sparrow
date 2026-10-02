@@ -112,6 +112,9 @@ public interface MessageConstants {
     TranslatableComponent.Builder COMMAND_SET_WARP_MOVED = Component.translatable().key("command.set-warp.moved");
     TranslatableComponent.Builder COMMAND_SET_WARP_EXISTS = Component.translatable().key("command.set-warp.exists");
     TranslatableComponent.Builder COMMAND_DEL_WARP_SUCCESS = Component.translatable().key("command.del-warp.success");
+    TranslatableComponent.Builder COMMAND_EDIT_WARP_RENAMED = Component.translatable().key("command.edit-warp.renamed");
+    TranslatableComponent.Builder COMMAND_EDIT_WARP_DESCRIPTION = Component.translatable().key("command.edit-warp.description");
+    TranslatableComponent.Builder COMMAND_EDIT_WARP_DESCRIPTION_TOO_LONG = Component.translatable().key("command.edit-warp.description-too-long");
     TranslatableComponent.Builder TELEPORT_WARMUP = Component.translatable().key("teleport.warmup");
     TranslatableComponent.Builder TELEPORT_PROCESSING = Component.translatable().key("teleport.processing");
     TranslatableComponent.Builder TELEPORT_COOLDOWN = Component.translatable().key("teleport.cooldown");

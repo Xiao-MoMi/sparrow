@@ -301,6 +301,10 @@ public final class CommandsConfig {
         @YamlProperty("warp-list")
         CommandConfig warpList = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " warp-list", "/warp-list"), DependencyVersions.PROJECT_ID + ".command.warp-list");
 
+        @BlankLineBefore
+        @YamlProperty("edit-warp")
+        CommandConfig editWarp = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " edit-warp", "/edit-warp"), DependencyVersions.PROJECT_ID + ".command.edit-warp");
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -378,6 +382,7 @@ public final class CommandsConfig {
                 case "set-warp" -> this.setWarp;
                 case "del-warp" -> this.delWarp;
                 case "warp-list" -> this.warpList;
+                case "edit-warp" -> this.editWarp;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }
