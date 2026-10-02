@@ -53,6 +53,7 @@ class WarpCommandsTest {
     private MockedStatic<ServerConfig> serverConfig;
     private MockedStatic<SparrowPlugin> pluginInstance;
     private WarpFeature feature;
+    private final World world = mock(World.class);
 
     @BeforeEach
     void setUp() {
@@ -67,11 +68,11 @@ class WarpCommandsTest {
         when(this.plugin.playerManager().teleportService()).thenReturn(this.teleport);
         when(this.plugin.compatibilityManager().permissionMinimum(any(), any(), anyInt())).thenAnswer(invocation -> invocation.getArgument(2));
         when(this.teleport.teleport(any(), any(), any(), any())).thenReturn(CompletableFuture.completedFuture(TeleportResult.SUCCESS));
-        World world = mock(World.class);
-        when(world.getName()).thenReturn("world");
+
+        when(this.world.getName()).thenReturn("world");
         when(this.player.getName()).thenReturn("Steve");
         when(this.player.getUniqueId()).thenReturn(UUID.randomUUID());
-        when(this.player.getLocation()).thenReturn(new Location(world, 10.5, 70, -3.25, 45, 10));
+        when(this.player.getLocation()).thenReturn(new Location(this.world, 10.5, 70, -3.25, 45, 10));
         this.store.put(warp("Spawn", "lobby"), warp("Shop", "survival"), warp("shrine", "lobby"), warp("矿场", "survival"));
         // 静态模拟放在最后创建, 前面的配置出错时不会遗留给其他测试
         this.serverConfig = mockStatic(ServerConfig.class);

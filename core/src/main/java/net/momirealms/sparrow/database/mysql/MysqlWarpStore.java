@@ -47,6 +47,11 @@ public final class MysqlWarpStore extends SqlWarpStore {
     }
 
     @Override
+    protected boolean duplicateKey(@NotNull SQLException exception) {
+        return exception.getErrorCode() == 1062;
+    }
+
+    @Override
     @Nullable
     protected UUID readUuid(@NotNull ResultSet result, @NotNull String column) throws SQLException {
         byte[] bytes = result.getBytes(column);

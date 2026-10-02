@@ -35,7 +35,7 @@ public final class DelWarpCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
             return;
         }
-        this.feature.registry().delete(warp.id()).thenAccept(deleted -> {
+        this.feature.service().delete(warp.id()).thenAccept(deleted -> {
             // 同一时刻已被其他服务器删除
             if (!deleted) {
                 this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(warp.name()));

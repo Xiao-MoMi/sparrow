@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.player;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -14,9 +14,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public final class KickMessage extends OneWayMessage<ByteBuf> {
+public final class KickMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "kick");
-    public static final MessageCodec<ByteBuf, KickMessage> CODEC = RedisMessage.codec(KickMessage::write, KickMessage::new);
+    public static final MessageCodec<FriendlyByteBuf, KickMessage> CODEC = RedisMessage.codec(KickMessage::write, KickMessage::new);
 
     private final UUID player;
     private final String reason;        // 空字符串表示未提供原因
@@ -28,18 +28,17 @@ public final class KickMessage extends OneWayMessage<ByteBuf> {
         this.operatorName = operatorName;
     }
 
-    private KickMessage(ByteBuf buffer) {
+    private KickMessage(FriendlyByteBuf buffer) {
         super(buffer);
-        this.player = new UUID(buffer.readLong(), buffer.readLong());
+        this.player = buffer.readUUID();
         this.reason = ByteBufHelper.readUtf8(buffer, 32767);
         this.operatorName = ByteBufHelper.readUtf8(buffer, 64);
     }
 
     @Override
-    protected void write(ByteBuf buffer) {
+    protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
-        buffer.writeLong(this.player.getMostSignificantBits());
-        buffer.writeLong(this.player.getLeastSignificantBits());
+        buffer.writeUUID(this.player);
         ByteBufHelper.writeUtf8(buffer, this.reason, 32767);
         ByteBufHelper.writeUtf8(buffer, this.operatorName, 64);
     }

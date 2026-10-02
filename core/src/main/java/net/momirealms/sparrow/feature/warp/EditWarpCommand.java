@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class EditWarpCommand extends BukkitCommandFeature {
     private final WarpFeature feature;
@@ -99,52 +100,66 @@ public final class EditWarpCommand extends BukkitCommandFeature {
         Warp warp = this.find(context);
         if (warp == null) return;
         String name = context.get("new_name");
-        if (!this.feature.validName(name)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_WARP_INVALID_NAME, Component.text(name), Component.text(Warp.MAX_NAME_LENGTH));
-            return;
-        }
-        this.save(context, new Warp(warp.id(), name, warp.description(), warp.server(), warp.location(), warp.creator(), warp.createdAt(), System.currentTimeMillis()),
-                MessageConstants.COMMAND_EDIT_WARP_RENAMED, Component.text(warp.name()), Component.text(name));
+        this.save(
+                context,
+                name,
+                this.feature.service().rename(warp.id(), name),
+                MessageConstants.COMMAND_EDIT_WARP_RENAMED,
+                Component.text(warp.name()),
+                Component.text(name)
+        );
     }
 
     private void description(CommandContext<CommandSender> context) {
         Warp warp = this.find(context);
         if (warp == null) return;
         String text = context.get("text");
-        if (text.length() > Warp.MAX_DESCRIPTION_LENGTH) {
-            this.handleFeedback(context, MessageConstants.COMMAND_EDIT_WARP_DESCRIPTION_TOO_LONG, Component.text(Warp.MAX_DESCRIPTION_LENGTH));
-            return;
-        }
-        this.save(context, new Warp(warp.id(), warp.name(), text, warp.server(), warp.location(), warp.creator(), warp.createdAt(), System.currentTimeMillis()),
-                MessageConstants.COMMAND_EDIT_WARP_DESCRIPTION, Component.text(warp.name()));
+        this.save(
+                context,
+                warp.name(),
+                this.feature.service().setDescription(warp.id(), text),
+                MessageConstants.COMMAND_EDIT_WARP_DESCRIPTION,
+                Component.text(warp.name())
+        );
     }
 
     private void relocate(CommandContext<Player> context) {
-        // 读取位置在玩家所属线程执行, 移动前重新取出记录, 保留最近的名称和描述.
+        // 读取当前位置在玩家所属线程执行.
         this.plugin().scheduler().platform().run(() -> {
             Warp warp = this.find(context);
             if (warp == null) return;
-            Warp moved = new Warp(warp.id(), warp.name(), warp.description(), ServerConfig.serverId(), WorldLocation.from(context.sender().getLocation()), warp.creator(), warp.createdAt(), System.currentTimeMillis());
-            this.save(context, moved, MessageConstants.COMMAND_SET_WARP_MOVED, Component.text(warp.name()));
+            this.save(
+                    context,
+                    warp.name(),
+                    this.feature.service().relocate(warp.id(), ServerConfig.serverId(), WorldLocation.from(context.sender().getLocation())),
+                    MessageConstants.COMMAND_SET_WARP_MOVED,
+                    Component.text(warp.name())
+            );
         }, () -> {}, context.sender());
     }
 
     private void save(
             @NotNull CommandContext<? extends CommandSender> context,
-            @NotNull Warp warp,
+            @NotNull String name,
+            @NotNull CompletableFuture<WarpService.Result> operation,
             @NotNull TranslatableComponent.Builder message,
             @NotNull Component... arguments
     ) {
-        this.feature.registry().save(warp).thenAccept(saved -> {
-            if (!saved) {
-                this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_EXISTS, Component.text(warp.name()));
-                return;
+        operation.thenAccept(result -> {
+            switch (result.status()) {
+                case UPDATED -> {
+                    this.handleFeedback(context, message, arguments);
+                    this.show(context.sender(), result.warp());
+                }
+                case DUPLICATE_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_EXISTS, Component.text(name));
+                case NOT_FOUND -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
+                case INVALID_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_INVALID_NAME, Component.text(name), Component.text(Warp.MAX_NAME_LENGTH));
+                case DESCRIPTION_TOO_LONG -> this.handleFeedback(context, MessageConstants.COMMAND_EDIT_WARP_DESCRIPTION_TOO_LONG, Component.text(Warp.MAX_DESCRIPTION_LENGTH));
+                case CREATED -> throw new AssertionError();
             }
-            this.handleFeedback(context, message, arguments);
-            this.show(context.sender(), warp);
         }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to save warp " + warp.name(), error);
-            this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(warp.name()));
+            this.plugin().logger().warn("Failed to save warp " + name, error);
+            this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(name));
             return null;
         });
     }
@@ -169,7 +184,7 @@ public final class EditWarpCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(warp.name()));
             return;
         }
-        this.feature.registry().delete(id).thenAccept(deleted -> {
+        this.feature.service().delete(id).thenAccept(deleted -> {
             this.handleFeedback(context, deleted ? MessageConstants.COMMAND_DEL_WARP_SUCCESS : MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(warp.name()));
         }).exceptionally(error -> {
             this.plugin().logger().warn("Failed to delete warp " + warp.name(), error);

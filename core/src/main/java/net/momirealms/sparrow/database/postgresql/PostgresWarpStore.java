@@ -44,6 +44,11 @@ public final class PostgresWarpStore extends SqlWarpStore {
     }
 
     @Override
+    protected boolean duplicateKey(@NotNull SQLException exception) {
+        return "23505".equals(exception.getSQLState());
+    }
+
+    @Override
     @Nullable
     protected UUID readUuid(@NotNull ResultSet result, @NotNull String column) throws SQLException {
         return result.getObject(column, UUID.class);

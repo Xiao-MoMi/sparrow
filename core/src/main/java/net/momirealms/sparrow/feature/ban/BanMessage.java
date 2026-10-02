@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.feature.ban;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -16,9 +16,9 @@ import java.util.function.Consumer;
 /**
  * 封禁或解封通知. 封禁时收到的服务器踢出本服命中的玩家, 非静默时通知本服有权限的玩家.
  */
-public final class BanMessage extends OneWayMessage<ByteBuf> {
+public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "ban");
-    public static final MessageCodec<ByteBuf, BanMessage> CODEC = RedisMessage.codec(BanMessage::write, BanMessage::new);
+    public static final MessageCodec<FriendlyByteBuf, BanMessage> CODEC = RedisMessage.codec(BanMessage::write, BanMessage::new);
     private static final int HAS_PLAYER = 1;
     private static final int HAS_IP = 2;
     private static volatile @Nullable Consumer<BanMessage> listener; // 模块启用期间由 BanFeature 处理
@@ -46,13 +46,13 @@ public final class BanMessage extends OneWayMessage<ByteBuf> {
         this.silent = silent;
     }
 
-    private BanMessage(ByteBuf buffer) {
+    private BanMessage(FriendlyByteBuf buffer) {
         super(buffer);
         this.banned = buffer.readBoolean();
         this.banId = ByteBufHelper.readUtf8(buffer, BanRecord.ID_LENGTH);
         this.display = ByteBufHelper.readUtf8(buffer, 255);
         int flags = buffer.readByte();
-        this.player = (flags & HAS_PLAYER) != 0 ? new UUID(buffer.readLong(), buffer.readLong()) : null;
+        this.player = (flags & HAS_PLAYER) != 0 ? buffer.readUUID() : null;
         this.ip = (flags & HAS_IP) != 0 ? new IpRange(buffer.readLong(), buffer.readLong()) : null;
         this.reason = ByteBufHelper.readUtf8(buffer, 32767);
         this.operatorName = ByteBufHelper.readUtf8(buffer, 64);
@@ -61,19 +61,14 @@ public final class BanMessage extends OneWayMessage<ByteBuf> {
     }
 
     @Override
-    protected void write(ByteBuf buffer) {
+    protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
         buffer.writeBoolean(this.banned);
         ByteBufHelper.writeUtf8(buffer, this.banId, BanRecord.ID_LENGTH);
         ByteBufHelper.writeUtf8(buffer, this.display, 255);
         buffer.writeByte((this.player != null ? HAS_PLAYER : 0) | (this.ip != null ? HAS_IP : 0));
-        if (this.player != null) {
-            buffer.writeLong(this.player.getMostSignificantBits());
-            buffer.writeLong(this.player.getLeastSignificantBits());
-        }
-        if (this.ip != null) {
-            buffer.writeLong(this.ip.start()).writeLong(this.ip.end());
-        }
+        if (this.player != null) buffer.writeUUID(this.player);
+        if (this.ip != null) buffer.writeLong(this.ip.start()).writeLong(this.ip.end());
         ByteBufHelper.writeUtf8(buffer, this.reason, 32767);
         ByteBufHelper.writeUtf8(buffer, this.operatorName, 64);
         buffer.writeLong(this.expiresAt);

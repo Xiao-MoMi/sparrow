@@ -244,9 +244,10 @@ class WarpPanelCommandsTest {
     void anOldConfirmationCannotDeleteAReplacementWithTheSameName() {
         Warp original = this.feature.registry().get("spawn");
         this.execute(this.player, "edit-warp Spawn delete");
-        this.feature.registry().delete(original.id()).join();
+        this.feature.service().delete(original.id()).join();
         Warp replacement = this.warp("Spawn");
-        this.feature.registry().save(replacement).join();
+        this.store.put(replacement);
+        this.feature.registry().put(replacement);
         this.published.clear();
         this.execute(this.player, "edit-warp Spawn delete confirm " + original.id());
         assertSame(replacement, this.feature.registry().get("spawn"));
@@ -257,7 +258,7 @@ class WarpPanelCommandsTest {
     @Test
     void writeFailureLeavesTheCacheUnchangedAndReportsTheFailure() {
         Warp original = this.feature.registry().get("spawn");
-        doReturn(CompletableFuture.failedFuture(new IllegalStateException("storage unavailable"))).when(this.store).save(any());
+        doReturn(CompletableFuture.failedFuture(new IllegalStateException("storage unavailable"))).when(this.store).update(any());
         this.execute(this.player, "edit-warp Spawn rename Hub");
         assertSame(original, this.feature.registry().get("spawn"));
         assertNull(this.feature.registry().get("hub"));
@@ -291,7 +292,7 @@ class WarpPanelCommandsTest {
     @Test
     void listPaginatesAndClampsTheLastPage() {
         for (int i = 0; i < 11; i++) {
-            this.feature.registry().save(this.warp("Warp_" + i)).join();
+            this.feature.registry().put(this.warp("Warp_" + i));
         }
         this.execute(this.player, "warp-list");
         assertEquals(10, this.translated("command.warp-list.entry").size());

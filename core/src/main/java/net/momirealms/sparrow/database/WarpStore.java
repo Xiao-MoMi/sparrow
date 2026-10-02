@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database;
 
 import net.momirealms.sparrow.feature.warp.Warp;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,9 +23,11 @@ public interface WarpStore {
     @NotNull
     CompletableFuture<Optional<Warp>> findByName(@NotNull String nameIgnoreCase);
 
-    // 两台服务器同时写入同一个新名称时, 后写入的一方由唯一索引拒绝, 任务以异常结束.
     @NotNull
-    CompletableFuture<Boolean> save(@NotNull Warp warp);
+    CompletableFuture<SaveResult> create(@NotNull Warp warp);
+
+    @NotNull
+    CompletableFuture<SaveResult> update(@NotNull Warp warp);
 
     @NotNull
     CompletableFuture<Boolean> delete(@NotNull UUID id);
@@ -34,4 +37,12 @@ public interface WarpStore {
 
     @NotNull
     CompletableFuture<Integer> deleteByServer(@NotNull String server);
+
+    enum Status {
+        SUCCESS, DUPLICATE_NAME, NOT_FOUND
+    }
+
+    // warp 仅在成功时存在, 包含实际保存的创建信息.
+    record SaveResult(@NotNull Status status, @Nullable Warp warp) {
+    }
 }

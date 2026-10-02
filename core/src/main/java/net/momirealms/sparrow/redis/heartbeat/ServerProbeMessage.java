@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.redis.heartbeat;
 
-import io.netty.buffer.ByteBuf;
+import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -10,9 +10,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class ServerProbeMessage extends TwoWayRequestMessage<ByteBuf, ServerProbeResponseMessage> {
+public final class ServerProbeMessage extends TwoWayRequestMessage<FriendlyByteBuf, ServerProbeResponseMessage> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "server_probe");
-    public static final MessageCodec<ByteBuf, ServerProbeMessage> CODEC = RedisMessage.codec(ServerProbeMessage::write, ServerProbeMessage::new);
+    public static final MessageCodec<FriendlyByteBuf, ServerProbeMessage> CODEC = RedisMessage.codec(ServerProbeMessage::write, ServerProbeMessage::new);
     private static volatile ServerHeartBeats registry;
 
     private final String token;
@@ -21,13 +21,13 @@ public final class ServerProbeMessage extends TwoWayRequestMessage<ByteBuf, Serv
         this.token = token;
     }
 
-    private ServerProbeMessage(ByteBuf buf) {
+    private ServerProbeMessage(FriendlyByteBuf buf) {
         super(buf);
         this.token = ByteBufHelper.readUtf8(buf, 128);
     }
 
     @Override
-    protected void write(ByteBuf buf) {
+    protected void write(FriendlyByteBuf buf) {
         super.write(buf);
         ByteBufHelper.writeUtf8(buf, this.token, 128);
     }

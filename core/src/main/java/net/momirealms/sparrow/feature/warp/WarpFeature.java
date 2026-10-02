@@ -19,8 +19,8 @@ public final class WarpFeature extends Feature<WarpSettings> {
     public static final String PERMISSION_PREFIX = DependencyVersions.PROJECT_ID + ".warp."; // 开启权限限制后, 加上小写名称即为该 warp 的权限
 
     private final SparrowPlugin plugin;
-    private volatile Pattern namePattern;
     private WarpRegistry registry;
+    private WarpService service;
 
     public WarpFeature(@NotNull SparrowPlugin plugin) {
         super(ID);
@@ -33,7 +33,7 @@ public final class WarpFeature extends Feature<WarpSettings> {
         WarpSettings settings = this.plugin.configurationManager().featuresConfig().config().warp();
         if (settings.suggestionLimit() < 1) throw new IllegalArgumentException("warp.suggestion-limit must be at least 1");
         try {
-            this.namePattern = Pattern.compile(settings.namePattern());
+            Pattern.compile(settings.namePattern());
         } catch (PatternSyntaxException exception) {
             throw new IllegalArgumentException("warp.name-pattern is not a valid regular expression: " + settings.namePattern(), exception);
         }
@@ -42,8 +42,15 @@ public final class WarpFeature extends Feature<WarpSettings> {
 
     @Override
     protected void onLoad() {
-        this.registry = new WarpRegistry(this.plugin.dataStorage().warpStore(), ServerConfig.serverId(),
-                message -> this.plugin.messageBrokerManager().broker().publishOneWay(message, ""));
+        this.registry = new WarpRegistry(this.plugin.dataStorage().warpStore(), ServerConfig.serverId());
+        this.service = new WarpService(
+                this.plugin.dataStorage().warpStore(),
+                this.registry,
+                ServerConfig.serverId(),
+                message -> this.plugin.messageBrokerManager().broker().publishOneWay(message, ""),
+                this.plugin.logger(),
+                this::config
+        );
     }
 
     @Override
@@ -73,11 +80,9 @@ public final class WarpFeature extends Feature<WarpSettings> {
         return this.registry;
     }
 
-    /**
-     * 名称是否符合长度与 {@code name-pattern} 规则.
-     */
-    public boolean validName(@NotNull String name) {
-        return name.length() <= Warp.MAX_NAME_LENGTH && this.namePattern.matcher(name).matches();
+    @NotNull
+    public WarpService service() {
+        return this.service;
     }
 
     /**

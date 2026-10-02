@@ -1,10 +1,11 @@
 package net.momirealms.sparrow.database.mongo;
 
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.CountOptions;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.model.FindOneAndUpdateOptions;
+import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.feature.warp.Warp;
@@ -99,13 +100,47 @@ final class MongoWarpStore implements WarpStore {
         return CompletableFuture.supplyAsync(() -> Optional.ofNullable(this.warps().find(Filters.eq(WARP_NAME_KEY, Warp.key(nameIgnoreCase))).map(MongoWarpStore::readWarp).first()), this.executor);
     }
 
-    // 检查与写入分两步执行, 不要求副本集. 两者之间被其他服务器抢先写入同名时由唯一索引拒绝
     @Override
     @NotNull
-    public CompletableFuture<Boolean> save(@NotNull Warp warp) {
+    public CompletableFuture<SaveResult> create(@NotNull Warp warp) {
+        return CompletableFuture.supplyAsync(() -> {
+            MongoCollection<Document> warps = this.warps();
+            Document document = mutableFields(warp).append("_id", warp.id()).append(WARP_CREATED_AT, warp.createdAt());
+            if (warp.creator() != null) {
+                document.append(WARP_CREATOR, warp.creator());
+            }
+            try {
+                warps.insertOne(document);
+                return new SaveResult(Status.SUCCESS, warp);
+            } catch (MongoException exception) {
+                if (exception.getCode() != 11000) {
+                    throw exception;
+                }
+                return new SaveResult(Status.DUPLICATE_NAME, null);
+            }
+        }, this.executor);
+    }
+
+    @Override
+    @NotNull
+    public CompletableFuture<SaveResult> update(@NotNull Warp warp) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Document saved = this.warps().findOneAndUpdate(Filters.eq("_id", warp.id()), new Document("$set", mutableFields(warp)),
+                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+                return saved == null ? new SaveResult(Status.NOT_FOUND, null) : new SaveResult(Status.SUCCESS, readWarp(saved));
+            } catch (MongoException exception) {
+                if (exception.getCode() != 11000) {
+                    throw exception;
+                }
+                return new SaveResult(Status.DUPLICATE_NAME, null);
+            }
+        }, this.executor);
+    }
+
+    private static Document mutableFields(Warp warp) {
         WorldLocation location = warp.location();
-        Document document = new Document("_id", warp.id())
-                .append(WARP_NAME_KEY, warp.key())
+        return new Document(WARP_NAME_KEY, warp.key())
                 .append(WARP_NAME, warp.name())
                 .append(WARP_DESCRIPTION, warp.description())
                 .append(WARP_SERVER, warp.server())
@@ -115,17 +150,7 @@ final class MongoWarpStore implements WarpStore {
                 .append(WARP_Z, location.z())
                 .append(WARP_YAW, (double) location.yaw())
                 .append(WARP_PITCH, (double) location.pitch())
-                .append(WARP_CREATED_AT, warp.createdAt())
                 .append(WARP_UPDATED_AT, warp.updatedAt());
-        if (warp.creator() != null) {
-            document.append(WARP_CREATOR, warp.creator());
-        }
-        return CompletableFuture.supplyAsync(() -> {
-            MongoCollection<Document> warps = this.warps();
-            if (warps.countDocuments(Filters.and(Filters.eq(WARP_NAME_KEY, warp.key()), Filters.ne("_id", warp.id())), new CountOptions().limit(1)) > 0) return false;
-            warps.replaceOne(Filters.eq("_id", warp.id()), document, new ReplaceOptions().upsert(true));
-            return true;
-        }, this.executor);
     }
 
     @Override

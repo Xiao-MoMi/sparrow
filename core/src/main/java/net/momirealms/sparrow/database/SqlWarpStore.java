@@ -3,6 +3,7 @@ package net.momirealms.sparrow.database;
 import net.momirealms.sparrow.feature.warp.Warp;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
 import org.jdbi.v3.core.statement.SqlStatement;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -21,7 +22,7 @@ import java.util.function.Supplier;
 @ApiStatus.Internal
 public abstract class SqlWarpStore implements WarpStore {
     private static final String COLUMNS = "name_key = :name_key, name = :name, description = :description, server = :server, world = :world, "
-            + "x = :x, y = :y, z = :z, yaw = :yaw, pitch = :pitch, creator = :creator, created_at = :created_at, updated_at = :updated_at";
+            + "x = :x, y = :y, z = :z, yaw = :yaw, pitch = :pitch, updated_at = :updated_at";
 
     private final Supplier<Jdbi> jdbi;
     private final Executor executor;
@@ -46,6 +47,8 @@ public abstract class SqlWarpStore implements WarpStore {
 
     @Nullable
     protected abstract UUID readUuid(@NotNull ResultSet result, @NotNull String column) throws SQLException;
+
+    protected abstract boolean duplicateKey(@NotNull SQLException exception);
 
     @Override
     @NotNull
@@ -92,20 +95,43 @@ public abstract class SqlWarpStore implements WarpStore {
 
     @Override
     @NotNull
-    public CompletableFuture<Boolean> save(@NotNull Warp warp) {
-        String taken = "SELECT COUNT(*) FROM " + this.warps + " WHERE name_key = :name_key AND id <> :id";
-        String update = "UPDATE " + this.warps + " SET " + COLUMNS + " WHERE id = :id";
+    public CompletableFuture<SaveResult> create(@NotNull Warp warp) {
         String insert = "INSERT INTO " + this.warps + " (id, name_key, name, description, server, world, x, y, z, yaw, pitch, creator, created_at, updated_at)"
                 + " VALUES (:id, :name_key, :name, :description, :server, :world, :x, :y, :z, :yaw, :pitch, :creator, :created_at, :updated_at)";
-        return CompletableFuture.supplyAsync(() -> this.sql().inTransaction(handle -> {
-            long others = this.bindUuid(handle.createQuery(taken), "id", warp.id()).bind("name_key", warp.key()).mapTo(Long.class).one();
-            if (others > 0) return false;
-            // 先按 id 更新, 没有这条记录时再插入
-            if (this.bindWarp(handle.createUpdate(update), warp).execute() == 0) {
-                this.bindWarp(handle.createUpdate(insert), warp).execute();
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                this.sql().useHandle(handle -> this.bindUuid(this.bindWarp(handle.createUpdate(insert), warp), "creator", warp.creator()).bind("created_at", warp.createdAt()).execute());
+                return new SaveResult(Status.SUCCESS, warp);
+            } catch (UnableToExecuteStatementException exception) {
+                if (!(exception.getCause() instanceof SQLException cause) || !this.duplicateKey(cause)) {
+                    throw exception;
+                }
+                return new SaveResult(Status.DUPLICATE_NAME, null);
             }
-            return true;
-        }), this.executor);
+        }, this.executor);
+    }
+
+    @Override
+    @NotNull
+    public CompletableFuture<SaveResult> update(@NotNull Warp warp) {
+        String update = "UPDATE " + this.warps + " SET " + COLUMNS + " WHERE id = :id";
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return this.sql().inTransaction(handle -> {
+                    Warp current = this.bindUuid(handle.createQuery("SELECT * FROM " + this.warps + " WHERE id = :id FOR UPDATE"), "id", warp.id())
+                            .map((result, context) -> this.readWarp(result)).findOne().orElse(null);
+                    if (current == null) return new SaveResult(Status.NOT_FOUND, null);
+                    this.bindWarp(handle.createUpdate(update), warp).execute();
+                    Warp saved = new Warp(current.id(), warp.name(), warp.description(), warp.server(), warp.location(), current.creator(), current.createdAt(), warp.updatedAt());
+                    return new SaveResult(Status.SUCCESS, saved);
+                });
+            } catch (UnableToExecuteStatementException exception) {
+                if (!(exception.getCause() instanceof SQLException cause) || !this.duplicateKey(cause)) {
+                    throw exception;
+                }
+                return new SaveResult(Status.DUPLICATE_NAME, null);
+            }
+        }, this.executor);
     }
 
     @Override
@@ -132,7 +158,6 @@ public abstract class SqlWarpStore implements WarpStore {
     private <S extends SqlStatement<S>> S bindWarp(S statement, Warp warp) {
         WorldLocation location = warp.location();
         this.bindUuid(statement, "id", warp.id());
-        this.bindUuid(statement, "creator", warp.creator());
         return statement.bind("name_key", warp.key())
                 .bind("name", warp.name())
                 .bind("description", warp.description())
@@ -143,7 +168,6 @@ public abstract class SqlWarpStore implements WarpStore {
                 .bind("z", location.z())
                 .bind("yaw", location.yaw())
                 .bind("pitch", location.pitch())
-                .bind("created_at", warp.createdAt())
                 .bind("updated_at", warp.updatedAt());
     }
 
@@ -154,7 +178,15 @@ public abstract class SqlWarpStore implements WarpStore {
     private Warp readWarp(ResultSet result) throws SQLException {
         WorldLocation location = new WorldLocation(result.getString("world"), result.getDouble("x"), result.getDouble("y"), result.getDouble("z"),
                 result.getFloat("yaw"), result.getFloat("pitch"));
-        return new Warp(this.readUuid(result, "id"), result.getString("name"), result.getString("description"), result.getString("server"),
-                location, this.readUuid(result, "creator"), result.getLong("created_at"), result.getLong("updated_at"));
+        return new Warp(
+                this.readUuid(result, "id"),
+                result.getString("name"),
+                result.getString("description"),
+                result.getString("server"),
+                location,
+                this.readUuid(result, "creator"),
+                result.getLong("created_at"),
+                result.getLong("updated_at")
+        );
     }
 }
