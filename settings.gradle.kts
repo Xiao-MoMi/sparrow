@@ -1,4 +1,4 @@
-rootProject.name = "Sparrow"
+rootProject.name = "sparrow"
 include(":core")
 include(":bukkit-proxy")
 include(":common-files")

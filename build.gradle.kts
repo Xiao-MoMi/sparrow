@@ -93,6 +93,7 @@ subprojects {
 
             // Relocate
             relocate("net.kyori", libs)
+            relocate("net.momirealms.sparrow.reflection", "$libs.reflection")
             relocate("net.momirealms.sparrow.yaml", "$libs.yaml")
             relocate("net.momirealms.sparrow.ui", "$libs.ui")
             relocate("net.momirealms.sparrow.redis.messagebroker", "$libs.redis.messagebroker")
