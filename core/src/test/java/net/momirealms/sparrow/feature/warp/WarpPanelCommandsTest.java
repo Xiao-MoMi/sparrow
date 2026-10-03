@@ -14,6 +14,7 @@ import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.WorldLocation;
+import net.momirealms.sparrow.testutil.PluginTestContext;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
@@ -64,10 +65,12 @@ class WarpPanelCommandsTest {
         }
     };
     private MockedStatic<ServerConfig> serverConfig;
+    private PluginTestContext context;
     private WarpFeature feature;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws ReflectiveOperationException {
+        this.context = new PluginTestContext(this.plugin, "lobby");
         when(this.plugin.configurationManager().featuresConfig().config().warp()).thenReturn(this.settings);
         when(this.plugin.dataStorage().warpStore()).thenReturn(this.store);
         when(this.player.hasPermission(anyString())).thenReturn(true);
@@ -94,6 +97,8 @@ class WarpPanelCommandsTest {
         this.serverConfig = mockStatic(ServerConfig.class);
         this.serverConfig.when(ServerConfig::serverId).thenReturn("lobby");
         this.feature = new WarpFeature(this.plugin);
+        var features = this.plugin.featureManager();
+        doReturn(this.feature).when(features).feature(WarpFeature.ID, WarpFeature.class);
         this.feature.loadConfig();
         this.feature.onLoad();
         this.feature.onEnable();
@@ -105,9 +110,10 @@ class WarpPanelCommandsTest {
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws IllegalAccessException {
         this.feature.onDisable();
         this.serverConfig.close();
+        this.context.close();
     }
 
     @Test

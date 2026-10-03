@@ -2,6 +2,7 @@ package net.momirealms.sparrow.redis;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.feature.ban.BanMessage;
+import net.momirealms.sparrow.feature.home.HomeChangedMessage;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.player.BroadcastMessage;
 import net.momirealms.sparrow.player.KickMessage;
@@ -15,10 +16,12 @@ import net.momirealms.sparrow.redis.heartbeat.ServerProbeMessage;
 import net.momirealms.sparrow.redis.heartbeat.ServerProbeResponseMessage;
 import net.momirealms.sparrow.redis.messagebroker.Logger;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
+import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.redis.proxy.DisconnectMessage;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.CompletableFuture;
 
 public final class MessageBrokerManager {
     private final SparrowPlugin plugin;
@@ -47,6 +50,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
         this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
+        this.broker.registry().register(HomeChangedMessage.ID, HomeChangedMessage.CODEC);
         this.broker.subscribe();
         // Redis Pub/Sub Proxy 代理频道.
         this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
@@ -61,6 +65,13 @@ public final class MessageBrokerManager {
     @NotNull
     public MessageBroker<FriendlyByteBuf> broker() {
         return this.broker;
+    }
+
+    @NotNull
+    public CompletableFuture<Long> publishOneWay(@NotNull OneWayMessage<FriendlyByteBuf> message, @NotNull String targetServer) {
+        MessageBroker<FriendlyByteBuf> broker = this.broker();
+        message.setTargetServer(targetServer);
+        return this.plugin.redisConnector().connection().async().publish(broker.channel(), broker.encode(message)).toCompletableFuture();
     }
 
     @NotNull

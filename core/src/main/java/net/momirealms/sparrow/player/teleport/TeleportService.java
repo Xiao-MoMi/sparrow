@@ -23,14 +23,8 @@ import java.util.concurrent.CompletableFuture;
 public final class TeleportService implements Listener {
     private static final String COOLDOWN_PREFIX = "sparrow:teleport-cooldown:"; // 后接传送类型与玩家 UUID, 过期即冷却结束
 
-    private final SparrowPlugin plugin;
-    private final TeleportManager teleports;
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, TeleportWarmup> warmups = new ConcurrentChainedObject2ObjectHashTable<>();
-
-    public TeleportService(@NotNull SparrowPlugin plugin, @NotNull TeleportManager teleports) {
-        this.plugin = plugin;
-        this.teleports = teleports;
-    }
 
     /**
      * 按参数检查冷却、原地预热后把玩家送到目标位置.
@@ -83,7 +77,7 @@ public final class TeleportService implements Listener {
 
     // 传送成功或开始切服后才开始冷却
     private CompletableFuture<TeleportResult> transfer(Player player, String server, WorldLocation destination, TeleportOptions options) {
-        return this.teleports.transfer(player, server, destination).thenApply(result -> {
+        return this.plugin.playerManager().teleports().transfer(player, server, destination).thenApply(result -> {
             if (options.cooldownSeconds() > 0 && (result == TransferResult.SUCCESS || result == TransferResult.CONNECTING)) {
                 this.startCooldown(player.getUniqueId(), options);
             }

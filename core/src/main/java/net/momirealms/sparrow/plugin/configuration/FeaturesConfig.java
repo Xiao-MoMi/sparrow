@@ -5,6 +5,7 @@ import net.momirealms.sparrow.feature.back.BackSettings;
 import net.momirealms.sparrow.feature.ban.BanSettings;
 import net.momirealms.sparrow.feature.bed.BedSettings;
 import net.momirealms.sparrow.feature.head.HeadSettings;
+import net.momirealms.sparrow.feature.home.HomeSettings;
 import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
 import net.momirealms.sparrow.feature.playerlimit.PlayerLimitSettings;
@@ -169,6 +170,16 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "所有服务器共用的 warp, 使用 /warp、/set-warp、/del-warp 和 /warp-list.")
         private WarpSettings warp = new WarpSettings();
 
+        @BlankLineBefore
+        @Comment("Personal homes, with local caching and cross-server change messages.")
+        @Comment(lang = "zh", value = "个人 Home, 使用本地缓存与跨服变更消息同步.")
+        private HomeSettings home = new HomeSettings();
+
+        @NotNull
+        public HomeSettings home() {
+            return this.home;
+        }
+
         @NotNull
         public BanSettings ban() {
             return this.ban;
@@ -239,6 +250,7 @@ public final class FeaturesConfig {
                 case "back" -> this.back;
                 case "bed" -> this.bed;
                 case "warp" -> this.warp;
+                case "home" -> this.home;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

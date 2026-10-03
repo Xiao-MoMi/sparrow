@@ -4,7 +4,6 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -42,15 +41,8 @@ public final class WarpFeature extends Feature<WarpSettings> {
 
     @Override
     protected void onLoad() {
-        this.registry = new WarpRegistry(this.plugin.dataStorage().warpStore(), ServerConfig.serverId());
-        this.service = new WarpService(
-                this.plugin.dataStorage().warpStore(),
-                this.registry,
-                ServerConfig.serverId(),
-                message -> this.plugin.messageBrokerManager().broker().publishOneWay(message, ""),
-                this.plugin.logger(),
-                this::config
-        );
+        this.registry = new WarpRegistry();
+        this.service = new WarpService();
     }
 
     @Override

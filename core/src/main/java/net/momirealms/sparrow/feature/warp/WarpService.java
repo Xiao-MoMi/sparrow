@@ -1,6 +1,8 @@
 package net.momirealms.sparrow.feature.warp;
 
 import net.momirealms.sparrow.database.WarpStore;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.UUIDUtils;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -9,9 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.function.LongSupplier;
-import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
@@ -19,23 +19,17 @@ public final class WarpService {
     private final WarpStore store;
     private final WarpRegistry registry;
     private final String serverId;
-    private final Consumer<WarpMessage> publisher;
     private final PluginLogger logger;
-    private final Supplier<WarpSettings> settings;
-    private final LongSupplier clock;
+    private final WarpFeature feature;
+    private final LongSupplier clock = System::currentTimeMillis;
 
-    public WarpService(@NotNull WarpStore store, @NotNull WarpRegistry registry, @NotNull String serverId, @NotNull Consumer<WarpMessage> publisher, @NotNull PluginLogger logger, @NotNull Supplier<WarpSettings> settings) {
-        this(store, registry, serverId, publisher, logger, settings, System::currentTimeMillis);
-    }
-
-    WarpService(WarpStore store, WarpRegistry registry, String serverId, Consumer<WarpMessage> publisher, PluginLogger logger, Supplier<WarpSettings> settings, LongSupplier clock) {
-        this.store = store;
-        this.registry = registry;
-        this.serverId = serverId;
-        this.publisher = publisher;
-        this.logger = logger;
-        this.settings = settings;
-        this.clock = clock;
+    public WarpService() {
+        SparrowPlugin plugin = SparrowPlugin.instance();
+        this.store = plugin.dataStorage().warpStore();
+        this.feature = plugin.featureManager().feature(WarpFeature.ID, WarpFeature.class);
+        this.registry = this.feature.registry();
+        this.serverId = ServerConfig.serverId();
+        this.logger = plugin.logger();
     }
 
     // 覆盖或新建一个 Warp.
@@ -48,7 +42,7 @@ public final class WarpService {
                 Warp warp = new Warp(UUIDUtils.createV7(), name, "", server, location, creator, now, now);
                 return this.save(this.store.create(warp), Status.CREATED);
             }
-            if (!this.settings.get().overwriteExisting()) return this.result(Status.DUPLICATE_NAME);
+            if (!this.feature.config().overwriteExisting()) return this.result(Status.DUPLICATE_NAME);
             Warp warp = existing.get();
             return this.save(this.store.update(new Warp(warp.id(), name, warp.description(), server, location, warp.creator(), warp.createdAt(), now)), Status.UPDATED);
         });
@@ -75,7 +69,7 @@ public final class WarpService {
     }
 
     private boolean validName(String name) {
-        return name.length() <= Warp.MAX_NAME_LENGTH && Pattern.matches(this.settings.get().namePattern(), name);
+        return name.length() <= Warp.MAX_NAME_LENGTH && Pattern.matches(this.feature.config().namePattern(), name);
     }
 
     private CompletableFuture<Result> edit(UUID id, UnaryOperator<Warp> edit) {
@@ -143,7 +137,7 @@ public final class WarpService {
     // 广播故障单独报告, 已提交的数据库操作仍返回成功.
     private void publish(WarpMessage message) {
         try {
-            this.publisher.accept(message);
+            SparrowPlugin.instance().messageBrokerManager().broker().publishOneWay(message, "");
         } catch (RuntimeException failure) {
             this.logger.warn("Warp database change committed, but publishing failed", failure);
         }
