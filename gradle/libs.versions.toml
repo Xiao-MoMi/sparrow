@@ -3,7 +3,7 @@
 project-version = "26.9-SNAPSHOT-2"
 config-version = "2"
 commands-config-version = "4"
-features-config-version = "4"
+features-config-version = "5"
 server-config-version = "1"
 lang-version = "22"
 proxy-config-version = "1"

@@ -12,6 +12,7 @@ import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import net.momirealms.sparrow.util.WorldLocation;
+import net.momirealms.sparrow.testutil.PluginTestContext;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -51,9 +52,11 @@ class TeleportServiceTest {
     private Location location;
     private MockedStatic<PluginConfig> pluginConfig;
     private TeleportService service;
+    private PluginTestContext context;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws ReflectiveOperationException {
+        this.context = new PluginTestContext(this.plugin, "lobby");
         this.location = new Location(this.world, 0, 64, 0);
         when(this.player.getUniqueId()).thenReturn(UUID.randomUUID());
         when(this.player.getLocation()).thenAnswer(invocation -> this.location.clone());
@@ -75,15 +78,17 @@ class TeleportServiceTest {
             return null;
         }).when(this.task).cancel();
         when(this.teleports.transfer(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(TransferResult.SUCCESS));
-        this.service = new TeleportService(this.plugin, this.teleports);
+        when(this.plugin.playerManager().teleports()).thenReturn(this.teleports);
+        this.service = new TeleportService();
         // 静态模拟放在最后创建, 前面的配置出错时不会遗留给其他测试
         this.pluginConfig = mockStatic(PluginConfig.class);
         this.pluginConfig.when(PluginConfig::teleport).thenReturn(this.display);
     }
 
     @AfterEach
-    void tearDown() {
+    void tearDown() throws IllegalAccessException {
         this.pluginConfig.close();
+        this.context.close();
     }
 
     @Test

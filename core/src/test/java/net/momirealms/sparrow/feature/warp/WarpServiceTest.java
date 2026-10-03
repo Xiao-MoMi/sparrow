@@ -1,9 +1,12 @@
 package net.momirealms.sparrow.feature.warp;
 
 import net.momirealms.sparrow.database.WarpStore;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.testutil.PluginTestContext;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -12,6 +15,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.LongSupplier;
 
 import static net.momirealms.sparrow.feature.warp.WarpService.Status.*;
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,18 +24,39 @@ import static org.mockito.Mockito.*;
 
 class WarpServiceTest {
     private final InMemoryWarpStore store = spy(new InMemoryWarpStore());
-    private final WarpRegistry registry = new WarpRegistry(this.store, "lobby");
+    private WarpRegistry registry;
     private final WarpSettings settings = mock(WarpSettings.class);
     private final PluginLogger logger = mock(PluginLogger.class);
     private final List<WarpMessage> published = new ArrayList<>();
     private final AtomicLong clock = new AtomicLong(100);
     private final WorldLocation location = new WorldLocation("world", 1, 64, 2, 90, 0);
-    private final WarpService service = new WarpService(this.store, this.registry, "lobby", this.published::add, this.logger, () -> this.settings, this.clock::get);
+    private final SparrowPlugin plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
+    private WarpService service;
+    private PluginTestContext context;
 
     @BeforeEach
-    void configure() {
+    void configure() throws ReflectiveOperationException {
         when(this.settings.namePattern()).thenReturn("[\\p{L}\\p{N}_][\\p{L}\\p{N}_-]*");
         when(this.settings.overwriteExisting()).thenReturn(true);
+        when(this.plugin.dataStorage().warpStore()).thenReturn(this.store);
+        when(this.plugin.logger()).thenReturn(this.logger);
+        this.context = new PluginTestContext(this.plugin, "lobby");
+        this.registry = new WarpRegistry();
+        WarpFeature feature = mock(WarpFeature.class);
+        when(feature.registry()).thenReturn(this.registry);
+        when(feature.config()).thenReturn(this.settings);
+        var features = this.plugin.featureManager();
+        doReturn(feature).when(features).feature(WarpFeature.ID, WarpFeature.class);
+        var broker = this.plugin.messageBrokerManager().broker();
+        doAnswer(invocation -> { this.published.add(invocation.getArgument(0)); return null; })
+                .when(broker).publishOneWay(any(WarpMessage.class), eq(""));
+        this.service = new WarpService();
+        PluginTestContext.setField(this.service, "clock", (LongSupplier) this.clock::get);
+    }
+
+    @AfterEach
+    void close() throws IllegalAccessException {
+        this.context.close();
     }
 
     @Test
@@ -97,7 +122,9 @@ class WarpServiceTest {
         assertEquals(DESCRIPTION_TOO_LONG, this.service.setDescription(first.id(), "x".repeat(257)).join().status());
         assertSame(first, this.registry.get(first.id()));
         assertEquals(1, this.published.size());
-        when(this.settings.namePattern()).thenReturn("[0-9]+");
+        WarpSettings reloaded = mock(WarpSettings.class);
+        when(reloaded.namePattern()).thenReturn("[0-9]+");
+        when(this.plugin.featureManager().feature(WarpFeature.ID, WarpFeature.class).config()).thenReturn(reloaded);
         assertEquals(INVALID_NAME, this.service.rename(first.id(), "Hub").join().status());
         assertEquals(UPDATED, this.service.rename(first.id(), "123").join().status());
     }
@@ -155,11 +182,12 @@ class WarpServiceTest {
         assertSame(initial, this.registry.get(initial.id()));
         assertTrue(this.published.isEmpty());
 
-        WarpService failingPublisher = new WarpService(this.store, this.registry, "lobby", message -> { throw new IllegalStateException("Redis unavailable"); }, this.logger, () -> this.settings);
-        WarpService.Result created = failingPublisher.set("Mine", "lobby", this.location, null).join();
+        var broker = this.plugin.messageBrokerManager().broker();
+        doThrow(new IllegalStateException("Redis unavailable")).when(broker).publishOneWay(any(WarpMessage.class), eq(""));
+        WarpService.Result created = this.service.set("Mine", "lobby", this.location, null).join();
         assertEquals(CREATED, created.status());
         assertEquals(created.warp(), this.registry.get("mine"));
-        assertTrue(failingPublisher.delete(created.warp().id()).join());
+        assertTrue(this.service.delete(created.warp().id()).join());
         assertNull(this.registry.get("mine"));
         verify(this.logger, times(2)).warn(contains("publishing failed"), any(Throwable.class));
     }

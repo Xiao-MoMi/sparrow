@@ -53,7 +53,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.plugin = plugin;
         this.cluster = new ClusterRoster(plugin, this);
         this.teleports = new TeleportManager(plugin);
-        this.teleportService = new TeleportService(plugin, this.teleports);
+        this.teleportService = new TeleportService();
     }
 
     public void onEnable() {

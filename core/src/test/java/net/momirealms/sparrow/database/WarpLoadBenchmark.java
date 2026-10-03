@@ -11,6 +11,8 @@ import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.feature.warp.WarpRegistry;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.testutil.PluginTestContext;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.UUIDUtils;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -131,14 +133,22 @@ class WarpLoadBenchmark {
         }
     }
 
-    private void report(String name, WarpStore store, List<Warp> warps, long insertNanos) {
+    private WarpRegistry registry(WarpStore store) throws ReflectiveOperationException {
+        SparrowPlugin plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
+        when(plugin.dataStorage().warpStore()).thenReturn(store);
+        try (PluginTestContext ignored = new PluginTestContext(plugin, "bench")) {
+            return new WarpRegistry();
+        }
+    }
+
+    private void report(String name, WarpStore store, List<Warp> warps, long insertNanos) throws ReflectiveOperationException {
         long first = time(() -> assertEquals(COUNT, store.loadAll().join().size()));
         long[] runs = new long[5];
         for (int i = 0; i < runs.length; i++) {
             runs[i] = time(() -> store.loadAll().join());
         }
         Arrays.sort(runs);
-        WarpRegistry registry = new WarpRegistry(store, "bench");
+        WarpRegistry registry = this.registry(store);
         long registryLoad = time(registry::load);
         // 跨服同步时按 id 回查一条记录的往返耗时
         int lookups = 500;
@@ -152,8 +162,8 @@ class WarpLoadBenchmark {
     }
 
     // 与数据库无关的部分: 建索引、补全、同步消息
-    private void memory(List<Warp> warps) {
-        WarpRegistry registry = new WarpRegistry(new PreloadedStore(warps), "bench");
+    private void memory(List<Warp> warps) throws ReflectiveOperationException {
+        WarpRegistry registry = this.registry(new PreloadedStore(warps));
         long build = time(registry::load);
         int rounds = 100_000;
         long emptyPrefix = time(() -> {

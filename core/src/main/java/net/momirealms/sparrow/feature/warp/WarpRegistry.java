@@ -2,6 +2,8 @@ package net.momirealms.sparrow.feature.warp;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.momirealms.sparrow.database.WarpStore;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,9 +24,9 @@ public final class WarpRegistry {
     private final ConcurrentChainedObject2ObjectHashTable<String, Warp> byKey = new ConcurrentChainedObject2ObjectHashTable<>();
     private volatile Index index = Index.EMPTY; // 按名称键排好序的快照, 供补全和列表使用
 
-    public WarpRegistry(@NotNull WarpStore store, @NotNull String serverId) {
-        this.store = store;
-        this.serverId = serverId;
+    public WarpRegistry() {
+        this.store = SparrowPlugin.instance().dataStorage().warpStore();
+        this.serverId = ServerConfig.serverId();
     }
 
     /**

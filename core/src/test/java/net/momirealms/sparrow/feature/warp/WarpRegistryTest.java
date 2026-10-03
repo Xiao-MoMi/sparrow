@@ -3,16 +3,35 @@ package net.momirealms.sparrow.feature.warp;
 import net.minecraft.network.FriendlyByteBuf;
 import io.netty.buffer.Unpooled;
 import net.momirealms.sparrow.util.WorldLocation;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.testutil.PluginTestContext;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class WarpRegistryTest {
     private final InMemoryWarpStore store = new InMemoryWarpStore();
-    private final WarpRegistry registry = new WarpRegistry(this.store, "lobby");
+    private WarpRegistry registry;
+    private PluginTestContext context;
+
+    @BeforeEach
+    void configure() throws ReflectiveOperationException {
+        SparrowPlugin plugin = mock(SparrowPlugin.class, RETURNS_DEEP_STUBS);
+        when(plugin.dataStorage().warpStore()).thenReturn(this.store);
+        this.context = new PluginTestContext(plugin, "lobby");
+        this.registry = new WarpRegistry();
+    }
+
+    @AfterEach
+    void close() throws IllegalAccessException {
+        this.context.close();
+    }
 
     @Test
     void loadsEverythingAndCompletesByPrefix() {
