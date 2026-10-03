@@ -27,8 +27,7 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_HIGHLIGHT_POINTS = Component.translatable("command.highlight.points");
     TranslatableComponent COMMAND_ACTIONBAR_SUCCESS = Component.translatable("command.actionbar.success");
     TranslatableComponent COMMAND_ACTIONBAR_SUCCESS_SELF = Component.translatable("command.actionbar.success-self");
-    TranslatableComponent COMMAND_BROADCAST_SUCCESS = Component.translatable("command.broadcast.success");
-    TranslatableComponent COMMAND_BROADCAST_SUCCESS_SELF = Component.translatable("command.broadcast.success-self");
+    TranslatableComponent COMMAND_BROADCAST_SENT = Component.translatable("command.broadcast.sent");
     TranslatableComponent COMMAND_TOAST_SUCCESS = Component.translatable("command.toast.success");
     TranslatableComponent COMMAND_TOAST_SUCCESS_SELF = Component.translatable("command.toast.success-self");
     TranslatableComponent COMMAND_TOAST_INVALID_ICON = Component.translatable("command.toast.invalid-icon");
