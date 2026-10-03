@@ -81,8 +81,8 @@ buildConfig {
     buildConfigField("WARP_SCHEMA_VERSION", libs.versions.warp.schema.version.get().toInt())
     buildConfigField("MONGODB_WARP_INDEX_VERSION", libs.versions.mongodb.warp.index.version.get().toInt())
 
-    buildConfigField("PROJECT_PACKAGE", projectPackage)
     buildConfigField("PROJECT_ID", projectId)
+    buildConfigField("PROJECT_PACKAGE", projectPackage)
     buildConfigField("PROXY_JAR_NAME", proxyJarName)
     buildConfigField("ASM_CLASS_PREFIX", projectPackage.replace('.', '_'))
     buildConfigField("COMPILE_TIME", SimpleDateFormat("yyyyMMdd_HHmm").format(Date()))
