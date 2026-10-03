@@ -67,8 +67,7 @@ command.bed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name
 command.bed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to your bed</color>'
 
 # command.broadcast
-command.broadcast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a broadcast to <color:#C7BCE7><arg:0></color></color>'
-command.broadcast.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a broadcast to you</color>'
+command.broadcast.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Broadcast sent to all servers</color>'
 
 # command.burn
 command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color> on fire for <color:#C7BCE7><arg:1></color> ticks</color>'

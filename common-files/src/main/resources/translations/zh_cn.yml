@@ -67,8 +67,7 @@ command.bed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name
 command.bed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到你的床</color>'
 
 # command.broadcast
-command.broadcast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送广播</color>'
-command.broadcast.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你发送广播</color>'
+command.broadcast.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向全部服务器发送广播</color>'
 
 # command.burn
 command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已使 <color:#C7BCE7><arg:0></color> 燃烧 <color:#C7BCE7><arg:1></color> tick</color>'
