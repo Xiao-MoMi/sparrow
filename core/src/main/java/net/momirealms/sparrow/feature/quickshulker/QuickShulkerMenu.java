@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.momirealms.sparrow.feature.FeatureState;
+import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.sparrow.proxy.minecraft.world.item.component.ItemContainerContentsProxy;
 import net.momirealms.sparrow.ui.inventory.VirtualInventory;
@@ -18,7 +19,6 @@ import net.momirealms.sparrow.ui.util.ItemUtils;
 import net.momirealms.sparrow.ui.window.NormalWindow;
 import net.momirealms.sparrow.ui.window.Window;
 import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
@@ -61,7 +61,7 @@ public final class QuickShulkerMenu {
         Component itemName = AdventureHelper.jsonToComponent(CraftChatMessage.toJSON(this.shulker.getHoverName()));
         this.window = NormalWindow.builder()
                 .setUpperPane(pane)
-                .setTitle(Components.miniMessage(title, Map.of("hover_name", itemName)))
+                .setTitle(AdventureHelper.miniMessage().deserialize(title, MessageContext.of(Map.of("hover_name", itemName))))
                 .build(viewer);
 
         // 冻结原潜影盒所在的快捷栏槽位或副手.

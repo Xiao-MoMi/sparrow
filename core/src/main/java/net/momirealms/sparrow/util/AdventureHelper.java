@@ -13,16 +13,15 @@ import net.momirealms.sparrow.locale.tag.NamedArgumentTag;
 import net.momirealms.sparrow.locale.tag.PlaceholderTag;
 import net.momirealms.sparrow.message.MiniMessage;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
+import net.momirealms.sparrow.reflection.clazz.SparrowClass;
+import net.momirealms.sparrow.reflection.field.matcher.FieldMatcher;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-/**
- * Adventure 组件工具类, 提供 MiniMessage, JSON, NBT, 旧版颜色代码等多种文本格式之间的转换功能.
- * 该类采用单例模式, 通过 {@link #getInstance()} 获取唯一实例.
- */
 public final class AdventureHelper {
     public static final String EMPTY_COMPONENT = componentToJson(Component.empty());
     private final MiniMessage miniMessage;
@@ -34,13 +33,8 @@ public final class AdventureHelper {
     // 文本替换配置, 将字符串中的换行符 '\n' 替换为 Adventure 的换行组件.
     private static final TextReplacementConfig REPLACE_LF = TextReplacementConfig.builder().matchLiteral("\n").replacement(Component.newline()).build();
 
-    /**
-     * 静态初始化块, 通过反射禁用 Adventure 内部的旧版格式化检测警告.
-     * 将 TextComponentImpl.WARN_WHEN_LEGACY_FORMATTING_DETECTED 设为 false,
-     * 避免在使用旧版颜色代码时产生不必要的控制台警告输出.
-     */
     static {
-//        SparrowClass.of(NyanaClass.findNoRemap("net.kyori.adventure.text.TextComponentImpl")).getDeclaredSparrowField(FieldMatcher.named("WARN_WHEN_LEGACY_FORMATTING_DETECTED")).mh().set(null, false);
+        SparrowClass.of(SparrowClass.findNoRemap("net.kyori.adventure.text.TextComponentImpl")).getDeclaredSparrowField(FieldMatcher.named("WARN_WHEN_LEGACY_FORMATTING_DETECTED")).mh().set(null, false);
     }
 
     /**
@@ -56,10 +50,6 @@ public final class AdventureHelper {
         this.gsonComponentSerializer = GsonComponentSerializer.builder().build();
     }
 
-    /**
-     * 静态内部类, 利用类加载机制实现线程安全的懒加载单例.
-     * 仅在首次调用 {@link #getInstance()} 时触发类加载并创建实例.
-     */
     private static class SingletonHolder {
         private static final AdventureHelper INSTANCE = new AdventureHelper();
     }
@@ -78,11 +68,15 @@ public final class AdventureHelper {
         return getInstance().miniMessage;
     }
 
+    @NotNull
+    public static Component miniMessage(@NotNull String text, boolean legacy) {
+        return miniMessage().deserialize(legacy ? legacyToMiniMessage(text) : text);
+    }
+
     public static MiniMessage strictMiniMessage() {
         return getInstance().miniMessageStrict;
     }
 
-    // 只有 <arg>, <papi>, <expr>, 不解析颜色等标准标签
     public static MiniMessage customMiniMessage() {
         return getInstance().miniMessageCustom;
     }

@@ -68,7 +68,7 @@ public interface CommandManager {
      * @param key 翻译键
      * @param args 参数列表
      */
-    void handleCommandFeedback(CommandSender sender, TranslatableComponent.Builder key, Component... args);
+    void handleCommandFeedback(CommandSender sender, TranslatableComponent key, Component... args);
 
     /**
      * 直接发送一条命令反馈.

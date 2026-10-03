@@ -9,7 +9,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.util.Components;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -83,7 +82,10 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
         if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
         if (this.plugin.compatibilityManager().hasPermissionBeforeJoin(event.getUniqueId(), BYPASS_PERMISSION)) return;
-        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, AdventureHelper.componentToLegacy(this.plugin.translationManager().render(Components.translatable(MessageConstants.MAINTENANCE_KICK), null)));
+        event.disallow(
+                AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                AdventureHelper.componentToLegacy(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, null))
+        );
     }
 
     // 登录检查之后才开启维护的玩家在这里补查
@@ -133,7 +135,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
         }
         // 无权限, 踢出.
         else {
-            player.kickFromServer(player.render(Components.translatable(MessageConstants.MAINTENANCE_KICK)));
+            player.kickFromServer(player.render(MessageConstants.MAINTENANCE_KICK));
         }
     }
 
@@ -141,7 +143,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     private void showBossBar(SparrowPlayer player) {
         MaintenanceSettings.BossBarOptions options = this.config.bossBar();
         if (!options.enabled() || !this.bossBarViewers.add(player.uniqueId())) return;
-        Component title = player.render(Components.translatable(MessageConstants.MAINTENANCE_BOSS_BAR));
+        Component title = player.render(MessageConstants.MAINTENANCE_BOSS_BAR);
         player.showBossBar(this.bossBarId, title, 1.0f, options.color(), options.overlay());
     }
 }

@@ -8,7 +8,6 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.util.ArrayUtils;
-import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.util.TriConsumer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -159,8 +158,8 @@ public abstract class AbstractCommandManager implements CommandManager {
     }
 
     @Override
-    public void handleCommandFeedback(CommandSender sender, TranslatableComponent.Builder key, Component... args) {
-        TranslatableComponent component = Components.translatable(key, args);
+    public void handleCommandFeedback(CommandSender sender, TranslatableComponent key, Component... args) {
+        TranslatableComponent component = key.arguments(args);
         this.feedbackConsumer.accept(sender, component.key(), this.plugin.translationManager().render(component, this.getLocale(sender)));
     }
 

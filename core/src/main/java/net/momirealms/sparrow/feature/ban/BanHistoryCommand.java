@@ -14,7 +14,6 @@ import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
 import net.momirealms.sparrow.plugin.command.parser.DurationParser;
 import net.momirealms.sparrow.plugin.command.parser.OptionalWordParser;
 import net.momirealms.sparrow.util.CharacterUtils;
-import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.DurationUtils;
 import org.bukkit.command.CommandSender;
@@ -31,9 +30,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * 分页列出封禁记录. 不填对象时列出全服记录, 可按执行人、时间范围和是否生效筛选. 每页只查询总数和当前页.
- */
 public final class BanHistoryCommand extends BukkitCommandFeature {
     private static final int PAGE_SIZE = 8;
     private static final int TARGET_LENGTH = 20;    // 行内对象的码点上限, 完整信息在悬浮中
@@ -122,16 +118,18 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
 
     private Component title(@Nullable BanTarget target, Filters filters) {
         Component title = target == null
-                ? Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_TITLE_ALL)
-                : Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_TITLE, Component.text(target.display()));
+                ? MessageConstants.COMMAND_BAN_HISTORY_TITLE_ALL
+                : MessageConstants.COMMAND_BAN_HISTORY_TITLE.arguments(Component.text(target.display()));
         if (filters.operator() != null) {
-            title = title.append(Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_OPERATOR, Component.text(filters.operator())));
+            title = title.append(MessageConstants.COMMAND_BAN_HISTORY_FILTER_OPERATOR
+                    .arguments(Component.text(filters.operator())));
         }
         if (filters.within() != null) {
-            title = title.append(Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_WITHIN, Component.text(DurationUtils.format(filters.within().toMillis()))));
+            title = title.append(MessageConstants.COMMAND_BAN_HISTORY_FILTER_WITHIN
+                    .arguments(Component.text(DurationUtils.format(filters.within().toMillis()))));
         }
         if (filters.active()) {
-            title = title.append(Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_FILTER_ACTIVE));
+            title = title.append(MessageConstants.COMMAND_BAN_HISTORY_FILTER_ACTIVE);
         }
         return title;
     }
@@ -151,17 +149,28 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
             target = target.hoverEvent(this.targetDetails(record)).clickEvent(ClickEvent.copyToClipboard(copy));
         }
         Component unban = panel.suggest(CommandPanel.label("unban"), "unban", BanRecord.ID_PREFIX + record.id()).style(PanelButton.Style.DANGER)
-                .disabled(record.active(now) ? null : Components.translatable("command.panel.inactive")).build();
-        return Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_ROW, id, time, status, target, operator.append(padding), unban);
+                .disabled(record.active(now) ? null : Component.translatable("command.panel.inactive"))
+                .build();
+        return MessageConstants.COMMAND_BAN_HISTORY_ROW
+                .arguments(id, time, status, target, operator.append(padding), unban);
     }
 
     private Component details(BanRecord record, long now) {
         Component revoked = record.revokedAt() == 0
                 ? BanTexts.status(record, now)
-                : Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_REVOKED, Component.text(String.valueOf(record.revokedBy())), Component.text(DateTimeUtils.fullTime(record.revokedAt())));
-        return Components.translatable(MessageConstants.COMMAND_BAN_HISTORY_HOVER, Component.text(BanRecord.ID_PREFIX + record.id()), this.targetDetails(record),
-                BanTexts.reason(record.reason()), Component.text(record.operatorName()), Component.text(record.server()),
-                Component.text(DateTimeUtils.fullTime(record.createdAt())), BanTexts.expiry(record.expiresAt(), now), revoked);
+                : MessageConstants.COMMAND_BAN_HISTORY_REVOKED
+                .arguments(Component.text(String.valueOf(record.revokedBy())), Component.text(DateTimeUtils.fullTime(record.revokedAt())));
+        return MessageConstants.COMMAND_BAN_HISTORY_HOVER
+                .arguments(
+                        Component.text(BanRecord.ID_PREFIX + record.id()),
+                        this.targetDetails(record),
+                        BanTexts.reason(record.reason()),
+                        Component.text(record.operatorName()),
+                        Component.text(record.server()),
+                        Component.text(DateTimeUtils.fullTime(record.createdAt())),
+                        BanTexts.expiry(record.expiresAt(), now),
+                        revoked
+                );
     }
 
     // 玩家名 (UUID) 与 IP, 按记录实际包含的部分组合

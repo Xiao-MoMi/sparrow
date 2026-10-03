@@ -65,12 +65,11 @@ public interface TranslationManager {
     String miniMessageTranslation(String key, @Nullable Locale locale);
 
     default String miniMessageTranslation(String key) {
-        return miniMessageTranslation(key, null);
+        return this.miniMessageTranslation(key, null);
     }
 
     /**
-     * 按指定语言展开组件树中的插件翻译键, 包括参数、子节点和悬浮文本中的翻译组件.
-     * 保留组件样式和交互事件, 其他翻译键交给 Adventure 默认处理.
+     * 按指定语言展开服务端语言的翻译键, 其他翻译键交给 Adventure 默认处理.
      */
     @NotNull
     Component render(@NotNull Component component, @Nullable Locale locale);
@@ -80,30 +79,13 @@ public interface TranslationManager {
         return this.render(component, null);
     }
 
-    /**
-     * 查询指定翻译键并将结果渲染为纯文本字符串.
-     * 该方法会先获取 MiniMessage 翻译文本, 再使用按索引参数解析器填充参数, 最后提取纯文本结果.
-     *
-     * @param key 翻译键
-     * @param locale 目标语言环境, 传入 null 时由实现决定使用当前选定语言
-     * @param arguments 用于替换翻译模板中索引占位符的参数列表
-     * @return 渲染后的纯文本字符串, 若翻译缺失则返回原始键
-     */
-    default String plainTranslation(String key, @Nullable Locale locale, String... arguments) {
-        String translation = miniMessageTranslation(key, locale);
-        if (translation == null) {
-            return key;
-        }
-        Component deserialize = AdventureHelper.customMiniMessage().deserialize(translation, new IndexedArgumentTag(Arrays.stream(arguments).map(Component::text).toList()));
-        return AdventureHelper.plainTextContent(deserialize);
-    }
-
     default String plainTranslation(String key, String... arguments) {
-        String translation = miniMessageTranslation(key);
+        String translation = this.miniMessageTranslation(key);
         if (translation == null) {
             return key;
         }
-        Component deserialize = AdventureHelper.customMiniMessage().deserialize(translation, new IndexedArgumentTag(Arrays.stream(arguments).map(Component::text).toList()));
+        Component deserialize = AdventureHelper.customMiniMessage()
+                .deserialize(translation, new IndexedArgumentTag(Arrays.stream(arguments).map(Component::text).toList()));
         return AdventureHelper.plainTextContent(deserialize);
     }
 
@@ -134,35 +116,4 @@ public interface TranslationManager {
             return language + "_" + country;
         }
     }
-
-    /**
-     * 获取当前已加载的全部服务端翻译键集合.
-     *
-     * @return 翻译键集合
-     */
-    Set<String> translationKeys();
-
-    /**
-     * 按指定翻译键向控制台输出一条已完成参数替换的本地化消息.
-     *
-     * @param id 翻译键
-     * @param args 用于填充索引占位符的参数列表
-     */
-    void log(String id, String... args);
-
-    /**
-     * 获取客户端语言数据Map的只读视图.
-     *
-     * @return 获取客户端语言数据Map的只读视图.
-     */
-    Map<String, ClientLangData> clientLangData();
-
-    /**
-     * 向指定客户端语言或语言组注册翻译数据.
-     * 实现可支持完整语言标识, 语言前缀或 `all` 特殊标识.
-     *
-     * @param langId 目标语言标识, 如 `zh_cn`, `zh` 或 `all`
-     * @param translations 要追加的翻译键值对
-     */
-    void addClientTranslation(String langId, Map<String, String> translations);
 }

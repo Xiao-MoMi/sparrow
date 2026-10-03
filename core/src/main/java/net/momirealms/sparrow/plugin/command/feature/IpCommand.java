@@ -58,8 +58,14 @@ public final class IpCommand extends BukkitCommandFeature {
             // 点击 IP 复制, 旁边的按钮查询同 IP 的玩家
             Component address = Component.text(ip).hoverEvent(Component.text(ip)).clickEvent(ClickEvent.copyToClipboard(ip));
             Component history = new CommandPanel(this.commandManager(), sender).run(CommandPanel.label("ip_history"), "ip-history", ip).build();
-            this.handleFeedback(sender, MessageConstants.COMMAND_IP_SUCCESS, Component.text(data.name()), address,
-                    Component.text(DateTimeUtils.fullTime(data.lastLogin())), history);
+            this.handleFeedback(
+                    sender,
+                    MessageConstants.COMMAND_IP_SUCCESS,
+                    Component.text(data.name()),
+                    address,
+                    Component.text(DateTimeUtils.fullTime(data.lastLogin())),
+                    history
+            );
         }).exceptionally(error -> {
             this.plugin().logger().warn("Failed to query the last IP of " + input, error);
             this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);

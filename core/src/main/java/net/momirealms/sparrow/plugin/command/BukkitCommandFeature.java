@@ -20,11 +20,11 @@ public abstract class BukkitCommandFeature extends AbstractCommandFeature {
      * 当选择到 1 个实体时返回 single, 参数为实体名称. 当选择到多个实体时返回 multiple, 参数为实体数量.
      *
      * @param selector Cloud 选择器, 用于获取实体集合
-     * @param single 单个实体时使用的翻译键构建器
-     * @param multiple 多个实体时使用的翻译键构建器
-     * @return left 为翻译键构建器, right 为用于填充翻译参数的组件
+     * @param single 单个实体时使用的翻译组件
+     * @param multiple 多个实体时使用的翻译组件
+     * @return left 为翻译组件, right 为用于填充翻译参数的组件
      */
-    public Pair<TranslatableComponent.Builder, Component> resolveSelector(Selector<? extends Entity> selector, TranslatableComponent.Builder single, TranslatableComponent.Builder multiple) {
+    public Pair<TranslatableComponent, Component> resolveSelector(Selector<? extends Entity> selector, TranslatableComponent single, TranslatableComponent multiple) {
         Collection<? extends Entity> entities = selector.values();
         if (entities.size() == 1) {
             return Pair.of(single, Component.text(entities.iterator().next().getName()));
@@ -38,11 +38,11 @@ public abstract class BukkitCommandFeature extends AbstractCommandFeature {
      * 当集合大小为 1 时返回 single, 参数为实体名称. 当集合大小大于 1 时返回 multiple, 参数为实体数量.
      *
      * @param selector 实体集合
-     * @param single 单个实体时使用的翻译键构建器
-     * @param multiple 多个实体时使用的翻译键构建器
-     * @return left 为翻译键构建器, right 为用于填充翻译参数的组件
+     * @param single 单个实体时使用的翻译组件
+     * @param multiple 多个实体时使用的翻译组件
+     * @return left 为翻译组件, right 为用于填充翻译参数的组件
      */
-    public Pair<TranslatableComponent.Builder, Component> resolveSelector(Collection<? extends Entity> selector, TranslatableComponent.Builder single, TranslatableComponent.Builder multiple) {
+    public Pair<TranslatableComponent, Component> resolveSelector(Collection<? extends Entity> selector, TranslatableComponent single, TranslatableComponent multiple) {
         if (selector.size() == 1) {
             return Pair.of(single, Component.text(selector.iterator().next().getName()));
         } else {

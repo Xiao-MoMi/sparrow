@@ -7,7 +7,6 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
-import net.momirealms.sparrow.util.Components;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -56,9 +55,13 @@ public final class WarpListCommand extends BukkitCommandFeature {
         int contentSize = content.size();
         for (int i = 0; i < contentSize; i++) {
             Warp warp = content.get(i);
-            Component entry = Components.translatable("command.warp-list.entry",
+            Component entry = Component.translatable(
+                    "command.warp-list.entry",
                     panel.run(Component.text(warp.name()), "warp", warp.name()).build(),
-                    Component.text(warp.server()), Component.text(warp.location().world()), Component.text(warp.description()));
+                    Component.text(warp.server()),
+                    Component.text(warp.location().world()),
+                    Component.text(warp.description())
+            );
             PanelButton edit = panel.run(CommandPanel.label("edit"), "edit-warp", warp.name());
             panel.line(edit.available() ? entry.append(Component.space()).append(edit.build()) : entry);
         }

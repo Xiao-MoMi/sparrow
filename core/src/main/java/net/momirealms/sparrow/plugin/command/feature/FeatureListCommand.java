@@ -65,7 +65,7 @@ public final class FeatureListCommand extends BukkitCommandFeature {
                 Component.text(page), Component.text(pages),
                 this.action(sender, "next", "feature_list", Integer.toString(page + 1), page == pages ? "last_page" : null),
                 this.action(sender, "refresh", "feature_list", Integer.toString(page), null)));
-        this.handleFeedback(sender, Component.translatable().key("command.features.message"), panel);
+        this.handleFeedback(sender, Component.translatable("command.features.message"), panel);
     }
 
     @NotNull

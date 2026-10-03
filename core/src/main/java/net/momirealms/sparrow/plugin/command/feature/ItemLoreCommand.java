@@ -15,7 +15,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.util.Components;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.entity.Player;
@@ -98,8 +97,9 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
                     }
                     net.minecraft.network.chat.Component text;
                     try {
-                        Component parsed = context.flags().hasFlag("json") ? AdventureHelper.jsonToComponent(input)
-                                : Components.miniMessage("<!i><white>" + input, context.flags().hasFlag("legacy-color"));
+                        Component parsed = context.flags().hasFlag("json")
+                                ? AdventureHelper.jsonToComponent(input)
+                                : AdventureHelper.miniMessage("<!i><white>" + input, context.flags().hasFlag("legacy-color"));
                         text = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(parsed));
                     } catch (RuntimeException exception) {
                         this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_INVALID);
@@ -129,7 +129,7 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
         player.setMetadata(LORE_META_KEY, new FixedMetadataValue(this.plugin().javaPlugin(), internal));
         String usage = this.commandConfig().getUsages().getFirst();
         TextComponent.Builder result = Component.text();
-        Component editHint = MessageConstants.COMMAND_ITEM_LORE_EDIT.asComponent();
+        Component editHint = MessageConstants.COMMAND_ITEM_LORE_EDIT;
         for (int i = 0, size = lines.size(); i < size; i++) {
             String json = CraftChatMessage.toJSON(lines.get(i));
             Component preview = AdventureHelper.jsonToComponent(json);
@@ -144,22 +144,22 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
             result.append(preview.applyFallbackStyle(Style.style(NamedTextColor.DARK_PURPLE, TextDecoration.ITALIC)).hoverEvent(source)
                     .clickEvent(ClickEvent.suggestCommand(action + "edit --line " + line + " --lore " + miniMessage)));
             result.append(Component.space());
-            result.append(Component.text("[X]", TextColor.color(0xDC143C)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DELETE.asComponent())
+            result.append(Component.text("[X]", TextColor.color(0xDC143C)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DELETE)
                     .clickEvent(ClickEvent.runCommand(action + "remove" + target)));
             if (i > 0) {
                 result.append(Component.space());
-                result.append(Component.text("[↑]", TextColor.color(0x7B68EE)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_UP.asComponent())
+                result.append(Component.text("[↑]", TextColor.color(0x7B68EE)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_UP)
                         .clickEvent(ClickEvent.runCommand(action + "up" + target)));
             }
             if (i < size - 1) {
                 result.append(Component.space());
-                result.append(Component.text("[↓]", TextColor.color(0xDA70D6)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DOWN.asComponent())
+                result.append(Component.text("[↓]", TextColor.color(0xDA70D6)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DOWN)
                         .clickEvent(ClickEvent.runCommand(action + "down" + target)));
             }
             result.append(Component.newline());
         }
         result.append(Component.text("[" + (lines.size() + 1) + "] ", NamedTextColor.YELLOW));
-        result.append(Component.text("[+]", NamedTextColor.GREEN).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_INSERT.asComponent())
+        result.append(Component.text("[+]", NamedTextColor.GREEN).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_INSERT)
                 .clickEvent(ClickEvent.suggestCommand(usage + " --operation insert --line " + (lines.size() + 1) + " --lore ")));
         return result.asComponent();
     }
