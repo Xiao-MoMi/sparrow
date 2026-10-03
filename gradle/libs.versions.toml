@@ -15,6 +15,8 @@ ban-schema-version = "1"
 mongodb-ban-index-version = "1"
 warp-schema-version = "1"
 mongodb-warp-index-version = "1"
+home-schema-version = "1"
+mongodb-home-index-version = "1"
 
 # Build
 run-task = "3.0.2"

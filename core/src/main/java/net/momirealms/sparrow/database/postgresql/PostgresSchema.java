@@ -19,6 +19,10 @@ public final class PostgresSchema {
     public static final String WARP_COMPONENT = "warp_schema";
     public static final List<String> WARP_TABLES = List.of("warps");
 
+    // home 模块
+    public static final String HOME_COMPONENT = "home_schema";
+    public static final List<String> HOME_TABLES = List.of("homes");
+
     private PostgresSchema() {
     }
 
@@ -55,5 +59,15 @@ public final class PostgresSchema {
                 + "yaw REAL NOT NULL, pitch REAL NOT NULL, creator UUID, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL)");
         handle.execute("CREATE UNIQUE INDEX IF NOT EXISTS \"" + prefix + "warps_name\" ON " + warps + " (name_key)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "warps_location\" ON " + warps + " (server, world)");
+    }
+
+    public static void initializeHomes(@NotNull Handle handle, @NotNull String prefix) {
+        String homes = "\"" + prefix + "homes\"";
+        handle.execute("CREATE TABLE IF NOT EXISTS " + homes + " ("
+                + "id UUID PRIMARY KEY, owner UUID NOT NULL, name_key VARCHAR(64) COLLATE \"C\" NOT NULL, name VARCHAR(32) NOT NULL, "
+                + "server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE PRECISION NOT NULL, y DOUBLE PRECISION NOT NULL, z DOUBLE PRECISION NOT NULL, "
+                + "yaw REAL NOT NULL, pitch REAL NOT NULL, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL)");
+        handle.execute("CREATE UNIQUE INDEX IF NOT EXISTS \"" + prefix + "homes_owner_name\" ON " + homes + " (owner, name_key)");
+        handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "homes_location\" ON " + homes + " (server, world)");
     }
 }

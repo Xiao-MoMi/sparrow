@@ -103,10 +103,15 @@ class SqlDataStorageTest {
                 assertEquals(uuid, storage.listPlayersOnIp(IpRange.parse("10.0.*.*"), 0, 10).join().getFirst().player());
                 BanStoreContract.verify(storage.banStore(), uuid);
                 WarpStoreContract.verify(storage.warpStore());
+                HomeStoreContract.verify(storage.homeStore());
                 try (var connection = DriverManager.getConnection(url, user, password); var statement = connection.createStatement()) {
                     try (var result = statement.executeQuery("SELECT " + quote + "value" + quote + " FROM " + meta + " WHERE id = 'schema'")) {
                         assertTrue(result.next());
                         assertEquals(1, result.getInt(1));
+                    }
+                    try (var result = statement.executeQuery("SELECT " + quote + "value" + quote + " FROM " + meta + " WHERE id = 'home_schema'")) {
+                        assertTrue(result.next());
+                        assertEquals(DependencyVersions.HOME_SCHEMA_VERSION, result.getInt(1));
                     }
                     this.upgrade(Jdbi.create(url, user, password), prefix, type == DatabaseType.POSTGRESQL);
                     assertThrows(IllegalStateException.class, storage::initialize);
@@ -119,6 +124,7 @@ class SqlDataStorageTest {
                 statement.execute("DROP TABLE IF EXISTS " + table);
                 statement.execute("DROP TABLE IF EXISTS " + quote + prefix + "bans" + quote);
                 statement.execute("DROP TABLE IF EXISTS " + quote + prefix + "warps" + quote);
+                statement.execute("DROP TABLE IF EXISTS " + quote + prefix + "homes" + quote);
                 statement.execute("DROP TABLE IF EXISTS " + meta);
             }
         }
