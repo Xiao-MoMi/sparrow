@@ -8,7 +8,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
-import net.momirealms.sparrow.util.Components;
+import net.momirealms.sparrow.util.AdventureHelper;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -63,7 +63,7 @@ public final class ToastCommand extends BukkitCommandFeature {
         boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         for (Player player : players) {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-            Component component = Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, message) : message, legacy);
+            Component component = AdventureHelper.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, message) : message, legacy);
             receiver.sendToast(component, icon, type);
             this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TOAST_SUCCESS_SELF : MessageConstants.COMMAND_TOAST_SUCCESS), Component.text(player.getName()));
         }

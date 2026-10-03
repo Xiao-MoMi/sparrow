@@ -88,6 +88,9 @@ class TeleportServiceTest {
 
     @Test
     void teleportsAfterWarmupCountdown() {
+        Component processing = Component.text("正在传送");
+        when(this.receiver.render(MessageConstants.TELEPORT_PROCESSING)).thenReturn(processing);
+        doCallRealMethod().when(this.receiver).sendActionBar(MessageConstants.TELEPORT_PROCESSING);
         CompletableFuture<TeleportResult> result = this.service.teleport(this.player, "lobby", DESTINATION, options(1, 0, true, true));
         verify(this.receiver).sendActionBar(same(MessageConstants.TELEPORT_WARMUP), any(Component[].class));
         verify(this.receiver).playSound(this.display.warmupSound());
@@ -99,7 +102,8 @@ class TeleportServiceTest {
         assertEquals(TeleportResult.SUCCESS, result.join());
         // 先把倒计时换成正在传送再传送
         InOrder order = inOrder(this.receiver, this.teleports);
-        order.verify(this.receiver).sendActionBar(same(MessageConstants.TELEPORT_PROCESSING), any(Component[].class));
+        order.verify(this.receiver).sendActionBar(same(MessageConstants.TELEPORT_PROCESSING));
+        order.verify(this.receiver).sendActionBar(processing);
         order.verify(this.teleports).transfer(this.player, "lobby", DESTINATION);
         verify(this.receiver).playSound(this.display.completeSound());
         verify(this.task).cancel();
@@ -120,11 +124,15 @@ class TeleportServiceTest {
 
     @Test
     void cancelsWhenMovingOrDamaged() {
+        Component cancellation = Component.text("移动取消了传送");
+        when(this.receiver.render(MessageConstants.TELEPORT_CANCELLED_MOVED)).thenReturn(cancellation);
+        doCallRealMethod().when(this.receiver).sendMessage(MessageConstants.TELEPORT_CANCELLED_MOVED);
         CompletableFuture<TeleportResult> moved = this.service.teleport(this.player, "lobby", DESTINATION, options(3, 0, true, true));
         this.location = new Location(this.world, 1, 64, 0);
         this.tick(1);
         assertEquals(TeleportResult.CANCELLED, moved.join());
-        verify(this.receiver).sendMessage(same(MessageConstants.TELEPORT_CANCELLED_MOVED), any(Component[].class));
+        verify(this.receiver).sendMessage(same(MessageConstants.TELEPORT_CANCELLED_MOVED));
+        verify(this.receiver).sendMessage(cancellation);
         // 取消时清掉倒计时
         verify(this.receiver).sendActionBar(Component.empty());
         verify(this.receiver).playSound(this.display.cancelSound());
@@ -132,7 +140,7 @@ class TeleportServiceTest {
         CompletableFuture<TeleportResult> damaged = this.service.teleport(this.player, "lobby", DESTINATION, options(3, 0, true, true));
         this.service.onDamage(this.damage());
         assertEquals(TeleportResult.CANCELLED, damaged.join());
-        verify(this.receiver).sendMessage(same(MessageConstants.TELEPORT_CANCELLED_DAMAGED), any(Component[].class));
+        verify(this.receiver).sendMessage(same(MessageConstants.TELEPORT_CANCELLED_DAMAGED));
         verify(this.teleports, never()).transfer(any(), any(), any());
     }
 
@@ -153,10 +161,12 @@ class TeleportServiceTest {
         assertFalse(second.isDone());
         this.service.onQuit(this.player.getUniqueId());
         assertEquals(TeleportResult.CANCELLED, second.join());
-        verify(this.receiver, never()).sendMessage(any(TranslatableComponent.Builder.class), any(Component[].class));
+        verify(this.receiver, never()).sendMessage(any(TranslatableComponent.class));
+        verify(this.receiver, never()).sendMessage(any(TranslatableComponent.class), any(Component[].class));
         // 已取消的预热不再响应伤害
         this.service.onDamage(this.damage());
-        verify(this.receiver, never()).sendMessage(any(TranslatableComponent.Builder.class), any(Component[].class));
+        verify(this.receiver, never()).sendMessage(any(TranslatableComponent.class));
+        verify(this.receiver, never()).sendMessage(any(TranslatableComponent.class), any(Component[].class));
     }
 
     @ParameterizedTest
@@ -187,7 +197,8 @@ class TeleportServiceTest {
         verify(this.receiver).playSound(this.display.completeSound());
         verifyNoInteractions(this.redis);
         assertTrue(this.ticking.isEmpty());
-        verify(this.receiver, never()).sendActionBar(any(TranslatableComponent.Builder.class), any(Component[].class));
+        verify(this.receiver, never()).sendActionBar(any(TranslatableComponent.class));
+        verify(this.receiver, never()).sendActionBar(any(TranslatableComponent.class), any(Component[].class));
     }
 
     @Test

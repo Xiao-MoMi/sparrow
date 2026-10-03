@@ -5,7 +5,6 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.util.Components;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -13,10 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-/**
- * 面板中的命令按钮. 文字、样式和可用条件分别设置, 命令入口与基础权限取自目标命令的当前配置.
- * 玩家收到点击和悬浮事件, 控制台收到完整命令文本; 执行时仍由命令框架检查权限.
- */
 public final class PanelButton {
     private final CommandManager manager;
     private final CommandSender sender;
@@ -84,14 +79,20 @@ public final class PanelButton {
         Component reason = this.disabledReason(config, usage);
         if (reason != null) {
             return this.sender instanceof Player
-                    ? Components.translatable("command.panel.disabled", this.caption).hoverEvent(reason)
-                    : Components.translatable("command.panel.console.disabled", this.caption, reason);
+                    ? Component.translatable("command.panel.disabled", this.caption).hoverEvent(reason)
+                    : Component.translatable("command.panel.console.disabled", this.caption, reason);
         }
         String command = this.arguments.isEmpty() ? usage : usage + " " + this.arguments;
-        if (!(this.sender instanceof Player)) return Components.translatable("command.panel.console.action", this.caption, Component.text(command));
-        Component hover = this.suggest ? Components.translatable("command.panel.confirm", Component.text(command)) : Component.text(command);
-        return Components.translatable("command.panel.button." + this.style.key, this.caption).hoverEvent(hover)
-                .clickEvent(this.suggest ? ClickEvent.suggestCommand(command) : ClickEvent.runCommand(command));
+        if (!(this.sender instanceof Player)) return Component.translatable("command.panel.console.action", this.caption, Component.text(command));
+        Component hover = this.suggest
+                ? Component.translatable("command.panel.confirm", Component.text(command))
+                : Component.text(command);
+        ClickEvent<ClickEvent.Payload.Text> clickEvent = this.suggest
+                ? ClickEvent.suggestCommand(command)
+                : ClickEvent.runCommand(command);
+        return Component.translatable("command.panel.button." + this.style.key, this.caption)
+                .hoverEvent(hover)
+                .clickEvent(clickEvent);
     }
 
     @Nullable
@@ -115,11 +116,15 @@ public final class PanelButton {
     @Nullable
     private Component disabledReason(@Nullable CommandConfig config, @Nullable String usage) {
         String basePermission = config == null ? null : config.getPermission();
-        if (basePermission != null && !basePermission.isEmpty() && !this.sender.hasPermission(basePermission)) return Components.translatable("command.panel.no_permission");
-        if (this.permission != null && !this.permission.isEmpty() && !this.sender.hasPermission(this.permission)) return Components.translatable("command.panel.no_permission");
-        if (this.disabled != null) return this.disabled;
-        if (this.playersOnly && !(this.sender instanceof Player)) return Components.translatable("command.panel.player_required");
-        return usage == null ? Components.translatable("command.panel.unavailable") : null;
+        if (basePermission != null && !basePermission.isEmpty() && !this.sender.hasPermission(basePermission))
+            return Component.translatable("command.panel.no_permission");
+        if (this.permission != null && !this.permission.isEmpty() && !this.sender.hasPermission(this.permission))
+            return Component.translatable("command.panel.no_permission");
+        if (this.disabled != null)
+            return this.disabled;
+        if (this.playersOnly && !(this.sender instanceof Player))
+            return Component.translatable("command.panel.player_required");
+        return usage == null ? Component.translatable("command.panel.unavailable") : null;
     }
 
     public enum Style {

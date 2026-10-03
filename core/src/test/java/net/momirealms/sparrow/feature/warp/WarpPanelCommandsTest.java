@@ -81,10 +81,10 @@ class WarpPanelCommandsTest {
             return null;
         }).when(platform).run(any(Runnable.class), any(Runnable.class), any(Entity.class));
         doAnswer(invocation -> {
-            TranslatableComponent key = (TranslatableComponent) invocation.<TranslatableComponent.Builder>getArgument(1).asComponent();
+            TranslatableComponent key = invocation.getArgument(1);
             if (key.key().equals(CommandPanel.MESSAGE_KEY)) this.panels.add(((Component[]) invocation.getRawArguments()[2])[0]);
             return null;
-        }).when(this.feedback).handleCommandFeedback(any(), any(TranslatableComponent.Builder.class), any(Component[].class));
+        }).when(this.feedback).handleCommandFeedback(any(), any(TranslatableComponent.class), any(Component[].class));
         var broker = this.plugin.messageBrokerManager().broker();
         doAnswer(invocation -> {
             this.published.add(invocation.getArgument(0));
@@ -346,7 +346,7 @@ class WarpPanelCommandsTest {
         this.manager.commandExecutor().executeCommand(sender, input).join();
     }
 
-    private void verifyFeedback(CommandSender sender, TranslatableComponent.Builder message) {
+    private void verifyFeedback(CommandSender sender, TranslatableComponent message) {
         verify(this.feedback, atLeastOnce()).handleCommandFeedback(eq(sender), same(message), any(Component[].class));
     }
 

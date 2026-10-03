@@ -26,18 +26,18 @@ public interface CommandFeature {
      * 基于 Cloud 命令上下文发送一条消息.
      *
      * @param context Cloud 命令上下文
-     * @param key 可翻译组件构建器, 表示反馈消息的翻译键
+     * @param key 翻译组件, 表示反馈消息的翻译键
      */
-    void handleFeedback(CommandContext<?> context, TranslatableComponent.Builder key, Component... args);
+    void handleFeedback(CommandContext<?> context, TranslatableComponent key, Component... args);
 
     /**
      * 向指定命令发送者发送消息.
      *
      * @param sender 接收反馈的命令发送者对象
-     * @param key 可翻译组件构建器, 表示反馈消息的翻译键
+     * @param key 翻译组件, 表示反馈消息的翻译键
      * @param args 写入可翻译组件的参数列表
      */
-    void handleFeedback(CommandSender sender, TranslatableComponent.Builder key, Component... args);
+    void handleFeedback(CommandSender sender, TranslatableComponent key, Component... args);
 
     CommandManager commandManager();
 

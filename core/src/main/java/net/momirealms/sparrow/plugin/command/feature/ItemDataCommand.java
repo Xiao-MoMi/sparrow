@@ -55,7 +55,9 @@ public final class ItemDataCommand extends BukkitCommandFeature {
             Component output;
             if (!context.flags().hasFlag("chat") && lines.size() > MAX_CHAT_LINES) {
                 Component hover = Component.join(JoinConfiguration.newlines(), DataTreeRenderer.render(data, false));
-                output = MessageConstants.COMMAND_ITEM_DATA_SUMMARY.build().arguments(Component.text(lines.size())).hoverEvent(hover);
+                output = MessageConstants.COMMAND_ITEM_DATA_SUMMARY
+                        .arguments(Component.text(lines.size()))
+                        .hoverEvent(hover);
             } else {
                 output = Component.join(JoinConfiguration.newlines(), lines);
             }

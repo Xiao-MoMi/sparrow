@@ -2,7 +2,6 @@ package net.momirealms.sparrow.plugin.command.panel;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.util.Components;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +26,13 @@ public final class CommandPanel {
 
     @NotNull
     public CommandPanel header(@NotNull Component title, @NotNull TextPage<?> page) {
-        return this.line(Components.translatable("command.panel.header", title, Component.text(page.index() + 1), Component.text(page.count()), Component.text(page.total())));
+        return this.line(Component.translatable(
+                "command.panel.header",
+                title,
+                Component.text(page.index() + 1),
+                Component.text(page.count()),
+                Component.text(page.total())
+        ));
     }
 
     // 同一行的片段按原样连接, 行之间自动换行.
@@ -45,7 +50,7 @@ public final class CommandPanel {
 
     @NotNull
     public CommandPanel empty() {
-        return this.line(Components.translatable("command.panel.empty"));
+        return this.line(Component.translatable("command.panel.empty"));
     }
 
     // 操作单独占一行, 按钮之间加空格.
@@ -79,11 +84,15 @@ public final class CommandPanel {
     @NotNull
     public CommandPanel navigation(@NotNull String featureId, @NotNull TextPage<?> page, @NotNull IntFunction<String> pageArguments) {
         Component previous = this.run(label("previous"), featureId, page.hasPrevious() ? pageArguments.apply(page.index()) : "")
-                .style(PanelButton.Style.POSITIVE).disabled(page.hasPrevious() ? null : Components.translatable("command.panel.first_page")).build();
+                .style(PanelButton.Style.POSITIVE)
+                .disabled(page.hasPrevious() ? null : Component.translatable("command.panel.first_page"))
+                .build();
         Component next = this.run(label("next"), featureId, page.hasNext() ? pageArguments.apply(page.index() + 2) : "")
-                .style(PanelButton.Style.POSITIVE).disabled(page.hasNext() ? null : Components.translatable("command.panel.last_page")).build();
+                .style(PanelButton.Style.POSITIVE)
+                .disabled(page.hasNext() ? null : Component.translatable("command.panel.last_page"))
+                .build();
         Component refresh = this.run(label("refresh"), featureId, pageArguments.apply(page.index() + 1)).build();
-        return this.line(Components.translatable("command.panel.navigation", previous, Component.text(page.index() + 1), Component.text(page.count()), next, refresh));
+        return this.line(Component.translatable("command.panel.navigation", previous, Component.text(page.index() + 1), Component.text(page.count()), next, refresh));
     }
 
     @NotNull
@@ -92,12 +101,12 @@ public final class CommandPanel {
     }
 
     public void send() {
-        this.manager.handleCommandFeedback(this.sender, Component.translatable().key(MESSAGE_KEY), this.content);
+        this.manager.handleCommandFeedback(this.sender, Component.translatable(MESSAGE_KEY), this.content);
     }
 
     // 共用按钮文字. 功能自己的文字直接作为 Component 传给 run 或 suggest.
     @NotNull
     public static Component label(@NotNull String key) {
-        return Components.translatable("command.panel.label." + key);
+        return Component.translatable("command.panel.label." + key);
     }
 }

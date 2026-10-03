@@ -12,11 +12,9 @@ import net.momirealms.sparrow.locale.tag.IndexedArgumentTag;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.FileUtils;
 import net.momirealms.sparrow.util.GsonHelper;
-import net.momirealms.sparrow.util.MiscUtils;
 import net.momirealms.sparrow.yaml.YamlDocument;
 import net.momirealms.sparrow.yaml.node.SequenceNode;
 import net.momirealms.sparrow.yaml.route.Route;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,7 +26,6 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.BiConsumer;
 
 public final class TranslationManagerImpl implements TranslationManager {
     private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
@@ -40,8 +37,6 @@ public final class TranslationManagerImpl implements TranslationManager {
     private final Set<String> supportedLanguages;
     private final Map<String, String> translationFallback = new LinkedHashMap<>();
     private Locale selectedLocale = DEFAULT_LOCALE;
-    // LangId -> (TranslationKey -> Value)
-    private final Map<String, ClientLangData> clientLangData = new HashMap<>();
     // TranslationKey -> (Lang -> Value)
     private final Map<String, ServerLangData> serverLangData = new HashMap<>();
     private Map<Locale, CachedTranslation> cachedTranslations = Map.of();
@@ -78,22 +73,12 @@ public final class TranslationManagerImpl implements TranslationManager {
         }
     }
 
-
-    /**
-     * 延迟处理客户端翻译数据.
-     * 当前实现会在全部客户端语言数据注册完成后, 对每个语言包执行一次键处理器展开.
-     */
-    public void delayedLoad() {
-        this.clientLangData.values().forEach(ClientLangData::processTranslations);
-    }
-
     /**
      * 重新加载全部翻译数据.
      */
     @Override
     public void reload() {
         // clear old data
-        this.clientLangData.clear();
         this.serverLangData.clear();
         this.installed.clear();
 
@@ -151,46 +136,6 @@ public final class TranslationManagerImpl implements TranslationManager {
             return resultingComponent;
         } else {
             return resultingComponent.append(component.children());
-        }
-    }
-
-    @Override
-    public void log(String id, String... args) {
-        String translation = miniMessageTranslation(id);
-        if (translation == null || translation.isEmpty()) translation = id;
-        Component message = AdventureHelper.miniMessage().deserialize(translation, new IndexedArgumentTag(Arrays.stream(args).map(Component::text).toList()));
-        Bukkit.getServer().getConsoleSender().sendMessage(AdventureHelper.getLegacy().serialize(message));
-    }
-
-    @Override
-    public Set<String> translationKeys() {
-        return this.serverLangData.keySet();
-    }
-
-    @Override
-    public Map<String, ClientLangData> clientLangData() {
-        return Collections.unmodifiableMap(this.clientLangData);
-    }
-
-    @Override
-    public void addClientTranslation(String langId, Map<String, String> translations) {
-        // `all`, 向全部已知客户端语言广播追加.
-        if ("all".equals(langId)) {
-            ALL_LANG.forEach(lang -> this.clientLangData.computeIfAbsent(lang, k -> new ClientLangData())
-                    .addTranslations(translations));
-            return;
-        }
-        // 完整语言标识, 仅向该语言追加.
-        if (ALL_LANG.contains(langId)) {
-            this.clientLangData.computeIfAbsent(langId, k -> new ClientLangData())
-                    .addTranslations(translations);
-            return;
-        }
-        // 仅语言前缀, 向该语言对应的所有国家或地区变体追加.
-        List<String> langCountries = LOCALE_2_COUNTRIES.getOrDefault(langId, Collections.emptyList());
-        for (String lang : langCountries) {
-            this.clientLangData.computeIfAbsent(langId + "_" + lang, k -> new ClientLangData())
-                    .addTranslations(translations);
         }
     }
 
@@ -396,35 +341,6 @@ public final class TranslationManagerImpl implements TranslationManager {
 
         this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_LOCALE_MISSING, localLocale.toString().toLowerCase(Locale.ENGLISH), DEFAULT_LOCALE.toString().toLowerCase(Locale.ENGLISH)));
         this.selectedLocale = DEFAULT_LOCALE;
-    }
-
-    /**
-     * 递归展开嵌套 Map 结构中的语言键.
-     * 该方法用于兼容如下层级结构:
-     * `a:`
-     * `  b:`
-     * `    c: xxx`
-     * 最终会将其展平成 `a.b.c -> xxx` 的形式交给收集器处理.
-     *
-     * @param prefix 当前递归层级下的键前缀
-     * @param data 当前层级的键值映射
-     * @param collector 用于接收展平后键值对的收集器
-     */
-    private static void loadLangKeyDeeply(String prefix, Map<String, Object> data, BiConsumer<String, String> collector) {
-        for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (entry.getValue() instanceof Map<?,?> map) {
-                loadLangKeyDeeply(assembleLangKey(prefix, entry.getKey()), MiscUtils.castToMap(map, false), collector);
-            } else {
-                collector.accept(assembleLangKey(prefix, entry.getKey()), String.valueOf(entry.getValue()));
-            }
-        }
-    }
-
-    private static String assembleLangKey(String prefix, String lang) {
-        if (prefix.isEmpty()) {
-            return lang;
-        }
-        return prefix + "." + lang;
     }
 
     /**

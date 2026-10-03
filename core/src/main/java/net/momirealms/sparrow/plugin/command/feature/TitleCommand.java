@@ -6,8 +6,8 @@ import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.util.AdventureHelper;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -61,8 +61,10 @@ public final class TitleCommand extends BukkitCommandFeature {
         int fadeOut = context.get("fadeOut");
         for (Player player : players) {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-            Component main = Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[0]) : parts[0], legacy);
-            Component subtitle = parts.length == 2 ? Components.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[1]) : parts[1], legacy) : Component.empty();
+            Component main = AdventureHelper.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[0]) : parts[0], legacy);
+            Component subtitle = parts.length == 2
+                    ? AdventureHelper.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[1])
+                    : parts[1], legacy) : Component.empty();
             receiver.sendTitle(main, subtitle, fadeIn, stay, fadeOut);
             this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TITLE_SUCCESS_SELF : MessageConstants.COMMAND_TITLE_SUCCESS), Component.text(player.getName()));
         }

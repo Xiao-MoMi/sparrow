@@ -7,7 +7,6 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
-import net.momirealms.sparrow.util.Components;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -64,7 +63,11 @@ final class TeleportWarmup {
         Component seconds = Component.text(this.ticksLeft / 20);
         switch (PluginConfig.teleport().warmupDisplay()) {
             case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_WARMUP, seconds);
-            case TITLE -> this.player.sendTitle(Component.empty(), this.player.render(Components.translatable(MessageConstants.TELEPORT_WARMUP, seconds)), 0, 25, 5);
+            case TITLE -> this.player.sendTitle(
+                    Component.empty(),
+                    this.player.render(MessageConstants.TELEPORT_WARMUP.arguments(seconds)),
+                    0, 25, 5
+            );
             case CHAT -> this.player.sendMessage(MessageConstants.TELEPORT_WARMUP, seconds);
             case NONE -> {
             }
@@ -79,7 +82,7 @@ final class TeleportWarmup {
     }
 
     // reason 为 null 时静默取消, 例如被新的传送替换、玩家离开或插件关闭
-    void cancel(@Nullable TranslatableComponent.Builder reason) {
+    void cancel(@Nullable TranslatableComponent reason) {
         if (!this.stop(false) || reason == null) return;
         this.player.sendMessage(reason);
         Sound cancelSound = PluginConfig.teleport().cancelSound();
@@ -96,7 +99,11 @@ final class TeleportWarmup {
             // 走完时在倒计时的位置显示正在传送;
             switch (PluginConfig.teleport().warmupDisplay()) {
                 case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_PROCESSING);
-                case TITLE -> this.player.sendTitle(Component.empty(), this.player.render(Components.translatable(MessageConstants.TELEPORT_PROCESSING)), 0, 20, 5);
+                case TITLE -> this.player.sendTitle(
+                        Component.empty(),
+                        this.player.render(MessageConstants.TELEPORT_PROCESSING),
+                        0, 20, 5
+                );
                 case CHAT, NONE -> {
                 }
             }

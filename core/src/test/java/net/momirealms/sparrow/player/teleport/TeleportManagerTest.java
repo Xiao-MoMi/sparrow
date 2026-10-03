@@ -65,9 +65,9 @@ class TeleportManagerTest {
             bukkit.when(() -> Bukkit.getWorld("world")).thenReturn(null);
             assertNull(manager.consumeSpawn(uuid));
             manager.onJoin(player);
-            verify(receiver).sendMessage(same(MessageConstants.COMMAND_TP_OFFLINE_INVALID), any(Component[].class));
+            verify(receiver).sendMessage(same(MessageConstants.COMMAND_TP_OFFLINE_INVALID));
             manager.onJoin(player);
-            verify(receiver, times(1)).sendMessage(same(MessageConstants.COMMAND_TP_OFFLINE_INVALID), any(Component[].class));
+            verify(receiver, times(1)).sendMessage(same(MessageConstants.COMMAND_TP_OFFLINE_INVALID));
         }
     }
 }

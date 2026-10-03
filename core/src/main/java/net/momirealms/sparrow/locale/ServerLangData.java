@@ -12,10 +12,6 @@ public final class ServerLangData {
         this.fallback = fallback;
     }
 
-    public ServerLangData() {
-        this.fallback = null;
-    }
-
     public void addTranslation(final Locale locale, final String translation) {
         this.translations.putIfAbsent(locale, translation);
     }

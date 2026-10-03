@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.momirealms.sparrow.advancement.AdvancementFrame;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.util.Components;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -52,16 +51,24 @@ public interface SparrowPlayer {
         this.sendMessage(message, false);
     }
 
-    default void sendMessage(@NotNull TranslatableComponent.Builder key, @NotNull Component... arguments) {
-        this.sendMessage(this.render(Components.translatable(key, arguments)));
+    default void sendMessage(@NotNull TranslatableComponent message) {
+        this.sendMessage(this.render(message));
+    }
+
+    default void sendMessage(@NotNull TranslatableComponent key, @NotNull Component... arguments) {
+        this.sendMessage(this.render(key.arguments(arguments)));
     }
 
     default void sendActionBar(@NotNull Component message) {
         this.sendMessage(message, true);
     }
 
-    default void sendActionBar(@NotNull TranslatableComponent.Builder key, @NotNull Component... arguments) {
-        this.sendActionBar(this.render(Components.translatable(key, arguments)));
+    default void sendActionBar(@NotNull TranslatableComponent message) {
+        this.sendActionBar(this.render(message));
+    }
+
+    default void sendActionBar(@NotNull TranslatableComponent key, @NotNull Component... arguments) {
+        this.sendActionBar(this.render(key.arguments(arguments)));
     }
 
     @NotNull

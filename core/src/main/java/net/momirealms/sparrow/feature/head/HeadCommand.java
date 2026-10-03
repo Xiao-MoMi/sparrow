@@ -86,7 +86,7 @@ public final class HeadCommand extends BukkitCommandFeature {
                 while ((cause instanceof CompletionException || cause instanceof ExecutionException) && cause.getCause() != null) {
                     cause = cause.getCause();
                 }
-                TranslatableComponent.Builder message = failure(cause);
+                TranslatableComponent message = failure(cause);
                 if (message == MessageConstants.COMMAND_HEAD_FAILURE || message == MessageConstants.COMMAND_HEAD_INVALID_RESPONSE) {
                     plugin.logger().warn("Failed to fetch a head", cause);
                 }
@@ -116,7 +116,7 @@ public final class HeadCommand extends BukkitCommandFeature {
     }
 
     @NotNull
-    private static TranslatableComponent.Builder failure(@NotNull Throwable error) {
+    private static TranslatableComponent failure(@NotNull Throwable error) {
         if (error instanceof TimeoutException || error instanceof HttpTimeoutException) return MessageConstants.COMMAND_HEAD_TIMEOUT;
         if (error instanceof CancellationException) return MessageConstants.COMMAND_HEAD_CANCELLED;
         if (error instanceof HeadFetchException fetch) {

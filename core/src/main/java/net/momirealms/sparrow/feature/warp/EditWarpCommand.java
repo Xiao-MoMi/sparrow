@@ -10,7 +10,6 @@ import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.util.Components;
 import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.command.CommandSender;
@@ -82,7 +81,7 @@ public final class EditWarpCommand extends BukkitCommandFeature {
     private void show(@NotNull CommandSender sender, @NotNull Warp warp) {
         WorldLocation location = warp.location();
         CommandPanel panel = new CommandPanel(this.commandManager(), sender);
-        panel.line(Components.translatable("command.edit-warp.info",
+        panel.line(Component.translatable("command.edit-warp.info",
                 Component.text(warp.name()), Component.text(warp.id().toString()), Component.text(warp.key()), Component.text(warp.description()),
                 Component.text(warp.server()), Component.text(location.world()), Component.text(location.x()), Component.text(location.y()), Component.text(location.z()),
                 Component.text(location.yaw()), Component.text(location.pitch()), warp.creator() == null ? Component.translatable("command.edit-warp.console") : Component.text(warp.creator().toString()),
@@ -142,7 +141,7 @@ public final class EditWarpCommand extends BukkitCommandFeature {
             @NotNull CommandContext<? extends CommandSender> context,
             @NotNull String name,
             @NotNull CompletableFuture<WarpService.Result> operation,
-            @NotNull TranslatableComponent.Builder message,
+            @NotNull TranslatableComponent message,
             @NotNull Component... arguments
     ) {
         operation.thenAccept(result -> {
@@ -168,10 +167,11 @@ public final class EditWarpCommand extends BukkitCommandFeature {
         Warp warp = this.find(context);
         if (warp == null) return;
         CommandPanel panel = new CommandPanel(this.commandManager(), context.sender());
-        panel.line(Components.translatable("command.edit-warp.confirm-delete", Component.text(warp.name()))).actions(
-                panel.run(CommandPanel.label("confirm_delete"), this.getFeatureID(), warp.name() + " delete confirm " + warp.id()).style(PanelButton.Style.DANGER).permission(this.permission("delete")).build(),
-                panel.run(CommandPanel.label("cancel"), this.getFeatureID(), warp.name()).build()
-        );
+        panel.line(Component.translatable("command.edit-warp.confirm-delete", Component.text(warp.name())))
+                .actions(
+                        panel.run(CommandPanel.label("confirm_delete"), this.getFeatureID(), warp.name() + " delete confirm " + warp.id()).style(PanelButton.Style.DANGER).permission(this.permission("delete")).build(),
+                        panel.run(CommandPanel.label("cancel"), this.getFeatureID(), warp.name()).build()
+                );
         panel.send();
     }
 

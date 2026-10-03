@@ -268,7 +268,7 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
 
     @FunctionalInterface
     public interface Feedback {
-        void send(TranslatableComponent.Builder key, Component... arguments);
+        void send(TranslatableComponent key, Component... arguments);
     }
 
     private static final class Selection {
