@@ -13,6 +13,7 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOptions;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -51,6 +52,7 @@ public final class MongoDataStorage extends DataStorage {
 
     private final MongoBanStore banStore;
     private final MongoWarpStore warpStore;
+    private final MongoHomeStore homeStore;
     private MongoClient client;
     private MongoDatabase database;
     private MongoCollection<Document> data;
@@ -59,6 +61,7 @@ public final class MongoDataStorage extends DataStorage {
         super(options, executor, logger);
         this.banStore = new MongoBanStore(this::database, executor, logger, this.namePrefix());
         this.warpStore = new MongoWarpStore(this::database, executor, logger, this.namePrefix());
+        this.homeStore = new MongoHomeStore(this::database, executor, logger, this.namePrefix());
     }
 
     @Override
@@ -182,6 +185,12 @@ public final class MongoDataStorage extends DataStorage {
     @NotNull
     public WarpStore warpStore() {
         return this.warpStore;
+    }
+
+    @Override
+    @NotNull
+    public HomeStore homeStore() {
+        return this.homeStore;
     }
 
     private MongoDatabase database() {

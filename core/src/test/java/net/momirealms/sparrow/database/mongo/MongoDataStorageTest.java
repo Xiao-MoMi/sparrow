@@ -3,6 +3,7 @@ package net.momirealms.sparrow.database.mongo;
 import com.mongodb.client.MongoClients;
 import net.momirealms.sparrow.database.BanStoreContract;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.database.HomeStoreContract;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.database.WarpStoreContract;
 import net.momirealms.sparrow.locale.TranslationManager;
@@ -69,6 +70,7 @@ class MongoDataStorageTest {
             assertEquals(location, saved.lastLogoutLocation());
             BanStoreContract.verify(storage.banStore(), second);
             WarpStoreContract.verify(storage.warpStore());
+            HomeStoreContract.verify(storage.homeStore());
             try (var client = MongoClients.create(options.mongodb().url()); var translations = mockStatic(TranslationManager.class)) {
                 var database = client.getDatabase(options.mongodb().database());
                 var collection = database.getCollection(prefix + "data");
@@ -77,6 +79,7 @@ class MongoDataStorageTest {
                 var indexes = collection.listIndexes().into(new ArrayList<>());
                 assertEquals(3, indexes.size());
                 var meta = database.getCollection(prefix + "meta");
+                assertEquals(DependencyVersions.MONGODB_HOME_INDEX_VERSION, meta.find(new Document("_id", "home_schema")).first().getInteger("version"));
                 assertEquals(1, meta.find(new Document("_id", "schema")).first().getInteger("version"));
                 meta.updateOne(new Document("_id", "schema"), new Document("$set", new Document("version", 2)));
                 assertThrows(IllegalStateException.class, () -> IndexReconciler.reconcile(mock(PluginLogger.class), database, prefix, MongoDataStorage.SCHEMA_ID, DependencyVersions.MONGODB_DATA_INDEX_VERSION, MongoDataStorage.INDEXES));
@@ -89,6 +92,7 @@ class MongoDataStorageTest {
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "meta").drop();
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "bans").drop();
                 client.getDatabase(options.mongodb().database()).getCollection(prefix + "warps").drop();
+                client.getDatabase(options.mongodb().database()).getCollection(prefix + "homes").drop();
             }
         }
     }
