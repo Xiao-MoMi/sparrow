@@ -21,9 +21,9 @@ class MinecraftPredicateTest {
 
     @Test
     void parsesOnlyTheFirstThreeVersionComponents() {
-        assertEquals(10000, MinecraftPredicate.parseVersionToInteger("1"));
-        assertEquals(12000, MinecraftPredicate.parseVersionToInteger("1.20"));
-        assertEquals(12004, MinecraftPredicate.parseVersionToInteger("1.20.4"));
-        assertEquals(12004, MinecraftPredicate.parseVersionToInteger("1.20.4.5"));
+        assertEquals(10000, MinecraftVersionParser.parseVersionToInteger("1"));
+        assertEquals(12000, MinecraftVersionParser.parseVersionToInteger("1.20"));
+        assertEquals(12004, MinecraftVersionParser.parseVersionToInteger("1.20.4"));
+        assertEquals(12004, MinecraftVersionParser.parseVersionToInteger("1.20.4.5"));
     }
 }

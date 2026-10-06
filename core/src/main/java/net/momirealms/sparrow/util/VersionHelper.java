@@ -2,6 +2,7 @@ package net.momirealms.sparrow.util;
 
 import com.google.gson.JsonObject;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.proxy.MinecraftVersionParser;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -97,24 +98,7 @@ public final class VersionHelper {
     private VersionHelper() {}
 
     public static int parseVersionToInteger(String versionString) {
-        int[] parts = new int[3];
-        int currentNumber = 0;
-        int part = 0;
-        for (int i = 0; i < versionString.length(); i++) {
-            char c = versionString.charAt(i);
-            if (c >= '0' && c <= '9') {
-                currentNumber = currentNumber * 10 + (c - '0');
-            } else if (c == '.') {
-                if (part == parts.length - 1) {
-                    parts[part] = currentNumber;
-                    break;
-                }
-                parts[part++] = currentNumber;
-                currentNumber = 0;
-            }
-        }
-        if (part < parts.length) parts[part] = currentNumber;
-        return 10000 * parts[0] + parts[1] * 100 + parts[2];
+        return MinecraftVersionParser.parseVersionToInteger(versionString);
     }
 
     private static boolean exists(String... classNames) {
