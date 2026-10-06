@@ -165,6 +165,14 @@ public class DependencyManager  {
             return file;
         }
 
+        this.cleanOldVersions(dependency, file);
+        if (dependency.source() instanceof Dependency.Source.JarInJar jarInJarSource) {
+            return this.extractEmbeddedDependency(file, jarInJarSource);
+        }
+        return this.downloadFromRepositories(dependency, file, fileName);
+    }
+
+    private void cleanOldVersions(Dependency dependency, Path file) {
         // 在下载之前删除已存在的旧版本的jar.
         Path versionFolder = file.getParent().getParent();
         if (Files.exists(versionFolder) && Files.isDirectory(versionFolder)) {
@@ -185,39 +193,41 @@ public class DependencyManager  {
                 throw new RuntimeException("Failed to clean " + versionFolder, e);
             }
         }
+    }
+
+    private Path extractEmbeddedDependency(Path file, Dependency.Source.JarInJar source) {
         // 如果依赖项配置为 jar-in-jar, 则从类加载器资源中提取该文件并保存.
-        if (dependency.source() instanceof Dependency.Source.JarInJar jarInJarSource) {
-            try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(jarInJarSource.jarInJarPath())) {
-                if (in != null) {
-                    Files.createDirectories(file.getParent());
-                    Files.copy(in, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                    return file;
-                }
-                throw new RuntimeException("Failed to find " + jarInJarSource.jarInJarPath());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to save " + jarInJarSource.jarInJarPath(), e);
+        try (InputStream in = this.getClass().getClassLoader().getResourceAsStream(source.jarInJarPath())) {
+            if (in != null) {
+                Files.createDirectories(file.getParent());
+                Files.copy(in, file, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                return file;
             }
+            throw new RuntimeException("Failed to find " + source.jarInJarPath());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to save " + source.jarInJarPath(), e);
         }
+    }
+
+    private Path downloadFromRepositories(Dependency dependency, Path file, String fileName) throws DependencyDownloadException {
         // 正常通过依赖仓库下载依赖到本地.
-        else {
-            DependencyDownloadException lastError = null;
-            List<DependencyRepository> repository = DependencyRepository.getByID("maven");
-            if (!repository.isEmpty()) {
-                int i = 0;
-                while (i < repository.size()) {
-                    try {
-                        this.plugin.logger().info("Downloading dependency " + repository.get(i).getUrl() + dependency.mavenPath());
-                        repository.get(i).download(dependency, file);
-                        this.plugin.logger().info("Successfully downloaded " + fileName);
-                        return file;
-                    } catch (DependencyDownloadException e) {
-                        lastError = e;
-                        i++;
-                    }
+        DependencyDownloadException lastError = null;
+        List<DependencyRepository> repository = DependencyRepository.getByID("maven");
+        if (!repository.isEmpty()) {
+            int i = 0;
+            while (i < repository.size()) {
+                try {
+                    this.plugin.logger().info("Downloading dependency " + repository.get(i).getUrl() + dependency.mavenPath());
+                    repository.get(i).download(dependency, file);
+                    this.plugin.logger().info("Successfully downloaded " + fileName);
+                    return file;
+                } catch (DependencyDownloadException e) {
+                    lastError = e;
+                    i++;
                 }
             }
-            throw Objects.requireNonNull(lastError);
         }
+        throw Objects.requireNonNull(lastError);
     }
 
     /**

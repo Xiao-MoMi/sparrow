@@ -7,8 +7,6 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
-import net.momirealms.sparrow.plugin.configuration.PluginConfig;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
 import net.momirealms.sparrow.plugin.dependency.Dependencies;
 import net.momirealms.sparrow.plugin.dependency.DependencyManager;
@@ -93,8 +91,8 @@ public class SparrowPlugin implements Plugin {
         this.configurationManager.reload();
         this.applyDependencies();
         this.setupProxy();
-        this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async(), this.logger);
-        this.redisConnector = new RedisConnector(PluginConfig.redis(), this.logger);
+        this.dataStorage = DataStorage.create(this.configurationManager.pluginConfig().database(), this.scheduler.async(), this.logger);
+        this.redisConnector = new RedisConnector(this.configurationManager.pluginConfig().redis(), this.logger);
         this.messageBrokerManager = new MessageBrokerManager(this);
         this.serverHeartBeats = new ServerHeartBeats(this);
         this.translationManager = new TranslationManagerImpl(this);
@@ -116,7 +114,7 @@ public class SparrowPlugin implements Plugin {
     @Override
     public void onPluginLoad() {
         // 服务器身份缺失时不放行
-        if (ServerConfig.serverId().isEmpty()) {
+        if (this.configurationManager.serverConfig().serverId().isEmpty()) {
             this.logger.error(" ");
             this.logger.error("============================================================");
             this.logger.error(TranslationManager.console(LogConstants.SERVER_ID_MISSING));
@@ -315,7 +313,7 @@ public class SparrowPlugin implements Plugin {
                 Dependencies.ADVENTURE_KEY, Dependencies.ADVENTURE_API, Dependencies.ADVENTURE_NBT,
                 Dependencies.TEXT_SERIALIZER_COMMONS, Dependencies.TEXT_SERIALIZER_LEGACY, Dependencies.TEXT_SERIALIZER_PLAIN, Dependencies.TEXT_SERIALIZER_GSON, Dependencies.TEXT_SERIALIZER_GSON_LEGACY, Dependencies.TEXT_SERIALIZER_JSON
         ));
-        switch (PluginConfig.database().type()) {
+        switch (this.configurationManager.pluginConfig().database().type()) {
             case MONGODB -> dependencies.addAll(List.of(
                     Dependencies.MONGODB_DRIVER_BSON, Dependencies.MONGODB_DRIVER_CORE, Dependencies.MONGODB_DRIVER_SYNC
             ));
@@ -378,19 +376,19 @@ public class SparrowPlugin implements Plugin {
      */
     private List<String> getPatches() {
         List<String> patches = new ArrayList<>();
-        if (VersionHelper.hasPaperPatch) {
+        if (VersionHelper.HAS_PAPER_PATCH) {
             patches.add("paper");
         }
-        if (VersionHelper.hasFoliaPatch) {
+        if (VersionHelper.HAS_FOLIA_PATCH) {
             patches.add("folia");
         }
-        if (VersionHelper.hasLeavesPatch) {
+        if (VersionHelper.HAS_LEAVES_PATCH) {
             patches.add("leaves");
         }
-        if (VersionHelper.hasCanvasPatch) {
+        if (VersionHelper.HAS_CANVAS_PATCH) {
             patches.add("canvas");
         }
-        if (VersionHelper.hasPurpurPatch) {
+        if (VersionHelper.HAS_PURPUR_PATCH) {
             patches.add("purpur");
         }
         return patches;

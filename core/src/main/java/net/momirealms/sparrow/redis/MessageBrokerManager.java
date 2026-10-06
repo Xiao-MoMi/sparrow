@@ -7,7 +7,6 @@ import net.momirealms.sparrow.player.cluster.PlayerPresenceMessage;
 import net.momirealms.sparrow.player.teleport.TeleportRequest;
 import net.momirealms.sparrow.player.teleport.TeleportResponse;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.redis.heartbeat.ServerProbeMessage;
 import net.momirealms.sparrow.redis.heartbeat.ServerProbeResponseMessage;
@@ -30,7 +29,7 @@ public final class MessageBrokerManager {
         // Redis Pub/Sub 跨数据库共享频道, 用数据库编号隔离各组服务器的消息.
         this.broker = MessageBroker.builder(buffer -> buffer)
                 .channel(("sparrow:db:" + connector.database() + ":messages").getBytes(StandardCharsets.UTF_8))
-                .serverId(ServerConfig.serverId())
+                .serverId(this.plugin.configurationManager().serverConfig().serverId())
                 .logger(new BrokerLogger(this.plugin.logger()))
                 .connection(connector.brokerConnection())
                 .build();
@@ -73,6 +72,7 @@ public final class MessageBrokerManager {
 
         @Override
         public void debug(String message) {
+            // PluginLogger has no debug-level method.
         }
     }
 }

@@ -47,7 +47,7 @@ public final class HeadCommand extends BukkitCommandFeature {
 
     private void execute(@NotNull CommandContext<CommandSender> context) {
         SparrowPlugin plugin = this.plugin();
-        HeadFeature feature = plugin.featureManager().feature(HeadFeature.ID, HeadFeature.class);
+        HeadFeature feature = plugin.featureManager().feature(HeadFeature.FEATURE_ID, HeadFeature.class);
         String source = context.<Optional<String>>getOrDefault("source", Optional.empty()).orElse(context.sender() instanceof Player player ? player.getName() : null);
         if (source == null) {
             this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_SOURCE_REQUIRED);
@@ -62,52 +62,66 @@ public final class HeadCommand extends BukkitCommandFeature {
         BukkitSparrowPlayer sender = context.sender() instanceof Player player ? plugin.playerManager().getPlayer(player) : null;
         long generation = feature.generation();
         int amount = context.flags().getValue("amount", 1);
-        CompletableFuture<HeadData> future;
+        CompletableFuture<HeadData> future = fetch(context, feature, source);
+        if (future == null) return;
+        future.whenCompleteAsync((data, error) -> complete(context, plugin, feature, source, targets, sender, generation, amount, data, error), plugin.scheduler().async());
+    }
+
+    private CompletableFuture<HeadData> fetch(CommandContext<CommandSender> context, HeadFeature feature, String source) {
         try {
             boolean force = context.flags().hasFlag("force");
             if (source.length() == 32 || source.length() == 36) {
-                future = feature.fetchByUuid(UUIDUtils.fromString(source), force);
-            } else {
-                future = feature.fetchByName(source, force);
+                return feature.fetchByUuid(UUIDUtils.fromString(source), force);
             }
+            return feature.fetchByName(source, force);
         } catch (IllegalArgumentException exception) {
             this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_INVALID, Component.text(source));
+            return null;
+        }
+    }
+
+    private void complete(CommandContext<CommandSender> context, SparrowPlugin plugin, HeadFeature feature, String source,
+                          List<Player> targets, BukkitSparrowPlayer sender, long generation, int amount, HeadData data, Throwable error) {
+        if (context.sender() instanceof Player player && (sender == null || plugin.playerManager().getPlayer(player) != sender)) return;
+        if (error != null) {
+            this.handleFetchFailure(context, plugin, source, error);
             return;
         }
-        future.whenCompleteAsync((data, error) -> {
-            if (context.sender() instanceof Player player && (sender == null || plugin.playerManager().getPlayer(player) != sender)) return;
-            if (error != null) {
-                Throwable cause = error;
-                while ((cause instanceof CompletionException || cause instanceof ExecutionException) && cause.getCause() != null) {
-                    cause = cause.getCause();
+        if (!feature.enabled() || feature.generation() != generation) {
+            this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
+            return;
+        }
+        if (data == null) {
+            this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_NOT_FOUND, Component.text(source));
+            return;
+        }
+        this.giveToTargets(context, plugin, feature, source, targets, generation, amount, data);
+    }
+
+    private void handleFetchFailure(CommandContext<CommandSender> context, SparrowPlugin plugin, String source, Throwable error) {
+        Throwable cause = error;
+        while ((cause instanceof CompletionException || cause instanceof ExecutionException) && cause.getCause() != null) {
+            cause = cause.getCause();
+        }
+        TranslatableComponent.Builder message = failure(cause);
+        if (message == MessageConstants.COMMAND_HEAD_FAILURE || message == MessageConstants.COMMAND_HEAD_INVALID_RESPONSE) {
+            plugin.logger().warn("Failed to fetch a head", cause);
+        }
+        // 超时和失败始终反馈; --silent 只隐藏成功提示.
+        this.handleFeedback(context.sender(), message, Component.text(source));
+    }
+
+    private void giveToTargets(CommandContext<CommandSender> context, SparrowPlugin plugin, HeadFeature feature, String source,
+                               List<Player> targets, long generation, int amount, HeadData data) {
+        for (Player target : targets) {
+            plugin.scheduler().platform().run(() -> {
+                if (feature.give(target, data, amount, generation)) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_HEAD_SUCCESS, Component.text(amount), Component.text(source), Component.text(target.getName()));
+                } else {
+                    this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
                 }
-                TranslatableComponent.Builder message = failure(cause);
-                if (message == MessageConstants.COMMAND_HEAD_FAILURE || message == MessageConstants.COMMAND_HEAD_INVALID_RESPONSE) {
-                    plugin.logger().warn("Failed to fetch a head", cause);
-                }
-                // 超时和失败始终反馈; --silent 只隐藏成功提示.
-                this.handleFeedback(context.sender(), message, Component.text(source));
-                return;
-            }
-            if (!feature.enabled() || feature.generation() != generation) {
-                this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
-                return;
-            }
-            if (data == null) {
-                this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_NOT_FOUND, Component.text(source));
-                return;
-            }
-            for (int i = 0; i < targets.size(); i++) {
-                Player target = targets.get(i);
-                plugin.scheduler().platform().run(() -> {
-                    if (feature.give(target, data, amount, generation)) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_HEAD_SUCCESS, Component.text(amount), Component.text(source), Component.text(target.getName()));
-                    } else {
-                        this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
-                    }
-                }, () -> {}, target);
-            }
-        }, plugin.scheduler().async());
+            }, () -> {}, target);
+        }
     }
 
     @NotNull

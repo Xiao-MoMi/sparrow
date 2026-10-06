@@ -40,14 +40,14 @@ public final class FeatureManager {
         this.platformExecutor = plugin.scheduler().platform();
         this.commandManager = plugin.commandManager();
 
-        this.features.put(QuickShulkerFeature.ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
-        this.features.put(PatrolFeature.ID, new PatrolFeature(plugin));
-        this.features.put(ServerFeature.ID, new ServerFeature(plugin));
-        this.features.put(HighlightFeature.ID, new HighlightFeature(plugin));
-        this.features.put(HeadFeature.ID, new HeadFeature(plugin));
-        this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
-        this.features.put(PlayerLimitFeature.ID, new PlayerLimitFeature(plugin));
-        this.features.put(BanFeature.ID, new BanFeature(plugin));
+        this.features.put(QuickShulkerFeature.FEATURE_ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
+        this.features.put(PatrolFeature.FEATURE_ID, new PatrolFeature(plugin));
+        this.features.put(ServerFeature.FEATURE_ID, new ServerFeature(plugin));
+        this.features.put(HighlightFeature.FEATURE_ID, new HighlightFeature(plugin));
+        this.features.put(HeadFeature.FEATURE_ID, new HeadFeature(plugin));
+        this.features.put(MaintenanceFeature.FEATURE_ID, new MaintenanceFeature(plugin));
+        this.features.put(PlayerLimitFeature.FEATURE_ID, new PlayerLimitFeature(plugin));
+        this.features.put(BanFeature.FEATURE_ID, new BanFeature(plugin));
     }
 
     // 模块命令只在插件启用时注册一次, 此后命令树不再变化, 模块开关只决定这些命令是否可见

@@ -44,6 +44,16 @@ public class ConfigurationManager {
     }
 
     @NotNull
+    public PluginConfig pluginConfig() {
+        return this.pluginConfig;
+    }
+
+    @NotNull
+    public ServerConfig serverConfig() {
+        return this.serverConfig;
+    }
+
+    @NotNull
     public FeaturesConfig featuresConfig() {
         return this.featuresConfig;
     }

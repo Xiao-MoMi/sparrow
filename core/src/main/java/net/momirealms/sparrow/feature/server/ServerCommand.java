@@ -28,7 +28,7 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     public ServerCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
-        this.parser = new ServerParser<>(commandManager, plugin.javaPlugin(), server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server));
+        this.parser = new ServerParser<>(commandManager, plugin.javaPlugin(), server -> this.plugin().featureManager().feature(ServerFeature.FEATURE_ID, ServerFeature.class).allowed(server));
     }
 
     // 命令持有服务器查询的接收监听, 发送通道由 PlayerManager 管理.
@@ -54,7 +54,7 @@ public final class ServerCommand extends BukkitCommandFeature {
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        ServerFeature feature = this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class);
+        ServerFeature feature = this.plugin().featureManager().feature(ServerFeature.FEATURE_ID, ServerFeature.class);
         String server = context.get(SERVER_ARGUMENT);
         if (!feature.allowed(server)) {
             this.handleFeedback(context, MessageConstants.COMMAND_SERVER_NOT_ALLOWED, Component.text(server));

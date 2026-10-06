@@ -79,11 +79,16 @@ final class ProfileClient {
         UUID returned = uuid(string(result, ashcon ? "uuid" : "id"));
         if (requestedUuid != null && !returned.equals(requestedUuid)) throw invalid("Profile UUID does not match the request");
         String name = string(result, ashcon ? "username" : "name");
-        if (ashcon) {
-            JsonObject textures = object(result, "textures");
-            JsonObject raw = textures == null ? null : object(textures, "raw");
-            return raw == null ? null : new HeadData(returned, name, string(raw, "value"), optionalString(raw, "signature"));
-        }
+        return ashcon ? ashconProfile(result, returned, name) : mojangProfile(result, returned, name);
+    }
+
+    private static HeadData ashconProfile(JsonObject result, UUID returned, String name) {
+        JsonObject textures = object(result, "textures");
+        JsonObject raw = textures == null ? null : object(textures, "raw");
+        return raw == null ? null : new HeadData(returned, name, string(raw, "value"), optionalString(raw, "signature"));
+    }
+
+    private static HeadData mojangProfile(JsonObject result, UUID returned, String name) {
         JsonElement properties = result.get("properties");
         if (properties == null) return null;
         if (!properties.isJsonArray()) throw invalid("Profile properties must be an array");

@@ -102,27 +102,35 @@ public final class MysqlSchemaMigrator {
             throw new IllegalStateException("Unsupported MySQL schema version " + stored + ", supported up to " + this.currentVersion);
         }
         if (stored == 0) {
-            // 初始化中断时, 必须由相同目标版本的完整建表定义恢复.
-            if (pending != null && pending != this.currentVersion) {
-                throw new IllegalStateException("Unfinished MySQL schema initialization targets version " + pending + ", current version is " + this.currentVersion + "; finish initialization with the matching plugin version");
-            }
-            if (pending == null) {
-                long existing = handle.createQuery("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN (<tables>)")
-                        .bindList("tables", this.tables.stream().map(table -> prefix + table).toList()).mapTo(Long.class).one();
-                if (existing != 0) {
-                    throw new IllegalStateException("MySQL business tables exist without a schema version");
-                }
-            }
-            this.logger.info(TranslationManager.console(LogConstants.STORAGE_MYSQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion)));
-            this.markPending(handle, meta, this.currentVersion);
-            this.initializer.accept(handle, prefix);
-            this.complete(handle, meta, this.currentVersion);
+            this.initialize(handle, prefix, meta, pending);
             return;
         }
         if (pending != null && (pending != stored + 1 || pending > this.currentVersion)) {
             throw new IllegalStateException("Unsupported pending MySQL schema migration " + pending + " after version " + stored);
         }
         if (stored == this.currentVersion) return;
+        this.applyMigrations(handle, prefix, meta, stored);
+    }
+
+    private void initialize(Handle handle, String prefix, String meta, Long pending) {
+        // 初始化中断时, 必须由相同目标版本的完整建表定义恢复.
+        if (pending != null && pending != this.currentVersion) {
+            throw new IllegalStateException("Unfinished MySQL schema initialization targets version " + pending + ", current version is " + this.currentVersion + "; finish initialization with the matching plugin version");
+        }
+        if (pending == null) {
+            long existing = handle.createQuery("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN (<tables>)")
+                    .bindList("tables", this.tables.stream().map(table -> prefix + table).toList()).mapTo(Long.class).one();
+            if (existing != 0) {
+                throw new IllegalStateException("MySQL business tables exist without a schema version");
+            }
+        }
+        this.logger.info(TranslationManager.console(LogConstants.STORAGE_MYSQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion)));
+        this.markPending(handle, meta, this.currentVersion);
+        this.initializer.accept(handle, prefix);
+        this.complete(handle, meta, this.currentVersion);
+    }
+
+    private void applyMigrations(Handle handle, String prefix, String meta, long stored) {
         // 目标版本 2 位于下标 0, 从已完成版本的下一步开始执行.
         for (int i = (int) stored - 1; i < this.migrations.size(); i++) {
             MysqlSchemaMigration migration = this.migrations.get(i);

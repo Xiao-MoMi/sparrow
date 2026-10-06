@@ -6,7 +6,6 @@ import io.lettuce.core.api.sync.RedisCommands;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +45,7 @@ public final class ServerHeartBeats {
     }
 
     public void onLoad() {
-        this.serverId = ServerConfig.serverId();
+        this.serverId = this.plugin.configurationManager().serverConfig().serverId();
         this.key = heartbeatKey(this.serverId);
         ServerProbeMessage.registry(this);
         if (!this.claimIdentity()) {
