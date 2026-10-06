@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class MinecraftPredicate implements Predicate<String> {
-    private static final Pattern TOKEN_PATTERN = Pattern.compile("\\s*(\\(|\\)|&&|\\|\\||!|[^\\s()&|!]+)\\s*");
+    private static final Pattern TOKEN_PATTERN = Pattern.compile("&&|\\|\\||[()!]|[^\\s()&|!]+");
     private final Context context;
 
     public MinecraftPredicate(String version, List<String> patches) {
@@ -25,29 +25,38 @@ public final class MinecraftPredicate implements Predicate<String> {
         Stack<Condition> nodes = new Stack<>();
         Stack<String> ops = new Stack<>();
         while (matcher.find()) {
-            String token = matcher.group(1);
-            if (token.isEmpty()) continue;
-            switch (token) {
-                case "(", "!" -> ops.push(token);
-                case ")" -> {
-                    while (!ops.isEmpty() && !ops.peek().equals("(")) {
-                        processOperator(nodes, ops.pop());
-                    }
-                    if (!ops.isEmpty()) ops.pop(); // 弹出 "("
-                }
-                case "&&", "||" -> {
-                    while (!ops.isEmpty() && precedence(ops.peek()) >= precedence(token)) {
-                        processOperator(nodes, ops.pop());
-                    }
-                    ops.push(token);
-                }
-                default -> nodes.push(compileLeaf(token));
-            }
+            handleToken(matcher.group(), nodes, ops);
         }
         while (!ops.isEmpty()) {
             processOperator(nodes, ops.pop());
         }
         return nodes.isEmpty() ? ctx -> true : nodes.pop();
+    }
+
+    private static void handleToken(String token, Stack<Condition> nodes, Stack<String> ops) {
+        switch (token) {
+            case "(", "!" -> ops.push(token);
+            case ")" -> resolveCloseParen(nodes, ops);
+            case "&&", "||" -> pushBinaryOperator(nodes, ops, token);
+            default -> nodes.push(compileLeaf(token));
+        }
+    }
+
+    private static void resolveCloseParen(Stack<Condition> nodes, Stack<String> ops) {
+        while (!ops.isEmpty() && !"(".equals(ops.peek())) {
+            processOperator(nodes, ops.pop());
+        }
+        if (!ops.isEmpty()) {
+            ops.pop();
+        }
+    }
+
+    private static void pushBinaryOperator(Stack<Condition> nodes, Stack<String> ops, String token) {
+        int tokenPrecedence = precedence(token);
+        while (!ops.isEmpty() && precedence(ops.peek()) >= tokenPrecedence) {
+            processOperator(nodes, ops.pop());
+        }
+        ops.push(token);
     }
 
     private static void processOperator(Stack<Condition> nodes, String op) {
@@ -89,9 +98,7 @@ public final class MinecraftPredicate implements Predicate<String> {
     }
 
     public static int parseVersionToInteger(String versionString) {
-        int v1 = 0;
-        int v2 = 0;
-        int v3 = 0;
+        int[] parts = new int[3];
         int currentNumber = 0;
         int part = 0;
         for (int i = 0; i < versionString.length(); i++) {
@@ -99,27 +106,16 @@ public final class MinecraftPredicate implements Predicate<String> {
             if (c >= '0' && c <= '9') {
                 currentNumber = currentNumber * 10 + (c - '0');
             } else if (c == '.') {
-                if (part == 0) {
-                    v1 = currentNumber;
-                }
-                if (part == 1) {
-                    v2 = currentNumber;
-                }
-                part++;
-                currentNumber = 0;
-                if (part > 2) {
+                if (part == parts.length - 1) {
+                    parts[part] = currentNumber;
                     break;
                 }
+                parts[part++] = currentNumber;
+                currentNumber = 0;
             }
         }
-        if (part == 0) {
-            v1 = currentNumber;
-        } else if (part == 1) {
-            v2 = currentNumber;
-        } else if (part == 2) {
-            v3 = currentNumber;
-        }
-        return v1 * 10000 + v2 * 100 + v3;
+        if (part < parts.length) parts[part] = currentNumber;
+        return parts[0] * 10000 + parts[1] * 100 + parts[2];
     }
 
     public interface Condition {

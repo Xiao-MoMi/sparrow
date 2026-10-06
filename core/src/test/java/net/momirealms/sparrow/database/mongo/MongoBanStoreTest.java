@@ -12,8 +12,8 @@ class MongoBanStoreTest {
     @Test
     void saveBanRejectsRecordWithoutTarget() {
         MongoBanStore store = new MongoBanStore(() -> null, Runnable::run, mock(PluginLogger.class), "");
-        BanRecord record = new BanRecord("12345678", null, null, null, "reason", "operator", "server", 1, 0, 0, null);
+        BanRecord banRecord = new BanRecord("12345678", null, null, null, "reason", "operator", "server", 1, 0, 0, null);
 
-        assertThrows(IllegalArgumentException.class, () -> store.saveBan(record));
+        assertThrows(IllegalArgumentException.class, () -> store.saveBan(banRecord));
     }
 }
