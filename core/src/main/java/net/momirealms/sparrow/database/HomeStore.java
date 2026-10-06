@@ -38,13 +38,21 @@ public interface HomeStore {
     @NotNull
     CompletableFuture<SaveResult> update(@NotNull Home home);
 
-    // 删除指定所有者的记录, 返回已删除记录的同步信息; 不存在时返回空结果.
+    // 删除指定所有者的记录, 不存在时返回 false.
     @NotNull
-    CompletableFuture<Optional<DeleteResult>> delete(@NotNull UUID owner, @NotNull UUID id);
+    CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id);
 
-    // 删除指定所有者的全部记录, 返回实际删除数量.
+    // 按所有已提供的条件取交集删除, 返回实际删除数量.
     @NotNull
-    CompletableFuture<Long> deleteByOwner(@NotNull UUID owner);
+    CompletableFuture<Long> deleteAll(@NotNull Filter filter);
+
+    record Filter(@Nullable UUID owner, @Nullable String server, @Nullable String world) {
+        public Filter {
+            if (owner == null && server == null && world == null) {
+                throw new IllegalArgumentException("At least one home filter is required");
+            }
+        }
+    }
 
     enum Status {
         SUCCESS, DUPLICATE_NAME, NOT_FOUND
@@ -52,8 +60,5 @@ public interface HomeStore {
 
     // home 仅在成功时存在, 包含实际保存的创建时间.
     record SaveResult(@NotNull Status status, @Nullable Home home) {
-    }
-
-    record DeleteResult(@NotNull UUID owner, @NotNull UUID id, @NotNull String nameKey) {
     }
 }

@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.feature.home;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -19,56 +18,36 @@ public final class HomeChangedMessage extends OneWayMessage<FriendlyByteBuf> {
     private static volatile @Nullable Consumer<HomeChangedMessage> listener;
 
     private final String origin;
-    private final UUID owner;
-    private final Type type;
-    private final @Nullable Home home;
-    private final @Nullable HomeStore.DeleteResult deleted;
+    private final @Nullable UUID owner; // null 表示所有在线所有者的快照失效.
 
-    private HomeChangedMessage(@NotNull String origin, @NotNull UUID owner, @NotNull Type type, @Nullable Home home, @Nullable HomeStore.DeleteResult deleted) {
+    private HomeChangedMessage(@NotNull String origin, @Nullable UUID owner) {
         this.origin = origin;
         this.owner = owner;
-        this.type = type;
-        this.home = home;
-        this.deleted = deleted;
-    }
-
-    @NotNull
-    public static HomeChangedMessage save(@NotNull String origin, @NotNull Home home) {
-        return new HomeChangedMessage(origin, home.owner(), Type.SAVE, home, null);
-    }
-
-    @NotNull
-    public static HomeChangedMessage delete(@NotNull String origin, @NotNull HomeStore.DeleteResult deleted) {
-        return new HomeChangedMessage(origin, deleted.owner(), Type.DELETE, null, deleted);
     }
 
     @NotNull
     public static HomeChangedMessage invalidateOwner(@NotNull String origin, @NotNull UUID owner) {
-        return new HomeChangedMessage(origin, owner, Type.INVALIDATE_OWNER, null, null);
+        return new HomeChangedMessage(origin, owner);
+    }
+
+    @NotNull
+    public static HomeChangedMessage invalidateAll(@NotNull String origin) {
+        return new HomeChangedMessage(origin, null);
     }
 
     private HomeChangedMessage(FriendlyByteBuf buffer) {
         super(buffer);
         this.origin = ByteBufHelper.readUtf8(buffer, 255);
-        this.owner = buffer.readUUID();
-        this.type = Type.values()[buffer.readByte()];
-        this.home = this.type == Type.SAVE ? Home.read(buffer) : null;
-        // 小写转换可能扩展字符数, 名称键不能按显示名称的长度截断.
-        this.deleted = this.type == Type.DELETE ? new HomeStore.DeleteResult(this.owner, buffer.readUUID(), ByteBufHelper.readUtf8(buffer, Home.MAX_NAME_LENGTH * 3)) : null;
+        this.owner = buffer.readBoolean() ? buffer.readUUID() : null;
     }
 
     @Override
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
         ByteBufHelper.writeUtf8(buffer, this.origin, 255);
-        buffer.writeUUID(this.owner);
-        buffer.writeByte(this.type.ordinal());
-        if (this.home != null) {
-            this.home.write(buffer);
-        }
-        if (this.deleted != null) {
-            buffer.writeUUID(this.deleted.id());
-            ByteBufHelper.writeUtf8(buffer, this.deleted.nameKey(), Home.MAX_NAME_LENGTH * 3);
+        buffer.writeBoolean(this.owner != null);
+        if (this.owner != null) {
+            buffer.writeUUID(this.owner);
         }
     }
 
@@ -77,24 +56,9 @@ public final class HomeChangedMessage extends OneWayMessage<FriendlyByteBuf> {
         return this.origin;
     }
 
-    @NotNull
+    @Nullable
     public UUID owner() {
         return this.owner;
-    }
-
-    @NotNull
-    public Type type() {
-        return this.type;
-    }
-
-    @Nullable
-    public Home home() {
-        return this.home;
-    }
-
-    @Nullable
-    public HomeStore.DeleteResult deleted() {
-        return this.deleted;
     }
 
     static void listener(@Nullable Consumer<HomeChangedMessage> listener) {
@@ -113,9 +77,5 @@ public final class HomeChangedMessage extends OneWayMessage<FriendlyByteBuf> {
         if (listener != null) {
             listener.accept(this);
         }
-    }
-
-    public enum Type {
-        SAVE, DELETE, INVALIDATE_OWNER
     }
 }

@@ -4,13 +4,25 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandFeature;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
+
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public final class HomeFeature extends Feature<HomeSettings> implements PlayerListener {
     public static final String ID = "home";
 
     private final SparrowPlugin plugin;
     private volatile HomeService service;
+    private final Cache<String, CompletableFuture<HomeSnapshot>> suggestions = Caffeine.newBuilder().maximumSize(128).expireAfterWrite(Duration.ofSeconds(5)).build();
 
     public HomeFeature(@NotNull SparrowPlugin plugin) {
         super(ID);
@@ -20,10 +32,17 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     @Override
     public void loadConfig() {
         HomeSettings settings = this.plugin.configurationManager().featuresConfig().config().home();
-        if (settings.cacheTtlSeconds() < 1) {
-            throw new IllegalArgumentException("home.cache-ttl-seconds must be positive");
-        }
+        settings.validate();
         this.config = settings;
+    }
+
+    @Override
+    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
+        register.accept(new HomeCommand(this));
+        register.accept(new SetHomeCommand(this));
+        register.accept(new DelHomeCommand(this));
+        register.accept(new DelAllHomeCommand(this));
+        register.accept(new HomeListCommand(this));
     }
 
     @Override
@@ -46,6 +65,50 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         }
     }
 
+    public int limit(@NotNull Player player) {
+        return this.plugin.compatibilityManager().permissionLimit(player, "sparrow.max-homes", this.config.maxHomes());
+    }
+
+    @NotNull
+    String permission(String command) {
+        return this.plugin.configurationManager().commandsConfig().configDefinition().command(command).getPermission();
+    }
+
+    @NotNull
+    String usage(String command) {
+        return this.plugin.configurationManager().commandsConfig().configDefinition().command(command).getUsages().stream()
+                .filter(usage -> usage.startsWith("/")).findFirst().orElse("/" + command);
+    }
+
+    @NotNull
+    CompletableFuture<List<Suggestion>> suggest(CommandSender sender, String input, boolean qualified, String permission) {
+        HomeService service = this.service;
+        if (service == null) return CompletableFuture.completedFuture(List.of());
+        int separator = qualified ? input.lastIndexOf('.') : -1;
+        if (separator < 0) {
+            List<String> names = sender instanceof Player player ? service.complete(player.getUniqueId(), input, this.config.suggestionLimit()) : List.of();
+            return CompletableFuture.completedFuture(names.stream().map(Suggestion::suggestion).toList());
+        }
+        String owner = input.substring(0, separator);
+        String prefix = input.substring(separator + 1);
+        if (sender instanceof Player player && player.getName().equalsIgnoreCase(owner)) {
+            return CompletableFuture.completedFuture(service.complete(player.getUniqueId(), prefix, this.config.suggestionLimit()).stream()
+                    .map(name -> Suggestion.suggestion(owner + "." + name)).toList());
+        }
+        if (!sender.hasPermission(permission + ".other")) return CompletableFuture.completedFuture(List.of());
+        // 他人补全短暂保留查询结果, 让同步补全在下次按 Tab 时能取得异步结果.
+        CompletableFuture<HomeSnapshot> loading = this.suggestions.get(owner, name -> this.plugin.playerManager().resolvePlayer(name)
+                .thenCompose(found -> found.isPresent() ? service.snapshot(found.get().uuid()) : CompletableFuture.completedFuture(new HomeSnapshot(List.of())))
+                .exceptionally(error -> {
+                    this.plugin.logger().warn("Failed to suggest homes for " + name, error);
+                    return new HomeSnapshot(List.of());
+                }));
+        CompletableFuture<List<Suggestion>> result = loading.thenApply(snapshot -> snapshot.complete(prefix, this.config.suggestionLimit())
+                .stream()
+                .map(name -> Suggestion.suggestion(owner + "." + name)).toList());
+        return this.plugin.commandManager().asynchronousCompletion() ? result : CompletableFuture.completedFuture(result.getNow(List.of()));
+    }
+
     @Override
     public void onJoin(@NotNull SparrowPlayer player) {
         HomeService service = this.service;
@@ -65,6 +128,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     @Override
     protected void onDisable() {
         HomeChangedMessage.listener(null);
+        this.suggestions.invalidateAll();
         HomeService service = this.service;
         this.service = null;
         if (service != null) {

@@ -1,0 +1,87 @@
+package net.momirealms.sparrow.feature.home;
+
+import net.kyori.adventure.text.Component;
+import net.momirealms.sparrow.compatibility.CompatibilityManager;
+import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
+import net.momirealms.sparrow.plugin.command.panel.PanelButton;
+import net.momirealms.sparrow.plugin.command.panel.TextPage;
+import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.incendo.cloud.Command;
+import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.parser.standard.IntegerParser;
+import org.jspecify.annotations.NonNull;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+public final class HomeListCommand extends AbstractHomeCommand {
+    private static final int PAGE_SIZE = 10;
+
+    public HomeListCommand(HomeFeature feature) {
+        super(feature);
+    }
+
+    @Override
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+        manager.command(builder.optional("page", IntegerParser.integerParser(1)).handler(this::execute));
+        manager.command(builder.literal("other").required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+                .optional("page", IntegerParser.integerParser(1)).permission(this.otherPermission(builder)).handler(this::execute));
+    }
+
+    private boolean available(CommandSender sender, boolean other) {
+        String permission = this.commandConfig().getPermission();
+        return this.commandConfig().isEnable() && this.commandConfig().getUsages().stream().anyMatch(usage -> usage.startsWith("/"))
+                && (permission == null || permission.isEmpty() || sender.hasPermission(permission))
+                && (!other || sender.hasPermission(permission + ".other"));
+    }
+
+    private void execute(CommandContext<CommandSender> context) {
+        CommandSender sender = context.sender();
+        this.owner(sender, context.getOrDefault("player", null)).thenCompose(owner -> {
+            if (owner.isEmpty()) return CompletableFuture.completedFuture(null);
+            return this.feature.service().snapshot(owner.get().uuid()).thenAccept(snapshot -> this.show(sender, owner.get(), snapshot, context.getOrDefault("page", 1)));
+        }).exceptionally(error -> { this.failed(sender, error); return null; });
+    }
+
+    private void show(CommandSender sender, PlayerRef owner, HomeSnapshot snapshot, int requestedPage) {
+        boolean self = sender instanceof Player player && player.getUniqueId().equals(owner.uuid());
+        if (!this.available(sender, !self)) {
+            this.handleFeedback(sender, MessageConstants.COMMAND_HOME_NO_PERMISSION);
+            return;
+        }
+        Component limit = Component.translatable("command.home-list.limit-unknown");
+        if (self) {
+            int maximum = this.feature.limit((Player) sender);
+            limit = maximum == CompatibilityManager.UNLIMITED ? Component.translatable("command.home-list.unlimited") : Component.text(maximum);
+        }
+        int pages = Math.max(1, (snapshot.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        int index = Math.min(requestedPage, pages) - 1;
+        int from = index * PAGE_SIZE;
+        List<Home> content = snapshot.homes().subList(from, Math.min(from + PAGE_SIZE, snapshot.size()));
+        TextPage<Home> page = new TextPage<>(index, PAGE_SIZE, snapshot.size(), content);
+        CommandPanel panel = new CommandPanel(this.commandManager(), sender)
+                .header(Component.translatable("command.home-list.title", Component.text(owner.name()), limit), page);
+        if (content.isEmpty()) {
+            panel.empty();
+        }
+        for (int i = 0; i < content.size(); i++) {
+            Home home = content.get(i);
+            String target = self ? home.name() : owner.name() + "." + home.name();
+            PanelButton travel = panel.run(Component.text(home.name()), "home", target).playersOnly();
+            if (!self) {
+                travel.permission(this.feature.permission("home") + ".other");
+            }
+            panel.line(Component.translatable("command.home-list.entry", travel.build(), Component.text(home.server()), Component.text(home.location().world())));
+        }
+        panel.navigation(this.getFeatureID(), page, number -> self ? String.valueOf(number) : "other " + owner.name() + " " + number).send();
+    }
+
+    @Override
+    public String getFeatureID() {
+        return "home-list";
+    }
+}

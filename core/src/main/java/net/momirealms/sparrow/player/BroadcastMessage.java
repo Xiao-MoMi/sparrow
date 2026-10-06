@@ -49,11 +49,18 @@ public final class BroadcastMessage extends OneWayMessage<FriendlyByteBuf> {
     @Override
     protected void handle() {
         SparrowPlugin plugin = SparrowPlugin.instance();
+        // 无 PlaceholderAPI
+        if (!this.placeholders) {
+            Component component = AdventureHelper.miniMessage(this.message, this.legacy);
+            for (SparrowPlayer receiver : plugin.playerManager().getOnlinePlayers()) receiver.sendMessage(component);
+            return;
+        }
+        // 有 PlaceholderAPI
         for (SparrowPlayer receiver : plugin.playerManager().getOnlinePlayers()) {
             Player player = receiver.platformPlayer();
             // 占位符读取玩家状态, 与消息发送一起在玩家所属线程执行.
             plugin.scheduler().platform().run(() -> {
-                String text = this.placeholders ? plugin.compatibilityManager().parsePlaceholders(player, this.message) : this.message;
+                String text = plugin.compatibilityManager().parsePlaceholders(player, this.message);
                 Component component = AdventureHelper.miniMessage(text, this.legacy);
                 receiver.sendMessage(component);
             }, () -> {}, player);

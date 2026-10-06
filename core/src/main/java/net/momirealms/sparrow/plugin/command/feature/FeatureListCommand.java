@@ -30,8 +30,9 @@ public final class FeatureListCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.optional("page", IntegerParser.integerParser(1))
-                .handler(context -> this.plugin().scheduler().platform().execute(() -> this.renderPage(context.sender(), context.<Integer>optional("page").orElse(1)))));
+        Command.Builder<CommandSender> cmd = builder.optional("page", IntegerParser.integerParser(1))
+                .handler(context -> this.renderPage(context.sender(), context.<Integer>optional("page").orElse(1)));
+        manager.command(cmd);
     }
 
     private void renderPage(@NotNull CommandSender sender, int requestedPage) {

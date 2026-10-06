@@ -3,12 +3,10 @@ package net.momirealms.sparrow.feature.home;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public final class HomeSnapshot {
     private final List<Home> homes;
@@ -39,19 +37,5 @@ public final class HomeSnapshot {
     public List<String> complete(@NotNull String input, int limit) {
         String prefix = Home.key(input);
         return this.homes.stream().filter(home -> home.key().startsWith(prefix)).limit(limit).map(Home::name).toList();
-    }
-
-    @NotNull
-    HomeSnapshot save(@NotNull Home home) {
-        List<Home> updated = new ArrayList<>(this.homes);
-        // 改名移除旧名称, 同名重建则由新 UUID 替换原记录.
-        updated.removeIf(existing -> existing.id().equals(home.id()) || existing.key().equals(home.key()));
-        updated.add(home);
-        return new HomeSnapshot(updated);
-    }
-
-    @NotNull
-    HomeSnapshot delete(@NotNull UUID id) {
-        return new HomeSnapshot(this.homes.stream().filter(home -> !home.id().equals(id)).toList());
     }
 }

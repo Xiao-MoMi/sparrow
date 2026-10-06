@@ -69,5 +69,6 @@ public final class PostgresSchema {
                 + "yaw REAL NOT NULL, pitch REAL NOT NULL, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL)");
         handle.execute("CREATE UNIQUE INDEX IF NOT EXISTS \"" + prefix + "homes_owner_name\" ON " + homes + " (owner, name_key)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "homes_location\" ON " + homes + " (server, world)");
+        handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "homes_world\" ON " + homes + " (world)");
     }
 }

@@ -4,6 +4,7 @@ import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.SqlStatement;
+import org.jdbi.v3.core.statement.Update;
 import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -138,22 +140,38 @@ public abstract class SqlHomeStore implements HomeStore {
 
     @Override
     @NotNull
-    public CompletableFuture<Optional<DeleteResult>> delete(@NotNull UUID owner, @NotNull UUID id) {
-        return CompletableFuture.supplyAsync(() -> this.sql().inTransaction(handle -> {
-            // 删除与名称读取处于同一事务, 同步信息对应实际删除的记录.
-            String nameKey = this.bindUuid(this.bindUuid(handle.createQuery("SELECT name_key FROM " + this.homes + " WHERE owner = :owner AND id = :id FOR UPDATE"), "owner", owner), "id", id)
-                    .mapTo(String.class).findOne().orElse(null);
-            if (nameKey == null) return Optional.empty();
-            this.bindUuid(this.bindUuid(handle.createUpdate("DELETE FROM " + this.homes + " WHERE owner = :owner AND id = :id"), "owner", owner), "id", id).execute();
-            return Optional.of(new DeleteResult(owner, id, nameKey));
-        }), this.executor);
+    public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle ->
+                this.bindUuid(this.bindUuid(handle.createUpdate("DELETE FROM " + this.homes + " WHERE owner = :owner AND id = :id"), "owner", owner), "id", id).execute() > 0), this.executor);
     }
 
     @Override
     @NotNull
-    public CompletableFuture<Long> deleteByOwner(@NotNull UUID owner) {
-        String sql = "DELETE FROM " + this.homes + " WHERE owner = :owner";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> (long) this.bindUuid(handle.createUpdate(sql), "owner", owner).execute()), this.executor);
+    public CompletableFuture<Long> deleteAll(@NotNull Filter filter) {
+        List<String> conditions = new ArrayList<>();
+        if (filter.owner() != null) {
+            conditions.add("owner = :owner");
+        }
+        if (filter.server() != null) {
+            conditions.add("server = :server");
+        }
+        if (filter.world() != null) {
+            conditions.add("world = :world");
+        }
+        String sql = "DELETE FROM " + this.homes + " WHERE " + String.join(" AND ", conditions);
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> {
+            Update statement = handle.createUpdate(sql);
+            if (filter.owner() != null) {
+                this.bindUuid(statement, "owner", filter.owner());
+            }
+            if (filter.server() != null) {
+                statement.bind("server", filter.server());
+            }
+            if (filter.world() != null) {
+                statement.bind("world", filter.world());
+            }
+            return (long) statement.execute();
+        }), this.executor);
     }
 
     private <S extends SqlStatement<S>> S bindHome(S statement, Home home) {

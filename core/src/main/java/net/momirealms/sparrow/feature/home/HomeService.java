@@ -1,16 +1,18 @@
 package net.momirealms.sparrow.feature.home;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
+import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
+import net.momirealms.sparrow.util.UUIDUtils;
+import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
@@ -24,6 +26,7 @@ public final class HomeService implements AutoCloseable {
     private final long ttlNanos;
     private final LongSupplier clock = System::nanoTime;
     private final ConcurrentChainedObject2ObjectHashTable<UUID, OwnerState> online = new ConcurrentChainedObject2ObjectHashTable<>();
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, CompletableFuture<Void>> writes = new ConcurrentChainedObject2ObjectHashTable<>();
     private volatile boolean closed;
 
     public HomeService() {
@@ -78,6 +81,63 @@ public final class HomeService implements AutoCloseable {
         return snapshot == null ? List.of() : snapshot.complete(input, limit);
     }
 
+    // 同一所有者的新增串行执行, 数量以写入前的数据库记录为准.
+    @NotNull
+    public CompletableFuture<Result> set(@NotNull UUID owner, @NotNull String name, @NotNull String server, @NotNull WorldLocation location, int limit) {
+        CompletableFuture<Void> gate = new CompletableFuture<>();
+        CompletableFuture<Void> previous;
+        synchronized (this) {
+            if (this.closed) {
+                return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+            }
+            previous = this.writes.put(owner, gate);
+        }
+        CompletableFuture<Result> operation = (previous == null ? CompletableFuture.<Void>completedFuture(null) : previous)
+                .thenCompose(ignored -> this.setNow(owner, name, server, location, limit));
+        operation.whenComplete((result, error) -> {
+            this.writes.remove(owner, gate);
+            gate.complete(null);
+        });
+        return operation.copy();
+    }
+
+    private CompletableFuture<Result> setNow(UUID owner, String name, String server, WorldLocation location, int limit) {
+        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        HomeSettings settings = SparrowPlugin.instance().configurationManager().featuresConfig().config().home();
+        if (!settings.validName(name)) {
+            return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
+        }
+        return this.store.findByName(owner, name).thenCompose(found -> {
+            if (found.isPresent()) {
+                return CompletableFuture.completedFuture(new Result(Status.DUPLICATE_NAME, null));
+            }
+            return this.store.countByOwner(owner).thenCompose(count -> {
+                if (limit != CompatibilityManager.UNLIMITED && count >= limit) return CompletableFuture.completedFuture(new Result(Status.LIMIT_REACHED, null));
+                long now = System.currentTimeMillis();
+                return this.create(new Home(UUIDUtils.createV7(), owner, name, server, location, now, now))
+                        .thenApply(this::result);
+            });
+        });
+    }
+
+    private Result result(HomeStore.SaveResult saved) {
+        return new Result(switch (saved.status()) {
+            case SUCCESS -> Status.CREATED;
+            case DUPLICATE_NAME -> Status.DUPLICATE_NAME;
+            case NOT_FOUND -> Status.NOT_FOUND;
+        }, saved.home());
+    }
+
+    @NotNull
+    public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull String name) {
+        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        return this.store.findByName(owner, name).thenCompose(found ->
+                found.isEmpty()
+                ? CompletableFuture.completedFuture(false)
+                : this.delete(owner, found.get().id())
+        );
+    }
+
     @NotNull
     public CompletableFuture<HomeStore.SaveResult> create(@NotNull Home home) {
         if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
@@ -92,31 +152,33 @@ public final class HomeService implements AutoCloseable {
 
     private HomeStore.SaveResult saved(HomeStore.SaveResult result) {
         if (result.status() == HomeStore.Status.SUCCESS) {
-            this.committed(HomeChangedMessage.save(this.serverId, result.home()));
+            this.committed(HomeChangedMessage.invalidateOwner(this.serverId, result.home().owner()));
         }
         return result;
     }
 
     @NotNull
-    public CompletableFuture<Optional<HomeStore.DeleteResult>> delete(@NotNull UUID owner, @NotNull UUID id) {
+    public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
         if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
         return this.store.delete(owner, id).thenApply(deleted -> {
-            deleted.ifPresent(result -> this.committed(HomeChangedMessage.delete(this.serverId, result)));
+            if (deleted) {
+                this.committed(HomeChangedMessage.invalidateOwner(this.serverId, owner));
+            }
             return deleted;
         });
     }
 
     @NotNull
-    public CompletableFuture<Long> deleteByOwner(@NotNull UUID owner) {
+    public CompletableFuture<Long> deleteAll(@NotNull HomeStore.Filter filter) {
         if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        return this.store.deleteByOwner(owner).thenApply(deleted -> {
-            this.committed(HomeChangedMessage.invalidateOwner(this.serverId, owner));
+        return this.store.deleteAll(filter).thenApply(deleted -> {
+            this.committed(filter.owner() == null ? HomeChangedMessage.invalidateAll(this.serverId) : HomeChangedMessage.invalidateOwner(this.serverId, filter.owner()));
             return deleted;
         });
     }
 
     private void committed(HomeChangedMessage message) {
-        this.apply(message);
+        this.invalidate(message.owner());
         // 数据库已提交, 发布失败不能让调用方误以为保存失败而重试创建.
         try {
             SparrowPlugin.instance().messageBrokerManager().publishOneWay(message, "").whenComplete((subscribers, error) -> {
@@ -131,13 +193,17 @@ public final class HomeService implements AutoCloseable {
 
     public void accept(@NotNull HomeChangedMessage message) {
         if (this.serverId.equals(message.origin())) return;
-        this.apply(message);
+        this.invalidate(message.owner());
     }
 
-    private void apply(HomeChangedMessage message) {
-        OwnerState state = this.online.get(message.owner());
+    private void invalidate(@Nullable UUID owner) {
+        if (owner == null) {
+            for (OwnerState state : this.online.values()) state.invalidate();
+            return;
+        }
+        OwnerState state = this.online.get(owner);
         if (state != null) {
-            state.apply(message);
+            state.invalidate();
         }
     }
 
@@ -150,6 +216,13 @@ public final class HomeService implements AutoCloseable {
             this.online.clear();
         }
         for (OwnerState state : states) state.close();
+    }
+
+    public enum Status {
+        CREATED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, LIMIT_REACHED
+    }
+
+    public record Result(@NotNull Status status, @Nullable Home home) {
     }
 
     private final class OwnerState {
@@ -217,16 +290,12 @@ public final class HomeService implements AutoCloseable {
             return this.snapshot;
         }
 
-        private synchronized void apply(HomeChangedMessage message) {
+        private synchronized void invalidate() {
             if (this.closed) return;
             if (this.loading != null) {
                 this.dirty = true;
             }
-            this.snapshot = switch (message.type()) {
-                case SAVE -> this.snapshot == null ? null : this.snapshot.save(message.home());
-                case DELETE -> this.snapshot == null ? null : this.snapshot.delete(message.deleted().id());
-                case INVALIDATE_OWNER -> null;
-            };
+            this.snapshot = null;
         }
 
         private void close() {

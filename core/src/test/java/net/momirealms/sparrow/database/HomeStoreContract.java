@@ -38,7 +38,7 @@ public final class HomeStoreContract {
         assertTrue(homes.find(duplicate.id()).join().isEmpty());
         Home wrongOwner = new Home(first.id(), other, "Wrong", first.server(), location, 4000, 4000);
         assertEquals(new HomeStore.SaveResult(NOT_FOUND, null), homes.update(wrongOwner).join());
-        assertTrue(homes.delete(other, first.id()).join().isEmpty());
+        assertFalse(homes.delete(other, first.id()).join());
         assertEquals(first, homes.find(first.id()).join().orElseThrow());
 
         // 完整更新所有可编辑字段, 创建时间以已存记录为准.
@@ -76,22 +76,42 @@ public final class HomeStoreContract {
         assertEquals(new HomeStore.SaveResult(SUCCESS, latest), homes.update(latest).join());
         assertEquals(latest, homes.find(first.id()).join().orElseThrow());
 
-        // 删除返回当前名称键, 旧 UUID 的后续操作不会影响同名新建记录.
-        assertEquals(new HomeStore.DeleteResult(owner, first.id(), "latest"), homes.delete(owner, first.id()).join().orElseThrow());
+        // 按 UUID 删除, 旧 UUID 的后续操作不会影响同名新建记录.
+        assertTrue(homes.delete(owner, first.id()).join());
         assertEquals(new HomeStore.SaveResult(NOT_FOUND, null), homes.update(latest).join());
         assertTrue(homes.find(first.id()).join().isEmpty());
         Home recreated = new Home(UUIDUtils.createV7(), owner, "Latest", "survival", location, 8000, 8000);
         assertEquals(SUCCESS, homes.create(recreated).join().status());
-        assertTrue(homes.delete(owner, first.id()).join().isEmpty());
+        assertFalse(homes.delete(owner, first.id()).join());
         assertEquals(recreated, homes.findByName(owner, "latest").join().orElseThrow());
 
         assertEquals(4L, homes.countByOwner(owner).join());
-        assertEquals(4L, homes.deleteByOwner(owner).join());
+        assertEquals(4L, homes.deleteAll(new HomeStore.Filter(owner, null, null)).join());
         assertTrue(homes.loadByOwner(owner).join().isEmpty());
         assertEquals(0L, homes.countByOwner(owner).join());
-        assertEquals(0L, homes.deleteByOwner(owner).join());
+        assertEquals(0L, homes.deleteAll(new HomeStore.Filter(owner, null, null)).join());
         assertEquals(List.of(second), homes.loadByOwner(other).join());
-        assertEquals(1L, homes.deleteByOwner(other).join());
+        assertEquals(1L, homes.deleteAll(new HomeStore.Filter(other, null, null)).join());
+        verifyFilters(homes, owner, other);
+    }
+
+    private static void verifyFilters(HomeStore homes, UUID owner, UUID other) {
+        assertThrows(IllegalArgumentException.class, () -> new HomeStore.Filter(null, null, null));
+        for (int mask = 1; mask < 8; mask++) {
+            for (int i = 0; i < 8; i++) {
+                Home home = new Home(UUIDUtils.createV7(), (i & 1) == 0 ? owner : other, "filter" + i,
+                        (i & 2) == 0 ? "survival" : "lobby", new WorldLocation((i & 4) == 0 ? "world" : "World", 1, 2, 3, 4, 5), 0, 0);
+                assertEquals(SUCCESS, homes.create(home).join().status());
+            }
+            HomeStore.Filter filter = new HomeStore.Filter((mask & 1) != 0 ? owner : null, (mask & 2) != 0 ? "survival" : null, (mask & 4) != 0 ? "world" : null);
+            long expected = 8L >> Integer.bitCount(mask);
+            assertEquals(expected, homes.deleteAll(filter).join(), "filter mask " + mask);
+            assertEquals(0L, homes.deleteAll(filter).join());
+            assertEquals(8L - expected, homes.countByOwner(owner).join() + homes.countByOwner(other).join());
+            assertEquals(0L, homes.deleteAll(new HomeStore.Filter(null, "' OR 1=1 --", null)).join());
+            homes.deleteAll(new HomeStore.Filter(owner, null, null)).join();
+            homes.deleteAll(new HomeStore.Filter(other, null, null)).join();
+        }
     }
 
     private static <T> List<T> concurrent(Callable<T> first, Callable<T> second) throws Exception {

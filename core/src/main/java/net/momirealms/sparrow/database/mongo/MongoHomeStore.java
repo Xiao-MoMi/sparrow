@@ -13,6 +13,7 @@ import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +32,8 @@ final class MongoHomeStore implements HomeStore {
     private static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
             "homes", List.of(
                     new IndexReconciler.IndexDeclaration(new Document("owner", 1).append("name_key", 1), true, "homes_owner_name"),
-                    new IndexReconciler.IndexDeclaration(new Document("server", 1).append("world", 1), false, "homes_location"))
+                    new IndexReconciler.IndexDeclaration(new Document("server", 1).append("world", 1), false, "homes_location"),
+                    new IndexReconciler.IndexDeclaration(new Document("world", 1), false, "homes_world"))
     );
 
     private final Supplier<MongoDatabase> database;
@@ -129,17 +131,24 @@ final class MongoHomeStore implements HomeStore {
 
     @Override
     @NotNull
-    public CompletableFuture<Optional<DeleteResult>> delete(@NotNull UUID owner, @NotNull UUID id) {
-        return CompletableFuture.supplyAsync(() -> {
-            Document deleted = this.homes().findOneAndDelete(Filters.and(Filters.eq("owner", owner), Filters.eq("_id", id)));
-            return deleted == null ? Optional.empty() : Optional.of(new DeleteResult(owner, id, deleted.getString("name_key")));
-        }, this.executor);
+    public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
+        return CompletableFuture.supplyAsync(() -> this.homes().deleteOne(Filters.and(Filters.eq("owner", owner), Filters.eq("_id", id))).getDeletedCount() > 0, this.executor);
     }
 
     @Override
     @NotNull
-    public CompletableFuture<Long> deleteByOwner(@NotNull UUID owner) {
-        return CompletableFuture.supplyAsync(() -> this.homes().deleteMany(Filters.eq("owner", owner)).getDeletedCount(), this.executor);
+    public CompletableFuture<Long> deleteAll(@NotNull Filter filter) {
+        List<Bson> conditions = new ArrayList<>();
+        if (filter.owner() != null) {
+            conditions.add(Filters.eq("owner", filter.owner()));
+        }
+        if (filter.server() != null) {
+            conditions.add(Filters.eq("server", filter.server()));
+        }
+        if (filter.world() != null) {
+            conditions.add(Filters.eq("world", filter.world()));
+        }
+        return CompletableFuture.supplyAsync(() -> this.homes().deleteMany(Filters.and(conditions)).getDeletedCount(), this.executor);
     }
 
     private static Document mutableFields(Home home) {

@@ -60,6 +60,6 @@ public final class MysqlSchema {
                 + "id BINARY(16) PRIMARY KEY, owner BINARY(16) NOT NULL, name_key VARCHAR(64) NOT NULL, name VARCHAR(32) NOT NULL, "
                 + "server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, "
                 + "yaw FLOAT NOT NULL, pitch FLOAT NOT NULL, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, "
-                + "UNIQUE KEY homes_owner_name (owner, name_key), KEY homes_location (server, world))" + TABLE_OPTIONS);
+                + "UNIQUE KEY homes_owner_name (owner, name_key), KEY homes_location (server, world), KEY homes_world (world))" + TABLE_OPTIONS);
     }
 }

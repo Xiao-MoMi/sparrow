@@ -73,7 +73,7 @@ class HomeServiceTest {
     }
 
     @Test
-    void reusesEmptySnapshotsAndExpiresFromReadStartWithoutExtendingOnReadsOrMessages() {
+    void reusesEmptySnapshotsAndExpiresFromReadStartWithoutExtendingOnReads() {
         CompletableFuture<List<Home>> initial = new CompletableFuture<>();
         CompletableFuture<List<Home>> refresh = new CompletableFuture<>();
         when(this.store.loadByOwner(this.owner)).thenReturn(initial, refresh);
@@ -84,12 +84,10 @@ class HomeServiceTest {
         HomeSnapshot empty = waiting.join();
         assertSame(empty, this.service.snapshot(this.owner).join());
         this.clock.set(TimeUnit.SECONDS.toNanos(299));
-        Home home = this.home("Home");
-        this.service.accept(HomeChangedMessage.save("survival", home));
-        assertEquals(home, this.service.snapshot(this.owner).join().get("HOME"));
+        assertSame(empty, this.service.snapshot(this.owner).join());
         verify(this.store).loadByOwner(this.owner);
         this.clock.set(TimeUnit.SECONDS.toNanos(300));
-        assertEquals(List.of("Home"), this.service.complete(this.owner, "h", 10));
+        assertTrue(this.service.complete(this.owner, "h", 10).isEmpty());
         CompletableFuture<HomeSnapshot> refreshed = this.service.snapshot(this.owner);
         assertFalse(refreshed.isDone());
         verify(this.store, times(2)).loadByOwner(this.owner);
@@ -98,33 +96,50 @@ class HomeServiceTest {
     }
 
     @Test
-    void appliesCompleteMessagesInArrivalOrderAndDeletesOnlyTheOriginalUuid() {
+    void invalidatesLazilyAndReloadsCurrentDataWithoutTouchingOtherOwners() {
+        Home home = this.home("Home");
+        when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of(home)));
         this.service.join(this.player());
-        Home home = this.home("İ".repeat(32));
-        this.service.accept(this.roundTrip(HomeChangedMessage.save("survival", home)));
         HomeSnapshot original = this.service.snapshot(this.owner).join();
-        assertEquals(home, original.get(home.name()));
-        Home renamed = new Home(home.id(), home.owner(), "Mine", "other", home.location(), home.createdAt(), 1);
-        this.service.accept(this.roundTrip(HomeChangedMessage.save("survival", renamed)));
-        Home replacement = this.home("MINE");
-        this.service.accept(this.roundTrip(HomeChangedMessage.save("survival", replacement)));
-        this.service.accept(this.roundTrip(HomeChangedMessage.delete("survival", new HomeStore.DeleteResult(this.owner, home.id(), home.key()))));
-        HomeSnapshot snapshot = this.service.snapshot(this.owner).join();
-        assertEquals(List.of(replacement), snapshot.homes());
-        assertEquals(home, original.get(home.name()));
-        assertThrows(UnsupportedOperationException.class, () -> snapshot.homes().clear());
-        this.service.accept(HomeChangedMessage.save("lobby", home));
-        Home offline = new Home(UUID.randomUUID(), UUID.randomUUID(), "Offline", "other", home.location(), 0, 0);
-        this.service.accept(HomeChangedMessage.save("survival", offline));
-        verify(this.store, never()).loadByOwner(offline.owner());
-        this.service.snapshot(offline.owner()).join();
-        this.service.snapshot(offline.owner()).join();
-        verify(this.store, times(2)).loadByOwner(offline.owner());
-        assertTrue(this.published.isEmpty());
-        this.service.accept(this.roundTrip(HomeChangedMessage.invalidateOwner("survival", this.owner)));
+        UUID otherOwner = UUID.randomUUID();
+        SparrowPlayer other = mock(SparrowPlayer.class);
+        when(other.uniqueId()).thenReturn(otherOwner);
+        this.service.join(other);
+        HomeSnapshot otherSnapshot = this.service.snapshot(otherOwner).join();
+        this.service.accept(this.roundTrip(HomeChangedMessage.invalidateOwner("lobby", this.owner)));
+        assertSame(original, this.service.snapshot(this.owner).join());
+        UUID offline = UUID.randomUUID();
+        this.service.accept(HomeChangedMessage.invalidateOwner("survival", offline));
+        verify(this.store, never()).loadByOwner(offline);
+        this.service.snapshot(offline).join();
+        this.service.snapshot(offline).join();
+        verify(this.store, times(2)).loadByOwner(offline);
+
+        CompletableFuture<List<Home>> refresh = new CompletableFuture<>();
+        when(this.store.loadByOwner(this.owner)).thenReturn(refresh);
+        HomeChangedMessage notification = this.roundTrip(HomeChangedMessage.invalidateOwner("survival", this.owner));
+        this.service.accept(notification);
+        this.service.accept(notification);
         verify(this.store).loadByOwner(this.owner);
-        assertEquals(0, this.service.snapshot(this.owner).join().size());
+        assertSame(otherSnapshot, this.service.snapshot(otherOwner).join());
+        var first = this.service.snapshot(this.owner);
+        var second = this.service.snapshot(this.owner);
         verify(this.store, times(2)).loadByOwner(this.owner);
+        Home replacement = this.home("MINE");
+        refresh.complete(List.of(replacement));
+        assertSame(first.join(), second.join());
+        assertEquals(List.of(replacement), first.join().homes());
+        assertEquals(home, original.get("home"));
+        assertThrows(UnsupportedOperationException.class, () -> first.join().homes().clear());
+
+        this.service.accept(this.roundTrip(HomeChangedMessage.invalidateAll("survival")));
+        verify(this.store, times(2)).loadByOwner(this.owner);
+        verify(this.store).loadByOwner(otherOwner);
+        this.service.snapshot(this.owner).join();
+        this.service.snapshot(otherOwner).join();
+        verify(this.store, times(3)).loadByOwner(this.owner);
+        verify(this.store, times(2)).loadByOwner(otherOwner);
+        assertTrue(this.published.isEmpty());
     }
 
     @Test
@@ -138,7 +153,7 @@ class HomeServiceTest {
         CompletableFuture<HomeSnapshot> waiter = this.service.snapshot(this.owner);
         this.service.snapshot(this.owner).cancel(false);
         Home changed = this.home("Mine");
-        this.service.accept(HomeChangedMessage.save("survival", changed));
+        this.service.accept(HomeChangedMessage.invalidateOwner("survival", this.owner));
         this.service.accept(HomeChangedMessage.invalidateOwner("survival", this.owner));
         first.complete(List.of());
         assertFalse(waiter.isDone());
@@ -165,11 +180,11 @@ class HomeServiceTest {
         this.service.join(this.player());
         CompletableFuture<HomeSnapshot> waiter = this.service.snapshot(this.owner);
         Home home = this.home("Home");
-        this.service.accept(HomeChangedMessage.save("survival", home));
+        this.service.accept(HomeChangedMessage.invalidateOwner("survival", this.owner));
         first.complete(List.of());
         second.complete(List.of(home));
         assertEquals(home, waiter.join().get("home"));
-        this.clock.set(TimeUnit.SECONDS.toNanos(301));
+        this.service.accept(HomeChangedMessage.invalidateOwner("survival", this.owner));
         IllegalStateException failure = new IllegalStateException("database unavailable");
         when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.failedFuture(failure), CompletableFuture.completedFuture(List.of()));
         assertSame(failure, assertThrows(CompletionException.class, () -> this.service.snapshot(this.owner).join()).getCause());
@@ -183,37 +198,113 @@ class HomeServiceTest {
         Home home = this.home("Home");
         CompletableFuture<HomeStore.SaveResult> commit = new CompletableFuture<>();
         when(this.store.create(home)).thenReturn(commit);
-        CompletableFuture<HomeStore.SaveResult> result = this.service.create(home);
+        var result = this.service.create(home);
+        HomeSnapshot empty = this.service.snapshot(this.owner).join();
         assertTrue(this.published.isEmpty());
-        assertEquals(0, this.service.snapshot(this.owner).join().size());
+        when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of(home)));
         commit.complete(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, home));
         assertEquals(HomeStore.Status.SUCCESS, result.join().status());
-        assertEquals(home, this.published.getFirst().home());
-        assertEquals(home, this.service.snapshot(this.owner).join().get("home"));
+        assertEquals(this.owner, this.roundTrip(this.published.getFirst()).owner());
+        verify(this.store).loadByOwner(this.owner);
+        assertEquals(0, empty.size());
+        HomeSnapshot saved = this.service.snapshot(this.owner).join();
+        assertEquals(home, saved.get("home"));
         when(this.store.update(home)).thenReturn(CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.NOT_FOUND, null)), CompletableFuture.failedFuture(new IllegalStateException("database unavailable")));
         assertEquals(HomeStore.Status.NOT_FOUND, this.service.update(home).join().status());
         assertThrows(CompletionException.class, () -> this.service.update(home).join());
+        assertSame(saved, this.service.snapshot(this.owner).join());
         assertEquals(1, this.published.size());
-        HomeStore.DeleteResult deleted = new HomeStore.DeleteResult(this.owner, home.id(), home.key());
-        when(this.store.delete(this.owner, home.id())).thenReturn(CompletableFuture.completedFuture(Optional.of(deleted)));
-        this.service.delete(this.owner, home.id()).join();
-        assertEquals(0, this.service.snapshot(this.owner).join().size());
-        assertEquals(deleted, this.published.getLast().deleted());
-        when(this.store.deleteByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(0L));
-        assertEquals(0, this.service.deleteByOwner(this.owner).join());
-        assertEquals(HomeChangedMessage.Type.INVALIDATE_OWNER, this.published.getLast().type());
-        this.service.snapshot(this.owner).join();
+        when(this.store.delete(this.owner, home.id())).thenReturn(CompletableFuture.completedFuture(true), CompletableFuture.completedFuture(false));
+        assertTrue(this.service.delete(this.owner, home.id()).join());
+        assertFalse(this.service.delete(this.owner, home.id()).join());
+        assertEquals(2, this.published.size());
+        assertEquals(this.owner, this.published.getLast().owner());
         verify(this.store, times(2)).loadByOwner(this.owner);
+        when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of()));
+        assertEquals(0, this.service.snapshot(this.owner).join().size());
+        HomeStore.Filter filter = new HomeStore.Filter(this.owner, null, null);
+        when(this.store.deleteAll(filter)).thenReturn(CompletableFuture.completedFuture(0L));
+        assertEquals(0, this.service.deleteAll(filter).join());
+        assertEquals(this.owner, this.published.getLast().owner());
+        verify(this.store, times(3)).loadByOwner(this.owner);
+        this.service.snapshot(this.owner).join();
+        verify(this.store, times(4)).loadByOwner(this.owner);
 
         CompletableFuture<Long> publication = new CompletableFuture<>();
         IllegalStateException unavailable = new IllegalStateException("redis unavailable");
         when(this.broker.publishOneWay(any(HomeChangedMessage.class), eq(""))).thenReturn(publication);
+        when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of(home)));
         assertEquals(HomeStore.Status.SUCCESS, this.service.create(home).join().status());
         publication.completeExceptionally(unavailable);
         assertEquals(home, this.service.snapshot(this.owner).join().get("home"));
         when(this.broker.publishOneWay(any(HomeChangedMessage.class), eq(""))).thenThrow(unavailable);
-        assertEquals(HomeStore.Status.SUCCESS, this.service.create(home).join().status());
+        when(this.store.update(home)).thenReturn(CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, home)));
+        assertEquals(HomeStore.Status.SUCCESS, this.service.update(home).join().status());
         verify(this.logger, times(2)).warn(contains("could not be published"), same(unavailable));
+    }
+
+    @Test
+    void serializesQuotaChecksAndRejectsExistingHomesUntilDeleted() throws ReflectiveOperationException {
+        HomeSettings settings = new HomeSettings();
+        when(SparrowPlugin.instance().configurationManager().featuresConfig().config().home()).thenReturn(settings);
+        when(this.store.findByName(eq(this.owner), anyString())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+        when(this.store.countByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(0L), CompletableFuture.completedFuture(1L));
+        CompletableFuture<HomeStore.SaveResult> pending = new CompletableFuture<>();
+        when(this.store.create(any())).thenReturn(pending);
+        Home home = this.home("home");
+        var first = this.service.set(this.owner, "home", home.server(), home.location(), 1);
+        var second = this.service.set(this.owner, "mine", home.server(), home.location(), 1);
+        verify(this.store, never()).findByName(this.owner, "mine");
+        pending.complete(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, home));
+        assertEquals(HomeService.Status.CREATED, first.join().status());
+        assertEquals(HomeService.Status.LIMIT_REACHED, second.join().status());
+        when(this.store.findByName(this.owner, "home")).thenReturn(CompletableFuture.completedFuture(Optional.of(home)));
+        assertEquals(HomeService.Status.DUPLICATE_NAME, this.service.set(this.owner, "home", "new", home.location(), 0).join().status());
+        assertEquals(HomeService.Status.DUPLICATE_NAME, this.service.set(this.owner, "home", "new", home.location(), 3).join().status());
+        verify(this.store, never()).update(any());
+        verify(this.store).create(any());
+        verify(this.store, times(2)).countByOwner(this.owner);
+        assertEquals(HomeService.Status.LIMIT_REACHED, this.service.set(this.owner, "zero", "new", home.location(), 0).join().status());
+        when(this.store.countByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture((long) Integer.MAX_VALUE));
+        when(this.store.create(any())).thenAnswer(invocation -> CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, invocation.getArgument(0))));
+        assertEquals(HomeService.Status.CREATED, this.service.set(this.owner, "all", "new", home.location(), Integer.MAX_VALUE).join().status());
+        when(this.store.delete(this.owner, home.id())).thenReturn(CompletableFuture.completedFuture(true));
+        assertTrue(this.service.delete(this.owner, "home").join());
+        when(this.store.findByName(this.owner, "home")).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+        when(this.store.countByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(0L));
+        Home recreated = this.service.set(this.owner, "home", "new", home.location(), 3).join().home();
+        assertNotEquals(home.id(), recreated.id());
+        assertEquals("new", recreated.server());
+        PluginTestContext.setField(settings, "namePattern", ".*");
+        for (String invalid : List.of("a.b", "a b", "-flag", "a".repeat(33))) {
+            assertEquals(HomeService.Status.INVALID_NAME, this.service.set(this.owner, invalid, "new", home.location(), 3).join().status());
+            verify(this.store, never()).findByName(this.owner, invalid);
+        }
+    }
+
+    @Test
+    void failedWritesReleaseTheQueueAndBulkInvalidationDiscardsPendingReads() {
+        Home home = this.home("home");
+        CompletableFuture<Optional<Home>> failed = new CompletableFuture<>();
+        when(this.store.findByName(this.owner, "home")).thenReturn(failed, CompletableFuture.completedFuture(Optional.empty()));
+        when(this.store.countByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(0L));
+        when(this.store.create(any())).thenAnswer(invocation -> CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, invocation.getArgument(0))));
+        var first = this.service.set(this.owner, "home", "s", home.location(), 3);
+        var second = this.service.set(this.owner, "home", "s", home.location(), 3);
+        failed.completeExceptionally(new IllegalStateException("database unavailable"));
+        assertThrows(CompletionException.class, first::join);
+        assertEquals(HomeService.Status.CREATED, second.join().status());
+        CompletableFuture<List<Home>> initial = new CompletableFuture<>();
+        when(this.store.loadByOwner(this.owner)).thenReturn(initial, CompletableFuture.completedFuture(List.of()));
+        this.service.join(this.player());
+        var read = this.service.snapshot(this.owner);
+        HomeStore.Filter filter = new HomeStore.Filter(null, null, "world");
+        when(this.store.deleteAll(filter)).thenReturn(CompletableFuture.completedFuture(1L));
+        assertEquals(1L, this.service.deleteAll(filter).join());
+        assertNull(this.roundTrip(this.published.getLast()).owner());
+        initial.complete(List.of(home));
+        assertEquals(0, read.join().size());
+        verify(this.store, times(2)).loadByOwner(this.owner);
     }
 
     @Test
@@ -252,7 +343,7 @@ class HomeServiceTest {
             assertEquals(0, feature.service().snapshot(this.owner).join().size());
             verify(this.store, times(2)).loadByOwner(this.owner);
             feature.onDisable();
-            HomeChangedMessage.save("survival", this.home("Ignored")).handle();
+            HomeChangedMessage.invalidateOwner("survival", this.owner).handle();
             feature.onUnload();
             verify(plugin.playerManager()).unregisterListener(feature);
         } finally {
@@ -286,16 +377,17 @@ class HomeServiceTest {
             target.subscribe();
             try {
                 Home home = this.home("矿场");
-                manager.publishOneWay(HomeChangedMessage.save("source", home), "").get(5, TimeUnit.SECONDS);
-                assertNotNull(received.poll(5, TimeUnit.SECONDS));
-                assertEquals(home, this.service.snapshot(this.owner).join().get("矿场"));
-                manager.publishOneWay(HomeChangedMessage.delete("source", new HomeStore.DeleteResult(this.owner, home.id(), home.key())), "").get(5, TimeUnit.SECONDS);
-                assertNotNull(received.poll(5, TimeUnit.SECONDS));
-                assertEquals(0, this.service.snapshot(this.owner).join().size());
+                when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of(home)));
                 manager.publishOneWay(HomeChangedMessage.invalidateOwner("source", this.owner), "").get(5, TimeUnit.SECONDS);
                 assertNotNull(received.poll(5, TimeUnit.SECONDS));
-                this.service.snapshot(this.owner).join();
+                verify(this.store).loadByOwner(this.owner);
+                assertEquals(home, this.service.snapshot(this.owner).join().get("矿场"));
+                when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of()));
+                manager.publishOneWay(HomeChangedMessage.invalidateAll("source"), "").get(5, TimeUnit.SECONDS);
+                assertNotNull(received.poll(5, TimeUnit.SECONDS));
                 verify(this.store, times(2)).loadByOwner(this.owner);
+                assertEquals(0, this.service.snapshot(this.owner).join().size());
+                verify(this.store, times(3)).loadByOwner(this.owner);
                 assertTrue(this.published.isEmpty());
             } finally {
                 target.unsubscribe();
@@ -321,6 +413,8 @@ class HomeServiceTest {
             HomeChangedMessage.CODEC.encode(buffer, message);
             HomeChangedMessage decoded = HomeChangedMessage.CODEC.decode(buffer);
             assertFalse(buffer.isReadable());
+            assertEquals(message.origin(), decoded.origin());
+            assertEquals(message.owner(), decoded.owner());
             return decoded;
         } finally {
             buffer.release();

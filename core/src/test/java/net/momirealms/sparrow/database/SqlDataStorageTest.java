@@ -113,6 +113,14 @@ class SqlDataStorageTest {
                         assertTrue(result.next());
                         assertEquals(DependencyVersions.HOME_SCHEMA_VERSION, result.getInt(1));
                     }
+                    try (var result = connection.getMetaData().getIndexInfo(connection.getCatalog(), null, prefix + "homes", false, false)) {
+                        boolean indexed = false;
+                        while (result.next()) {
+                            if ("world".equals(result.getString("COLUMN_NAME")) && (type == DatabaseType.POSTGRESQL ? prefix + "homes_world" : "homes_world").equals(result.getString("INDEX_NAME"))) indexed = true;
+                        }
+                        assertTrue(indexed, "Home schema must include the world index");
+                    }
+                    storage.homeStore().initialize().join();
                     this.upgrade(Jdbi.create(url, user, password), prefix, type == DatabaseType.POSTGRESQL);
                     assertThrows(IllegalStateException.class, storage::initialize);
                 }

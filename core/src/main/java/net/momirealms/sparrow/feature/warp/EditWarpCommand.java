@@ -123,18 +123,15 @@ public final class EditWarpCommand extends BukkitCommandFeature {
     }
 
     private void relocate(CommandContext<Player> context) {
-        // 读取当前位置在玩家所属线程执行.
-        this.plugin().scheduler().platform().run(() -> {
-            Warp warp = this.find(context);
-            if (warp == null) return;
-            this.save(
-                    context,
-                    warp.name(),
-                    this.feature.service().relocate(warp.id(), ServerConfig.serverId(), WorldLocation.from(context.sender().getLocation())),
-                    MessageConstants.COMMAND_SET_WARP_MOVED,
-                    Component.text(warp.name())
-            );
-        }, () -> {}, context.sender());
+        Warp warp = this.find(context);
+        if (warp == null) return;
+        this.save(
+                context,
+                warp.name(),
+                this.feature.service().relocate(warp.id(), ServerConfig.serverId(), WorldLocation.from(context.sender().getLocation())),
+                MessageConstants.COMMAND_SET_WARP_MOVED,
+                Component.text(warp.name())
+        );
     }
 
     private void save(

@@ -36,7 +36,7 @@ public final class SetWarpCommand extends BukkitCommandFeature {
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
         String name = context.get("name");
-        this.plugin().scheduler().platform().run(() -> this.save(context, name, WorldLocation.from(player.getLocation())), () -> {}, player);
+        this.save(context, name, WorldLocation.from(player.getLocation()));
     }
 
     private void save(CommandContext<Player> context, String name, WorldLocation location) {

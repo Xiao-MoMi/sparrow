@@ -97,6 +97,25 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_BACK_SERVER_OFFLINE = Component.translatable("command.back.server-offline");
     TranslatableComponent COMMAND_BACK_INVALID = Component.translatable("command.back.invalid");
     TranslatableComponent COMMAND_BACK_TIMEOUT = Component.translatable("command.back.timeout");
+    TranslatableComponent COMMAND_HOME_SUCCESS = Component.translatable("command.home.success");
+    TranslatableComponent COMMAND_HOME_CONNECTING = Component.translatable("command.home.connecting");
+    TranslatableComponent COMMAND_HOME_UNKNOWN = Component.translatable("command.home.unknown");
+    TranslatableComponent COMMAND_HOME_SERVER_OFFLINE = Component.translatable("command.home.server-offline");
+    TranslatableComponent COMMAND_HOME_INVALID = Component.translatable("command.home.invalid");
+    TranslatableComponent COMMAND_HOME_TIMEOUT = Component.translatable("command.home.timeout");
+    TranslatableComponent COMMAND_HOME_INVALID_NAME = Component.translatable("command.home.invalid-name");
+    TranslatableComponent COMMAND_HOME_STORAGE_FAILED = Component.translatable("command.home.storage-failed");
+    TranslatableComponent COMMAND_HOME_OWNER_REQUIRED = Component.translatable("command.home.owner-required");
+    TranslatableComponent COMMAND_HOME_NO_PERMISSION = Component.translatable("command.home.no-permission");
+    TranslatableComponent COMMAND_HOME_EMPTY = Component.translatable("command.home.empty");
+    TranslatableComponent COMMAND_HOME_NAME_REQUIRED = Component.translatable("command.home.name-required");
+    TranslatableComponent COMMAND_SET_HOME_CREATED = Component.translatable("command.set-home.created");
+    TranslatableComponent COMMAND_SET_HOME_EXISTS = Component.translatable("command.set-home.exists");
+    TranslatableComponent COMMAND_SET_HOME_LIMIT = Component.translatable("command.set-home.limit");
+    TranslatableComponent COMMAND_DEL_HOME_SUCCESS = Component.translatable("command.del-home.success");
+    TranslatableComponent COMMAND_DEL_ALL_HOME_FILTER_REQUIRED = Component.translatable("command.del-all-home.filter-required");
+    TranslatableComponent COMMAND_DEL_ALL_HOME_SUCCESS = Component.translatable("command.del-all-home.success");
+
     TranslatableComponent COMMAND_WARP_SUCCESS = Component.translatable("command.warp.success");
     TranslatableComponent COMMAND_WARP_SUCCESS_SELF = Component.translatable("command.warp.success-self");
     TranslatableComponent COMMAND_WARP_CONNECTING = Component.translatable("command.warp.connecting");
