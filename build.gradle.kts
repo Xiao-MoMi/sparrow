@@ -59,7 +59,6 @@ subprojects {
         options.compilerArgs.addAll(listOf(
             "-XDignore.symbol.file",
         ))
-        dependsOn(tasks.clean)
     }
 
     tasks.named("assemble") {
