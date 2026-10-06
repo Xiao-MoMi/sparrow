@@ -61,6 +61,12 @@ final class IndexReconciler {
         Document collation = collectionInfo == null ? null : collectionInfo.get("options", new Document()).get("collation", Document.class);
         List<Document> existing = new ArrayList<>();
         collection.listIndexes().into(existing);
+        removeUndeclaredIndexes(logger, collection, existing, declarations, collation);
+        createMissingIndexes(collection, existing, declarations, collation);
+    }
+
+    private static void removeUndeclaredIndexes(PluginLogger logger, MongoCollection<Document> collection, List<Document> existing,
+                                               List<IndexDeclaration> declarations, Document collation) {
         // _id_ 由 MongoDB 管理, 不参与业务索引对账
         for (int i = 0; i < existing.size(); i++) {
             Document index = existing.get(i);
@@ -78,6 +84,10 @@ final class IndexReconciler {
                 logger.info(TranslationManager.console(LogConstants.STORAGE_STALE_INDEX_DROPPED, name));
             }
         }
+    }
+
+    private static void createMissingIndexes(MongoCollection<Document> collection, List<Document> existing,
+                                             List<IndexDeclaration> declarations, Document collation) {
         // 当前版本缺哪条索引就补哪条
         for (int i = 0; i < declarations.size(); i++) {
             IndexDeclaration declaration = declarations.get(i);

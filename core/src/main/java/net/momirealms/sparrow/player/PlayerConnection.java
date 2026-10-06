@@ -134,18 +134,7 @@ public final class PlayerConnection {
                 throw new ClosedChannelException();
             }
             if (!outbound) {
-                context = pipeline.context("decoder");
-                if (context == null) {
-                    context = pipeline.context("inbound_config");
-                    if (bytes || context == null) {
-                        throw new IllegalStateException("Minecraft inbound protocol decoder is not installed");
-                    }
-                } else if (bytes) {
-                    context = this.contextBefore(context.name());
-                } else if (PacketProxy.INSTANCE.isTerminal(message)) {
-                    // NMS 对象跳过解码, 需补上终止包的停读与 inbound_config 安装.
-                    ProtocolSwapHandlerProxy.INSTANCE.handleInboundTerminalPacket(context, message);
-                }
+                context = this.inboundContext(pipeline, message, bytes);
             }
         } catch (Exception | Error failure) {
             ReferenceCountUtil.release(message);
@@ -163,6 +152,23 @@ public final class PlayerConnection {
             context.fireChannelRead(message);
             context.fireChannelReadComplete();
         }
+    }
+
+    @Nullable
+    private ChannelHandlerContext inboundContext(ChannelPipeline pipeline, Object message, boolean bytes) {
+        ChannelHandlerContext context = pipeline.context("decoder");
+        if (context == null) {
+            context = pipeline.context("inbound_config");
+            if (bytes || context == null) {
+                throw new IllegalStateException("Minecraft inbound protocol decoder is not installed");
+            }
+        } else if (bytes) {
+            context = this.contextBefore(context.name());
+        } else if (PacketProxy.INSTANCE.isTerminal(message)) {
+            // NMS 对象跳过解码, 需补上终止包的停读与 inbound_config 安装.
+            ProtocolSwapHandlerProxy.INSTANCE.handleInboundTerminalPacket(context, message);
+        }
+        return context;
     }
 
     @Nullable

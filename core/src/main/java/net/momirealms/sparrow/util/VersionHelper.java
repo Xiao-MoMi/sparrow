@@ -13,28 +13,28 @@ public final class VersionHelper {
     public static final boolean IS_RUNNING_IN_DEV = Boolean.getBoolean(DependencyVersions.PROJECT_PACKAGE + ".dev");
     public static final MinecraftVersion MINECRAFT_VERSION;
     public static final int WORLD_VERSION;
-    public static final int version;
-    public static final int majorVersion;
-    public static final int minorVersion;
-    public static final boolean isMojmap;
-    public static final boolean hasSpigotPatch;
-    public static final boolean hasFoliaPatch;
-    public static final boolean hasPaperPatch;
-    public static final boolean hasLeavesPatch;
-    public static final boolean hasCanvasPatch;
-    public static final boolean hasLeafPatch;
-    public static final boolean hasLithiumPatch;
-    public static final boolean hasUniverseSpigotPatch;
-    public static final boolean hasPurpurPatch;
-    public static final boolean isOrAbove1_21_8;
-    public static final boolean isOrAbove1_21_9;
-    public static final boolean isOrAbove1_21_10;
-    public static final boolean isOrAbove1_21_11;
-    public static final boolean isOrAbove26_1;
-    public static final boolean isOrAbove26_1_1;
-    public static final boolean isOrAbove26_1_2;
-    public static final boolean isOrAbove26_2;
-    public static final boolean isOrAbove26_3;
+    public static final int VERSION;
+    public static final int MAJOR_VERSION;
+    public static final int MINOR_VERSION;
+    public static final boolean IS_MOJMAP;
+    public static final boolean HAS_SPIGOT_PATCH;
+    public static final boolean HAS_FOLIA_PATCH;
+    public static final boolean HAS_PAPER_PATCH;
+    public static final boolean HAS_LEAVES_PATCH;
+    public static final boolean HAS_CANVAS_PATCH;
+    public static final boolean HAS_LEAF_PATCH;
+    public static final boolean HAS_LITHIUM_PATCH;
+    public static final boolean HAS_UNIVERSE_SPIGOT_PATCH;
+    public static final boolean HAS_PURPUR_PATCH;
+    public static final boolean IS_OR_ABOVE_1_21_8;
+    public static final boolean IS_OR_ABOVE_1_21_9;
+    public static final boolean IS_OR_ABOVE_1_21_10;
+    public static final boolean IS_OR_ABOVE_1_21_11;
+    public static final boolean IS_OR_ABOVE_26_1;
+    public static final boolean IS_OR_ABOVE_26_1_1;
+    public static final boolean IS_OR_ABOVE_26_1_2;
+    public static final boolean IS_OR_ABOVE_26_2;
+    public static final boolean IS_OR_ABOVE_26_3;
     private static final Class<?> UNOBFUSCATED_CLAZZ = Objects.requireNonNull(ReflectionUtils.getClazz(
             "net.minecraft.obfuscate.DontObfuscate", // 因为无混淆版本没有这个类所以说多写几个防止找不到了
             "net.minecraft.data.Main",
@@ -65,31 +65,31 @@ public final class VersionHelper {
             int minor = split.length == 3 ? Integer.parseInt(split[2]) : 0;
 
             // 1.21.8 -> 12108, 26.3 -> 260300
-            version = parseVersionToInteger(versionString);
+            VERSION = parseVersionToInteger(versionString);
 
-            isOrAbove1_21_8 = version >= 12108;
-            isOrAbove1_21_9 = version >= 12109;
-            isOrAbove1_21_10 = version >= 12110;
-            isOrAbove1_21_11 = version >= 12111;
-            isOrAbove26_1 = version >= 260100;
-            isOrAbove26_1_1 = version >= 260101;
-            isOrAbove26_1_2 = version >= 260102;
-            isOrAbove26_2 = version >= 260200;
-            isOrAbove26_3 = version >= 260300;
+            IS_OR_ABOVE_1_21_8 = VERSION >= 12108;
+            IS_OR_ABOVE_1_21_9 = VERSION >= 12109;
+            IS_OR_ABOVE_1_21_10 = VERSION >= 12110;
+            IS_OR_ABOVE_1_21_11 = VERSION >= 12111;
+            IS_OR_ABOVE_26_1 = VERSION >= 260100;
+            IS_OR_ABOVE_26_1_1 = VERSION >= 260101;
+            IS_OR_ABOVE_26_1_2 = VERSION >= 260102;
+            IS_OR_ABOVE_26_2 = VERSION >= 260200;
+            IS_OR_ABOVE_26_3 = VERSION >= 260300;
 
-            majorVersion = major;
-            minorVersion = minor;
+            MAJOR_VERSION = major;
+            MINOR_VERSION = minor;
 
-            isMojmap = checkMojMap() || isOrAbove26_1;
-            hasSpigotPatch = checkSpigot();
-            hasFoliaPatch = checkFolia();
-            hasPaperPatch = checkPaper();
-            hasLeavesPatch = checkLeaves();
-            hasCanvasPatch = checkCanvas();
-            hasLeafPatch = checkLeaf();
-            hasLithiumPatch = checkLithium();
-            hasUniverseSpigotPatch = checkUniverseSpigot();
-            hasPurpurPatch = checkPurpur();
+            IS_MOJMAP = checkMojMap() || IS_OR_ABOVE_26_1;
+            HAS_SPIGOT_PATCH = checkSpigot();
+            HAS_FOLIA_PATCH = checkFolia();
+            HAS_PAPER_PATCH = checkPaper();
+            HAS_LEAVES_PATCH = checkLeaves();
+            HAS_CANVAS_PATCH = checkCanvas();
+            HAS_LEAF_PATCH = checkLeaf();
+            HAS_LITHIUM_PATCH = checkLithium();
+            HAS_UNIVERSE_SPIGOT_PATCH = checkUniverseSpigot();
+            HAS_PURPUR_PATCH = checkPurpur();
         } catch (Exception e) {
             throw new RuntimeException("Failed to init VersionHelper", e);
         }

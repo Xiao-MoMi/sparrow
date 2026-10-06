@@ -43,7 +43,7 @@ public final class ActionBarCommand extends BukkitCommandFeature {
         }
 
         String message = context.get("message");
-        PluginConfig.TextOptions text = PluginConfig.text();
+        PluginConfig.TextOptions text = this.plugin().configurationManager().pluginConfig().text();
         boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
         boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         for (Player player : players) {

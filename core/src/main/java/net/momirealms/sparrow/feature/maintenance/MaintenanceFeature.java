@@ -26,7 +26,7 @@ import java.util.function.Consumer;
  * 登录阶段只能通过 LuckPerms 查询权限, 未接入时仅放行 OP.
  */
 public final class MaintenanceFeature extends Feature<MaintenanceSettings> implements Listener, PlayerListener {
-    public static final String ID = "maintenance";
+    public static final String FEATURE_ID = "maintenance";
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.maintenance";
 
     private final SparrowPlugin plugin;
@@ -35,7 +35,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     private volatile boolean active; // 登录线程异步读取
 
     public MaintenanceFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
+        super(FEATURE_ID);
         this.plugin = plugin;
     }
 

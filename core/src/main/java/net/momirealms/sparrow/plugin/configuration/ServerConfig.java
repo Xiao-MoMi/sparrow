@@ -17,7 +17,7 @@ import java.nio.file.Path;
 
 public final class ServerConfig {
     private static final String CONFIG_FILE = "server.yml";
-    private static volatile ConfigDefinition config;
+    private volatile ConfigDefinition config;
 
     private final Path configFilePath;
     private final YamlMapper<ConfigDefinition> configMapper;
@@ -54,8 +54,8 @@ public final class ServerConfig {
      * 返回本服在集群中的唯一标识, 用于 Redis 心跳、跨服消息、在线名单和按服务器归属的数据. 未配置时为空串.
      */
     @NotNull
-    public static String serverId() {
-        return config.serverId;
+    public String serverId() {
+        return this.config.serverId;
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)

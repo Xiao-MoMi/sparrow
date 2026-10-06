@@ -53,41 +53,48 @@ public final class WorldCommand extends BukkitCommandFeature {
         }
         World selected = context.getOrDefault(WORLD_ARGUMENT, null);
         for (Player player : players) {
-            this.plugin().scheduler().platform().run(() -> {
-                World target = selected != null ? selected : WorldUtils.next(player.getWorld());
-                if (target == null) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_WORLD_EMPTY);
-                    return;
-                }
-                Location destination = WorldUtils.destination(player.getLocation(), target);
-                int height = (int) Math.ceil(player.getHeight());
-                this.plugin().scheduler().platform().run(() -> {
-                    int space = 0;
-                    while (destination.getY() < target.getMaxHeight()) {
-                        Block block = destination.getBlock();
-                        space = block.isPassable() && !block.isLiquid() ? space + 1 : 0;
-                        if (space >= height) {
-                            break;
-                        }
-                        destination.add(0, 1, 0);
-                    }
-                    if (space < height) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_WORLD_NO_SPACE, Component.text(target.getName()));
-                        return;
-                    }
-                    destination.subtract(0, height - 1, 0);
-                    this.plugin().scheduler().platform().run(() -> {
-                        EntityUtils.teleport(player, destination).whenComplete((success, error) -> {
-                            if (error != null) {
-                                this.plugin().logger().warn("Failed to change world for " + player.getName(), error);
-                            }
-                            this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_WORLD_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE,
-                                    Component.text(player.getName()), Component.text(target.getName()));
-                        });
-                    }, () -> {}, player);
-                }, target, destination.getBlockX() >> 4, destination.getBlockZ() >> 4);
-            }, () -> {}, player);
+            this.plugin().scheduler().platform().run(() -> this.prepareTeleport(context, player, selected), () -> {}, player);
         }
+    }
+
+    private void prepareTeleport(CommandContext<CommandSender> context, Player player, World selected) {
+        World target = selected != null ? selected : WorldUtils.next(player.getWorld());
+        if (target == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_WORLD_EMPTY);
+            return;
+        }
+        Location destination = WorldUtils.destination(player.getLocation(), target);
+        int height = (int) Math.ceil(player.getHeight());
+        this.plugin().scheduler().platform().run(() -> this.findSpaceAndTeleport(context, player, target, destination, height),
+                target, destination.getBlockX() >> 4, destination.getBlockZ() >> 4);
+    }
+
+    private void findSpaceAndTeleport(CommandContext<CommandSender> context, Player player, World target, Location destination, int height) {
+        int space = 0;
+        while (destination.getY() < target.getMaxHeight()) {
+            Block block = destination.getBlock();
+            space = block.isPassable() && !block.isLiquid() ? space + 1 : 0;
+            if (space >= height) {
+                break;
+            }
+            destination.add(0, 1, 0);
+        }
+        if (space < height) {
+            this.handleFeedback(context, MessageConstants.COMMAND_WORLD_NO_SPACE, Component.text(target.getName()));
+            return;
+        }
+        destination.subtract(0, height - 1, 0);
+        this.plugin().scheduler().platform().run(() -> this.teleport(context, player, target, destination), () -> {}, player);
+    }
+
+    private void teleport(CommandContext<CommandSender> context, Player player, World target, Location destination) {
+        EntityUtils.teleport(player, destination).whenComplete((success, error) -> {
+            if (error != null) {
+                this.plugin().logger().warn("Failed to change world for " + player.getName(), error);
+            }
+            this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_WORLD_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE,
+                    Component.text(player.getName()), Component.text(target.getName()));
+        });
     }
 
     @Override

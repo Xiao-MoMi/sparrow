@@ -24,9 +24,11 @@ public final class CompatibilityManager {
     }
 
     public void onLoad() {
+        // Optional integrations are initialized after all plugins have enabled.
     }
 
     public void onEnable() {
+        // Optional integrations are initialized after all plugins have enabled.
     }
 
     public void onDelayedEnable() {

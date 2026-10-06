@@ -54,6 +54,17 @@ public final class LookCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_LOOK_OPTIONS);
             return;
         }
+        Collection<Entity> entities = resolveEntities(context);
+        if (entities == null) return;
+        if (targetPlayer != null || uuid != null) {
+            this.lookAtTarget(context, entities, targetPlayer, uuid);
+        } else {
+            this.schedule(context, entities, location, face);
+        }
+    }
+
+    @Nullable
+    private Collection<Entity> resolveEntities(CommandContext<CommandSender> context) {
         MultipleEntitySelector selector = context.getOrDefault("targets", null);
         Collection<Entity> entities;
         if (selector != null) {
@@ -62,64 +73,32 @@ public final class LookCommand extends BukkitCommandFeature {
             entities = List.of(player);
         } else {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
-            return;
+            return null;
         }
         if (entities.isEmpty()) {
             this.handleFeedback(context, MessageConstants.COMMAND_TARGETS_EMPTY);
+            return null;
+        }
+        return entities;
+    }
+
+    private void lookAtTarget(CommandContext<CommandSender> context, Collection<Entity> entities, Player targetPlayer, UUID uuid) {
+        Entity target = targetPlayer != null ? targetPlayer : Bukkit.getEntity(uuid);
+        if (target == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_LOOK_TARGET_MISSING);
             return;
         }
-        if (targetPlayer != null || uuid != null) {
-            Entity target = targetPlayer != null ? targetPlayer : Bukkit.getEntity(uuid);
-            if (target == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_LOOK_TARGET_MISSING);
-                return;
-            }
-            this.plugin().scheduler().platform().run(() -> {
-                Location destination = target instanceof LivingEntity living ? living.getEyeLocation() : target.getLocation();
-                this.schedule(context, entities, destination, null);
-            }, () -> this.handleFeedback(context, MessageConstants.COMMAND_LOOK_TARGET_MISSING), target);
-        } else {
-            this.schedule(context, entities, location, face);
-        }
+        this.plugin().scheduler().platform().run(() -> {
+            Location destination = target instanceof LivingEntity living ? living.getEyeLocation() : target.getLocation();
+            this.schedule(context, entities, destination, null);
+        }, () -> this.handleFeedback(context, MessageConstants.COMMAND_LOOK_TARGET_MISSING), target);
     }
 
     private void schedule(CommandContext<CommandSender> context, Collection<Entity> entities, @Nullable Location destination, @Nullable BlockFace face) {
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
                 Location rotation = entity.getLocation();
-                if (destination != null) {
-                    if (!rotation.getWorld().equals(destination.getWorld())) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD, Component.text(entity.getName()));
-                        return;
-                    }
-                    double eyeHeight = entity instanceof LivingEntity living ? living.getEyeHeight() : 0;
-                    Vector direction = destination.toVector().subtract(rotation.toVector().add(new Vector(0, eyeHeight, 0)));
-                    if (direction.lengthSquared() != 0) {
-                        rotation.setDirection(direction);
-                    }
-                } else if (face == BlockFace.UP || face == BlockFace.DOWN) {
-                    rotation.setPitch(face == BlockFace.UP ? -90 : 90);
-                } else {
-                    rotation.setYaw(switch (face) {
-                        case NORTH -> -180;
-                        case NORTH_NORTH_EAST -> -157.5f;
-                        case NORTH_EAST -> -135;
-                        case EAST_NORTH_EAST -> -112.5f;
-                        case EAST -> -90;
-                        case EAST_SOUTH_EAST -> -67.5f;
-                        case SOUTH_EAST -> -45;
-                        case SOUTH_SOUTH_EAST -> -22.5f;
-                        case SOUTH -> 0;
-                        case SOUTH_SOUTH_WEST -> 22.5f;
-                        case SOUTH_WEST -> 45;
-                        case WEST_SOUTH_WEST -> 67.5f;
-                        case WEST -> 90;
-                        case WEST_NORTH_WEST -> 112.5f;
-                        case NORTH_WEST -> 135;
-                        case NORTH_NORTH_WEST -> 157.5f;
-                        default -> rotation.getYaw();
-                    });
-                }
+                if (!this.orient(context, entity, rotation, destination, face)) return;
                 String name = entity.getName();
                 EntityUtils.rotate(entity, rotation).whenComplete((success, error) -> {
                     if (error != null) {
@@ -129,6 +108,47 @@ public final class LookCommand extends BukkitCommandFeature {
                 });
             }, () -> {}, entity);
         }
+    }
+
+    private boolean orient(CommandContext<CommandSender> context, Entity entity, Location rotation, Location destination, BlockFace face) {
+        if (destination != null) {
+            if (!rotation.getWorld().equals(destination.getWorld())) {
+                this.handleFeedback(context, MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD, Component.text(entity.getName()));
+                return false;
+            }
+            double eyeHeight = entity instanceof LivingEntity living ? living.getEyeHeight() : 0;
+            Vector direction = destination.toVector().subtract(rotation.toVector().add(new Vector(0, eyeHeight, 0)));
+            if (direction.lengthSquared() != 0) {
+                rotation.setDirection(direction);
+            }
+        } else if (face == BlockFace.UP || face == BlockFace.DOWN) {
+            rotation.setPitch(face == BlockFace.UP ? -90 : 90);
+        } else {
+            rotation.setYaw(yaw(face, rotation.getYaw()));
+        }
+        return true;
+    }
+
+    private static float yaw(BlockFace face, float previousYaw) {
+        return switch (face) {
+            case NORTH -> -180;
+            case NORTH_NORTH_EAST -> -157.5f;
+            case NORTH_EAST -> -135;
+            case EAST_NORTH_EAST -> -112.5f;
+            case EAST -> -90;
+            case EAST_SOUTH_EAST -> -67.5f;
+            case SOUTH_EAST -> -45;
+            case SOUTH_SOUTH_EAST -> -22.5f;
+            case SOUTH -> 0;
+            case SOUTH_SOUTH_WEST -> 22.5f;
+            case SOUTH_WEST -> 45;
+            case WEST_SOUTH_WEST -> 67.5f;
+            case WEST -> 90;
+            case WEST_NORTH_WEST -> 112.5f;
+            case NORTH_WEST -> 135;
+            case NORTH_NORTH_WEST -> 157.5f;
+            default -> previousYaw;
+        };
     }
 
     @Override

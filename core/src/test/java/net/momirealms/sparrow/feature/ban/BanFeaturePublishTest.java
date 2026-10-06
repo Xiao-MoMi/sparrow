@@ -5,14 +5,13 @@ import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterRoster;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import net.momirealms.sparrow.util.IpRange;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.MockedStatic;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +29,6 @@ class BanFeaturePublishTest {
     @SuppressWarnings("unchecked")
     private final MessageBroker<ByteBuf> broker = mock(MessageBroker.class);
     private SparrowPlugin plugin;
-    private MockedStatic<ServerConfig> config;
     private BanFeature feature;
 
     @BeforeEach
@@ -39,17 +37,15 @@ class BanFeaturePublishTest {
         when(this.plugin.dataStorage().banStore()).thenReturn(this.store);
         when(this.plugin.messageBrokerManager().broker()).thenReturn(this.broker);
         when(this.plugin.playerManager().cluster()).thenReturn(this.cluster);
+        ConfigurationManager configuration = mock(ConfigurationManager.class);
+        ServerConfig serverConfig = mock(ServerConfig.class);
+        when(this.plugin.configurationManager()).thenReturn(configuration);
+        when(configuration.serverConfig()).thenReturn(serverConfig);
+        when(serverConfig.serverId()).thenReturn("survival");
         when(this.store.saveBan(any())).thenReturn(CompletableFuture.completedFuture(false));
         BanRecord revoked = new BanRecord("AB12CD34", this.player, "Steve", null, "", "Admin", "survival", 0, 0, 0, null);
         when(this.store.revokeBans(any(), anyLong(), anyString())).thenReturn(CompletableFuture.completedFuture(List.of(revoked)));
-        this.config = mockStatic(ServerConfig.class);
-        this.config.when(ServerConfig::serverId).thenReturn("survival");
         this.feature = new BanFeature(this.plugin);
-    }
-
-    @AfterEach
-    void tearDown() {
-        this.config.close();
     }
 
     @Test
