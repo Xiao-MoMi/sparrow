@@ -9,7 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class DurationUtils {
-    private static final Pattern PART = Pattern.compile("([0-9]+(?:\\.[0-9]+)?)(mo|ms|[ywdhms])");
+    private static final Pattern PART = Pattern.compile("([0-9]++(?:\\.[0-9]++)?+)(mo|ms|[ywdhms])");
     private static final long[] FORMAT_SECONDS = {86400, 3600, 60, 1};
     private static final String[] FORMAT_UNITS = {"d", "h", "m", "s"};
 
