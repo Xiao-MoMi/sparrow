@@ -59,44 +59,42 @@ public final class EnchantCommand extends BukkitCommandFeature {
             return;
         }
         for (Entity entity : entities) {
-            this.plugin().scheduler().platform().run(() -> this.enchant(context, entity, enchantment, level, slot, check), () -> {}, entity);
+            this.plugin().scheduler().platform().run(() -> {
+                if (!(entity instanceof LivingEntity livingEntity)) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ENTITY, Component.text(entity.getName()));
+                    return;
+                }
+                EntityEquipment equipment = livingEntity.getEquipment();
+                if (equipment == null) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ENTITY, Component.text(entity.getName()));
+                    return;
+                }
+                ItemStack item = equipment.getItem(slot);
+                if (item.getType().isAir() || item.getAmount() <= 0) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ITEMLESS, Component.text(entity.getName()));
+                    return;
+                }
+                ItemMeta meta = item.getItemMeta();
+                if (check && !applicable(enchantment, item, meta)) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE, Component.text(entity.getName()), Component.text(enchantment.getKey().toString()));
+                    return;
+                }
+                if (level < 0) {
+                    meta.removeEnchant(enchantment);
+                    if (meta instanceof EnchantmentStorageMeta storage) {
+                        storage.removeStoredEnchant(enchantment);
+                    }
+                } else if (meta instanceof EnchantmentStorageMeta storage) {
+                    storage.addStoredEnchant(enchantment, level, true);
+                } else {
+                    meta.addEnchant(enchantment, level, true);
+                }
+                item.setItemMeta(meta);
+                equipment.setItem(slot, item);
+                this.handleFeedback(context, level < 0 ? MessageConstants.COMMAND_ENCHANT_REMOVED : level == 0 ? MessageConstants.COMMAND_ENCHANT_ZERO : MessageConstants.COMMAND_ENCHANT_SUCCESS,
+                        Component.text(entity.getName()), Component.text(enchantment.getKey().toString()), Component.text(level));
+            }, () -> {}, entity);
         }
-    }
-
-    private void enchant(CommandContext<CommandSender> context, Entity entity, Enchantment enchantment, int level, EquipmentSlot slot, boolean check) {
-        if (!(entity instanceof LivingEntity livingEntity)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ENTITY, Component.text(entity.getName()));
-            return;
-        }
-        EntityEquipment equipment = livingEntity.getEquipment();
-        if (equipment == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ENTITY, Component.text(entity.getName()));
-            return;
-        }
-        ItemStack item = equipment.getItem(slot);
-        if (item.getType().isAir() || item.getAmount() <= 0) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_ITEMLESS, Component.text(entity.getName()));
-            return;
-        }
-        ItemMeta meta = item.getItemMeta();
-        if (check && !applicable(enchantment, item, meta)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE, Component.text(entity.getName()), Component.text(enchantment.getKey().toString()));
-            return;
-        }
-        if (level < 0) {
-            meta.removeEnchant(enchantment);
-            if (meta instanceof EnchantmentStorageMeta storage) {
-                storage.removeStoredEnchant(enchantment);
-            }
-        } else if (meta instanceof EnchantmentStorageMeta storage) {
-            storage.addStoredEnchant(enchantment, level, true);
-        } else {
-            meta.addEnchant(enchantment, level, true);
-        }
-        item.setItemMeta(meta);
-        equipment.setItem(slot, item);
-        this.handleFeedback(context, level < 0 ? MessageConstants.COMMAND_ENCHANT_REMOVED : level == 0 ? MessageConstants.COMMAND_ENCHANT_ZERO : MessageConstants.COMMAND_ENCHANT_SUCCESS,
-                Component.text(entity.getName()), Component.text(enchantment.getKey().toString()), Component.text(level));
     }
 
     @Override

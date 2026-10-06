@@ -24,7 +24,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public final class HighlightFeature extends Feature<HighlightSettings> implements Listener {
-    public static final String FEATURE_ID = "highlight";
+    public static final String ID = "highlight";
 
     private final SparrowPlugin plugin;
     private final Map<UUID, Selection> selections = new HashMap<>();
@@ -47,7 +46,7 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
     private long generation;
 
     public HighlightFeature(@NotNull SparrowPlugin plugin) {
-        super(FEATURE_ID);
+        super(ID);
         this.plugin = plugin;
     }
 
@@ -132,95 +131,79 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
     public synchronized void show(@NotNull Location first, @NotNull Location second, @NotNull Options options, @NotNull Feedback feedback) {
         if (!this.enabled()) return;
         World world = first.getWorld();
-        HighlightRegion region = this.validateRegion(first, second, world, feedback);
-        if (region == null) return;
-        long expectedGeneration = this.generation;
-        boolean[] solid = options.solidOnly ? new boolean[region.volume()] : null;
-        List<CompletableFuture<Void>> reads = this.readSolidBlocks(world, region, solid, expectedGeneration);
-        CompletableFuture.allOf(reads.toArray(CompletableFuture[]::new))
-                .thenRunAsync(() -> this.showToViewers(world, region, solid, options, feedback, expectedGeneration), this.plugin.scheduler().async())
-                .exceptionally(error -> {
-                    this.plugin.logger().warn("Failed to create highlight", error);
-                    if (this.current(expectedGeneration)) {
-                        feedback.send(MessageConstants.COMMAND_HIGHLIGHT_FAILURE);
-                    }
-                    return null;
-                });
-    }
-
-    private HighlightRegion validateRegion(Location first, Location second, @Nullable World world, Feedback feedback) {
         if (world == null || world != second.getWorld()) {
             feedback.send(MessageConstants.COMMAND_HIGHLIGHT_WORLD);
-            return null;
+            return;
         }
         if (world.getDifficulty() == Difficulty.PEACEFUL) {
             feedback.send(MessageConstants.COMMAND_HIGHLIGHT_PEACEFUL);
-            return null;
+            return;
         }
         HighlightRegion region;
         try {
             region = HighlightRegion.between(first, second, this.config.maxBlocks());
         } catch (IllegalArgumentException exception) {
             feedback.send(MessageConstants.COMMAND_HIGHLIGHT_TOO_LARGE, Component.text(this.config.maxBlocks()));
-            return null;
+            return;
         }
         if (region.minY() < world.getMinHeight() || (long) region.minY() + region.sizeY() > world.getMaxHeight()) {
             feedback.send(MessageConstants.COMMAND_HIGHLIGHT_HEIGHT);
-            return null;
+            return;
         }
-        return region;
-    }
-
-    private List<CompletableFuture<Void>> readSolidBlocks(World world, HighlightRegion region, boolean[] solid, long expectedGeneration) {
-        if (solid == null) return List.of();
-        int maxX = region.minX() + region.sizeX() - 1;
-        int maxZ = region.minZ() + region.sizeZ() - 1;
+        long expectedGeneration = this.generation;
+        boolean[] solid = options.solidOnly ? new boolean[region.volume()] : null;
         List<CompletableFuture<Void>> reads = new ArrayList<>();
-        // 每个任务只读取自己区块中的方块. 邻接判断在全部读取完成后使用数组进行.
-        for (int chunkX = region.minX() >> 4; chunkX <= maxX >> 4; chunkX++) {
-            for (int chunkZ = region.minZ() >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
-                int cx = chunkX;
-                int cz = chunkZ;
-                reads.add(CompletableFuture.runAsync(() -> this.readChunk(world, region, solid, expectedGeneration, maxX, maxZ, cx, cz),
-                        task -> this.plugin.scheduler().platform().run(task, world, cx, cz)));
-            }
-        }
-        return reads;
-    }
-
-    private void readChunk(World world, HighlightRegion region, boolean[] solid, long expectedGeneration, int maxX, int maxZ, int chunkX, int chunkZ) {
-        if (!this.current(expectedGeneration)) return;
-        int endX = Math.min(maxX, (chunkX << 4) + 15) - region.minX();
-        int endZ = Math.min(maxZ, (chunkZ << 4) + 15) - region.minZ();
-        for (int x = Math.max(region.minX(), chunkX << 4) - region.minX(); x <= endX; x++) {
-            for (int z = Math.max(region.minZ(), chunkZ << 4) - region.minZ(); z <= endZ; z++) {
-                for (int y = 0; y < region.sizeY(); y++) {
-                    solid[region.index(x, y, z)] = !world.getBlockAt(region.minX() + x, region.minY() + y, region.minZ() + z).isPassable();
+        if (solid != null) {
+            int maxX = region.minX() + region.sizeX() - 1;
+            int maxZ = region.minZ() + region.sizeZ() - 1;
+            // 每个任务只读取自己区块中的方块. 邻接判断在全部读取完成后使用数组进行.
+            for (int chunkX = region.minX() >> 4; chunkX <= maxX >> 4; chunkX++) {
+                for (int chunkZ = region.minZ() >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
+                    int cx = chunkX;
+                    int cz = chunkZ;
+                    reads.add(CompletableFuture.runAsync(() -> {
+                        if (!this.current(expectedGeneration)) return;
+                        int endX = Math.min(maxX, (cx << 4) + 15) - region.minX();
+                        int endZ = Math.min(maxZ, (cz << 4) + 15) - region.minZ();
+                        for (int x = Math.max(region.minX(), cx << 4) - region.minX(); x <= endX; x++) {
+                            for (int z = Math.max(region.minZ(), cz << 4) - region.minZ(); z <= endZ; z++) {
+                                for (int y = 0; y < region.sizeY(); y++) {
+                                    solid[region.index(x, y, z)] = !world.getBlockAt(region.minX() + x, region.minY() + y, region.minZ() + z).isPassable();
+                                }
+                            }
+                        }
+                    }, task -> this.plugin.scheduler().platform().run(task, world, cx, cz)));
                 }
             }
         }
-    }
-
-    private void showToViewers(World world, HighlightRegion region, boolean[] solid, Options options, Feedback feedback, long expectedGeneration) {
-        if (!this.current(expectedGeneration)) return;
-        HighlightBlocks blocks = new HighlightBlocks(region, solid, options.color);
-        for (int i = 0; i < options.viewers.size(); i++) {
-            Player viewer = options.viewers.get(i);
-            synchronized (this) {
-                if (!this.current(expectedGeneration)) return;
-                SparrowPlayer player = this.plugin.playerManager().getPlayer(viewer);
-                if (player == null || viewer.getWorld() != world) {
-                    continue;
-                }
-                blocks.show(player.connection());
-                if (options.duration == 0) {
-                    blocks.destroy(player.connection());
-                } else {
-                    this.displays.add(new Display(player.connection(), blocks.removalPacket(), System.nanoTime() + TimeUnit.SECONDS.toNanos(options.duration)));
-                }
-                feedback.send(MessageConstants.COMMAND_HIGHLIGHT_SUCCESS, Component.text(viewer.getName()));
-            }
-        }
+        CompletableFuture.allOf(reads.toArray(CompletableFuture[]::new))
+                .thenRunAsync(() -> {
+                    if (!this.current(expectedGeneration)) return;
+                    HighlightBlocks blocks = new HighlightBlocks(region, solid, options.color);
+                    for (int i = 0; i < options.viewers.size(); i++) {
+                        Player viewer = options.viewers.get(i);
+                        synchronized (this) {
+                            if (!this.current(expectedGeneration)) return;
+                            SparrowPlayer player = this.plugin.playerManager().getPlayer(viewer);
+                            if (player == null || viewer.getWorld() != world) {
+                                continue;
+                            }
+                            blocks.show(player.connection());
+                            if (options.duration == 0) {
+                                blocks.destroy(player.connection());
+                            } else {
+                                this.displays.add(new Display(player.connection(), blocks.removalPacket(), System.nanoTime() + TimeUnit.SECONDS.toNanos(options.duration)));
+                            }
+                            feedback.send(MessageConstants.COMMAND_HIGHLIGHT_SUCCESS, Component.text(viewer.getName()));
+                        }
+                    }
+                }, this.plugin.scheduler().async()).exceptionally(error -> {
+                    this.plugin.logger().warn("Failed to create highlight", error);
+                    if (this.current(expectedGeneration)) {
+                        feedback.send(MessageConstants.COMMAND_HIGHLIGHT_FAILURE);
+                    }
+                    return null;
+                });
     }
 
     private synchronized boolean current(long generation) {

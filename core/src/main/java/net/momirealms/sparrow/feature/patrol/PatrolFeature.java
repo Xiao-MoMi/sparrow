@@ -25,7 +25,7 @@ import java.util.function.Consumer;
  * 按"最久没被巡查"的顺序轮流挑选巡查对象. 刚进服的玩家优先, 玩家退出后移出队列.
  */
 public final class PatrolFeature extends Feature<PatrolSettings> implements Listener {
-    public static final String FEATURE_ID = "patrol";
+    public static final String ID = "patrol";
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.patrol"; // 拥有此权限的玩家不会被巡查
 
     private final SparrowPlugin plugin;
@@ -33,7 +33,7 @@ public final class PatrolFeature extends Feature<PatrolSettings> implements List
     private final ConcurrentLinkedDeque<UUID> queue = new ConcurrentLinkedDeque<>();
 
     public PatrolFeature(@NotNull SparrowPlugin plugin) {
-        super(FEATURE_ID);
+        super(ID);
         this.plugin = plugin;
     }
 

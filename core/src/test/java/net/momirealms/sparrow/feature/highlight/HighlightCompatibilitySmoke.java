@@ -28,7 +28,7 @@ public final class HighlightCompatibilitySmoke {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         SReflection.setActivePredicate(new MinecraftPredicate(args[0], List.of()));
-        Class<?> sizeOwner = Class.forName(VersionHelper.IS_OR_ABOVE_26_2 ? "net.minecraft.world.entity.monster.cubemob.AbstractCubeMob" : "net.minecraft.world.entity.monster.Slime");
+        Class<?> sizeOwner = Class.forName(VersionHelper.isOrAbove26_2 ? "net.minecraft.world.entity.monster.cubemob.AbstractCubeMob" : "net.minecraft.world.entity.monster.Slime");
         Field sizeField = sizeOwner.getDeclaredField("ID_SIZE");
         sizeField.setAccessible(true);
         EntityDataAccessor<?> sizeAccessor = (EntityDataAccessor<?>) sizeField.get(null);
@@ -69,7 +69,7 @@ public final class HighlightCompatibilitySmoke {
                     assert new HashSet<>(team.getPlayers()).equals(members);
                     assert team.getParameters().isPresent();
                     Object parameters = team.getParameters().get();
-                    String collisionAccessor = VersionHelper.IS_OR_ABOVE_26_2 ? "collisionRule" : "getCollisionRule";
+                    String collisionAccessor = VersionHelper.isOrAbove26_2 ? "collisionRule" : "getCollisionRule";
                     assert parameters.getClass().getMethod(collisionAccessor).invoke(parameters) == Team.CollisionRule.NEVER;
                     teamSeen = true;
                     teams++;
@@ -91,7 +91,7 @@ public final class HighlightCompatibilitySmoke {
         for (var packet : destroy.subPackets()) {
             if (packet instanceof ClientboundRemoveEntitiesPacket remove) {
                 assert !expectTeam;
-                Object entityIds = remove.getClass().getMethod(VersionHelper.IS_OR_ABOVE_26_3 ? "entityIds" : "getEntityIds").invoke(remove);
+                Object entityIds = remove.getClass().getMethod(VersionHelper.isOrAbove26_3 ? "entityIds" : "getEntityIds").invoke(remove);
                 if (entityIds instanceof int[] values) {
                     for (int value : values) {
                         removed.add(value);

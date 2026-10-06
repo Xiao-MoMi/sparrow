@@ -12,6 +12,7 @@ import net.momirealms.sparrow.player.cluster.ClusterPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.IpRange;
@@ -35,13 +36,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public final class BanFeature extends Feature<BanSettings> implements Listener {
-    public static final String FEATURE_ID = "ban";
+    public static final String ID = "ban";
     public static final String NOTIFY_PERMISSION = DependencyVersions.PROJECT_ID + ".notify.ban";
 
     private final SparrowPlugin plugin;
 
     public BanFeature(@NotNull SparrowPlugin plugin) {
-        super(FEATURE_ID);
+        super(ID);
         this.plugin = plugin;
     }
 
@@ -144,7 +145,7 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     public CompletableFuture<Result> ban(@Nullable BanTarget.PlayerTarget player, @Nullable IpRange ip, @NotNull String reason, long expiresAt, @NotNull String operatorName, boolean silent) {
         UUID uuid = player == null ? null : player.uuid();
         String name = player == null ? null : player.name();
-        BanRecord banRecord = new BanRecord(BanRecord.newId(), uuid, name, ip, reason, operatorName, this.plugin.configurationManager().serverConfig().serverId(), System.currentTimeMillis(), expiresAt, 0, null);
+        BanRecord banRecord = new BanRecord(BanRecord.newId(), uuid, name, ip, reason, operatorName, ServerConfig.serverId(), System.currentTimeMillis(), expiresAt, 0, null);
         return this.store().saveBan(banRecord).thenApply(replaced -> {
             this.publish(new BanMessage(true, banRecord.id(), banRecord.display(), uuid, ip, reason, operatorName, expiresAt, silent));
             return new Result(banRecord, replaced);

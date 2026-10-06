@@ -27,14 +27,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 public final class HeadFeature extends Feature<HeadSettings> {
-    public static final String FEATURE_ID = "head";
+    public static final String ID = "head";
 
     private final SparrowPlugin plugin;
     private volatile Session session;
     private volatile long generation;
 
     public HeadFeature(@NotNull SparrowPlugin plugin) {
-        super(FEATURE_ID);
+        super(ID);
         this.plugin = plugin;
     }
 
@@ -182,22 +182,20 @@ public final class HeadFeature extends Feature<HeadSettings> {
             }
             List<String> sources = this.settings.sourceOrder();
             for (int i = 0; i < sources.size(); i++) {
-                HeadData data = this.lookupSource(request, sources.get(i));
-                if (data != null) return data;
+                if (sources.get(i).equals("online")) {
+                    HeadData data = HeadFeature.this.online(query);
+                    if (data != null) return data;
+                } else {
+                    HeadData data = request.force ? null : this.cache.get(query.key);
+                    if (data != null) return data;
+                    data = query.uuid == null ? this.profiles.fetchByName(query.name) : this.profiles.fetchByUuid(query.uuid);
+                    if (data != null) {
+                        this.store(request, data, List.of("name:" + data.name().toLowerCase(Locale.ROOT), "uuid:" + data.uuid()));
+                        return data;
+                    }
+                }
             }
             return null;
-        }
-
-        private HeadData lookupSource(Request request, String source) throws Exception {
-            Query query = request.query;
-            if (source.equals("online")) return HeadFeature.this.online(query);
-            HeadData data = request.force ? null : this.cache.get(query.key);
-            if (data != null) return data;
-            data = query.uuid == null ? this.profiles.fetchByName(query.name) : this.profiles.fetchByUuid(query.uuid);
-            if (data != null) {
-                this.store(request, data, List.of("name:" + data.name().toLowerCase(Locale.ROOT), "uuid:" + data.uuid()));
-            }
-            return data;
         }
 
         private void store(Request request, HeadData data, List<String> keys) throws Exception {

@@ -21,7 +21,7 @@ import java.util.Locale;
 
 public final class PluginConfig {
     private static final String CONFIG_FILE = "config.yml";
-    private volatile ConfigDefinition config; // 重载会换上完整的新快照, 读取可能发生在不同线程
+    private static volatile ConfigDefinition config; // 重载会换上完整的新快照, 读取可能发生在不同线程
 
     private final Path configFilePath;
     private final YamlMapper<ConfigDefinition> configMapper;
@@ -245,27 +245,27 @@ public final class PluginConfig {
         }
     }
 
-    public TextOptions text() {
-        return this.config.textOptions;
+    public static TextOptions text() {
+        return config.textOptions;
     }
 
-    public RedisOptions redis() {
-        return this.config.redis;
+    public static RedisOptions redis() {
+        return config.redis;
     }
 
-    public DatabaseOptions database() {
-        return this.config.database;
+    public static DatabaseOptions database() {
+        return config.database;
     }
 
-    public boolean checkUpdate() {
-        return this.config.updateChecker;
+    public static boolean checkUpdate() {
+        return config.updateChecker;
     }
 
-    public boolean metrics() {
-        return this.config.metrics;
+    public static boolean metrics() {
+        return config.metrics;
     }
 
-    public Locale forcedLocale() {
-        return TranslationManager.parseLocale(this.config.forcedLocale);
+    public static Locale forcedLocale() {
+        return TranslationManager.parseLocale(config.forcedLocale);
     }
 }

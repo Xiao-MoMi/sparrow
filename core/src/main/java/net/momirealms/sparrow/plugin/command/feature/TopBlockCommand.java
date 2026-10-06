@@ -47,34 +47,28 @@ public final class TopBlockCommand extends BukkitCommandFeature {
             return;
         }
         for (Entity entity : entities) {
-            this.plugin().scheduler().platform().run(() -> this.teleportToTop(context, entity), () -> {}, entity);
+            this.plugin().scheduler().platform().run(() -> {
+                Location location = entity.getLocation();
+                World world = location.getWorld();
+                Block block = world.getHighestBlockAt(location.getBlockX(), location.getBlockZ());
+                int y = block.isPassable() ? block.getY() : block.getY() + 1;
+                if (y < world.getMinHeight() || y + Math.ceil(entity.getHeight()) > world.getMaxHeight()
+                        || !world.getBlockAt(location.getBlockX(), y, location.getBlockZ()).isPassable()
+                        || !world.getBlockAt(location.getBlockX(), y + 1, location.getBlockZ()).isPassable()
+                        || block.isEmpty()) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE, Component.text(entity.getName()));
+                    return;
+                }
+                location.setY(y);
+                String name = entity.getName();
+                EntityUtils.teleport(entity, location).whenComplete((success, error) -> {
+                    if (error != null) {
+                        this.plugin().logger().warn("Failed to teleport " + name + " to the highest block", error);
+                    }
+                    this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
+                });
+            }, () -> {}, entity);
         }
-    }
-
-    private void teleportToTop(CommandContext<CommandSender> context, Entity entity) {
-        Location location = entity.getLocation();
-        World world = location.getWorld();
-        Block block = world.getHighestBlockAt(location.getBlockX(), location.getBlockZ());
-        int y = block.isPassable() ? block.getY() : block.getY() + 1;
-        if (!isAvailable(world, block, location, entity, y)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE, Component.text(entity.getName()));
-            return;
-        }
-        location.setY(y);
-        String name = entity.getName();
-        EntityUtils.teleport(entity, location).whenComplete((success, error) -> {
-            if (error != null) {
-                this.plugin().logger().warn("Failed to teleport " + name + " to the highest block", error);
-            }
-            this.handleFeedback(context, error == null && success ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(name));
-        });
-    }
-
-    private static boolean isAvailable(World world, Block highest, Location location, Entity entity, int y) {
-        return y >= world.getMinHeight() && y + Math.ceil(entity.getHeight()) <= world.getMaxHeight()
-                && world.getBlockAt(location.getBlockX(), y, location.getBlockZ()).isPassable()
-                && world.getBlockAt(location.getBlockX(), y + 1, location.getBlockZ()).isPassable()
-                && !highest.isEmpty();
     }
 
     @Override

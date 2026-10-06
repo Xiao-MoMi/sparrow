@@ -47,7 +47,7 @@ public final class TitleCommand extends BukkitCommandFeature {
         }
 
         String message = context.get("message");
-        PluginConfig.TextOptions text = this.plugin().configurationManager().pluginConfig().text();
+        PluginConfig.TextOptions text = PluginConfig.text();
         boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
         boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         String[] parts = message.split("\\\\n", -1);

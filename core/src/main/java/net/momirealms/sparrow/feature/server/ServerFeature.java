@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public final class ServerFeature extends Feature<ServerSettings> {
-    public static final String FEATURE_ID = "server";
+    public static final String ID = "server";
 
     private final SparrowPlugin plugin;
 
     public ServerFeature(@NotNull SparrowPlugin plugin) {
-        super(FEATURE_ID);
+        super(ID);
         this.plugin = plugin;
     }
 

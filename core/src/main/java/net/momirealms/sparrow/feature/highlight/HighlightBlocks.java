@@ -51,22 +51,43 @@ final class HighlightBlocks {
 
     HighlightBlocks(@NotNull HighlightRegion region, boolean @Nullable [] solid, @NotNull NamedTextColor color) {
         EntityType<?> entityType = (EntityType<?>) EntityTypesProxy.INSTANCE.getSlime();
-        BatchBuilder batch = new BatchBuilder(region, solid, color, entityType);
+        List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(BATCH_SIZE * 2 + 1);
+        List<Packet<? super ClientGamePacketListener>> removals = new ArrayList<>();
+        int[] ids = new int[BATCH_SIZE];
+        int count = 0;
+        PlayerTeam team = null;
         for (int x = 0; x < region.sizeX(); x++) {
             for (int y = 0; y < region.sizeY(); y++) {
                 for (int z = 0; z < region.sizeZ(); z++) {
-                    batch.add(x, y, z);
+                    if (!region.visible(x, y, z, solid)) {
+                        continue;
+                    }
+                    if (count == 0) {
+                        team = this.createTeam(color);
+                    }
+                    int id = ENTITY_IDS.getAndIncrement();
+                    UUID uuid = UUID.randomUUID();
+                    ids[count++] = id;
+                    team.getPlayers().add(uuid.toString());
+                    packets.add(new ClientboundAddEntityPacket(id, uuid, region.minX() + x + 0.5, region.minY() + y, region.minZ() + z + 0.5, 0, 0, entityType, 0, Vec3.ZERO, 0));
+                    packets.add(new ClientboundSetEntityDataPacket(id, DATA));
+                    if (count == BATCH_SIZE) {
+                        this.finishBatch(team, packets, ids, count, removals);
+                        count = 0;
+                    }
                 }
             }
         }
-        batch.finish();
-        this.destroy = new ClientboundBundlePacket(batch.removals);
+        if (count > 0) {
+            this.finishBatch(team, packets, ids, count, removals);
+        }
+        this.destroy = new ClientboundBundlePacket(removals);
     }
 
     @NotNull
     private PlayerTeam createTeam(NamedTextColor color) {
         PlayerTeam team = new PlayerTeam(new Scoreboard(), "sparrow_highlight_" + TEAM_IDS.getAndIncrement());
-        if (VersionHelper.IS_OR_ABOVE_26_2) {
+        if (VersionHelper.isOrAbove26_2) {
             PlayerTeamProxy.INSTANCE.setColor(team, Optional.of(TeamColorProxy.INSTANCE.byName(color.toString())));
         } else {
             team.setColor(ChatFormatting.getByName(color.toString()));
@@ -82,48 +103,6 @@ final class HighlightBlocks {
         packets.clear();
         removals.add(ClientboundSetPlayerTeamPacket.createRemovePacket(team));
         removals.add(new ClientboundRemoveEntitiesPacket(Arrays.copyOf(ids, count)));
-    }
-
-    private final class BatchBuilder {
-        private final HighlightRegion region;
-        private final boolean @Nullable [] solid;
-        private final NamedTextColor color;
-        private final EntityType<?> entityType;
-        private final List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(BATCH_SIZE * 2 + 1);
-        private final List<Packet<? super ClientGamePacketListener>> removals = new ArrayList<>();
-        private final int[] ids = new int[BATCH_SIZE];
-        private int count;
-        private PlayerTeam team;
-
-        private BatchBuilder(HighlightRegion region, boolean @Nullable [] solid, NamedTextColor color, EntityType<?> entityType) {
-            this.region = region;
-            this.solid = solid;
-            this.color = color;
-            this.entityType = entityType;
-        }
-
-        private void add(int x, int y, int z) {
-            if (!this.region.visible(x, y, z, this.solid)) return;
-            if (this.count == 0) this.team = HighlightBlocks.this.createTeam(this.color);
-            int id = ENTITY_IDS.getAndIncrement();
-            UUID uuid = UUID.randomUUID();
-            this.ids[this.count++] = id;
-            this.team.getPlayers().add(uuid.toString());
-            this.packets.add(new ClientboundAddEntityPacket(id, uuid,
-                    this.region.minX() + x + 0.5, this.region.minY() + y, this.region.minZ() + z + 0.5,
-                    0, 0, this.entityType, 0, Vec3.ZERO, 0));
-            this.packets.add(new ClientboundSetEntityDataPacket(id, DATA));
-            if (this.count == BATCH_SIZE) {
-                HighlightBlocks.this.finishBatch(this.team, this.packets, this.ids, this.count, this.removals);
-                this.count = 0;
-            }
-        }
-
-        private void finish() {
-            if (this.count > 0) {
-                HighlightBlocks.this.finishBatch(this.team, this.packets, this.ids, this.count, this.removals);
-            }
-        }
     }
 
     void show(@NotNull PlayerConnection connection) {

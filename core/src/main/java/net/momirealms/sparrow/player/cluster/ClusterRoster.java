@@ -9,6 +9,7 @@ import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import net.momirealms.sparrow.util.UUIDUtils;
@@ -60,7 +61,7 @@ public final class ClusterRoster {
 
     @ApiStatus.Internal
     public void onEnable() {
-        this.serverId = this.plugin.configurationManager().serverConfig().serverId();
+        this.serverId = ServerConfig.serverId();
         this.rosterKey = rosterKey(this.serverId);
         PlayerPresenceMessage.listener(this::accept);
         this.task = this.plugin.scheduler().asyncRepeating(this::refresh, 0, REFRESH_MILLIS, TimeUnit.MILLISECONDS);
@@ -93,31 +94,23 @@ public final class ClusterRoster {
         this.readRosters().whenComplete((rosters, failure) -> {
             synchronized (this) {
                 if (failure == null && !this.closed) {
-                    this.applyRosterSnapshot(rosters);
+                    // 校准期间收到通知的服务器以本地视图为准, 其余采用本轮快照
+                    for (Map.Entry<String, Map<UUID, ClusterPlayer>> entry : rosters.entrySet()) {
+                        if (!this.refreshChanges.contains(entry.getKey())) {
+                            this.servers.put(entry.getKey(), entry.getValue());
+                        }
+                    }
+                    this.servers.keySet().removeIf(id -> !rosters.containsKey(id) && !this.refreshChanges.contains(id));
+                    this.rebuildView();
                 }
                 this.refreshChanges = null;
             }
-            this.logRefreshFailure(failure);
-        });
-    }
-
-    private void applyRosterSnapshot(Map<String, Map<UUID, ClusterPlayer>> rosters) {
-        // 校准期间收到通知的服务器以本地视图为准, 其余采用本轮快照
-        for (Map.Entry<String, Map<UUID, ClusterPlayer>> entry : rosters.entrySet()) {
-            if (!this.refreshChanges.contains(entry.getKey())) {
-                this.servers.put(entry.getKey(), entry.getValue());
+            // Redis 暂时不可用时保留本地视图, 下一轮校准补齐
+            Throwable cause = failure instanceof CompletionException ? failure.getCause() : failure;
+            if (cause != null && !(cause instanceof RedisException)) {
+                this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_ROSTER_REFRESH_FAILED), cause);
             }
-        }
-        this.servers.keySet().removeIf(id -> !rosters.containsKey(id) && !this.refreshChanges.contains(id));
-        this.rebuildView();
-    }
-
-    private void logRefreshFailure(Throwable failure) {
-        // Redis 暂时不可用时保留本地视图, 下一轮校准补齐
-        Throwable cause = failure instanceof CompletionException ? failure.getCause() : failure;
-        if (cause != null && !(cause instanceof RedisException)) {
-            this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_ROSTER_REFRESH_FAILED), cause);
-        }
+        });
     }
 
     // 脚本内删除后重建, 其他服读取时不会看到清空后的空名单.

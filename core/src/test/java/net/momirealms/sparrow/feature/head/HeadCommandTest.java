@@ -108,7 +108,7 @@ class HeadCommandTest {
             var platform = scheduler.platform();
             when(this.player.getName()).thenReturn("Tester");
             when(plugin.playerManager().getPlayer(this.player)).thenReturn(mock(BukkitSparrowPlayer.class));
-            doReturn(this.head).when(features).feature(HeadFeature.FEATURE_ID, HeadFeature.class);
+            doReturn(this.head).when(features).feature(HeadFeature.ID, HeadFeature.class);
             when(this.head.enabled()).thenReturn(true);
             when(this.head.generation()).thenReturn(1L);
             when(this.head.give(any(), any(), anyInt(), anyLong())).thenReturn(true);

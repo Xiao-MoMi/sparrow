@@ -421,10 +421,24 @@ public final class ReflectionUtils {
      */
     @Nullable
     public static Method getMethod(final Class<?> clazz, Class<?> returnType, final String[] possibleMethodNames, final Class<?>... parameterTypes) {
+        outer:
         for (Method method : clazz.getMethods()) {
-            if (matchesParameters(method, parameterTypes)
-                    && matchesName(method, possibleMethodNames)
-                    && returnType.isAssignableFrom(method.getReturnType())) return method;
+            if (method.getParameterCount() != parameterTypes.length) {
+                continue;
+            }
+            Class<?>[] types = method.getParameterTypes();
+            for (int i = 0; i < types.length; i++) {
+                if (types[i] != parameterTypes[i]) {
+                    continue outer;
+                }
+            }
+            for (String name : possibleMethodNames) {
+                if (name.equals(method.getName())) {
+                    if (returnType.isAssignableFrom(method.getReturnType())) {
+                        return method;
+                    }
+                }
+            }
         }
         return null;
     }
@@ -531,29 +545,26 @@ public final class ReflectionUtils {
      */
     @Nullable
     public static Method getDeclaredMethod(final Class<?> clazz, Class<?> returnType, final String[] possibleMethodNames, final Class<?>... parameterTypes) {
+        outer:
         for (Method method : clazz.getDeclaredMethods()) {
-            if (!matchesParameters(method, parameterTypes)
-                    || !matchesName(method, possibleMethodNames)
-                    || !returnType.isAssignableFrom(method.getReturnType())) continue;
-            return setAccessible(method);
+            if (method.getParameterCount() != parameterTypes.length) {
+                continue;
+            }
+            Class<?>[] types = method.getParameterTypes();
+            for (int i = 0; i < types.length; i++) {
+                if (types[i] != parameterTypes[i]) {
+                    continue outer;
+                }
+            }
+            for (String name : possibleMethodNames) {
+                if (name.equals(method.getName())) {
+                    if (returnType.isAssignableFrom(method.getReturnType())) {
+                        return setAccessible(method);
+                    }
+                }
+            }
         }
         return null;
-    }
-
-    private static boolean matchesParameters(Method method, Class<?>[] parameterTypes) {
-        if (method.getParameterCount() != parameterTypes.length) return false;
-        Class<?>[] types = method.getParameterTypes();
-        for (int i = 0; i < types.length; i++) {
-            if (types[i] != parameterTypes[i]) return false;
-        }
-        return true;
-    }
-
-    private static boolean matchesName(Method method, String[] possibleNames) {
-        for (String name : possibleNames) {
-            if (name.equals(method.getName())) return true;
-        }
-        return false;
     }
 
     /**
@@ -654,11 +665,27 @@ public final class ReflectionUtils {
      */
     @Nullable
     public static Method getStaticMethod(final Class<?> clazz, Class<?> returnType, String[] possibleNames, final Class<?>... parameterTypes) {
+        outer:
         for (Method method : clazz.getMethods()) {
-            if (!matchesParameters(method, parameterTypes) || !Modifier.isStatic(method.getModifiers())
-                    || !returnType.isAssignableFrom(method.getReturnType())
-                    || !matchesName(method, possibleNames)) continue;
-            return setAccessible(method);
+            if (method.getParameterCount() != parameterTypes.length) {
+                continue;
+            }
+            if (!Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            Class<?>[] types = method.getParameterTypes();
+            for (int i = 0; i < types.length; i++) {
+                if (types[i] != parameterTypes[i]) {
+                    continue outer;
+                }
+            }
+            if (returnType.isAssignableFrom(method.getReturnType())) {
+                for (String name : possibleNames) {
+                    if (name.equals(method.getName())) {
+                        return setAccessible(method);
+                    }
+                }
+            }
         }
         return null;
     }
@@ -784,7 +811,7 @@ public final class ReflectionUtils {
      * @throws NullPointerException 当 `clazz` 或参数数组中的必要元素为 `null` 时可能抛出该异常
      */
     @Nullable
-    public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... parameterTypes) {
+    public static Constructor<?> getConstructor(Class<?> clazz, Class<?>... parameterTypes) {
         try {
             return clazz.getConstructor(parameterTypes);
         } catch (NoSuchMethodException | SecurityException ignore) {
@@ -803,7 +830,7 @@ public final class ReflectionUtils {
      * @throws SecurityException 当修改构造器访问性被拒绝时可能被内部捕获并折叠为 `null`
      */
     @Nullable
-    public static <T> Constructor<T> getDeclaredConstructor(Class<T> clazz, Class<?>... parameterTypes) {
+    public static Constructor<?> getDeclaredConstructor(Class<?> clazz, Class<?>... parameterTypes) {
         try {
             return setAccessible(clazz.getDeclaredConstructor(parameterTypes));
         } catch (NoSuchMethodException | SecurityException ignore) {
@@ -823,15 +850,13 @@ public final class ReflectionUtils {
      * @apiNote 构造器顺序依赖反射实现, 不适合作为稳定协议
      */
     @Nullable
-    public static <T> Constructor<T> getConstructor(Class<T> clazz, int index) {
+    public static Constructor<?> getConstructor(Class<?> clazz, int index) {
         try {
             Constructor<?>[] constructors = clazz.getDeclaredConstructors();
             if (index < 0 || index >= constructors.length) {
                 throw new IndexOutOfBoundsException("Invalid constructor index: " + index);
             }
-            @SuppressWarnings("unchecked")
-            Constructor<T> constructor = (Constructor<T>) constructors[index];
-            return setAccessible(constructor);
+            return setAccessible(constructors[index]);
         } catch (SecurityException e) {
             return null;
         }
@@ -847,15 +872,13 @@ public final class ReflectionUtils {
      * @apiNote 该方法只统计 `getConstructors()` 返回的公共构造器, 不包含私有构造器
      */
     @NotNull
-     public static <T> Constructor<T> getTheOnlyConstructor(Class<T> clazz) {
+    public static Constructor<?> getTheOnlyConstructor(Class<?> clazz) {
         Constructor<?>[] constructors = clazz.getConstructors();
         if (constructors.length != 1) {
             throw new RuntimeException("This class is expected to have only one constructor but it has " + constructors.length);
         }
-         @SuppressWarnings("unchecked")
-         Constructor<T> constructor = (Constructor<T>) constructors[0];
-         return constructor;
-     }
+        return constructors[0];
+    }
 
     /**
      * 将字段解包为 getter 形式的 `MethodHandle`.

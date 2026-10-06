@@ -76,16 +76,12 @@ public final class CommandPanel {
         boolean permitted = permission == null || permission.isEmpty() || sender.hasPermission(permission);
         if (unavailable != null || usage == null || !permitted) {
             Component reason = tr(!permitted ? "no_permission" : unavailable != null ? unavailable : "unavailable");
-            return disabledAction(sender, caption, reason);
+            return sender instanceof Player ? tr("disabled", caption).hoverEvent(reason) : tr("console.disabled", caption, reason);
         }
         String command = arguments.isEmpty() ? usage : usage + " " + arguments;
         if (!(sender instanceof Player)) return tr("console.action", caption, Component.text(command));
         Component hover = suggest ? tr("confirm", Component.text(command)) : Component.text(command);
         return tr("action." + label, caption).hoverEvent(hover).clickEvent(suggest ? ClickEvent.suggestCommand(command) : ClickEvent.runCommand(command));
-    }
-
-    private static Component disabledAction(CommandSender sender, Component caption, Component reason) {
-        return sender instanceof Player ? tr("disabled", caption).hoverEvent(reason) : tr("console.disabled", caption, reason);
     }
 
     /**

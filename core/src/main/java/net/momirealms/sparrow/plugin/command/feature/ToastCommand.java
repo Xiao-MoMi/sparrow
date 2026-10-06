@@ -57,7 +57,7 @@ public final class ToastCommand extends BukkitCommandFeature {
         }
         AdvancementFrame type = context.get("type");
         String message = context.get("message");
-        PluginConfig.TextOptions text = this.plugin().configurationManager().pluginConfig().text();
+        PluginConfig.TextOptions text = PluginConfig.text();
         boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
         boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         for (Player player : players) {

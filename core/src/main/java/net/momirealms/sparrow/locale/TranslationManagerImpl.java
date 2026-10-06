@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.renderer.TranslatableComponentRenderer;
+import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.locale.tag.IndexedArgumentTag;
@@ -286,50 +287,52 @@ public final class TranslationManagerImpl implements TranslationManager {
             Files.walkFileTree(directory, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                 @Override
                 public @NotNull FileVisitResult visitFile(@NotNull Path path, @NotNull BasicFileAttributes attrs) {
-                    return TranslationManagerImpl.this.loadTranslationFile(path, attrs, previousTranslations);
+                    String fileName = path.getFileName().toString();
+                    if (Files.isRegularFile(path) && fileName.endsWith(".yml")) {
+                        // 检查文件名是否规范
+                        String localeName = fileName.substring(0, fileName.length() - ".yml".length());
+                        Locale locale = TranslationManager.parseLocale(localeName);
+                        if (locale == null) {
+                            TranslationManagerImpl.this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_INVALID_FILE, path.toString()));
+                            return FileVisitResult.CONTINUE;
+                        }
+                        // 比对上次缓存文件和本次即将读取文件, 如果一致则跳过.
+                        CachedTranslation cachedFile = previousTranslations.get(locale);
+                        long lastModifiedTime = attrs.lastModifiedTime().toMillis();
+                        long size = attrs.size();
+                        if (cachedFile != null && cachedFile.lastModified() == lastModifiedTime && cachedFile.size() == size) {
+                            TranslationManagerImpl.this.cachedTranslations.put(locale, cachedFile);
+                        }
+                        // 读取文件
+                        else {
+                            try (InputStream inputStream = Files.newInputStream(path)) {
+                                // 读取
+                                YamlDocument locLangDocument = plugin.configurationManager().sparrowYaml().load(inputStream);
+                                Map<String, String> langData = loadLangData(locLangDocument);
+                                if (langData.isEmpty()) return FileVisitResult.CONTINUE;
+                                // 更新
+                                String fileLangVersion = locLangDocument.getOrDefault("", String.class, Route.from(LANGUAGE_VERSION_KEY));
+                                if (!TranslationManagerImpl.this.langVersion.equals(fileLangVersion) && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
+                                    langData = updateLangFile(langData, path);
+                                    BasicFileAttributes updatedAttrs = Files.readAttributes(path, BasicFileAttributes.class);
+                                    lastModifiedTime = updatedAttrs.lastModifiedTime().toMillis();
+                                    size = updatedAttrs.size();
+                                }
+                                // 缓存
+                                cachedFile = new CachedTranslation(langData, lastModifiedTime, size);
+                                TranslationManagerImpl.this.cachedTranslations.put(locale, cachedFile);
+                            } catch (IOException e) {
+                                TranslationManagerImpl.this.plugin.logger().error(TranslationManager.console(LogConstants.TRANSLATION_READ_FAILED, path.toString()), e);
+                                return FileVisitResult.CONTINUE;
+                            }
+                        }
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
             });
         } catch (IOException e) {
             this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_DIRECTORY_FAILED), e);
         }
-    }
-
-    private FileVisitResult loadTranslationFile(Path path, BasicFileAttributes attrs, Map<Locale, CachedTranslation> previousTranslations) {
-        String fileName = path.getFileName().toString();
-        if (!Files.isRegularFile(path) || !fileName.endsWith(".yml")) return FileVisitResult.CONTINUE;
-        String localeName = fileName.substring(0, fileName.length() - ".yml".length());
-        Locale locale = TranslationManager.parseLocale(localeName);
-        if (locale == null) {
-            this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_INVALID_FILE, path.toString()));
-            return FileVisitResult.CONTINUE;
-        }
-        long lastModifiedTime = attrs.lastModifiedTime().toMillis();
-        long size = attrs.size();
-        CachedTranslation cached = previousTranslations.get(locale);
-        if (cached != null && cached.lastModified() == lastModifiedTime && cached.size() == size) {
-            this.cachedTranslations.put(locale, cached);
-            return FileVisitResult.CONTINUE;
-        }
-        return this.readTranslationFile(path, localeName, locale, lastModifiedTime, size);
-    }
-
-    private FileVisitResult readTranslationFile(Path path, String localeName, Locale locale, long lastModifiedTime, long size) {
-        try (InputStream inputStream = Files.newInputStream(path)) {
-            YamlDocument document = this.plugin.configurationManager().sparrowYaml().load(inputStream);
-            Map<String, String> langData = loadLangData(document);
-            if (langData.isEmpty()) return FileVisitResult.CONTINUE;
-            String fileLangVersion = document.getOrDefault("", String.class, Route.from(LANGUAGE_VERSION_KEY));
-            if (!this.langVersion.equals(fileLangVersion) && this.supportedLanguages.contains(localeName)) {
-                langData = updateLangFile(langData, path);
-                BasicFileAttributes updatedAttrs = Files.readAttributes(path, BasicFileAttributes.class);
-                lastModifiedTime = updatedAttrs.lastModifiedTime().toMillis();
-                size = updatedAttrs.size();
-            }
-            this.cachedTranslations.put(locale, new CachedTranslation(langData, lastModifiedTime, size));
-        } catch (IOException exception) {
-            this.plugin.logger().error(TranslationManager.console(LogConstants.TRANSLATION_READ_FAILED, path.toString()), exception);
-        }
-        return FileVisitResult.CONTINUE;
     }
 
     /**
@@ -384,9 +387,8 @@ public final class TranslationManagerImpl implements TranslationManager {
      * 若无法找到对应语言文件, 会输出警告日志.
      */
     private void setSelectedLocale() {
-        Locale forcedLocale = this.plugin.configurationManager().pluginConfig().forcedLocale();
-        if (forcedLocale != null) {
-            this.selectedLocale = forcedLocale;
+        if (PluginConfig.forcedLocale() != null) {
+            this.selectedLocale = PluginConfig.forcedLocale();
             return;
         }
 

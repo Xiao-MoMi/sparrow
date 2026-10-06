@@ -46,46 +46,38 @@ public final class CustomNameCommand extends BukkitCommandFeature {
                 return;
             }
             if (input != null) {
-                this.setName(context, player, item, input);
+                Component name;
+                net.minecraft.network.chat.Component minecraftName;
+                try {
+                    boolean placeholders = PluginConfig.text().parsePlaceholder() || context.flags().hasFlag("parse");
+                    String text = placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, input) : input;
+                    name = context.flags().hasFlag("json") ? AdventureHelper.jsonToComponent(text)
+                            : Components.miniMessage("<!i>" + text, context.flags().hasFlag("legacy-color"));
+                    minecraftName = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(name));
+                } catch (RuntimeException exception) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_INVALID);
+                    return;
+                }
+                item.set(DataComponents.CUSTOM_NAME, minecraftName);
+                this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS, name, Component.text(player.getName()));
                 return;
             }
-            this.showName(context, player, item);
+            net.minecraft.network.chat.Component name = item.get(DataComponents.CUSTOM_NAME);
+            if (name == null) {
+                this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED, Component.text(player.getName()));
+                return;
+            }
+            String json = CraftChatMessage.toJSON(name);
+            Component preview = AdventureHelper.jsonToComponent(json);
+            String miniMessage = AdventureHelper.miniMessage().serialize(preview);
+            String usage = this.commandConfig().getUsages().getFirst() + " " + player.getName();
+            Component editHint = MessageConstants.COMMAND_CUSTOM_NAME_EDIT.build();
+            Component jsonEditor = Component.text(json, NamedTextColor.GRAY).hoverEvent(editHint)
+                    .clickEvent(ClickEvent.suggestCommand(usage + " " + json + " --json"));
+            Component miniMessageEditor = Component.text(miniMessage, NamedTextColor.WHITE).hoverEvent(editHint)
+                    .clickEvent(ClickEvent.suggestCommand(usage + " " + miniMessage));
+            this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_QUERY, preview, jsonEditor, miniMessageEditor, Component.text(player.getName()));
         }, () -> {}, player);
-    }
-
-    private void setName(CommandContext<CommandSender> context, Player player, ItemStack item, String input) {
-        Component name;
-        net.minecraft.network.chat.Component minecraftName;
-        try {
-            boolean placeholders = this.plugin().configurationManager().pluginConfig().text().parsePlaceholder() || context.flags().hasFlag("parse");
-            String text = placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, input) : input;
-            name = context.flags().hasFlag("json") ? AdventureHelper.jsonToComponent(text)
-                    : Components.miniMessage("<!i>" + text, context.flags().hasFlag("legacy-color"));
-            minecraftName = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(name));
-        } catch (RuntimeException exception) {
-            this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_INVALID);
-            return;
-        }
-        item.set(DataComponents.CUSTOM_NAME, minecraftName);
-        this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS, name, Component.text(player.getName()));
-    }
-
-    private void showName(CommandContext<CommandSender> context, Player player, ItemStack item) {
-        net.minecraft.network.chat.Component name = item.get(DataComponents.CUSTOM_NAME);
-        if (name == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED, Component.text(player.getName()));
-            return;
-        }
-        String json = CraftChatMessage.toJSON(name);
-        Component preview = AdventureHelper.jsonToComponent(json);
-        String miniMessage = AdventureHelper.miniMessage().serialize(preview);
-        String usage = this.commandConfig().getUsages().getFirst() + " " + player.getName();
-        Component editHint = MessageConstants.COMMAND_CUSTOM_NAME_EDIT.build();
-        Component jsonEditor = Component.text(json, NamedTextColor.GRAY).hoverEvent(editHint)
-                .clickEvent(ClickEvent.suggestCommand(usage + " " + json + " --json"));
-        Component miniMessageEditor = Component.text(miniMessage, NamedTextColor.WHITE).hoverEvent(editHint)
-                .clickEvent(ClickEvent.suggestCommand(usage + " " + miniMessage));
-        this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_QUERY, preview, jsonEditor, miniMessageEditor, Component.text(player.getName()));
     }
 
     @Override

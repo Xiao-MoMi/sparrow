@@ -17,13 +17,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 public final class QuickShulkerFeature extends Feature<QuickShulkerSettings> implements Listener {
-    public static final String FEATURE_ID = "quick-shulker";
+    public static final String ID = "quick-shulker";
 
     private final JavaPlugin plugin;
     private final FeaturesConfig featuresConfig;
 
     public QuickShulkerFeature(@NotNull JavaPlugin plugin, @NotNull FeaturesConfig featuresConfig) {
-        super(FEATURE_ID);
+        super(ID);
         this.plugin = plugin;
         this.featuresConfig = featuresConfig;
     }

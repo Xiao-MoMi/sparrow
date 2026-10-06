@@ -25,7 +25,7 @@ public final class MaxPlayersCommand extends BukkitCommandFeature {
 
     // 不带参数时查询, -1 恢复为 server.properties 的值
     private void execute(CommandContext<CommandSender> context) {
-        PlayerLimitFeature feature = this.plugin().featureManager().feature(PlayerLimitFeature.FEATURE_ID, PlayerLimitFeature.class);
+        PlayerLimitFeature feature = this.plugin().featureManager().feature(PlayerLimitFeature.ID, PlayerLimitFeature.class);
         Integer amount = context.getOrDefault("amount", null);
         if (amount == null) {
             Component online = Component.text(this.plugin().playerManager().getOnlinePlayers().size());

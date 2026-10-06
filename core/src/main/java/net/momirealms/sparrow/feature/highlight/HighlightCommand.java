@@ -45,13 +45,33 @@ public final class HighlightCommand extends BukkitCommandFeature {
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        HighlightFeature feature = this.plugin().featureManager().feature(HighlightFeature.FEATURE_ID, HighlightFeature.class);
+        HighlightFeature feature = this.plugin().featureManager().feature(HighlightFeature.ID, HighlightFeature.class);
         Location first = context.flags().getValue("from", null);
         Location second = context.flags().getValue("to", null);
+        if ((first == null) != (second == null)) {
+            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_POINTS);
+            return;
+        }
         Player sender = context.sender() instanceof Player player ? player : null;
-        if (!this.validatePoints(context, feature, sender, first, second)) return;
-        World world = this.resolveWorld(context, sender);
+        if (first == null && sender == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_POINTS);
+            return;
+        }
+        if (first == null && feature.cancelSelection(sender)) {
+            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_CANCELLED);
+            return;
+        }
+        if (first == null && context.flags().hasFlag(WORLD_FLAG)) {
+            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_POINTS);
+            return;
+        }
+        World world = context.flags().getValue(WORLD_FLAG, sender == null ? null : sender.getWorld());
         if (world == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_WORLD);
+            return;
+        }
+        if (world.getDifficulty() == Difficulty.PEACEFUL) {
+            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_PEACEFUL);
             return;
         }
         MultiplePlayerSelector selector = context.getOrDefault("targets", null);
@@ -75,37 +95,8 @@ public final class HighlightCommand extends BukkitCommandFeature {
         }
     }
 
-    private boolean validatePoints(CommandContext<CommandSender> context, HighlightFeature feature, Player sender, Location first, Location second) {
-        if ((first == null) != (second == null) || (first == null && sender == null)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_POINTS);
-            return false;
-        }
-        if (first == null && feature.cancelSelection(sender)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_CANCELLED);
-            return false;
-        }
-        if (first == null && context.flags().hasFlag(WORLD_FLAG)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_POINTS);
-            return false;
-        }
-        return true;
-    }
-
-    private World resolveWorld(CommandContext<CommandSender> context, Player sender) {
-        World world = context.flags().getValue(WORLD_FLAG, sender == null ? null : sender.getWorld());
-        if (world == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_WORLD);
-            return null;
-        }
-        if (world.getDifficulty() == Difficulty.PEACEFUL) {
-            this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_PEACEFUL);
-            return null;
-        }
-        return world;
-    }
-
     @Override
     public String getFeatureID() {
-        return HighlightFeature.FEATURE_ID;
+        return HighlightFeature.ID;
     }
 }

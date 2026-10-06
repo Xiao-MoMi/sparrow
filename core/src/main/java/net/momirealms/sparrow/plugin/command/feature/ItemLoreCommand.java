@@ -53,97 +53,74 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
-        this.plugin().scheduler().platform().run(() -> this.executeOnPlayer(context, player), () -> {}, player);
-    }
-
-    private void executeOnPlayer(CommandContext<Player> context, Player player) {
-        ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
-        if (item.isEmpty()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_ITEMLESS);
-            return;
-        }
-        List<net.minecraft.network.chat.Component> lines = new ArrayList<>(item.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines());
-        Operation operation = context.flags().getValue("operation", null);
-        if (operation == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_QUERY, this.getQueryResult(player, lines));
-            return;
-        }
-        Integer line = context.flags().getValue("line", null);
-        if (!this.validateLine(context, player, lines, operation, line)) return;
-        if (!this.applyOperation(context, lines, operation, line)) return;
-        if (lines.isEmpty()) {
-            item.remove(DataComponents.LORE);
-        } else {
-            item.set(DataComponents.LORE, new ItemLore(List.copyOf(lines)));
-        }
-        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_SUCCESS, this.getQueryResult(player, lines));
-    }
-
-    private boolean validateLine(CommandContext<Player> context, Player player, List<net.minecraft.network.chat.Component> lines, Operation operation, Integer line) {
-        if (line == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--line"));
-            return false;
-        }
-        if (operation == Operation.REMOVE || operation == Operation.UP || operation == Operation.DOWN) {
-            Integer internal = context.flags().getValue("internal", null);
-            if (internal != null && internal != this.internalId(player)) {
-                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_EXPIRED);
-                return false;
+        this.plugin().scheduler().platform().run(() -> {
+            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
+            if (item.isEmpty()) {
+                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_ITEMLESS);
+                return;
             }
-        }
-        int minimum = operation == Operation.UP ? 2 : 1;
-        int maximum = lines.size() + (operation == Operation.INSERT ? 1 : operation == Operation.DOWN ? -1 : 0);
-        if (line < minimum || line > maximum) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_BOUND, Component.text(line),
-                    Component.text(maximum < minimum ? 0 : minimum), Component.text(maximum < minimum ? 0 : maximum));
-            return false;
-        }
-        return true;
-    }
-
-    private boolean applyOperation(CommandContext<Player> context, List<net.minecraft.network.chat.Component> lines, Operation operation, int line) {
-        return switch (operation) {
-            case INSERT, EDIT -> this.editLine(context, lines, operation, line);
-            case REMOVE -> {
-                lines.remove(line - 1);
-                yield true;
+            List<net.minecraft.network.chat.Component> lines = new ArrayList<>(item.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines());
+            Operation operation = context.flags().getValue("operation", null);
+            if (operation == null) {
+                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_QUERY, this.getQueryResult(player, lines));
+                return;
             }
-            case UP -> {
-                Collections.swap(lines, line - 1, line - 2);
-                yield true;
+            Integer line = context.flags().getValue("line", null);
+            if (line == null) {
+                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--line"));
+                return;
             }
-            case DOWN -> {
-                Collections.swap(lines, line - 1, line);
-                yield true;
+            if (operation == Operation.REMOVE || operation == Operation.UP || operation == Operation.DOWN) {
+                Integer internal = context.flags().getValue("internal", null);
+                if (internal != null && internal != this.internalId(player)) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_EXPIRED);
+                    return;
+                }
             }
-        };
-    }
-
-    private boolean editLine(CommandContext<Player> context, List<net.minecraft.network.chat.Component> lines, Operation operation, int line) {
-        String input = context.flags().getValue("lore", null);
-        if (input == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--lore"));
-            return false;
-        }
-        if (operation == Operation.INSERT && lines.size() >= ItemLore.MAX_LINES) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_LIMIT, Component.text(ItemLore.MAX_LINES));
-            return false;
-        }
-        net.minecraft.network.chat.Component text;
-        try {
-            Component parsed = context.flags().hasFlag("json") ? AdventureHelper.jsonToComponent(input)
-                    : Components.miniMessage("<!i><white>" + input, context.flags().hasFlag("legacy-color"));
-            text = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(parsed));
-        } catch (RuntimeException exception) {
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_INVALID);
-            return false;
-        }
-        if (operation == Operation.INSERT) {
-            lines.add(line - 1, text);
-        } else {
-            lines.set(line - 1, text);
-        }
-        return true;
+            int minimum = operation == Operation.UP ? 2 : 1;
+            int maximum = lines.size() + (operation == Operation.INSERT ? 1 : operation == Operation.DOWN ? -1 : 0);
+            if (line < minimum || line > maximum) {
+                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_BOUND, Component.text(line),
+                        Component.text(maximum < minimum ? 0 : minimum), Component.text(maximum < minimum ? 0 : maximum));
+                return;
+            }
+            switch (operation) {
+                case INSERT, EDIT -> {
+                    String input = context.flags().getValue("lore", null);
+                    if (input == null) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--lore"));
+                        return;
+                    }
+                    if (operation == Operation.INSERT && lines.size() >= ItemLore.MAX_LINES) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_LIMIT, Component.text(ItemLore.MAX_LINES));
+                        return;
+                    }
+                    net.minecraft.network.chat.Component text;
+                    try {
+                        Component parsed = context.flags().hasFlag("json") ? AdventureHelper.jsonToComponent(input)
+                                : Components.miniMessage("<!i><white>" + input, context.flags().hasFlag("legacy-color"));
+                        text = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(parsed));
+                    } catch (RuntimeException exception) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_INVALID);
+                        return;
+                    }
+                    if (operation == Operation.INSERT) {
+                        lines.add(line - 1, text);
+                    } else {
+                        lines.set(line - 1, text);
+                    }
+                }
+                case REMOVE -> lines.remove(line - 1);
+                case UP -> Collections.swap(lines, line - 1, line - 2);
+                case DOWN -> Collections.swap(lines, line - 1, line);
+            }
+            if (lines.isEmpty()) {
+                item.remove(DataComponents.LORE);
+            } else {
+                item.set(DataComponents.LORE, new ItemLore(List.copyOf(lines)));
+            }
+            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_SUCCESS, this.getQueryResult(player, lines));
+        }, () -> {}, player);
     }
 
     private Component getQueryResult(Player player, List<net.minecraft.network.chat.Component> lines) {

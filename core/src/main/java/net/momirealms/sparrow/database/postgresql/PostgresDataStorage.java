@@ -83,9 +83,21 @@ public final class PostgresDataStorage extends DataStorage {
         String columns = POSTGRES_PLAYER_COLUMN + ", name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
         String values = ":" + POSTGRES_PLAYER_COLUMN + ", :name, :time, :time" + (logout ? ", :server, CAST(:location AS JSONB)" : "") + (withIp ? ", :ip" : "");
         String table = this.data + ".";
-        String updates = updateClauses(table, time, logout, withIp);
+        String updates = "name = CASE WHEN :time >= " + table + "updated_at THEN :name ELSE " + table + "name END";
+        if (withIp) {
+            updates += ", last_login_ip = CASE WHEN :time >= " + table + "last_login THEN EXCLUDED.last_login_ip ELSE " + table + "last_login_ip END";
+        }
+        if (logout) {
+            String[] fields = {"last_logout_server", "last_logout_location"};
+            for (int i = 0; i < fields.length; i++) {
+                String field = fields[i];
+                updates += ", " + field + " = CASE WHEN :time >= " + table + time + " THEN EXCLUDED." + field + " ELSE " + table + field + " END";
+            }
+        }
+        // 两服的异步写入可能交错, 登录与下线各自按事件时间更新.
+        updates += ", " + time + " = GREATEST(" + table + time + ", :time), updated_at = GREATEST(" + table + "updated_at, :time)";
         String upsert = "INSERT INTO " + this.data + " (" + columns + ") VALUES (" + values + ")"
-                + " ON CONFLICT (" + POSTGRES_PLAYER_COLUMN + ") DO UPDATE SET " + updates;
+                + " ON CONFLICT (player) DO UPDATE SET " + updates;
         return CompletableFuture.runAsync(() -> {
             if (!this.storable(name)) {
                 throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
@@ -101,23 +113,6 @@ public final class PostgresDataStorage extends DataStorage {
                 query.execute();
             });
         }, this.executor);
-    }
-
-    private static String updateClauses(String table, String time, boolean logout, boolean withIp) {
-        String updates = "name = CASE WHEN :time >= " + table + "updated_at THEN :name ELSE " + table + "name END";
-        if (withIp) {
-            updates += ", last_login_ip = CASE WHEN :time >= " + table + "last_login THEN EXCLUDED.last_login_ip ELSE " + table + "last_login_ip END";
-        }
-        if (logout) {
-            String[] fields = {"last_logout_server", "last_logout_location"};
-            for (int i = 0; i < fields.length; i++) {
-                String field = fields[i];
-                updates += ", " + field + " = CASE WHEN :time >= " + table + time + " THEN EXCLUDED." + field + " ELSE " + table + field + " END";
-            }
-        }
-        // 两服的异步写入可能交错, 登录与下线各自按事件时间更新.
-        updates += ", " + time + " = GREATEST(" + table + time + ", :time), updated_at = GREATEST(" + table + "updated_at, :time)";
-        return updates;
     }
 
     @Override

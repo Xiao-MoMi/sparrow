@@ -2,7 +2,6 @@ package net.momirealms.sparrow.player.teleport;
 
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
@@ -64,13 +63,11 @@ class TeleportBrokerTest {
         SparrowPlugin plugin = mock(SparrowPlugin.class);
         when(plugin.redisConnector()).thenReturn(connector);
         when(plugin.logger()).thenReturn(logger);
-        ConfigurationManager configuration = mock(ConfigurationManager.class);
-        ServerConfig serverConfig = mock(ServerConfig.class);
-        when(plugin.configurationManager()).thenReturn(configuration);
-        when(configuration.serverConfig()).thenReturn(serverConfig);
-        when(serverConfig.serverId()).thenReturn(server);
         MessageBrokerManager manager = new MessageBrokerManager(plugin);
-        manager.onLoad();
+        try (var config = mockStatic(ServerConfig.class)) {
+            config.when(ServerConfig::serverId).thenReturn(server);
+            manager.onLoad();
+        }
         return manager;
     }
 }

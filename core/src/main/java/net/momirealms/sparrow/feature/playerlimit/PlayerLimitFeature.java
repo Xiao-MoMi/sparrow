@@ -17,14 +17,14 @@ import java.util.function.Consumer;
  * 上限保存在 features.yml, 不会改写 server.properties.
  */
 public final class PlayerLimitFeature extends Feature<PlayerLimitSettings> {
-    public static final String FEATURE_ID = "player-limit";
+    public static final String ID = "player-limit";
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.player-limit";
 
     private final SparrowPlugin plugin;
     private int defaultMaxPlayers; // 安装时生效的上限, 即 server.properties 的值
 
     public PlayerLimitFeature(@NotNull SparrowPlugin plugin) {
-        super(FEATURE_ID);
+        super(ID);
         this.plugin = plugin;
     }
 
@@ -39,7 +39,7 @@ public final class PlayerLimitFeature extends Feature<PlayerLimitSettings> {
     @Override
     protected void onLoad() {
         this.defaultMaxPlayers = Bukkit.getMaxPlayers();
-        Listener listener = VersionHelper.HAS_PAPER_PATCH ? new PaperPlayerLimitListener(this) : new SpigotPlayerLimitListener(this);
+        Listener listener = VersionHelper.hasPaperPatch ? new PaperPlayerLimitListener(this) : new SpigotPlayerLimitListener(this);
         Bukkit.getPluginManager().registerEvents(listener, this.plugin.javaPlugin());
     }
 

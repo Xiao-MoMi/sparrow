@@ -2,7 +2,6 @@ package net.momirealms.sparrow.redis.heartbeat;
 
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
@@ -100,16 +99,13 @@ class ServerHeartBeatsTest {
                 this.executor.scheduleAtFixedRate(invocation.getArgument(0), invocation.getArgument(1), invocation.getArgument(2), invocation.getArgument(3))));
         MessageBrokerManager brokerManager = new MessageBrokerManager(plugin);
         ServerHeartBeats heartBeats = new ServerHeartBeats(plugin);
-        ConfigurationManager configuration = mock(ConfigurationManager.class);
-        ServerConfig config = mock(ServerConfig.class);
-        when(plugin.configurationManager()).thenReturn(configuration);
-        when(configuration.serverConfig()).thenReturn(config);
-        when(config.serverId()).thenReturn(serverId);
         when(plugin.redisConnector()).thenReturn(connector);
         when(plugin.logger()).thenReturn(mock(PluginLogger.class));
         when(plugin.scheduler()).thenReturn(scheduler);
         when(plugin.messageBrokerManager()).thenReturn(brokerManager);
-        try (MockedStatic<TranslationManager> translations = mockStatic(TranslationManager.class)) {
+        try (MockedStatic<ServerConfig> config = mockStatic(ServerConfig.class);
+             MockedStatic<TranslationManager> translations = mockStatic(TranslationManager.class)) {
+            config.when(ServerConfig::serverId).thenReturn(serverId);
             translations.when(() -> TranslationManager.console(anyString(), any(String[].class))).thenReturn("");
             brokerManager.onLoad();
             this.cleanups.add(brokerManager::onDisable);

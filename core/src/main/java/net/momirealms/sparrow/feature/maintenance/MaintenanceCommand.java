@@ -24,7 +24,7 @@ public final class MaintenanceCommand extends BukkitCommandFeature {
 
     // 不带参数时查询当前状态
     private void execute(CommandContext<CommandSender> context) {
-        MaintenanceFeature feature = this.plugin().featureManager().feature(MaintenanceFeature.FEATURE_ID, MaintenanceFeature.class);
+        MaintenanceFeature feature = this.plugin().featureManager().feature(MaintenanceFeature.ID, MaintenanceFeature.class);
         Boolean active = context.getOrDefault("active", null);
         if (active == null) {
             this.handleFeedback(context, feature.active() ? MessageConstants.COMMAND_MAINTENANCE_ACTIVE : MessageConstants.COMMAND_MAINTENANCE_INACTIVE);
@@ -36,6 +36,6 @@ public final class MaintenanceCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return MaintenanceFeature.FEATURE_ID;
+        return MaintenanceFeature.ID;
     }
 }

@@ -10,6 +10,7 @@ import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterRoster;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.command.parser.ServerParser;
 import net.momirealms.sparrow.player.teleport.TeleportManager;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
@@ -56,7 +57,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
         javaPlugin.getServer().getMessenger().registerOutgoingPluginChannel(javaPlugin, ServerParser.CHANNEL);
         this.teleports.onEnable();
-        Listener loginListener = VersionHelper.HAS_PAPER_PATCH ? new PaperLoginListener(this) : new SpigotLoginListener(this);
+        Listener loginListener = VersionHelper.hasPaperPatch ? new PaperLoginListener(this) : new SpigotLoginListener(this);
         javaPlugin.getServer().getPluginManager().registerEvents(loginListener, javaPlugin);
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
         this.cluster.onEnable();
@@ -122,7 +123,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         }
         String name = player.getName();
         this.plugin.dataStorage()
-                .saveLogout(player.getUniqueId(), name, System.currentTimeMillis(), this.plugin.configurationManager().serverConfig().serverId(), WorldLocation.from(player.getLocation()))
+                .saveLogout(player.getUniqueId(), name, System.currentTimeMillis(), ServerConfig.serverId(), WorldLocation.from(player.getLocation()))
                 .whenComplete((ignored, failure) -> {
                     if (failure != null) {
                         this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
