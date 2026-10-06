@@ -311,8 +311,8 @@ public final class TranslationManagerImpl implements TranslationManager {
                                 Map<String, String> langData = loadLangData(locLangDocument);
                                 if (langData.isEmpty()) return FileVisitResult.CONTINUE;
                                 // 更新
-                                String langVersion = locLangDocument.getOrDefault("", String.class, Route.from(LANGUAGE_VERSION_KEY));
-                                if (!TranslationManagerImpl.this.langVersion.equals(langVersion) && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
+                                String fileLangVersion = locLangDocument.getOrDefault("", String.class, Route.from(LANGUAGE_VERSION_KEY));
+                                if (!TranslationManagerImpl.this.langVersion.equals(fileLangVersion) && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
                                     langData = updateLangFile(langData, path);
                                     BasicFileAttributes updatedAttrs = Files.readAttributes(path, BasicFileAttributes.class);
                                     lastModifiedTime = updatedAttrs.lastModifiedTime().toMillis();

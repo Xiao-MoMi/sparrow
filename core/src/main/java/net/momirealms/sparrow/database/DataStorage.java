@@ -17,6 +17,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public abstract class DataStorage implements AutoCloseable {
+    protected static final String PLAYER_COLUMN = "player";
+
     protected final PluginConfig.DatabaseOptions options;
     protected final Executor executor;
     protected final PluginLogger logger;

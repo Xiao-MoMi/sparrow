@@ -94,7 +94,7 @@ public abstract class SqlBanStore implements BanStore {
     public CompletableFuture<Boolean> saveBan(@NotNull BanRecord banRecord) {
         IpRange ip = banRecord.ip();
         // 带玩家的记录覆盖该玩家的旧封禁, 纯 IP 记录覆盖同一段的纯 IP 封禁
-        String sameTarget = banRecord.player() != null ? PLAYER_MATCH : PLAYER + " IS NULL AND " + IP_START + " = :" + IP_START + " AND " + IP_END + " = :" + IP_END;
+        String sameTarget = banRecord.player() != null ? PLAYER_MATCH : PLAYER + " IS NULL" + AND + IP_START + " = :" + IP_START + AND + IP_END + " = :" + IP_END;
         String revoke = "UPDATE " + this.bans + " SET revoked_at = :now, revoked_by = :by" + WHERE + ACTIVE + AND + sameTarget;
         String insert = "INSERT INTO " + this.bans + " (id, " + PLAYER + ", " + PLAYER_NAME + ", " + IP_START + ", " + IP_END + ", reason, operator_name, server, created_at, expires_at)"
                 + " VALUES (:id, :" + PLAYER + ", :" + PLAYER_NAME + ", :" + IP_START + ", :" + IP_END + ", :reason, :operator_name, :server, :created_at, :expires_at)";
@@ -123,7 +123,7 @@ public abstract class SqlBanStore implements BanStore {
     public CompletableFuture<List<BanRecord>> revokeBans(@NotNull BanTarget target, long now, @NotNull String revokedBy) {
         String match = switch (target) {
             case BanTarget.PlayerTarget ignored -> PLAYER_MATCH;
-            case BanTarget.IpTarget ignored -> PLAYER + " IS NULL AND " + IP_START + " = :" + IP_START + " AND " + IP_END + " = :" + IP_END;
+            case BanTarget.IpTarget ignored -> PLAYER + " IS NULL" + AND + IP_START + " = :" + IP_START + AND + IP_END + " = :" + IP_END;
             case BanTarget.IdTarget ignored -> "id = :id";
         };
         String select = SELECT_ALL + this.bans + WHERE + ACTIVE + AND + match;
@@ -198,7 +198,7 @@ public abstract class SqlBanStore implements BanStore {
 
     private <S extends SqlStatement<S>> S bindTarget(S statement, BanTarget target) {
         return switch (target) {
-            case BanTarget.PlayerTarget player -> this.bindUuid(statement, PLAYER, player.uuid());
+            case BanTarget.PlayerTarget(var uuid, var name) -> this.bindUuid(statement, PLAYER, uuid);
             case BanTarget.IpTarget ip -> statement.bind(IP_START, ip.range().start()).bind(IP_END, ip.range().end());
             case BanTarget.IdTarget id -> statement.bind("id", id.id());
         };
