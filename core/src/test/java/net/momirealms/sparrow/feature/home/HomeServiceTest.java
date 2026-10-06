@@ -33,6 +33,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongSupplier;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -280,6 +281,58 @@ class HomeServiceTest {
             assertEquals(HomeService.Status.INVALID_NAME, this.service.set(this.owner, invalid, "new", home.location(), 3).join().status());
             verify(this.store, never()).findByName(this.owner, invalid);
         }
+    }
+
+    @Test
+    void editsCurrentRecordsWithinTheirOwnerAndOnlyInvalidatesSuccessfulWrites() {
+        Home original = this.home("home");
+        AtomicReference<Home> stored = new AtomicReference<>(original);
+        when(this.store.find(original.id())).thenAnswer(invocation -> CompletableFuture.completedFuture(Optional.of(stored.get())));
+        when(this.store.update(any())).thenAnswer(invocation -> {
+            Home updated = invocation.getArgument(0);
+            stored.set(updated);
+            return CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, updated));
+        });
+        this.service.join(this.player());
+        HomeSnapshot before = this.service.snapshot(this.owner).join();
+        long startedAt = System.currentTimeMillis();
+        HomeService.Result renamed = this.service.rename(this.owner, original.id(), "矿场").join();
+        assertEquals(HomeService.Status.UPDATED, renamed.status());
+        assertEquals(original.id(), renamed.home().id());
+        assertEquals(original.owner(), renamed.home().owner());
+        assertEquals(original.createdAt(), renamed.home().createdAt());
+        assertEquals(original.location(), renamed.home().location());
+        assertTrue(renamed.home().updatedAt() >= startedAt);
+        assertNotSame(before, this.service.snapshot(this.owner).join());
+
+        WorldLocation destination = new WorldLocation("nether", 3, 65, 4, 90, 0);
+        HomeService.Result moved = this.service.relocate(this.owner, original.id(), "new-server", destination).join();
+        assertEquals(HomeService.Status.UPDATED, moved.status());
+        assertEquals("矿场", moved.home().name());
+        assertEquals(original.createdAt(), moved.home().createdAt());
+        assertEquals("new-server", moved.home().server());
+        assertEquals(destination, moved.home().location());
+        assertEquals(2, this.published.size());
+        assertTrue(this.published.stream().allMatch(message -> this.owner.equals(message.owner())));
+
+        doReturn(CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.DUPLICATE_NAME, null))).when(this.store).update(any());
+        HomeSnapshot current = this.service.snapshot(this.owner).join();
+        assertEquals(HomeService.Status.DUPLICATE_NAME, this.service.rename(this.owner, original.id(), "occupied").join().status());
+        assertSame(current, this.service.snapshot(this.owner).join());
+        for (String invalid : List.of("a.b", "a b", "-flag", "a".repeat(33))) {
+            assertEquals(HomeService.Status.INVALID_NAME, this.service.rename(this.owner, original.id(), invalid).join().status());
+        }
+        UUID stranger = UUID.randomUUID();
+        assertEquals(HomeService.Status.NOT_FOUND, this.service.rename(stranger, original.id(), "stolen").join().status());
+        assertEquals(HomeService.Status.NOT_FOUND, this.service.relocate(stranger, original.id(), "s", destination).join().status());
+        when(this.store.find(original.id())).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+        assertEquals(HomeService.Status.NOT_FOUND, this.service.rename(this.owner, original.id(), "gone").join().status());
+        when(this.store.find(original.id())).thenReturn(CompletableFuture.failedFuture(new IllegalStateException("database unavailable")));
+        assertThrows(CompletionException.class, () -> this.service.relocate(this.owner, original.id(), "s", destination).join());
+        verify(this.store, times(3)).update(any());
+        verify(this.store, never()).create(any());
+        verify(this.store, never()).countByOwner(any());
+        assertEquals(2, this.published.size());
     }
 
     @Test

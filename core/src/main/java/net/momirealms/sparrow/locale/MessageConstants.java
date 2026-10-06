@@ -113,6 +113,9 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_SET_HOME_EXISTS = Component.translatable("command.set-home.exists");
     TranslatableComponent COMMAND_SET_HOME_LIMIT = Component.translatable("command.set-home.limit");
     TranslatableComponent COMMAND_DEL_HOME_SUCCESS = Component.translatable("command.del-home.success");
+    TranslatableComponent COMMAND_EDIT_HOME_RENAMED = Component.translatable("command.edit-home.renamed");
+    TranslatableComponent COMMAND_EDIT_HOME_RELOCATED = Component.translatable("command.edit-home.relocated");
+    TranslatableComponent COMMAND_EDIT_HOME_EXISTS = Component.translatable("command.edit-home.exists");
     TranslatableComponent COMMAND_DEL_ALL_HOME_FILTER_REQUIRED = Component.translatable("command.del-all-home.filter-required");
     TranslatableComponent COMMAND_DEL_ALL_HOME_SUCCESS = Component.translatable("command.del-all-home.success");
 

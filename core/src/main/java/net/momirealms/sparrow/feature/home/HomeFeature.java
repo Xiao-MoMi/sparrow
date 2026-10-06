@@ -43,6 +43,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         register.accept(new DelHomeCommand(this));
         register.accept(new DelAllHomeCommand(this));
         register.accept(new HomeListCommand(this));
+        register.accept(new EditHomeCommand(this));
     }
 
     @Override

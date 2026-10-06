@@ -83,15 +83,20 @@ public final class CommandPanel {
      */
     @NotNull
     public CommandPanel navigation(@NotNull String featureId, @NotNull TextPage<?> page, @NotNull IntFunction<String> pageArguments) {
-        Component previous = this.run(label("previous"), featureId, page.hasPrevious() ? pageArguments.apply(page.index()) : "")
+        return this.navigation(featureId, page, pageArguments, false);
+    }
+
+    @NotNull
+    public CommandPanel navigation(@NotNull String featureId, @NotNull TextPage<?> page, @NotNull IntFunction<String> pageArguments, boolean suggest) {
+        Component previous = new PanelButton(this.manager, this.sender, label("previous"), featureId, page.hasPrevious() ? pageArguments.apply(page.index()) : "", suggest)
                 .style(PanelButton.Style.POSITIVE)
                 .disabled(page.hasPrevious() ? null : Component.translatable("command.panel.first_page"))
                 .build();
-        Component next = this.run(label("next"), featureId, page.hasNext() ? pageArguments.apply(page.index() + 2) : "")
+        Component next = new PanelButton(this.manager, this.sender, label("next"), featureId, page.hasNext() ? pageArguments.apply(page.index() + 2) : "", suggest)
                 .style(PanelButton.Style.POSITIVE)
                 .disabled(page.hasNext() ? null : Component.translatable("command.panel.last_page"))
                 .build();
-        Component refresh = this.run(label("refresh"), featureId, pageArguments.apply(page.index() + 1)).build();
+        Component refresh = new PanelButton(this.manager, this.sender, label("refresh"), featureId, pageArguments.apply(page.index() + 1), suggest).build();
         return this.line(Component.translatable("command.panel.navigation", previous, Component.text(page.index() + 1), Component.text(page.count()), next, refresh));
     }
 

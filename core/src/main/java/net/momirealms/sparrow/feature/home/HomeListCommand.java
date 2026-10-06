@@ -71,13 +71,16 @@ public final class HomeListCommand extends AbstractHomeCommand {
         for (int i = 0; i < content.size(); i++) {
             Home home = content.get(i);
             String target = self ? home.name() : owner.name() + "." + home.name();
-            PanelButton travel = panel.run(Component.text(home.name()), "home", target).playersOnly();
+            PanelButton travel = panel.suggest(Component.text(home.name()), "home", target).playersOnly();
+            PanelButton edit = panel.suggest(CommandPanel.label("edit"), "edit-home", target);
             if (!self) {
                 travel.permission(this.feature.permission("home") + ".other");
+                edit.permission(this.feature.permission("edit-home") + ".other");
             }
-            panel.line(Component.translatable("command.home-list.entry", travel.build(), Component.text(home.server()), Component.text(home.location().world())));
+            Component entry = Component.translatable("command.home-list.entry", travel.build(), Component.text(home.server()), Component.text(home.location().world()));
+            panel.line(edit.available() ? entry.append(Component.space()).append(edit.build()) : entry);
         }
-        panel.navigation(this.getFeatureID(), page, number -> self ? String.valueOf(number) : "other " + owner.name() + " " + number).send();
+        panel.navigation(this.getFeatureID(), page, number -> self ? String.valueOf(number) : "other " + owner.name() + " " + number, true).send();
     }
 
     @Override

@@ -56,6 +56,7 @@ class HomeCommandsTest {
     private PluginTestContext context;
     private HomeFeature feature;
     private HomeListCommand list;
+    private EditHomeCommand edit;
 
     @BeforeEach
     void setUp() throws ReflectiveOperationException {
@@ -92,6 +93,8 @@ class HomeCommandsTest {
         this.register(new DelAllHomeCommand(this.feature));
         this.list = new HomeListCommand(this.feature);
         this.register(this.list);
+        this.edit = new EditHomeCommand(this.feature);
+        this.register(this.edit);
     }
 
     @AfterEach
@@ -208,34 +211,114 @@ class HomeCommandsTest {
         }
         when(this.store.loadByOwner(this.other)).thenReturn(CompletableFuture.completedFuture(homes));
         this.list.setCommandConfig(new CommandConfig(true, List.of("/houses"), "sparrow.command.home-list"));
+        this.edit.setCommandConfig(new CommandConfig(true, List.of("/manage-home"), "sparrow.command.edit-home"));
         ((AbstractHomeCommand) this.feedback.feature("home")).setCommandConfig(new CommandConfig(true, List.of("/travel-home"), "sparrow.command.home"));
         this.execute(this.player, "home-list other Offline.User 99");
-        ArgumentCaptor<Component[]> arguments = ArgumentCaptor.forClass(Component[].class);
-        verify(this.feedback).handleCommandFeedback(eq(this.player), argThat(key -> key.key().equals(CommandPanel.MESSAGE_KEY)), arguments.capture());
-        ArrayDeque<Component> pending = new ArrayDeque<>(List.of(arguments.getValue()));
-        List<ClickEvent> clicks = new ArrayList<>();
-        int entries = 0;
-        while (!pending.isEmpty()) {
-            Component component = pending.removeFirst();
-            if (component.clickEvent() != null) {
-                clicks.add(component.clickEvent());
-            }
-            pending.addAll(component.children());
-            if (component instanceof TranslatableComponent translated) {
-                if (translated.key().equals("command.home-list.entry")) entries++;
-                for (var argument : translated.arguments()) {
-                    if (argument.value() instanceof Component value) pending.add(value);
-                }
-            }
-        }
-        assertEquals(2, entries);
-        assertTrue(clicks.contains(ClickEvent.runCommand("/houses other Offline.User 1")));
-        assertTrue(clicks.contains(ClickEvent.runCommand("/houses other Offline.User 2")));
+        List<Component> panel = this.panel(this.player);
+        List<ClickEvent> clicks = panel.stream().filter(component -> component.clickEvent() != null).map(Component::clickEvent).toList();
+        assertEquals(2, panel.stream().filter(component -> component instanceof TranslatableComponent translated && translated.key().equals("command.home-list.entry")).count());
+        assertTrue(clicks.contains(ClickEvent.suggestCommand("/houses other Offline.User 1")));
+        assertTrue(clicks.contains(ClickEvent.suggestCommand("/houses other Offline.User 2")));
+        assertTrue(clicks.stream().allMatch(click -> click.action() == ClickEvent.Action.SUGGEST_COMMAND));
         assertEquals(2, clicks.stream().filter(click -> click.value().startsWith("/travel-home Offline.User.")).count());
+        assertEquals(2, clicks.stream().filter(click -> click.value().startsWith("/manage-home Offline.User.")).count());
+        when(this.player.hasPermission("sparrow.command.edit-home.other")).thenReturn(false);
+        this.execute(this.player, "home-list other Offline.User 99");
+        assertFalse(this.panel(this.player).stream().anyMatch(component -> component.clickEvent() != null && component.clickEvent().value().startsWith("/manage-home")));
         when(this.player.hasPermission("sparrow.command.home-list.other")).thenReturn(false);
         clearInvocations(this.store);
         assertThrows(CompletionException.class, () -> this.execute(this.player, "home-list other Offline.User"));
         verify(this.store, never()).loadByOwner(this.other);
+        verifyNoInteractions(this.plugin.scheduler().platform());
+    }
+
+    @Test
+    void editingRequiresBothOperationAndOwnerPermissionsAndRefreshesWithCommittedData() {
+        Home home = this.home(this.other, "矿场");
+        when(this.player.hasPermission("sparrow.command.edit-home.other")).thenReturn(false);
+        this.execute(this.player, "edit-home Offline.User.矿场 rename 基地");
+        verify(this.store, never()).findByName(this.other, "矿场");
+        this.feedback(MessageConstants.COMMAND_HOME_NO_PERMISSION);
+        when(this.player.hasPermission("sparrow.command.edit-home.other")).thenReturn(true);
+        when(this.player.hasPermission("sparrow.command.edit-home.rename")).thenReturn(false);
+        assertThrows(CompletionException.class, () -> this.execute(this.player, "edit-home Offline.User.矿场 rename 基地"));
+        verify(this.store, never()).findByName(this.other, "矿场");
+        when(this.player.hasPermission("sparrow.command.edit-home.rename")).thenReturn(true);
+        when(this.store.findByName(this.other, "矿场")).thenReturn(CompletableFuture.completedFuture(Optional.of(home)));
+        when(this.store.find(home.id())).thenReturn(CompletableFuture.completedFuture(Optional.of(home)));
+        CompletableFuture<HomeStore.SaveResult> saving = new CompletableFuture<>();
+        when(this.store.update(any())).thenReturn(saving);
+        this.execute(this.player, "edit-home Offline.User.矿场 rename 基地");
+        verify(this.feedback, never()).handleCommandFeedback(eq(this.player), same(MessageConstants.COMMAND_EDIT_HOME_RENAMED), any(Component[].class));
+        Home committed = new Home(home.id(), home.owner(), "基地", "actual-server", home.location(), home.createdAt(), 1234);
+        CompletableFuture.runAsync(() -> saving.complete(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, committed))).join();
+        this.feedback(MessageConstants.COMMAND_EDIT_HOME_RENAMED);
+        assertTrue(this.panel(this.player).stream().anyMatch(component -> ClickEvent.suggestCommand("/home Offline.User.基地").equals(component.clickEvent())));
+        assertTrue(this.panel(this.player).stream().anyMatch(component -> Component.text("actual-server").equals(component)));
+
+        when(this.store.update(any())).thenAnswer(invocation -> CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, invocation.getArgument(0))));
+        this.execute(this.player, "edit-home Offline.User.矿场 relocate");
+        verify(this.store).update(argThat(updated -> updated.server().equals("lobby") && updated.location().world().equals("world") && updated.owner().equals(this.other)));
+        this.feedback(MessageConstants.COMMAND_EDIT_HOME_RELOCATED);
+        assertThrows(CompletionException.class, () -> this.execute(this.console, "edit-home Offline.User.矿场 relocate"));
+        when(this.store.update(any())).thenReturn(CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.DUPLICATE_NAME, null)));
+        clearInvocations(this.feedback);
+        this.execute(this.player, "edit-home Offline.User.矿场 rename occupied");
+        this.feedback(MessageConstants.COMMAND_EDIT_HOME_EXISTS);
+        verify(this.feedback, never()).handleCommandFeedback(eq(this.player), argThat(key -> key.key().equals(CommandPanel.MESSAGE_KEY)), any(Component[].class));
+        when(this.store.findByName(this.other, "矿场")).thenReturn(CompletableFuture.failedFuture(new IllegalStateException("database unavailable")));
+        this.execute(this.player, "edit-home Offline.User.矿场");
+        this.feedback(MessageConstants.COMMAND_HOME_STORAGE_FAILED);
+        verifyNoInteractions(this.plugin.scheduler().platform());
+    }
+
+    @Test
+    void deletesImmediatelyAndPanelsSuggestConfiguredCommandsWithPermissions() {
+        Home home = this.home(this.other, "矿场");
+        when(this.store.findByName(this.other, "矿场")).thenReturn(CompletableFuture.completedFuture(Optional.of(home)));
+        CommandConfig config = new CommandConfig(true, List.of("/manage-home"), "custom.edit-home");
+        this.edit.setCommandConfig(config);
+        when(this.plugin.configurationManager().commandsConfig().configDefinition().command("edit-home")).thenReturn(config);
+        this.list.setCommandConfig(new CommandConfig(true, List.of("/houses"), "sparrow.command.home-list"));
+        this.execute(this.player, "edit-home Offline.User.矿场");
+        List<ClickEvent> clicks = this.panel(this.player).stream().map(Component::clickEvent).filter(click -> click != null).toList();
+        assertTrue(clicks.containsAll(List.of(
+                ClickEvent.suggestCommand("/home Offline.User.矿场"),
+                ClickEvent.suggestCommand("/manage-home Offline.User.矿场 rename "),
+                ClickEvent.suggestCommand("/manage-home Offline.User.矿场 relocate"),
+                ClickEvent.suggestCommand("/manage-home Offline.User.矿场 delete"),
+                ClickEvent.suggestCommand("/houses other Offline.User")
+        )));
+        assertTrue(clicks.stream().allMatch(click -> click.action() == ClickEvent.Action.SUGGEST_COMMAND));
+        verify(this.store, never()).delete(any(), any(UUID.class));
+
+        when(this.store.delete(this.other, home.id())).thenReturn(CompletableFuture.completedFuture(true));
+        clearInvocations(this.feedback);
+        this.execute(this.player, "edit-home Offline.User.矿场 delete");
+        verify(this.store).delete(this.other, home.id());
+        this.feedback(MessageConstants.COMMAND_DEL_HOME_SUCCESS);
+        verify(this.feedback, never()).handleCommandFeedback(eq(this.player), argThat(key -> key.key().equals(CommandPanel.MESSAGE_KEY)), any(Component[].class));
+        when(this.store.findByName(this.other, "矿场")).thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+        this.execute(this.player, "edit-home Offline.User.矿场 delete");
+        verify(this.store).delete(this.other, home.id());
+        this.feedback(MessageConstants.COMMAND_HOME_UNKNOWN);
+        clearInvocations(this.store);
+        when(this.player.hasPermission("sparrow.command.edit-home.delete")).thenReturn(false);
+        assertThrows(CompletionException.class, () -> this.execute(this.player, "edit-home Offline.User.矿场 delete"));
+        when(this.player.hasPermission("sparrow.command.edit-home.delete")).thenReturn(true);
+        when(this.player.hasPermission("custom.edit-home.other")).thenReturn(false);
+        this.execute(this.player, "edit-home Offline.User.矿场 delete");
+        verify(this.store, never()).findByName(any(), anyString());
+        verify(this.store, never()).delete(any(), any(UUID.class));
+
+        when(this.store.findByName(this.other, "矿场")).thenReturn(CompletableFuture.completedFuture(Optional.of(home)));
+        this.list.setCommandConfig(new CommandConfig(false, List.of("/houses"), "sparrow.command.home-list"));
+        when(this.console.hasPermission("custom.edit-home.rename")).thenReturn(false);
+        this.execute(this.console, "edit-home Offline.User.矿场");
+        List<Component> panel = this.panel(this.console);
+        assertFalse(panel.stream().anyMatch(component -> component instanceof TranslatableComponent translated
+                && List.of("command.panel.label.home_list", "command.panel.label.rename", "command.panel.label.teleport", "command.panel.label.relocate").contains(translated.key())));
+        assertTrue(panel.stream().anyMatch(component -> Component.text("/manage-home Offline.User.矿场 delete").equals(component)));
         verifyNoInteractions(this.plugin.scheduler().platform());
     }
 
@@ -266,6 +349,26 @@ class HomeCommandsTest {
         when(this.feedback.feature(id)).thenReturn(command);
         when(this.plugin.configurationManager().commandsConfig().configDefinition().command(id)).thenReturn(config);
         command.registerCommand(this.manager, Command.<CommandSender>newBuilder(id, CommandMeta.empty()).permission(config.getPermission()));
+    }
+
+    private List<Component> panel(CommandSender sender) {
+        ArgumentCaptor<Component[]> arguments = ArgumentCaptor.forClass(Component[].class);
+        verify(this.feedback, atLeastOnce()).handleCommandFeedback(eq(sender), argThat(key -> key.key().equals(CommandPanel.MESSAGE_KEY)), arguments.capture());
+        ArrayDeque<Component> pending = new ArrayDeque<>(List.of(arguments.getValue()));
+        List<Component> components = new ArrayList<>();
+        while (!pending.isEmpty()) {
+            Component component = pending.removeFirst();
+            components.add(component);
+            pending.addAll(component.children());
+            if (component instanceof TranslatableComponent translated) {
+                for (var argument : translated.arguments()) {
+                    if (argument.value() instanceof Component value) {
+                        pending.add(value);
+                    }
+                }
+            }
+        }
+        return components;
     }
 
     private Home home(UUID owner, String name) {

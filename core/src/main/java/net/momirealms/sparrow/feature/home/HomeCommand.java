@@ -2,7 +2,6 @@ package net.momirealms.sparrow.feature.home;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -27,14 +26,11 @@ public final class HomeCommand extends AbstractHomeCommand {
 
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
-        String input = context.getOrDefault("name", null);
-        int separator = input == null ? -1 : input.lastIndexOf('.');
-        String ownerName = separator < 0 ? null : input.substring(0, separator);
-        String name = separator < 0 ? input : input.substring(separator + 1);
-        this.owner(player, ownerName).thenCompose(owner -> {
-            if (owner.isEmpty()) return CompletableFuture.completedFuture(null);
-            PlayerRef target = owner.get();
-            return this.feature.service().snapshot(target.uuid()).thenAccept(snapshot -> {
+        this.target(player, context.getOrDefault("name", null)).thenCompose(found -> {
+            if (found.isEmpty()) return CompletableFuture.completedFuture(null);
+            Target target = found.get();
+            String name = target.name();
+            return this.feature.service().snapshot(target.owner().uuid()).thenAccept(snapshot -> {
                 Home home = name == null ? snapshot.get(this.feature.config().defaultName()) : snapshot.get(name);
                 if (name == null && home == null) {
                     if (snapshot.size() == 1) {

@@ -13,11 +13,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.LongSupplier;
+import java.util.function.UnaryOperator;
 
 public final class HomeService implements AutoCloseable {
     private final HomeStore store;
@@ -71,6 +73,12 @@ public final class HomeService implements AutoCloseable {
         return state == null ? this.store.loadByOwner(owner).thenApply(HomeSnapshot::new) : state.read();
     }
 
+    @NotNull
+    public CompletableFuture<Optional<Home>> find(@NotNull UUID owner, @NotNull String name) {
+        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        return this.store.findByName(owner, name);
+    }
+
     // 同步补全允许暂用过期建议, 但会在后台共用一次刷新.
     @NotNull
     public List<String> complete(@NotNull UUID owner, @NotNull String input, int limit) {
@@ -115,14 +123,37 @@ public final class HomeService implements AutoCloseable {
                 if (limit != CompatibilityManager.UNLIMITED && count >= limit) return CompletableFuture.completedFuture(new Result(Status.LIMIT_REACHED, null));
                 long now = System.currentTimeMillis();
                 return this.create(new Home(UUIDUtils.createV7(), owner, name, server, location, now, now))
-                        .thenApply(this::result);
+                        .thenApply(saved -> this.result(saved, Status.CREATED));
             });
         });
     }
 
-    private Result result(HomeStore.SaveResult saved) {
+    // 编辑按 UUID 读取当前记录, 所有者在整个操作中保持不变.
+    @NotNull
+    public CompletableFuture<Result> rename(@NotNull UUID owner, @NotNull UUID id, @NotNull String name) {
+        HomeSettings settings = SparrowPlugin.instance().configurationManager().featuresConfig().config().home();
+        if (!settings.validName(name)) return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
+        return this.edit(owner, id, home -> new Home(home.id(), home.owner(), name, home.server(), home.location(), home.createdAt(), System.currentTimeMillis()));
+    }
+
+    @NotNull
+    public CompletableFuture<Result> relocate(@NotNull UUID owner, @NotNull UUID id, @NotNull String server, @NotNull WorldLocation location) {
+        return this.edit(owner, id, home -> new Home(home.id(), home.owner(), home.name(), server, location, home.createdAt(), System.currentTimeMillis()));
+    }
+
+    private CompletableFuture<Result> edit(UUID owner, UUID id, UnaryOperator<Home> operation) {
+        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        return this.store.find(id).thenCompose(found -> {
+            if (found.isEmpty() || !found.get().owner().equals(owner)) {
+                return CompletableFuture.completedFuture(new Result(Status.NOT_FOUND, null));
+            }
+            return this.update(operation.apply(found.get())).thenApply(saved -> this.result(saved, Status.UPDATED));
+        });
+    }
+
+    private Result result(HomeStore.SaveResult saved, Status success) {
         return new Result(switch (saved.status()) {
-            case SUCCESS -> Status.CREATED;
+            case SUCCESS -> success;
             case DUPLICATE_NAME -> Status.DUPLICATE_NAME;
             case NOT_FOUND -> Status.NOT_FOUND;
         }, saved.home());
@@ -219,7 +250,7 @@ public final class HomeService implements AutoCloseable {
     }
 
     public enum Status {
-        CREATED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, LIMIT_REACHED
+        CREATED, UPDATED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, LIMIT_REACHED
     }
 
     public record Result(@NotNull Status status, @Nullable Home home) {

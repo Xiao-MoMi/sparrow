@@ -37,6 +37,7 @@ public final class SetHomeCommand extends AbstractHomeCommand {
                 case NOT_FOUND -> MessageConstants.COMMAND_HOME_UNKNOWN;
                 case INVALID_NAME -> MessageConstants.COMMAND_HOME_INVALID_NAME;
                 case LIMIT_REACHED -> MessageConstants.COMMAND_SET_HOME_LIMIT;
+                case UPDATED -> throw new AssertionError();
             };
             this.handleFeedback(context, message, Component.text(name), Component.text(limit), Component.text(Home.MAX_NAME_LENGTH));
         }).exceptionally(error -> { this.failed(player, error); return null; });

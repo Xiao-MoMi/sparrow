@@ -7,6 +7,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
@@ -18,6 +19,14 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
     protected AbstractHomeCommand(HomeFeature feature) {
         super(SparrowPlugin.instance().commandManager(), SparrowPlugin.instance());
         this.feature = feature;
+    }
+
+    @NotNull
+    protected CompletableFuture<Optional<Target>> target(@NotNull CommandSender sender, @Nullable String input) {
+        int separator = input == null ? -1 : input.lastIndexOf('.');
+        String ownerName = separator < 0 ? null : input.substring(0, separator);
+        String name = separator < 0 ? input : input.substring(separator + 1);
+        return this.owner(sender, ownerName).thenApply(owner -> owner.map(found -> new Target(found, name)));
     }
 
     protected CompletableFuture<Optional<PlayerRef>> owner(CommandSender sender, @Nullable String name) {
@@ -47,5 +56,8 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
     protected void failed(CommandSender sender, Throwable error) {
         this.plugin().logger().warn("Home operation failed for " + sender.getName(), error);
         this.handleFeedback(sender, MessageConstants.COMMAND_HOME_STORAGE_FAILED);
+    }
+
+    protected record Target(@NotNull PlayerRef owner, @Nullable String name) {
     }
 }

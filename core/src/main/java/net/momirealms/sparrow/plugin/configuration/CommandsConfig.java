@@ -305,6 +305,10 @@ public final class CommandsConfig {
         @YamlProperty("home-list")
         CommandConfig homeList = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " home-list", "/home-list", "/homelist"), DependencyVersions.PROJECT_ID + ".command.home-list");
 
+        @BlankLineBefore
+        @YamlProperty("edit-home")
+        CommandConfig editHome = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " edit-home", "/edit-home", "/edithome"), DependencyVersions.PROJECT_ID + ".command.edit-home");
+
         // warp 模块
         @BlankLineBefore
         CommandConfig warp = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " warp", "/warp"), DependencyVersions.PROJECT_ID + ".command.warp");
@@ -404,6 +408,7 @@ public final class CommandsConfig {
                 case "del-home" -> this.delHome;
                 case "del-all-home" -> this.delAllHome;
                 case "home-list" -> this.homeList;
+                case "edit-home" -> this.editHome;
                 case "set-warp" -> this.setWarp;
                 case "del-warp" -> this.delWarp;
                 case "warp-list" -> this.warpList;
