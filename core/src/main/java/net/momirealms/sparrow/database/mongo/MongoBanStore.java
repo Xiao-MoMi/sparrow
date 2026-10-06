@@ -99,6 +99,9 @@ final class MongoBanStore implements BanStore {
     @Override
     @NotNull
     public CompletableFuture<Boolean> saveBan(@NotNull BanRecord record) {
+        if (record.player() == null && record.ip() == null) {
+            throw new IllegalArgumentException("Ban record must target a player or IP range");
+        }
         Document document = new Document("_id", record.id())
                 .append(BAN_REASON, record.reason())
                 .append(BAN_OPERATOR_NAME, record.operatorName())
