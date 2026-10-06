@@ -199,7 +199,7 @@ public abstract class SqlBanStore implements BanStore {
     private <S extends SqlStatement<S>> S bindTarget(S statement, BanTarget target) {
         return switch (target) {
             case BanTarget.PlayerTarget(var uuid, var name) -> this.bindUuid(statement, PLAYER, uuid);
-            case BanTarget.IpTarget ip -> statement.bind(IP_START, ip.range().start()).bind(IP_END, ip.range().end());
+            case BanTarget.IpTarget(var range) -> statement.bind(IP_START, range.start()).bind(IP_END, range.end());
             case BanTarget.IdTarget id -> statement.bind("id", id.id());
         };
     }
