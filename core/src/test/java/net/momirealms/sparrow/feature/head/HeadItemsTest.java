@@ -1,5 +1,8 @@
 package net.momirealms.sparrow.feature.head;
 
+import com.google.common.collect.ImmutableMultimap;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.PropertyMap;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.Bootstrap;
@@ -30,5 +33,12 @@ class HeadItemsTest {
         first.setCount(1);
         assertEquals(2, second.getCount());
         assertNotSame(first, second);
+    }
+
+    @Test
+    void returnsNullWhenProfileHasNoTextures() {
+        GameProfile profile = new GameProfile(UUID.randomUUID(), "Tester", new PropertyMap(ImmutableMultimap.of()));
+
+        assertNull(HeadItems.fromProfile(profile));
     }
 }

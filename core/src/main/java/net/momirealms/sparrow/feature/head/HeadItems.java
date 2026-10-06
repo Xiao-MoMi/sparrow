@@ -17,10 +17,10 @@ final class HeadItems {
     }
 
     static HeadData fromProfile(GameProfile profile) {
-        for (Property property : profile.properties().get("textures")) {
-            return new HeadData(profile.id(), profile.name(), property.value(), property.signature());
-        }
-        return null;
+        var textures = profile.properties().get("textures");
+        if (textures.isEmpty()) return null;
+        Property texture = textures.iterator().next();
+        return new HeadData(profile.id(), profile.name(), texture.value(), texture.signature());
     }
 
     // 完整的静态 Profile 随物品保存, 客户端使用本次取得的纹理.

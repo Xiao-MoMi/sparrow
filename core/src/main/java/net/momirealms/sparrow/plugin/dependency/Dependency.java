@@ -137,7 +137,7 @@ public class Dependency {
 
     @Override
     public int hashCode() {
-        return this.toString().hashCode();
+        return Objects.hash(this.groupId, this.artifactId);
     }
 
     @Override

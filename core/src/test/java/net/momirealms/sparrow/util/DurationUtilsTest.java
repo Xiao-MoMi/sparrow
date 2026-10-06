@@ -3,6 +3,7 @@ package net.momirealms.sparrow.util;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,6 +18,11 @@ class DurationUtilsTest {
     @ValueSource(strings = {"", "0s", "-1s", "3", "1m nope", "9223372036854775807d", "0.0001ms", "1.h", ".5h", "1mon"})
     void rejectsMissingUnitsNonPositiveDurationsAndOverflow(String value) {
         assertThrows(RuntimeException.class, () -> DurationUtils.parsePositive(value));
+    }
+
+    @Test
+    void rejectsLongMalformedDurations() {
+        assertThrows(IllegalArgumentException.class, () -> DurationUtils.parsePositive("1".repeat(10_000) + "x"));
     }
 
     @ParameterizedTest
