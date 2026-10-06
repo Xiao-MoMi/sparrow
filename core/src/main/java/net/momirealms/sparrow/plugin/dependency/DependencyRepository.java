@@ -16,7 +16,7 @@ import java.util.Locale;
 public enum DependencyRepository {
 
     // Maven 中央仓库.
-    MAVEN("maven", "https://repo1.maven.org/maven2/") {
+    MAVEN(RepositoryIds.MAVEN, "https://repo1.maven.org/maven2/") {
         @Override
         protected URLConnection openConnection(Dependency dependency) throws IOException {
             URLConnection connection = super.openConnection(dependency);
@@ -27,7 +27,7 @@ public enum DependencyRepository {
     },
     
     // Google 镜像仓库.
-    GOOGLE("maven", "https://maven-central.storage-download.googleapis.com/maven2/") {
+    GOOGLE(RepositoryIds.MAVEN, "https://maven-central.storage-download.googleapis.com/maven2/") {
         @Override
         protected URLConnection openConnection(Dependency dependency) throws IOException {
             URLConnection connection = super.openConnection(dependency);
@@ -38,10 +38,14 @@ public enum DependencyRepository {
     },
     
     // 阿里云 镜像仓库.
-    ALIYUN("maven", "https://maven.aliyun.com/repository/public/");
+    ALIYUN(RepositoryIds.MAVEN, "https://maven.aliyun.com/repository/public/");
 
     private final String url;
     private final String id;
+
+    private static final class RepositoryIds {
+        private static final String MAVEN = "maven";
+    }
 
     /**
      * @param id  仓库的标识符 (例如 "maven").
@@ -84,7 +88,7 @@ public enum DependencyRepository {
             }
         }
         // 中国大陆优先使用国内阿里云镜像
-        if (id.equals("maven") && Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
+        if (id.equals(RepositoryIds.MAVEN) && Locale.getDefault() == Locale.SIMPLIFIED_CHINESE) {
             Collections.reverse(repositories);
         }
         return repositories;

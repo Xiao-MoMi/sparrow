@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 
 public final class HighlightCommand extends BukkitCommandFeature {
+    private static final String WORLD_FLAG = "world";
 
     public HighlightCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
@@ -35,7 +36,7 @@ public final class HighlightCommand extends BukkitCommandFeature {
         return builder.optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .flag(manager.flagBuilder("from").withComponent(LocationFlagParser.locationFlagParser()))
                 .flag(manager.flagBuilder("to").withComponent(LocationFlagParser.locationFlagParser()))
-                .flag(manager.flagBuilder("world").withComponent(WorldParser.worldParser()))
+                .flag(manager.flagBuilder(WORLD_FLAG).withComponent(WorldParser.worldParser()))
                 .flag(manager.flagBuilder("highlight-duration").withAliases("d").withComponent(IntegerParser.integerParser(0, 300)))
                 .flag(manager.flagBuilder("highlight-color").withAliases("c").withComponent(NamedTextColorParser.namedTextColorParser()))
                 .flag(manager.flagBuilder("solid-only"))
@@ -60,11 +61,11 @@ public final class HighlightCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_CANCELLED);
             return;
         }
-        if (first == null && context.flags().hasFlag("world")) {
+        if (first == null && context.flags().hasFlag(WORLD_FLAG)) {
             this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_POINTS);
             return;
         }
-        World world = context.flags().getValue("world", sender == null ? null : sender.getWorld());
+        World world = context.flags().getValue(WORLD_FLAG, sender == null ? null : sender.getWorld());
         if (world == null) {
             this.handleFeedback(context, MessageConstants.COMMAND_HIGHLIGHT_WORLD);
             return;

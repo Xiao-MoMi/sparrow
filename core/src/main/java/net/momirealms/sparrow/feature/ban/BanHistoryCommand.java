@@ -103,9 +103,9 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
             alignedWidth = CharacterUtils.alignedChatWidth(widths);
         }
         for (int i = 0; i < size; i++) {
-            BanRecord record = records.get(i);
-            Component padding = player ? CharacterUtils.chatPadding(alignedWidth - rowWidth(record)) : Component.empty();
-            panel = panel.append(Component.newline()).append(this.row(sender, record, now, padding));
+            BanRecord banRecord = records.get(i);
+            Component padding = player ? CharacterUtils.chatPadding(alignedWidth - rowWidth(banRecord)) : Component.empty();
+            panel = panel.append(Component.newline()).append(this.row(sender, banRecord, now, padding));
         }
         if (size == 0) {
             panel = panel.append(Component.newline()).append(CommandPanel.tr("empty"));
@@ -134,49 +134,49 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
     }
 
     // 玩家看到截断后的对象和执行人, 完整信息在 ID 的悬浮中; 控制台直接输出完整文本
-    private Component row(CommandSender sender, BanRecord record, long now, Component padding) {
+    private Component row(CommandSender sender, BanRecord banRecord, long now, Component padding) {
         boolean player = sender instanceof Player;
-        Component id = BanTexts.id(record.id());
-        Component time = Component.text(player ? CommandPanel.shortTime(record.createdAt()) : CommandPanel.fullTime(record.createdAt()));
-        Component target = Component.text(player ? CharacterUtils.truncate(record.display(), TARGET_LENGTH) : record.display());
-        Component operator = Component.text(player ? CharacterUtils.truncate(record.operatorName(), OPERATOR_LENGTH) : record.operatorName());
-        Component status = BanTexts.status(record, now);
+        Component id = BanTexts.id(banRecord.id());
+        Component time = Component.text(player ? CommandPanel.shortTime(banRecord.createdAt()) : CommandPanel.fullTime(banRecord.createdAt()));
+        Component target = Component.text(player ? CharacterUtils.truncate(banRecord.display(), TARGET_LENGTH) : banRecord.display());
+        Component operator = Component.text(player ? CharacterUtils.truncate(banRecord.operatorName(), OPERATOR_LENGTH) : banRecord.operatorName());
+        Component status = BanTexts.status(banRecord, now);
         if (player) {
-            id = id.hoverEvent(this.details(record, now));
-            status = Component.text(STATUS_SYMBOL, statusColor(record, now)).hoverEvent(status);
-            String copy = record.player() != null ? record.player().toString() : String.valueOf(record.ip());
-            target = target.hoverEvent(this.targetDetails(record)).clickEvent(ClickEvent.copyToClipboard(copy));
+            id = id.hoverEvent(this.details(banRecord, now));
+            status = Component.text(STATUS_SYMBOL, statusColor(banRecord, now)).hoverEvent(status);
+            String copy = banRecord.player() != null ? banRecord.player().toString() : String.valueOf(banRecord.ip());
+            target = target.hoverEvent(this.targetDetails(banRecord)).clickEvent(ClickEvent.copyToClipboard(copy));
         }
-        Component unban = CommandPanel.action(this.commandManager(), sender, "unban", "unban", BanRecord.ID_PREFIX + record.id(), true, record.active(now) ? null : "inactive");
+        Component unban = CommandPanel.action(this.commandManager(), sender, "unban", "unban", BanRecord.ID_PREFIX + banRecord.id(), true, banRecord.active(now) ? null : "inactive");
         return BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_ROW, id, time, status, target, operator.append(padding), unban);
     }
 
-    private Component details(BanRecord record, long now) {
-        Component revoked = record.revokedAt() == 0
-                ? BanTexts.status(record, now)
-                : BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_REVOKED, Component.text(String.valueOf(record.revokedBy())), Component.text(CommandPanel.fullTime(record.revokedAt())));
-        return BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_HOVER, Component.text(BanRecord.ID_PREFIX + record.id()), this.targetDetails(record),
-                BanTexts.reason(record.reason()), Component.text(record.operatorName()), Component.text(record.server()),
-                Component.text(CommandPanel.fullTime(record.createdAt())), BanTexts.expiry(record.expiresAt(), now), revoked);
+    private Component details(BanRecord banRecord, long now) {
+        Component revoked = banRecord.revokedAt() == 0
+                ? BanTexts.status(banRecord, now)
+                : BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_REVOKED, Component.text(String.valueOf(banRecord.revokedBy())), Component.text(CommandPanel.fullTime(banRecord.revokedAt())));
+        return BanTexts.translatable(MessageConstants.COMMAND_BAN_HISTORY_HOVER, Component.text(BanRecord.ID_PREFIX + banRecord.id()), this.targetDetails(banRecord),
+                BanTexts.reason(banRecord.reason()), Component.text(banRecord.operatorName()), Component.text(banRecord.server()),
+                Component.text(CommandPanel.fullTime(banRecord.createdAt())), BanTexts.expiry(banRecord.expiresAt(), now), revoked);
     }
 
     // 玩家名 (UUID) 与 IP, 按记录实际包含的部分组合
-    private Component targetDetails(BanRecord record) {
-        Component account = record.player() == null ? Component.empty() : Component.text(record.playerName() + " (" + record.player() + ")");
-        Component ip = record.ip() == null ? Component.empty() : Component.text(record.ip().toString());
-        if (record.player() != null && record.ip() != null) return account.append(Component.newline()).append(ip);
-        return record.player() != null ? account : ip;
+    private Component targetDetails(BanRecord banRecord) {
+        Component account = banRecord.player() == null ? Component.empty() : Component.text(banRecord.playerName() + " (" + banRecord.player() + ")");
+        Component ip = banRecord.ip() == null ? Component.empty() : Component.text(banRecord.ip().toString());
+        if (banRecord.player() != null && banRecord.ip() != null) return account.append(Component.newline()).append(ip);
+        return banRecord.player() != null ? account : ip;
     }
 
     // 影响按钮位置的可变文本宽度, 单位为聊天字体像素
-    private static int rowWidth(BanRecord record) {
-        return CharacterUtils.chatWidth(BanRecord.ID_PREFIX + record.id()) + CharacterUtils.chatWidth(CommandPanel.shortTime(record.createdAt()))
-                + CharacterUtils.chatWidth(CharacterUtils.truncate(record.display(), TARGET_LENGTH)) + CharacterUtils.chatWidth(CharacterUtils.truncate(record.operatorName(), OPERATOR_LENGTH));
+    private static int rowWidth(BanRecord banRecord) {
+        return CharacterUtils.chatWidth(BanRecord.ID_PREFIX + banRecord.id()) + CharacterUtils.chatWidth(CommandPanel.shortTime(banRecord.createdAt()))
+                + CharacterUtils.chatWidth(CharacterUtils.truncate(banRecord.display(), TARGET_LENGTH)) + CharacterUtils.chatWidth(CharacterUtils.truncate(banRecord.operatorName(), OPERATOR_LENGTH));
     }
 
-    private static NamedTextColor statusColor(BanRecord record, long now) {
-        if (record.revokedAt() != 0) return NamedTextColor.YELLOW;
-        return record.active(now) ? NamedTextColor.RED : NamedTextColor.GRAY;
+    private static NamedTextColor statusColor(BanRecord banRecord, long now) {
+        if (banRecord.revokedAt() != 0) return NamedTextColor.YELLOW;
+        return banRecord.active(now) ? NamedTextColor.RED : NamedTextColor.GRAY;
     }
 
     @Override

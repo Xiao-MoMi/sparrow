@@ -24,6 +24,7 @@ import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
 public final class PostgresDataStorage extends DataStorage {
+    private static final String POSTGRES_PLAYER_COLUMN = PLAYER_COLUMN;
     private static final List<PostgresSchemaMigration> MIGRATIONS = List.of();
 
     private final String data;
@@ -53,10 +54,10 @@ public final class PostgresDataStorage extends DataStorage {
             connected.setMaxLifetime(1_800_000);
             connected.setInitializationFailTimeout(10_000);
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
-            Jdbi jdbi = Jdbi.create(connected);
-            new PostgresSchemaMigrator(this.logger, PostgresSchema.DATA_COMPONENT, PostgresSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, PostgresSchema::initializeData, MIGRATIONS).migrate(jdbi, this.namePrefix());
+            Jdbi postgresJdbi = Jdbi.create(connected);
+            new PostgresSchemaMigrator(this.logger, PostgresSchema.DATA_COMPONENT, PostgresSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, PostgresSchema::initializeData, MIGRATIONS).migrate(postgresJdbi, this.namePrefix());
             this.pool = connected;
-            this.jdbi = jdbi;
+            this.jdbi = postgresJdbi;
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;
@@ -79,8 +80,8 @@ public final class PostgresDataStorage extends DataStorage {
         boolean logout = location != null;
         boolean withIp = ip != IpRange.NONE;
         String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
-        String values = ":player, :name, :time, :time" + (logout ? ", :server, CAST(:location AS JSONB)" : "") + (withIp ? ", :ip" : "");
+        String columns = POSTGRES_PLAYER_COLUMN + ", name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
+        String values = ":" + POSTGRES_PLAYER_COLUMN + ", :name, :time, :time" + (logout ? ", :server, CAST(:location AS JSONB)" : "") + (withIp ? ", :ip" : "");
         String table = this.data + ".";
         String updates = "name = CASE WHEN :time >= " + table + "updated_at THEN :name ELSE " + table + "name END";
         if (withIp) {
@@ -102,7 +103,7 @@ public final class PostgresDataStorage extends DataStorage {
                 throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
             }
             this.sql().useHandle(handle -> {
-                var query = handle.createUpdate(upsert).bind("player", player).bind("name", name).bind("time", timestamp);
+                var query = handle.createUpdate(upsert).bind(POSTGRES_PLAYER_COLUMN, player).bind("name", name).bind("time", timestamp);
                 if (logout) {
                     query.bind("server", server).bind("location", location.toJson());
                 }
@@ -117,8 +118,8 @@ public final class PostgresDataStorage extends DataStorage {
     @Override
     @NotNull
     public CompletableFuture<Optional<PlayerData>> loadPlayer(@NotNull UUID player) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE player = :player")
-                .bind("player", player).map((result, context) -> readPlayer(result)).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE " + POSTGRES_PLAYER_COLUMN + " = :" + POSTGRES_PLAYER_COLUMN)
+                .bind(POSTGRES_PLAYER_COLUMN, player).map((result, context) -> readPlayer(result)).findOne()), this.executor);
     }
 
     @Override
@@ -142,7 +143,7 @@ public final class PostgresDataStorage extends DataStorage {
         WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
         long ip = result.getLong("last_login_ip");
         String lastIp = result.wasNull() ? null : IpRange.format(ip);
-        return new PlayerData(result.getObject("player", UUID.class), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
+        return new PlayerData(result.getObject(POSTGRES_PLAYER_COLUMN, UUID.class), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
                 result.getString("last_logout_server"), location, lastIp, result.getLong("updated_at"));
     }
 
@@ -151,14 +152,14 @@ public final class PostgresDataStorage extends DataStorage {
     public CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name) {
         if (!this.storable(name)) return CompletableFuture.completedFuture(Optional.empty());
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT player FROM " + this.data + " WHERE name = :name ORDER BY updated_at DESC, player DESC LIMIT 1")
-                .bind("name", name).map((result, context) -> result.getObject("player", UUID.class)).findOne()), this.executor);
+                .bind("name", name).map((result, context) -> result.getObject(POSTGRES_PLAYER_COLUMN, UUID.class)).findOne()), this.executor);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<String>> lookupName(@NotNull UUID player) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE player = :player")
-                .bind("player", player).mapTo(String.class).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE " + POSTGRES_PLAYER_COLUMN + " = :" + POSTGRES_PLAYER_COLUMN)
+                .bind(POSTGRES_PLAYER_COLUMN, player).mapTo(String.class).findOne()), this.executor);
     }
 
     @Override

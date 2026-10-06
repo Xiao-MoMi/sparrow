@@ -32,11 +32,11 @@ public interface BanStore {
      * 写入封禁, 并撤销同一对象上仍生效的旧封禁.
      * 带玩家的记录按 UUID 判定同一对象, 纯 IP 记录按 IP 段完全相同判定.
      *
-     * @param record 新的封禁记录
+     * @param banRecord 新的封禁记录
      * @return 写入任务, 结果表示是否覆盖了旧封禁
      */
     @NotNull
-    CompletableFuture<Boolean> saveBan(@NotNull BanRecord record);
+    CompletableFuture<Boolean> saveBan(@NotNull BanRecord banRecord);
 
     /**
      * 撤销仍生效的封禁.

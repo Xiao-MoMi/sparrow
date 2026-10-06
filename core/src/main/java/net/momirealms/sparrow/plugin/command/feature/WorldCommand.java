@@ -23,13 +23,15 @@ import java.util.Collection;
 import java.util.List;
 
 public final class WorldCommand extends BukkitCommandFeature {
+    private static final String WORLD_ARGUMENT = "world";
+
     public WorldCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
 
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.optional("world", WorldParser.worldParser())
+        return builder.optional(WORLD_ARGUMENT, WorldParser.worldParser())
                 .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .handler(this::execute);
     }
@@ -49,7 +51,7 @@ public final class WorldCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_TARGETS_EMPTY);
             return;
         }
-        World selected = context.getOrDefault("world", null);
+        World selected = context.getOrDefault(WORLD_ARGUMENT, null);
         for (Player player : players) {
             this.plugin().scheduler().platform().run(() -> {
                 World target = selected != null ? selected : WorldUtils.next(player.getWorld());
@@ -90,6 +92,6 @@ public final class WorldCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "world";
+        return WORLD_ARGUMENT;
     }
 }

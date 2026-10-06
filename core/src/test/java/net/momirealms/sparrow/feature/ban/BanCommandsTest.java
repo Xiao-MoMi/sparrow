@@ -53,8 +53,8 @@ class BanCommandsTest {
         BanTarget.PlayerTarget target = new BanTarget.PlayerTarget(uuid, "Steve");
         when(this.feature.resolvePlayer("Steve")).thenReturn(CompletableFuture.completedFuture(Optional.of(target)));
         when(this.plugin.dataStorage().loadPlayer(uuid)).thenReturn(CompletableFuture.completedFuture(Optional.of(new PlayerData(uuid, "Steve", 0, 0, null, null, "10.0.0.2", 0))));
-        BanRecord record = new BanRecord("AB12CD34", uuid, "Steve", IpRange.parse("10.0.0.2"), "being rude", "Tester", "survival", 0, 1, 0, null);
-        when(this.feature.ban(any(), any(), anyString(), anyLong(), anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(new BanFeature.Result(record, false)));
+        BanRecord banRecord = new BanRecord("AB12CD34", uuid, "Steve", IpRange.parse("10.0.0.2"), "being rude", "Tester", "survival", 0, 1, 0, null);
+        when(this.feature.ban(any(), any(), anyString(), anyLong(), anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(new BanFeature.Result(banRecord, false)));
         long before = System.currentTimeMillis();
 
         this.execute("ban Steve being rude -t 1.5h -I -s");
@@ -66,8 +66,8 @@ class BanCommandsTest {
 
     @Test
     void banIpAcceptsWildcardsOnly() {
-        BanRecord record = new BanRecord("AB12CD34", null, null, IpRange.parse("1.2.3.*"), "", "Tester", "survival", 0, 0, 0, null);
-        when(this.feature.ban(any(), any(), anyString(), anyLong(), anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(new BanFeature.Result(record, false)));
+        BanRecord banRecord = new BanRecord("AB12CD34", null, null, IpRange.parse("1.2.3.*"), "", "Tester", "survival", 0, 0, 0, null);
+        when(this.feature.ban(any(), any(), anyString(), anyLong(), anyString(), anyBoolean())).thenReturn(CompletableFuture.completedFuture(new BanFeature.Result(banRecord, false)));
 
         this.execute("ban-ip 1.2.3.*");
         this.execute("ban-ip Steve");

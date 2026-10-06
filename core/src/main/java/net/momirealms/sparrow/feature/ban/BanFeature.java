@@ -145,10 +145,10 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     public CompletableFuture<Result> ban(@Nullable BanTarget.PlayerTarget player, @Nullable IpRange ip, @NotNull String reason, long expiresAt, @NotNull String operatorName, boolean silent) {
         UUID uuid = player == null ? null : player.uuid();
         String name = player == null ? null : player.name();
-        BanRecord record = new BanRecord(BanRecord.newId(), uuid, name, ip, reason, operatorName, ServerConfig.serverId(), System.currentTimeMillis(), expiresAt, 0, null);
-        return this.store().saveBan(record).thenApply(replaced -> {
-            this.publish(new BanMessage(true, record.id(), record.display(), uuid, ip, reason, operatorName, expiresAt, silent));
-            return new Result(record, replaced);
+        BanRecord banRecord = new BanRecord(BanRecord.newId(), uuid, name, ip, reason, operatorName, ServerConfig.serverId(), System.currentTimeMillis(), expiresAt, 0, null);
+        return this.store().saveBan(banRecord).thenApply(replaced -> {
+            this.publish(new BanMessage(true, banRecord.id(), banRecord.display(), uuid, ip, reason, operatorName, expiresAt, silent));
+            return new Result(banRecord, replaced);
         });
     }
 

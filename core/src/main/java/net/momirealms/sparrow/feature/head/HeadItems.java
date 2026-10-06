@@ -12,12 +12,13 @@ import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 
 
 final class HeadItems {
+    private static final String TEXTURES = "textures";
 
     private HeadItems() {
     }
 
     static HeadData fromProfile(GameProfile profile) {
-        var textures = profile.properties().get("textures");
+        var textures = profile.properties().get(TEXTURES);
         if (textures.isEmpty()) return null;
         Property texture = textures.iterator().next();
         return new HeadData(profile.id(), profile.name(), texture.value(), texture.signature());
@@ -25,8 +26,8 @@ final class HeadItems {
 
     // 完整的静态 Profile 随物品保存, 客户端使用本次取得的纹理.
     static org.bukkit.inventory.ItemStack create(HeadData data, int amount) {
-        Property property = new Property("textures", data.texture(), data.signature());
-        GameProfile profile = new GameProfile(data.uuid(), data.name(), new PropertyMap(ImmutableMultimap.of("textures", property)));
+        Property property = new Property(TEXTURES, data.texture(), data.signature());
+        GameProfile profile = new GameProfile(data.uuid(), data.name(), new PropertyMap(ImmutableMultimap.of(TEXTURES, property)));
         ItemStack item = new ItemStack(Items.PLAYER_HEAD, amount);
         item.set(DataComponents.PROFILE, ResolvableProfile.createResolved(profile));
         return CraftItemStackProxy.INSTANCE.asBukkitMirror(item);

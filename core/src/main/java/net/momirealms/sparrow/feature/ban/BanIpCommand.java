@@ -53,11 +53,11 @@ public final class BanIpCommand extends BukkitCommandFeature {
         long expiresAt = time == null ? 0 : Math.addExact(System.currentTimeMillis(), time.toMillis());
         boolean silent = context.flags().hasFlag("silent");
         this.feature.ban(null, range, reason, expiresAt, sender.getName(), silent).thenAccept(result -> {
-            BanRecord record = result.record();
-            this.handleFeedback(context, MessageConstants.COMMAND_BAN_SUCCESS, Component.text(record.display()), BanTexts.reason(record.reason()),
-                    BanTexts.expiry(record.expiresAt(), System.currentTimeMillis()), BanTexts.id(record.id()));
+            BanRecord banRecord = result.record();
+            this.handleFeedback(context, MessageConstants.COMMAND_BAN_SUCCESS, Component.text(banRecord.display()), BanTexts.reason(banRecord.reason()),
+                    BanTexts.expiry(banRecord.expiresAt(), System.currentTimeMillis()), BanTexts.id(banRecord.id()));
             if (result.replaced()) {
-                this.handleFeedback(context, MessageConstants.COMMAND_BAN_REPLACED, Component.text(record.display()));
+                this.handleFeedback(context, MessageConstants.COMMAND_BAN_REPLACED, Component.text(banRecord.display()));
             }
         }).exceptionally(error -> {
             this.plugin().logger().warn("Failed to ban IP " + input, error);

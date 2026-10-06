@@ -38,15 +38,19 @@ import java.util.concurrent.TimeUnit;
 @ApiStatus.Internal
 public final class MongoDataStorage extends DataStorage {
     static final String SCHEMA_ID = "schema";
-    static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
-            "data", List.of(
-                    new IndexReconciler.IndexDeclaration(new Document("name", 1).append("updated_at", -1).append("_id", -1), false, "data_name_updated"),
-                    new IndexReconciler.IndexDeclaration(new Document("last_login_ip", 1), false, "data_login_ip"))
-    );
-
     private static final String USER_NAME = "name";
     private static final String USER_UPDATED_AT = "updated_at";
     private static final String USER_LOGIN_IP = "last_login_ip";
+    private static final String USER_LAST_LOGIN = "last_login";
+    private static final String USER_LAST_LOGOUT = "last_logout";
+    private static final String MONGO_COND = "$cond";
+    private static final String MONGO_IF_NULL = "$ifNull";
+
+    static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
+            "data", List.of(
+                    new IndexReconciler.IndexDeclaration(new Document(USER_NAME, 1).append(USER_UPDATED_AT, -1).append("_id", -1), false, "data_name_updated"),
+                    new IndexReconciler.IndexDeclaration(new Document(USER_LOGIN_IP, 1), false, "data_login_ip"))
+    );
 
     private final MongoBanStore banStore;
     private MongoClient client;
@@ -70,13 +74,13 @@ public final class MongoDataStorage extends DataStorage {
         }
         MongoClient connected = MongoClients.create(builder.build());
         try {
-            MongoDatabase database = connected.getDatabase(mongoOptions.database());
-            database.runCommand(new Document("ping", 1));
-            MongoCollection<Document> data = database.getCollection(this.namePrefix() + "data");
-            IndexReconciler.reconcile(this.logger, database, this.namePrefix(), SCHEMA_ID, DependencyVersions.MONGODB_DATA_INDEX_VERSION, INDEXES);
+            MongoDatabase connectedDatabase = connected.getDatabase(mongoOptions.database());
+            connectedDatabase.runCommand(new Document("ping", 1));
+            MongoCollection<Document> dataCollection = connectedDatabase.getCollection(this.namePrefix() + "data");
+            IndexReconciler.reconcile(this.logger, connectedDatabase, this.namePrefix(), SCHEMA_ID, DependencyVersions.MONGODB_DATA_INDEX_VERSION, INDEXES);
             this.client = connected;
-            this.database = database;
-            this.data = data;
+            this.database = connectedDatabase;
+            this.data = dataCollection;
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;
@@ -97,19 +101,19 @@ public final class MongoDataStorage extends DataStorage {
 
     private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, String server, WorldLocation location) {
         boolean logout = location != null;
-        String time = logout ? "last_logout" : "last_login";
-        Document newer = new Document("$gte", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L))));
-        Document current = new Document("$ifNull", List.of("$" + USER_UPDATED_AT, 0L));
-        Document fields = new Document(USER_NAME, new Document("$cond", List.of(new Document("$gte", List.of(timestamp, current)), new Document("$literal", name), "$name")))
+        String time = logout ? USER_LAST_LOGOUT : USER_LAST_LOGIN;
+        Document newer = new Document("$gte", List.of(timestamp, new Document(MONGO_IF_NULL, List.of("$" + time, 0L))));
+        Document current = new Document(MONGO_IF_NULL, List.of("$" + USER_UPDATED_AT, 0L));
+        Document fields = new Document(USER_NAME, new Document(MONGO_COND, List.of(new Document("$gte", List.of(timestamp, current)), new Document("$literal", name), "$" + USER_NAME)))
                 .append(USER_UPDATED_AT, new Document("$max", List.of(timestamp, current)))
-                .append(time, new Document("$max", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L)))))
-                .append(logout ? "last_login" : "last_logout", new Document("$ifNull", List.of(logout ? "$last_login" : "$last_logout", 0L)));
+                .append(time, new Document("$max", List.of(timestamp, new Document(MONGO_IF_NULL, List.of("$" + time, 0L)))))
+                .append(logout ? USER_LAST_LOGIN : USER_LAST_LOGOUT, new Document(MONGO_IF_NULL, List.of(logout ? "$" + USER_LAST_LOGIN : "$" + USER_LAST_LOGOUT, 0L)));
         if (logout) {
             Document values = new Document("last_logout_server", server).append("last_logout_location", Document.parse(location.toJson()));
-            values.forEach((key, value) -> fields.append(key, new Document("$cond", List.of(newer, new Document("$literal", value), "$" + key))));
+            values.forEach((key, value) -> fields.append(key, new Document(MONGO_COND, List.of(newer, new Document("$literal", value), "$" + key))));
         }
         if (ip != IpRange.NONE) {
-            fields.append(USER_LOGIN_IP, new Document("$cond", List.of(newer, ip, "$" + USER_LOGIN_IP)));
+            fields.append(USER_LOGIN_IP, new Document(MONGO_COND, List.of(newer, ip, "$" + USER_LOGIN_IP)));
         }
         return CompletableFuture.runAsync(() -> this.data().updateOne(Filters.eq("_id", player), List.of(new Document("$set", fields)), new UpdateOptions().upsert(true)), this.executor);
     }
@@ -134,7 +138,7 @@ public final class MongoDataStorage extends DataStorage {
     @NotNull
     public CompletableFuture<List<PlayerData>> listPlayersOnIp(@NotNull IpRange range, int offset, int limit) {
         Bson filter = ipFilter(range);
-        return CompletableFuture.supplyAsync(() -> this.data().find(filter).sort(Sorts.descending("last_login", "_id")).skip(offset).limit(limit)
+        return CompletableFuture.supplyAsync(() -> this.data().find(filter).sort(Sorts.descending(USER_LAST_LOGIN, "_id")).skip(offset).limit(limit)
                 .map(MongoDataStorage::readPlayer).into(new ArrayList<>()), this.executor);
     }
 
@@ -147,7 +151,7 @@ public final class MongoDataStorage extends DataStorage {
         Document stored = document.get("last_logout_location", Document.class);
         WorldLocation location = stored == null ? null : WorldLocation.fromJson(stored.toJson());
         Long ip = document.getLong(USER_LOGIN_IP);
-        return new PlayerData(document.get("_id", UUID.class), document.getString(USER_NAME), document.getLong("last_login"), document.getLong("last_logout"),
+        return new PlayerData(document.get("_id", UUID.class), document.getString(USER_NAME), document.getLong(USER_LAST_LOGIN), document.getLong(USER_LAST_LOGOUT),
                 document.getString("last_logout_server"), location, ip == null ? null : IpRange.format(ip), document.getLong(USER_UPDATED_AT));
     }
 

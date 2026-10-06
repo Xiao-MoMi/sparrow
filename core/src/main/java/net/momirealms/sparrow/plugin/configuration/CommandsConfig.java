@@ -19,6 +19,7 @@ import java.util.List;
 
 public final class CommandsConfig {
     private static final String CONFIG_FILE = "commands.yml";
+    private static final String FEATURE_ADMIN_PERMISSION = ".command.admin.feature";
 
     private final Path configFilePath;
     private final YamlMapper<ConfigDefinition> configMapper;
@@ -76,21 +77,21 @@ public final class CommandsConfig {
         CommandConfig featureEnable = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " feature-enable"),
-                DependencyVersions.PROJECT_ID + ".command.admin.feature"
+                DependencyVersions.PROJECT_ID + FEATURE_ADMIN_PERMISSION
         );
 
         @BlankLineBefore
         CommandConfig featureDisable = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " feature-disable"),
-                DependencyVersions.PROJECT_ID + ".command.admin.feature"
+                DependencyVersions.PROJECT_ID + FEATURE_ADMIN_PERMISSION
         );
 
         @BlankLineBefore
         CommandConfig featureList = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " feature-list"),
-                DependencyVersions.PROJECT_ID + ".command.admin.feature"
+                DependencyVersions.PROJECT_ID + FEATURE_ADMIN_PERMISSION
         );
 
         // a-z: 不属于任何模块的独立命令, 插件启用时注册

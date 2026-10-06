@@ -20,6 +20,7 @@ import java.util.function.BiConsumer;
 public final class MysqlSchemaMigrator {
     private static final int LOCK_WAIT_SECONDS = 300;
     private static final int NETWORK_TIMEOUT_MILLIS = 30 * 60 * 1000;
+    private static final String META_ID_FILTER = " WHERE `id` = :id";
 
     private final PluginLogger logger;
     private final String component;     // meta 中记录完成版本的 id, 进行中的版本记在 component + "_pending"
@@ -94,8 +95,8 @@ public final class MysqlSchemaMigrator {
         // meta 是迁移管线的基础, 在业务表创建前就需要保存初始化目标.
         String meta = "`" + prefix + "meta`";
         handle.execute("CREATE TABLE IF NOT EXISTS " + meta + " (`id` VARCHAR(32) NOT NULL PRIMARY KEY, `value` BIGINT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin");
-        long stored = handle.createQuery("SELECT `value` FROM " + meta + " WHERE `id` = :id").bind("id", this.component).mapTo(Long.class).findOne().orElse(0L);
-        Long pending = handle.createQuery("SELECT `value` FROM " + meta + " WHERE `id` = :id").bind("id", this.pendingId()).mapTo(Long.class).findOne().orElse(null);
+        long stored = handle.createQuery("SELECT `value` FROM " + meta + META_ID_FILTER).bind("id", this.component).mapTo(Long.class).findOne().orElse(0L);
+        Long pending = handle.createQuery("SELECT `value` FROM " + meta + META_ID_FILTER).bind("id", this.pendingId()).mapTo(Long.class).findOne().orElse(null);
         // 较新的已完成版本或进行中版本都要求相应的迁移代码参与恢复.
         if (stored < 0 || stored > this.currentVersion) {
             throw new IllegalStateException("Unsupported MySQL schema version " + stored + ", supported up to " + this.currentVersion);
@@ -148,7 +149,7 @@ public final class MysqlSchemaMigrator {
         handle.useTransaction(transaction -> {
             transaction.createUpdate("INSERT INTO " + meta + " (`id`, `value`) VALUES (:id, :version) ON DUPLICATE KEY UPDATE `value` = :version").bind("id", this.component)
                     .bind("version", target).execute();
-            transaction.createUpdate("DELETE FROM " + meta + " WHERE `id` = :id").bind("id", this.pendingId()).execute();
+            transaction.createUpdate("DELETE FROM " + meta + META_ID_FILTER).bind("id", this.pendingId()).execute();
         });
     }
 }
