@@ -3,6 +3,12 @@ package net.momirealms.sparrow.plugin.dependency;
 public final class Dependencies {
     private Dependencies() {}
 
+    private static final String INCENDO_GROUP = "org{}incendo";
+    private static final String KYORI_GROUP = "net{}kyori";
+    private static final String MONGODB_GROUP = "org{}mongodb";
+    private static final String NETTY_GROUP = "io{}netty";
+    private static final String OPTION_NAME = "option";
+
     /**
      * JarInJar
      */
@@ -59,7 +65,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency CLOUD_CORE = Dependency.builder()
-            .groupId("org{}incendo")
+            .groupId(INCENDO_GROUP)
             .artifactId("cloud-core")
             .version(DependencyVersions.CLOUD_CORE)
             .addRelocation("cloud", "org{}incendo{}cloud")
@@ -67,38 +73,38 @@ public final class Dependencies {
             .build();
 
     public static final Dependency CLOUD_BRIGADIER = Dependency.builder()
-            .groupId("org{}incendo")
+            .groupId(INCENDO_GROUP)
             .artifactId("cloud-brigadier")
             .version(DependencyVersions.CLOUD_BRIGADIER)
             .addRelocations(CLOUD_CORE.relocations())
             .build();
 
     public static final Dependency CLOUD_SERVICES = Dependency.builder()
-            .groupId("org{}incendo")
+            .groupId(INCENDO_GROUP)
             .artifactId("cloud-services")
             .version(DependencyVersions.CLOUD_SERVICES)
             .addRelocations(CLOUD_CORE.relocations())
             .build();
 
     public static final Dependency CLOUD_BUKKIT = Dependency.builder()
-            .groupId("org{}incendo")
+            .groupId(INCENDO_GROUP)
             .artifactId("cloud-bukkit")
             .version(DependencyVersions.CLOUD_BUKKIT)
             .addRelocations(CLOUD_CORE.relocations())
             .addRelocation("adventure", "net{}kyori{}adventure")
             .addRelocation("examination", "net{}kyori{}examination")
-            .addRelocation("option", "net{}kyori{}option")
+            .addRelocation(OPTION_NAME, "net{}kyori{}option")
             .build();
 
     public static final Dependency CLOUD_PAPER = Dependency.builder()
-            .groupId("org{}incendo")
+            .groupId(INCENDO_GROUP)
             .artifactId("cloud-paper")
             .version(DependencyVersions.CLOUD_PAPER)
             .addRelocations(CLOUD_BUKKIT.relocations())
             .build();
 
     public static final Dependency CLOUD_MINECRAFT_EXTRAS = Dependency.builder()
-            .groupId("org{}incendo")
+            .groupId(INCENDO_GROUP)
             .artifactId("cloud-minecraft-extras")
             .version(DependencyVersions.CLOUD_MINECRAFT_EXTRAS)
             .addRelocations(CLOUD_BUKKIT.relocations())
@@ -108,17 +114,17 @@ public final class Dependencies {
      * Adventure
      */
     public static final Dependency OPTION = Dependency.builder()
-            .groupId("net{}kyori")
-            .artifactId("option")
+            .groupId(KYORI_GROUP)
+            .artifactId(OPTION_NAME)
             .version(DependencyVersions.OPTION)
-            .addRelocation("option", "net{}kyori{}option")
+            .addRelocation(OPTION_NAME, "net{}kyori{}option")
             .addRelocation("examination", "net{}kyori{}examination")
             .addRelocation("adventure", "net{}kyori{}adventure")
             .visibility(Dependency.Visibility.PUBLIC)
             .build();
 
     public static final Dependency EXAMINATION_API = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("examination-api")
             .version(DependencyVersions.EXAMINATION_API)
             .addRelocations(OPTION.relocations())
@@ -126,7 +132,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency EXAMINATION_STRING = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("examination-string")
             .version(DependencyVersions.EXAMINATION_API)
             .addRelocations(OPTION.relocations())
@@ -134,7 +140,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency ADVENTURE_API = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-api")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -142,7 +148,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency ADVENTURE_NBT = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-nbt")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -150,7 +156,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency ADVENTURE_KEY = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-key")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -158,7 +164,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency TEXT_SERIALIZER_COMMONS = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-text-serializer-commons")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -166,7 +172,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency TEXT_SERIALIZER_PLAIN = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-text-serializer-plain")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -174,7 +180,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency TEXT_SERIALIZER_LEGACY = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-text-serializer-legacy")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -182,7 +188,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency TEXT_SERIALIZER_GSON = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-text-serializer-gson")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -190,7 +196,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency TEXT_SERIALIZER_GSON_LEGACY = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-text-serializer-json-legacy-impl")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -198,7 +204,7 @@ public final class Dependencies {
             .build();
 
     public static final Dependency TEXT_SERIALIZER_JSON = Dependency.builder()
-            .groupId("net{}kyori")
+            .groupId(KYORI_GROUP)
             .artifactId("adventure-text-serializer-json")
             .version(DependencyVersions.ADVENTURE)
             .addRelocations(OPTION.relocations())
@@ -254,31 +260,31 @@ public final class Dependencies {
      * MongoDB
      */
     public static final Dependency MONGODB_DRIVER_CORE = Dependency.builder()
-            .groupId("org{}mongodb")
+            .groupId(MONGODB_GROUP)
             .artifactId("mongodb-driver-core")
             .version(DependencyVersions.MONGODB_DRIVER)
             .build();
 
     public static final Dependency MONGODB_DRIVER_SYNC = Dependency.builder()
-            .groupId("org{}mongodb")
+            .groupId(MONGODB_GROUP)
             .artifactId("mongodb-driver-sync")
             .version(DependencyVersions.MONGODB_DRIVER)
             .build();
 
     public static final Dependency MONGODB_DRIVER_REACTIVESTREAMS = Dependency.builder()
-            .groupId("org{}mongodb")
+            .groupId(MONGODB_GROUP)
             .artifactId("mongodb-driver-reactivestreams")
             .version(DependencyVersions.MONGODB_DRIVER)
             .build();
 
     public static final Dependency MONGODB_DRIVER_BSON = Dependency.builder()
-            .groupId("org{}mongodb")
+            .groupId(MONGODB_GROUP)
             .artifactId("bson")
             .version(DependencyVersions.MONGODB_DRIVER)
             .build();
 
     public static final Dependency MONGODB_DRIVER_KOTLIN_COROUTINE = Dependency.builder()
-            .groupId("org{}mongodb")
+            .groupId(MONGODB_GROUP)
             .artifactId("mongodb-driver-kotlin-coroutine")
             .version(DependencyVersions.MONGODB_DRIVER)
             .build();
@@ -325,20 +331,20 @@ public final class Dependencies {
             .build();
 
     public static final Dependency NETTY_RESOLVER = Dependency.builder()
-            .groupId("io{}netty")
+            .groupId(NETTY_GROUP)
             .artifactId("netty-resolver")
             .version(DependencyVersions.NETTY)
             .build();
 
     public static final Dependency NETTY_RESOLVER_DNS = Dependency.builder()
-            .groupId("io{}netty")
+            .groupId(NETTY_GROUP)
             .artifactId("netty-resolver-dns")
             .version(DependencyVersions.NETTY)
             .addRelocations(LETTUCE.relocations())
             .build();
 
     public static final Dependency NETTY_CODEC_DNS = Dependency.builder()
-            .groupId("io{}netty")
+            .groupId(NETTY_GROUP)
             .artifactId("netty-codec-dns")
             .version(DependencyVersions.NETTY)
             .addRelocations(LETTUCE.relocations())

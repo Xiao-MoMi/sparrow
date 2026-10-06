@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Locale;
 
 public final class FeatureListCommand extends BukkitCommandFeature {
+    private static final String FEATURE_LIST_ID = "feature_list";
     private static final int PAGE_SIZE = 7;
 
     public FeatureListCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
@@ -60,10 +61,10 @@ public final class FeatureListCommand extends BukkitCommandFeature {
             panel = panel.append(Component.newline()).append(this.tr("empty"));
         }
         panel = panel.append(Component.newline()).append(this.tr("navigation",
-                this.action(sender, "previous", "feature_list", Integer.toString(page - 1), page == 1 ? "first_page" : null),
+                this.action(sender, "previous", FEATURE_LIST_ID, Integer.toString(page - 1), page == 1 ? "first_page" : null),
                 Component.text(page), Component.text(pages),
-                this.action(sender, "next", "feature_list", Integer.toString(page + 1), page == pages ? "last_page" : null),
-                this.action(sender, "refresh", "feature_list", Integer.toString(page), null)));
+                this.action(sender, "next", FEATURE_LIST_ID, Integer.toString(page + 1), page == pages ? "last_page" : null),
+                this.action(sender, "refresh", FEATURE_LIST_ID, Integer.toString(page), null)));
         this.handleFeedback(sender, Component.translatable().key("command.features.message"), panel);
     }
 
@@ -107,6 +108,6 @@ public final class FeatureListCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "feature_list";
+        return FEATURE_LIST_ID;
     }
 }

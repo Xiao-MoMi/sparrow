@@ -26,6 +26,14 @@ import java.util.function.Supplier;
 @ApiStatus.Internal
 public abstract class SqlBanStore implements BanStore {
     private static final String ACTIVE = "revoked_at = 0 AND (expires_at = 0 OR expires_at > :now)";
+    private static final String WHERE = " WHERE ";
+    private static final String SELECT_ALL = "SELECT * FROM ";
+    private static final String AND = " AND ";
+    private static final String PLAYER = "player";
+    private static final String PLAYER_MATCH = PLAYER + " = :" + PLAYER;
+    private static final String PLAYER_NAME = "player_name";
+    private static final String IP_START = "ip_start";
+    private static final String IP_END = "ip_end";
 
     private final Supplier<Jdbi> jdbi;
     private final Executor executor;
@@ -75,36 +83,36 @@ public abstract class SqlBanStore implements BanStore {
     @NotNull
     public CompletableFuture<Optional<BanRecord>> findActiveBan(@NotNull UUID player, long ip, long now) {
         // 封禁该账号的记录优先, 其次永久封禁, 再按到期时间从晚到早
-        String sql = "SELECT * FROM " + this.bans + " WHERE " + ACTIVE + " AND (player = :player OR (ip_start <= :ip AND ip_end >= :ip))"
-                + " ORDER BY CASE WHEN player = :player THEN 0 ELSE 1 END, CASE WHEN expires_at = 0 THEN 0 ELSE 1 END, expires_at DESC LIMIT 1";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "player", player)
+        String sql = SELECT_ALL + this.bans + WHERE + ACTIVE + AND + "(" + PLAYER_MATCH + " OR (" + IP_START + " <= :ip AND " + IP_END + " >= :ip))"
+                + " ORDER BY CASE WHEN " + PLAYER_MATCH + " THEN 0 ELSE 1 END, CASE WHEN expires_at = 0 THEN 0 ELSE 1 END, expires_at DESC LIMIT 1";
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), PLAYER, player)
                 .bind("ip", ip).bind("now", now).map((result, context) -> this.readBan(result)).findOne()), this.executor);
     }
 
     @Override
     @NotNull
-    public CompletableFuture<Boolean> saveBan(@NotNull BanRecord record) {
-        IpRange ip = record.ip();
+    public CompletableFuture<Boolean> saveBan(@NotNull BanRecord banRecord) {
+        IpRange ip = banRecord.ip();
         // 带玩家的记录覆盖该玩家的旧封禁, 纯 IP 记录覆盖同一段的纯 IP 封禁
-        String sameTarget = record.player() != null ? "player = :player" : "player IS NULL AND ip_start = :ip_start AND ip_end = :ip_end";
-        String revoke = "UPDATE " + this.bans + " SET revoked_at = :now, revoked_by = :by WHERE " + ACTIVE + " AND " + sameTarget;
-        String insert = "INSERT INTO " + this.bans + " (id, player, player_name, ip_start, ip_end, reason, operator_name, server, created_at, expires_at)"
-                + " VALUES (:id, :player, :player_name, :ip_start, :ip_end, :reason, :operator_name, :server, :created_at, :expires_at)";
+        String sameTarget = banRecord.player() != null ? PLAYER_MATCH : PLAYER + " IS NULL AND " + IP_START + " = :" + IP_START + " AND " + IP_END + " = :" + IP_END;
+        String revoke = "UPDATE " + this.bans + " SET revoked_at = :now, revoked_by = :by" + WHERE + ACTIVE + AND + sameTarget;
+        String insert = "INSERT INTO " + this.bans + " (id, " + PLAYER + ", " + PLAYER_NAME + ", " + IP_START + ", " + IP_END + ", reason, operator_name, server, created_at, expires_at)"
+                + " VALUES (:id, :" + PLAYER + ", :" + PLAYER_NAME + ", :" + IP_START + ", :" + IP_END + ", :reason, :operator_name, :server, :created_at, :expires_at)";
         return CompletableFuture.supplyAsync(() -> this.sql().inTransaction(handle -> {
-            Update revokeStatement = handle.createUpdate(revoke).bind("now", record.createdAt()).bind("by", record.operatorName());
-            if (record.player() != null) {
-                this.bindUuid(revokeStatement, "player", record.player());
+            Update revokeStatement = handle.createUpdate(revoke).bind("now", banRecord.createdAt()).bind("by", banRecord.operatorName());
+            if (banRecord.player() != null) {
+                this.bindUuid(revokeStatement, PLAYER, banRecord.player());
             } else {
-                revokeStatement.bind("ip_start", ip.start()).bind("ip_end", ip.end());
+                revokeStatement.bind(IP_START, ip.start()).bind(IP_END, ip.end());
             }
             int revoked = revokeStatement.execute();
-            this.bindRecordTarget(handle.createUpdate(insert), record)
-                    .bind("id", record.id())
-                    .bind("reason", record.reason())
-                    .bind("operator_name", record.operatorName())
-                    .bind("server", record.server())
-                    .bind("created_at", record.createdAt())
-                    .bind("expires_at", record.expiresAt())
+            this.bindRecordTarget(handle.createUpdate(insert), banRecord)
+                    .bind("id", banRecord.id())
+                    .bind("reason", banRecord.reason())
+                    .bind("operator_name", banRecord.operatorName())
+                    .bind("server", banRecord.server())
+                    .bind("created_at", banRecord.createdAt())
+                    .bind("expires_at", banRecord.expiresAt())
                     .execute();
             return revoked > 0;
         }), this.executor);
@@ -114,11 +122,11 @@ public abstract class SqlBanStore implements BanStore {
     @NotNull
     public CompletableFuture<List<BanRecord>> revokeBans(@NotNull BanTarget target, long now, @NotNull String revokedBy) {
         String match = switch (target) {
-            case BanTarget.PlayerTarget ignored -> "player = :player";
-            case BanTarget.IpTarget ignored -> "player IS NULL AND ip_start = :ip_start AND ip_end = :ip_end";
+            case BanTarget.PlayerTarget ignored -> PLAYER_MATCH;
+            case BanTarget.IpTarget ignored -> PLAYER + " IS NULL AND " + IP_START + " = :" + IP_START + " AND " + IP_END + " = :" + IP_END;
             case BanTarget.IdTarget ignored -> "id = :id";
         };
-        String select = "SELECT * FROM " + this.bans + " WHERE " + ACTIVE + " AND " + match;
+        String select = SELECT_ALL + this.bans + WHERE + ACTIVE + AND + match;
         String revoke = "UPDATE " + this.bans + " SET revoked_at = :now, revoked_by = :by WHERE id IN (<ids>)";
         return CompletableFuture.supplyAsync(() -> this.sql().inTransaction(handle -> {
             List<BanRecord> revoked = this.bindTarget(handle.createQuery(select), target).bind("now", now).map((result, context) -> this.readBan(result)).list();
@@ -143,7 +151,7 @@ public abstract class SqlBanStore implements BanStore {
     @Override
     @NotNull
     public CompletableFuture<List<BanRecord>> listBans(@NotNull BanQuery query, int offset, int limit) {
-        String sql = "SELECT * FROM " + this.bans + where(query) + " ORDER BY created_at DESC, id DESC LIMIT :limit OFFSET :offset";
+        String sql = SELECT_ALL + this.bans + where(query) + " ORDER BY created_at DESC, id DESC LIMIT :limit OFFSET :offset";
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindQuery(handle.createQuery(sql), query)
                 .bind("limit", limit).bind("offset", offset).map((result, context) -> this.readBan(result)).list()), this.executor);
     }
@@ -154,8 +162,8 @@ public abstract class SqlBanStore implements BanStore {
         BanTarget target = query.target();
         if (target != null) {
             conditions.add(switch (target) {
-                case BanTarget.PlayerTarget ignored -> "player = :player";
-                case BanTarget.IpTarget ignored -> "ip_start <= :ip_start AND ip_end >= :ip_end";
+                case BanTarget.PlayerTarget ignored -> PLAYER_MATCH;
+                case BanTarget.IpTarget ignored -> IP_START + " <= :" + IP_START + AND + IP_END + " >= :" + IP_END;
                 case BanTarget.IdTarget ignored -> "id = :id";
             });
         }
@@ -168,7 +176,7 @@ public abstract class SqlBanStore implements BanStore {
         if (query.activeOnly()) {
             conditions.add(ACTIVE);
         }
-        return conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions);
+        return conditions.isEmpty() ? "" : WHERE + String.join(AND, conditions);
     }
 
     // Jdbi 不允许多余的具名参数, 只绑定 where 里实际出现的
@@ -190,25 +198,25 @@ public abstract class SqlBanStore implements BanStore {
 
     private <S extends SqlStatement<S>> S bindTarget(S statement, BanTarget target) {
         return switch (target) {
-            case BanTarget.PlayerTarget player -> this.bindUuid(statement, "player", player.uuid());
-            case BanTarget.IpTarget ip -> statement.bind("ip_start", ip.range().start()).bind("ip_end", ip.range().end());
+            case BanTarget.PlayerTarget player -> this.bindUuid(statement, PLAYER, player.uuid());
+            case BanTarget.IpTarget ip -> statement.bind(IP_START, ip.range().start()).bind(IP_END, ip.range().end());
             case BanTarget.IdTarget id -> statement.bind("id", id.id());
         };
     }
 
     // 绑定记录的玩家与 IP 列, 缺少的一项写入 NULL
-    private <S extends SqlStatement<S>> S bindRecordTarget(S statement, BanRecord record) {
-        this.bindUuid(statement, "player", record.player());
-        if (record.playerName() == null) {
-            statement.bindNull("player_name", Types.VARCHAR);
+    private <S extends SqlStatement<S>> S bindRecordTarget(S statement, BanRecord banRecord) {
+        this.bindUuid(statement, PLAYER, banRecord.player());
+        if (banRecord.playerName() == null) {
+            statement.bindNull(PLAYER_NAME, Types.VARCHAR);
         } else {
-            statement.bind("player_name", record.playerName());
+            statement.bind(PLAYER_NAME, banRecord.playerName());
         }
-        IpRange ip = record.ip();
+        IpRange ip = banRecord.ip();
         if (ip == null) {
-            return statement.bindNull("ip_start", Types.BIGINT).bindNull("ip_end", Types.BIGINT);
+            return statement.bindNull(IP_START, Types.BIGINT).bindNull(IP_END, Types.BIGINT);
         }
-        return statement.bind("ip_start", ip.start()).bind("ip_end", ip.end());
+        return statement.bind(IP_START, ip.start()).bind(IP_END, ip.end());
     }
 
     private <S extends SqlStatement<S>> S bindUuid(S statement, String name, @Nullable UUID uuid) {
@@ -216,9 +224,9 @@ public abstract class SqlBanStore implements BanStore {
     }
 
     private BanRecord readBan(ResultSet result) throws SQLException {
-        long start = result.getLong("ip_start");
-        IpRange ip = result.wasNull() ? null : new IpRange(start, result.getLong("ip_end"));
-        return new BanRecord(result.getString("id"), this.readUuid(result, "player"), result.getString("player_name"), ip,
+        long start = result.getLong(IP_START);
+        IpRange ip = result.wasNull() ? null : new IpRange(start, result.getLong(IP_END));
+        return new BanRecord(result.getString("id"), this.readUuid(result, PLAYER), result.getString(PLAYER_NAME), ip,
                 result.getString("reason"), result.getString("operator_name"), result.getString("server"),
                 result.getLong("created_at"), result.getLong("expires_at"), result.getLong("revoked_at"), result.getString("revoked_by"));
     }

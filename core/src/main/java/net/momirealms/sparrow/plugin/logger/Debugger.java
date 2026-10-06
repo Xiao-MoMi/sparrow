@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 public enum Debugger {
     COMMON(() -> false);
 
+    private static final String DEBUG_PREFIX = "[DEBUG] ";
     private final Supplier<Boolean> condition;
 
     Debugger(Supplier<Boolean> condition) {
@@ -22,7 +23,7 @@ public enum Debugger {
         if (this.condition.get()) {
             String s = message.get();
             if (s != null) {
-                SparrowPlugin.instance().logger().info("[DEBUG] " + s);
+                SparrowPlugin.instance().logger().info(DEBUG_PREFIX + s);
             }
         }
     }
@@ -38,9 +39,9 @@ public enum Debugger {
             String str = message.get();
             if (str == null) return;
             if (e != null) {
-                SparrowPlugin.instance().logger().warn("[DEBUG] " + str, e);
+                SparrowPlugin.instance().logger().warn(DEBUG_PREFIX + str, e);
             } else {
-                SparrowPlugin.instance().logger().warn("[DEBUG] " + str);
+                SparrowPlugin.instance().logger().warn(DEBUG_PREFIX + str);
             }
         }
     }

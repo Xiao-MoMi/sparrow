@@ -38,23 +38,23 @@ class BanRecordTest {
 
     @Test
     void activeUntilRevokedOrExpired() {
-        BanRecord permanent = record(null, IpRange.parse("1.2.3.*"), 0, 0);
+        BanRecord permanent = createRecord(null, IpRange.parse("1.2.3.*"), 0, 0);
         assertTrue(permanent.permanent());
         assertTrue(permanent.active(Long.MAX_VALUE));
-        assertFalse(record(null, IpRange.parse("1.2.3.4"), 1000, 0).active(1000));
-        assertTrue(record(null, IpRange.parse("1.2.3.4"), 1000, 0).active(999));
-        assertFalse(record(null, IpRange.parse("1.2.3.4"), 0, 500).active(1));
+        assertFalse(createRecord(null, IpRange.parse("1.2.3.4"), 1000, 0).active(1000));
+        assertTrue(createRecord(null, IpRange.parse("1.2.3.4"), 1000, 0).active(999));
+        assertFalse(createRecord(null, IpRange.parse("1.2.3.4"), 0, 500).active(1));
     }
 
     @Test
     void displaysAccountIpOrBoth() {
         UUID player = UUID.randomUUID();
-        assertEquals("Steve", record(player, null, 0, 0).display());
-        assertEquals("1.2.*.*", record(null, IpRange.parse("1.2.*.*"), 0, 0).display());
-        assertEquals("Steve + 1.2.3.4", record(player, IpRange.parse("1.2.3.4"), 0, 0).display());
+        assertEquals("Steve", createRecord(player, null, 0, 0).display());
+        assertEquals("1.2.*.*", createRecord(null, IpRange.parse("1.2.*.*"), 0, 0).display());
+        assertEquals("Steve + 1.2.3.4", createRecord(player, IpRange.parse("1.2.3.4"), 0, 0).display());
     }
 
-    private static BanRecord record(UUID player, IpRange ip, long expiresAt, long revokedAt) {
+    private static BanRecord createRecord(UUID player, IpRange ip, long expiresAt, long revokedAt) {
         return new BanRecord(BanRecord.newId(), player, player == null ? null : "Steve", ip, "", "Admin", "survival", 0, expiresAt, revokedAt, null);
     }
 }

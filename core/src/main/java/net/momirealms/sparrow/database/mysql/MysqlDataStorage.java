@@ -27,6 +27,7 @@ import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
 public class MysqlDataStorage extends DataStorage {
+    private static final String PLAYER = "player";
     private static final MysqlServerVersion MINIMUM_SERVER_VERSION = new MysqlServerVersion(8, 0, 0);
     protected static final List<MysqlSchemaMigration> MIGRATIONS = List.of();
 
@@ -57,11 +58,11 @@ public class MysqlDataStorage extends DataStorage {
             connected.setMaxLifetime(1_800_000);
             connected.setInitializationFailTimeout(10_000);
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
-            Jdbi jdbi = Jdbi.create(connected);
-            this.verifyServerVersion(jdbi);
-            new MysqlSchemaMigrator(this.logger, MysqlSchema.DATA_COMPONENT, MysqlSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, MysqlSchema::initializeData, MIGRATIONS).migrate(jdbi, this.namePrefix());
+            Jdbi initializedJdbi = Jdbi.create(connected);
+            this.verifyServerVersion(initializedJdbi);
+            new MysqlSchemaMigrator(this.logger, MysqlSchema.DATA_COMPONENT, MysqlSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, MysqlSchema::initializeData, MIGRATIONS).migrate(initializedJdbi, this.namePrefix());
             this.pool = connected;
-            this.jdbi = jdbi;
+            this.jdbi = initializedJdbi;
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;
@@ -92,8 +93,8 @@ public class MysqlDataStorage extends DataStorage {
         boolean logout = location != null;
         boolean withIp = ip != IpRange.NONE;
         String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
-        String values = ":player, :name, :time, :time" + (logout ? ", :server, :location" : "") + (withIp ? ", :ip" : "");
+        String columns = PLAYER + ", name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
+        String values = ":" + PLAYER + ", :name, :time, :time" + (logout ? ", :server, :location" : "") + (withIp ? ", :ip" : "");
         String updates = "name = CASE WHEN :time >= updated_at THEN :name ELSE name END";
         // MySQL 按书写顺序赋值, 需要在 last_login 更新之前比较
         if (withIp) {
@@ -112,7 +113,7 @@ public class MysqlDataStorage extends DataStorage {
                 throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
             }
             this.sql().useHandle(handle -> {
-                var query = handle.createUpdate(upsert).bind("player", UUIDUtils.toBytes(player)).bind("name", name).bind("time", timestamp);
+                var query = handle.createUpdate(upsert).bind(PLAYER, UUIDUtils.toBytes(player)).bind("name", name).bind("time", timestamp);
                 if (logout) {
                     query.bind("server", server).bind("location", location.toJson());
                 }
@@ -127,8 +128,8 @@ public class MysqlDataStorage extends DataStorage {
     @Override
     @NotNull
     public CompletableFuture<Optional<PlayerData>> loadPlayer(@NotNull UUID player) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE player = :player")
-                .bind("player", UUIDUtils.toBytes(player)).map((result, context) -> readPlayer(result)).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE " + PLAYER + " = :" + PLAYER)
+                .bind(PLAYER, UUIDUtils.toBytes(player)).map((result, context) -> readPlayer(result)).findOne()), this.executor);
     }
 
     @Override
@@ -152,7 +153,7 @@ public class MysqlDataStorage extends DataStorage {
         WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
         long ip = result.getLong("last_login_ip");
         String lastIp = result.wasNull() ? null : IpRange.format(ip);
-        return new PlayerData(UUIDUtils.fromBytes(result.getBytes("player")), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
+        return new PlayerData(UUIDUtils.fromBytes(result.getBytes(PLAYER)), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
                 result.getString("last_logout_server"), location, lastIp, result.getLong("updated_at"));
     }
 
@@ -161,14 +162,14 @@ public class MysqlDataStorage extends DataStorage {
     public CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name) {
         if (!this.storable(name)) return CompletableFuture.completedFuture(Optional.empty());
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT player FROM " + this.data + " WHERE name = :name ORDER BY updated_at DESC, player DESC LIMIT 1")
-                .bind("name", name).map((result, context) -> UUIDUtils.fromBytes(result.getBytes("player"))).findOne()), this.executor);
+                .bind("name", name).map((result, context) -> UUIDUtils.fromBytes(result.getBytes(PLAYER))).findOne()), this.executor);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<String>> lookupName(@NotNull UUID player) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE player = :player")
-                .bind("player", UUIDUtils.toBytes(player)).mapTo(String.class).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE " + PLAYER + " = :" + PLAYER)
+                .bind(PLAYER, UUIDUtils.toBytes(player)).mapTo(String.class).findOne()), this.executor);
     }
 
     @Override

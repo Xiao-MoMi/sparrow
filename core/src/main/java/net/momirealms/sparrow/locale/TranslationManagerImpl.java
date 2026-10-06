@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
 
 public final class TranslationManagerImpl implements TranslationManager {
+    private static final String LANGUAGE_VERSION_KEY = "__version__";
     private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
     static TranslationManager instance;
     private final Plugin plugin;
@@ -310,7 +311,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                                 Map<String, String> langData = loadLangData(locLangDocument);
                                 if (langData.isEmpty()) return FileVisitResult.CONTINUE;
                                 // 更新
-                                String langVersion = locLangDocument.getOrDefault("", String.class, Route.from("__version__"));
+                                String langVersion = locLangDocument.getOrDefault("", String.class, Route.from(LANGUAGE_VERSION_KEY));
                                 if (!TranslationManagerImpl.this.langVersion.equals(langVersion) && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
                                     langData = updateLangFile(langData, path);
                                     BasicFileAttributes updatedAttrs = Files.readAttributes(path, BasicFileAttributes.class);
@@ -356,7 +357,7 @@ public final class TranslationManagerImpl implements TranslationManager {
             YamlDocument jarYamlDocument = this.plugin.configurationManager().sparrowYaml().load(is);
             Map<String, String> newMap = loadLangData(jarYamlDocument);
 
-            newFileContents.put("__version__", this.langVersion);
+            newFileContents.put(LANGUAGE_VERSION_KEY, this.langVersion);
             newFileContents.putAll(this.translationFallback);
             newFileContents.putAll(newMap);
 
@@ -371,7 +372,7 @@ public final class TranslationManagerImpl implements TranslationManager {
             }
             jarYamlDocument.save(translationFile);
 
-            newFileContents.remove("__version__");
+            newFileContents.remove(LANGUAGE_VERSION_KEY);
             return newFileContents;
         } catch (IOException e) {
             throw e;
@@ -443,7 +444,7 @@ public final class TranslationManagerImpl implements TranslationManager {
         LinkedHashMap<String, String> data = new LinkedHashMap<>();
         langDocument.value().forEach((key, node) -> {
             String langKey = key.toString();
-            if (langKey.equals("__version__") || langKey.equals("lang-version")) return;
+            if (langKey.equals(LANGUAGE_VERSION_KEY) || langKey.equals("lang-version")) return;
             if (node.isSequence()) {
                 StringJoiner stringJoiner = new StringJoiner("<reset><newline>");
                 SequenceNode sequenceNode = (SequenceNode) node;

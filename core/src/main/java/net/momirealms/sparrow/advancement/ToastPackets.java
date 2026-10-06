@@ -31,6 +31,7 @@ import java.util.Set;
 // 进度提示借用原版进度实现: 授予一个立即完成的隐藏进度, 客户端弹出提示后再移除它.
 public final class ToastPackets {
     private static final Identifier TOAST_ID = Identifier.fromNamespaceAndPath("sparrow", "toast");
+    private static final String IMPOSSIBLE_CRITERION = "impossible";
 
     private ToastPackets() {
     }
@@ -56,11 +57,11 @@ public final class ToastPackets {
             display = (DisplayInfo) DisplayInfoProxy.INSTANCE.create(minecraftIcon, title, net.minecraft.network.chat.Component.empty(), Optional.empty(), type, true, false, true);
         }
         Object criterion = CriterionProxy.INSTANCE.create(ImpossibleTriggerProxy.INSTANCE.create(), ImpossibleTriggerProxy.TriggerInstanceProxy.INSTANCE.create());
-        AdvancementRequirements requirements = new AdvancementRequirements(List.of(List.of("impossible")));
-        Advancement advancement = (Advancement) AdvancementProxy.INSTANCE.create(Optional.empty(), Optional.of(display), AdvancementRewards.EMPTY, Map.of("impossible", criterion), requirements, false);
+        AdvancementRequirements requirements = new AdvancementRequirements(List.of(List.of(IMPOSSIBLE_CRITERION)));
+        Advancement advancement = (Advancement) AdvancementProxy.INSTANCE.create(Optional.empty(), Optional.of(display), AdvancementRewards.EMPTY, Map.of(IMPOSSIBLE_CRITERION, criterion), requirements, false);
         AdvancementProgress progress = new AdvancementProgress();
         progress.update(requirements);
-        progress.grantProgress("impossible");
+        progress.grantProgress(IMPOSSIBLE_CRITERION);
         // 客户端处理完成进度时会保存 Toast, 后续移除临时进度不会移除已排队的提示.
         return new ClientboundBundlePacket(List.of(
                 new ClientboundUpdateAdvancementsPacket(false, List.of(new AdvancementHolder(TOAST_ID, advancement)), Set.of(), Map.of(TOAST_ID, progress), true),

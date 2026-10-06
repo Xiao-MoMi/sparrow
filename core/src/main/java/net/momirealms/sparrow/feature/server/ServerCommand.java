@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class ServerCommand extends BukkitCommandFeature {
+    private static final String SERVER_ARGUMENT = "server";
     private final ServerParser<CommandSender> parser;
 
     public ServerCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
@@ -47,14 +48,14 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.required("server", ParserDescriptor.of(this.parser, String.class))
+        return builder.required(SERVER_ARGUMENT, ParserDescriptor.of(this.parser, String.class))
                 .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .handler(this::execute);
     }
 
     private void execute(CommandContext<CommandSender> context) {
         ServerFeature feature = this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class);
-        String server = context.get("server");
+        String server = context.get(SERVER_ARGUMENT);
         if (!feature.allowed(server)) {
             this.handleFeedback(context, MessageConstants.COMMAND_SERVER_NOT_ALLOWED, Component.text(server));
             return;
@@ -93,6 +94,6 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "server";
+        return SERVER_ARGUMENT;
     }
 }

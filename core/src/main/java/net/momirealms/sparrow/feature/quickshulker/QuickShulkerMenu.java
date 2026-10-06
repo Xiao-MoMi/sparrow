@@ -33,6 +33,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class QuickShulkerMenu {
+    private static final String SHULKER_ROW = "SSSSSSSSS";
+
     private final Player viewer;
     private final Inventory playerInventory;
     private final int sourceSlot;
@@ -55,7 +57,7 @@ public final class QuickShulkerMenu {
         this.contents.setAccessRule(context -> context.player() == this.viewer);
 
         // 构建窗口
-        NormalPane pane = Pane.builder("SSSSSSSSS", "SSSSSSSSS", "SSSSSSSSS")
+        NormalPane pane = Pane.builder(SHULKER_ROW, SHULKER_ROW, SHULKER_ROW)
                 .addIngredient('S', this.contents)
                 .build();
         Component itemName = AdventureHelper.jsonToComponent(CraftChatMessage.toJSON(this.shulker.getHoverName()));

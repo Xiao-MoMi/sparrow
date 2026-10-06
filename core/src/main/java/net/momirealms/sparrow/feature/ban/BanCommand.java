@@ -77,11 +77,11 @@ public final class BanCommand extends BukkitCommandFeature {
 
     // 覆盖了旧封禁时追加一行提示
     private void sendResult(CommandContext<CommandSender> context, BanFeature.Result result) {
-        BanRecord record = result.record();
-        this.handleFeedback(context, MessageConstants.COMMAND_BAN_SUCCESS, Component.text(record.display()), BanTexts.reason(record.reason()),
-                BanTexts.expiry(record.expiresAt(), System.currentTimeMillis()), BanTexts.id(record.id()));
+        BanRecord banRecord = result.record();
+        this.handleFeedback(context, MessageConstants.COMMAND_BAN_SUCCESS, Component.text(banRecord.display()), BanTexts.reason(banRecord.reason()),
+                BanTexts.expiry(banRecord.expiresAt(), System.currentTimeMillis()), BanTexts.id(banRecord.id()));
         if (result.replaced()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_BAN_REPLACED, Component.text(record.display()));
+            this.handleFeedback(context, MessageConstants.COMMAND_BAN_REPLACED, Component.text(banRecord.display()));
         }
     }
 

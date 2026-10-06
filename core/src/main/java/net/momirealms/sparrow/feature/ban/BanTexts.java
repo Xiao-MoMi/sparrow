@@ -40,8 +40,8 @@ final class BanTexts {
     }
 
     @NotNull
-    static Component status(@NotNull BanRecord record, long now) {
-        if (record.revokedAt() != 0) return MessageConstants.BAN_STATUS_REVOKED.build();
-        return record.active(now) ? MessageConstants.BAN_STATUS_ACTIVE.build() : MessageConstants.BAN_STATUS_EXPIRED.build();
+    static Component status(@NotNull BanRecord banRecord, long now) {
+        if (banRecord.revokedAt() != 0) return MessageConstants.BAN_STATUS_REVOKED.build();
+        return banRecord.active(now) ? MessageConstants.BAN_STATUS_ACTIVE.build() : MessageConstants.BAN_STATUS_EXPIRED.build();
     }
 }

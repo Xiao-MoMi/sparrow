@@ -25,13 +25,15 @@ import java.util.Locale;
 import java.util.Optional;
 
 public final class ColorCommand extends BukkitCommandFeature {
+    private static final String COLOR_ARGUMENT = "color";
+
     public ColorCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
 
     @Override
     public Command.Builder<? extends CommandSender> assembleCommand(org.incendo.cloud.CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        return builder.optional("color", OptionalTextColorParser.optionalTextColorParser())
+        return builder.optional(COLOR_ARGUMENT, OptionalTextColorParser.optionalTextColorParser())
                 .flag(manager.flagBuilder("player").withComponent(PlayerParser.playerParser()))
                 .flag(manager.flagBuilder("slot").withComponent(EnumParser.enumParser(EquipmentSlot.class)))
                 .flag(manager.flagBuilder("silent").withAliases("s"))
@@ -44,7 +46,7 @@ public final class ColorCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;
         }
-        TextColor color = context.<Optional<TextColor>>getOrDefault("color", Optional.empty()).orElse(null);
+        TextColor color = context.<Optional<TextColor>>getOrDefault(COLOR_ARGUMENT, Optional.empty()).orElse(null);
         EquipmentSlot slot = context.flags().getValue("slot", EquipmentSlot.HAND);
         Component slotName = Component.text(slot.name().toLowerCase(Locale.ROOT));
         this.plugin().scheduler().platform().run(() -> {
@@ -72,6 +74,6 @@ public final class ColorCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "color";
+        return COLOR_ARGUMENT;
     }
 }

@@ -17,7 +17,7 @@ public final class MiscUtils {
     private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
     private static final float[] SIN = init(new float[65536], (sineTable) -> {
         for (int i = 0; i < sineTable.length; ++i) {
-            sineTable[i] = (float) Math.sin((double) i * Math.PI * 2.0 / 65536.0);
+            sineTable[i] = (float) Math.sin(i * Math.PI * 2.0 / 65536.0);
         }
     });
 
@@ -33,7 +33,7 @@ public final class MiscUtils {
 
     public static int lerpDiscrete(float delta, int start, int end) {
         int i = end - start;
-        return start + floor(delta * (float) (i - 1)) + (delta > 0.0F ? 1 : 0);
+        return start + floor(delta * (i - 1)) + (delta > 0.0F ? 1 : 0);
     }
 
     public static int murmurHash3Mixer(int value) {
@@ -46,7 +46,7 @@ public final class MiscUtils {
 
     public static int ceil(double value) {
         int i = (int) value;
-        return value > (double) i ? i + 1 : i;
+        return value > i ? i + 1 : i;
     }
 
     public static boolean isPowerOfTwo(int value) {
@@ -65,7 +65,7 @@ public final class MiscUtils {
 
     public static int ceilLog2(int value) {
         value = isPowerOfTwo(value) ? value : smallestEncompassingPowerOfTwo(value);
-        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int) ((long) value * 125613361L >> 27) & 31];
+        return MULTIPLY_DE_BRUIJN_BIT_POSITION[(int) (value * 125613361L >> 27) & 31];
     }
 
     public static int positiveCeilDiv(int a, int b) {
@@ -134,22 +134,22 @@ public final class MiscUtils {
     public static <T> Predicate<T> allOf(List<? extends Predicate<? super T>> predicates) {
         return switch (predicates.size()) {
             case 0 -> allOf();
-            case 1 -> allOf((Predicate<? super T>) predicates.get(0));
-            case 2 -> allOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1));
+            case 1 -> allOf(predicates.get(0));
+            case 2 -> allOf(predicates.get(0), predicates.get(1));
             case 3 ->
-                    allOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1), (Predicate<? super T>) predicates.get(2));
+                    allOf(predicates.get(0), predicates.get(1), predicates.get(2));
             case 4 -> allOf(
-                    (Predicate<? super T>) predicates.get(0),
-                    (Predicate<? super T>) predicates.get(1),
-                    (Predicate<? super T>) predicates.get(2),
-                    (Predicate<? super T>) predicates.get(3)
+                    predicates.get(0),
+                    predicates.get(1),
+                    predicates.get(2),
+                    predicates.get(3)
             );
             case 5 -> allOf(
-                    (Predicate<? super T>) predicates.get(0),
-                    (Predicate<? super T>) predicates.get(1),
-                    (Predicate<? super T>) predicates.get(2),
-                    (Predicate<? super T>) predicates.get(3),
-                    (Predicate<? super T>) predicates.get(4)
+                    predicates.get(0),
+                    predicates.get(1),
+                    predicates.get(2),
+                    predicates.get(3),
+                    predicates.get(4)
             );
             default -> {
                 @SuppressWarnings("unchecked")
@@ -199,22 +199,22 @@ public final class MiscUtils {
     public static <T> Predicate<T> anyOf(List<? extends Predicate<? super T>> predicates) {
         return switch (predicates.size()) {
             case 0 -> anyOf();
-            case 1 -> anyOf((Predicate<? super T>) predicates.get(0));
-            case 2 -> anyOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1));
+            case 1 -> anyOf(predicates.get(0));
+            case 2 -> anyOf(predicates.get(0), predicates.get(1));
             case 3 ->
-                    anyOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1), (Predicate<? super T>) predicates.get(2));
+                    anyOf(predicates.get(0), predicates.get(1), predicates.get(2));
             case 4 -> anyOf(
-                    (Predicate<? super T>) predicates.get(0),
-                    (Predicate<? super T>) predicates.get(1),
-                    (Predicate<? super T>) predicates.get(2),
-                    (Predicate<? super T>) predicates.get(3)
+                    predicates.get(0),
+                    predicates.get(1),
+                    predicates.get(2),
+                    predicates.get(3)
             );
             case 5 -> anyOf(
-                    (Predicate<? super T>) predicates.get(0),
-                    (Predicate<? super T>) predicates.get(1),
-                    (Predicate<? super T>) predicates.get(2),
-                    (Predicate<? super T>) predicates.get(3),
-                    (Predicate<? super T>) predicates.get(4)
+                    predicates.get(0),
+                    predicates.get(1),
+                    predicates.get(2),
+                    predicates.get(3),
+                    predicates.get(4)
             );
             default -> {
                 @SuppressWarnings("unchecked")

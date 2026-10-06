@@ -23,7 +23,7 @@ public final class QuickShulkerFeature extends Feature<QuickShulkerSettings> imp
     private final FeaturesConfig featuresConfig;
 
     public QuickShulkerFeature(@NotNull JavaPlugin plugin, @NotNull FeaturesConfig featuresConfig) {
-        super("quick-shulker");
+        super(ID);
         this.plugin = plugin;
         this.featuresConfig = featuresConfig;
     }
