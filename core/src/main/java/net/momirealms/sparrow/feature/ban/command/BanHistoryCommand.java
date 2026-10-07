@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.sparrow.feature.ban.*;
-import net.momirealms.sparrow.feature.ban.gui.BanHistoryMenu;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -52,18 +51,12 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
                 .flag(manager.flagBuilder("operator").withAliases("o").withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster())))
                 .flag(manager.flagBuilder("within").withAliases("w").withComponent(DurationParser.durationParser()))
                 .flag(manager.flagBuilder("active").withAliases("a"))
-                .flag(manager.flagBuilder("gui"))
                 .flag(manager.flagBuilder("page").withAliases("p").withComponent(IntegerParser.integerParser(1)))
                 .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
-        boolean gui = context.flags().hasFlag("gui");
-        if (gui && !(sender instanceof Player)) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_PLAYER_REQUIRED);
-            return;
-        }
         String input = context.<Optional<String>>getOrDefault("target", Optional.empty()).orElse(null);
         Filters filters = new Filters(context.flags().getValue("operator", null), context.flags().getValue("within", null), context.flags().hasFlag("active"));
         int page = context.flags().getValue("page", 1);
@@ -87,9 +80,6 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
             long now = System.currentTimeMillis();
             long since = filters.within() == null ? 0 : now - filters.within().toMillis();
             BanQuery query = new BanQuery(target, filters.operator(), since, filters.active(), now);
-            if (gui) {
-                return new BanHistoryMenu(query, page - 1).open((Player) sender).thenAccept(ignored -> {});
-            }
             return TextPage.load(() -> this.feature.store().countBans(query), (offset, limit) -> this.feature.store().listBans(query, offset, limit), page - 1, PAGE_SIZE)
                     .thenAccept(result -> this.render(sender, input, target, filters, result, now));
         }).exceptionally(error -> {

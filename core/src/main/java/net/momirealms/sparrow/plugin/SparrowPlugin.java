@@ -89,6 +89,7 @@ public class SparrowPlugin implements Plugin {
 
         this.scheduler = new BukkitSchedulerAdapter(this);
         this.dependencyManager = new DependencyManager(this);
+        this.dependencyManager.loadDependencies(Dependencies.ADVENTURE_DEPENDENCIES);
         this.configurationManager = new ConfigurationManager(this);
         this.configurationManager.reload();
         this.applyDependencies();
@@ -308,13 +309,10 @@ public class SparrowPlugin implements Plugin {
                 // CLOUD
                 Dependencies.GEANTY_REF,
                 Dependencies.CLOUD_CORE, Dependencies.CLOUD_SERVICES,
-                Dependencies.CLOUD_BUKKIT, Dependencies.CLOUD_PAPER, Dependencies.CLOUD_BRIGADIER, Dependencies.CLOUD_MINECRAFT_EXTRAS,
-                // Adventure
-                Dependencies.OPTION,
-                Dependencies.EXAMINATION_API, Dependencies.EXAMINATION_STRING,
-                Dependencies.ADVENTURE_KEY, Dependencies.ADVENTURE_API, Dependencies.ADVENTURE_NBT,
-                Dependencies.TEXT_SERIALIZER_COMMONS, Dependencies.TEXT_SERIALIZER_LEGACY, Dependencies.TEXT_SERIALIZER_PLAIN, Dependencies.TEXT_SERIALIZER_GSON, Dependencies.TEXT_SERIALIZER_GSON_LEGACY, Dependencies.TEXT_SERIALIZER_JSON
+                Dependencies.CLOUD_BUKKIT, Dependencies.CLOUD_PAPER, Dependencies.CLOUD_BRIGADIER, Dependencies.CLOUD_MINECRAFT_EXTRAS
         ));
+        // Adventure
+        dependencies.addAll(Dependencies.ADVENTURE_DEPENDENCIES);
         switch (PluginConfig.database().type()) {
             case MONGODB -> dependencies.addAll(List.of(
                     Dependencies.MONGODB_DRIVER_BSON, Dependencies.MONGODB_DRIVER_CORE, Dependencies.MONGODB_DRIVER_SYNC

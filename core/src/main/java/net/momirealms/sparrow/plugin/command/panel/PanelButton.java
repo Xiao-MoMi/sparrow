@@ -129,6 +129,7 @@ public final class PanelButton {
 
     public enum Style {
         NORMAL("normal"),
+        INFO("info"),
         POSITIVE("positive"),
         DANGER("danger");
 

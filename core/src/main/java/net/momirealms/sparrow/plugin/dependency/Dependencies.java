@@ -1,5 +1,7 @@
 package net.momirealms.sparrow.plugin.dependency;
 
+import java.util.List;
+
 public final class Dependencies {
     private Dependencies() {}
 
@@ -204,6 +206,21 @@ public final class Dependencies {
             .addRelocations(OPTION.relocations())
             .visibility(Dependency.Visibility.PUBLIC)
             .build();
+
+    public static final List<Dependency> ADVENTURE_DEPENDENCIES = List.of(
+            OPTION,
+            EXAMINATION_API,
+            EXAMINATION_STRING,
+            ADVENTURE_KEY,
+            ADVENTURE_API,
+            ADVENTURE_NBT,
+            TEXT_SERIALIZER_COMMONS,
+            TEXT_SERIALIZER_LEGACY,
+            TEXT_SERIALIZER_PLAIN,
+            TEXT_SERIALIZER_GSON,
+            TEXT_SERIALIZER_GSON_LEGACY,
+            TEXT_SERIALIZER_JSON
+    );
 
     /**
      * SQL
