@@ -87,18 +87,18 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     }
 
     @NotNull
-    String permission(String command) {
+    public String permission(String command) {
         return this.plugin.configurationManager().commandsConfig().configDefinition().command(command).getPermission();
     }
 
     @NotNull
-    String usage(String command) {
+    public String usage(String command) {
         return this.plugin.configurationManager().commandsConfig().configDefinition().command(command).getUsages().stream()
                 .filter(usage -> usage.startsWith("/")).findFirst().orElse("/" + command);
     }
 
     @NotNull
-    CompletableFuture<List<Suggestion>> suggest(CommandSender sender, String input, boolean qualified, String permission) {
+    public CompletableFuture<List<Suggestion>> suggest(CommandSender sender, String input, boolean qualified, String permission) {
         HomeService service = this.service;
         if (service == null) return CompletableFuture.completedFuture(List.of());
         int separator = qualified ? input.lastIndexOf('.') : -1;

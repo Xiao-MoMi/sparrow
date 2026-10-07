@@ -7,8 +7,6 @@ import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.YamlProperty;
-import net.momirealms.sparrow.yaml.upgrade.YamlUpgradePipeline;
-import net.momirealms.sparrow.yaml.upgrade.version.FieldVersionExtractor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -26,11 +24,7 @@ public final class ServerConfig {
     ServerConfig(@NotNull Path dataFolder, @NotNull SparrowYaml sparrowYaml) {
         this.configFilePath = dataFolder.resolve(CONFIG_FILE);
         this.configMapper = YamlMapperFactory.builder()
-                .backupOnUpgrade(true)
                 .sparrowYaml(sparrowYaml)
-                .upgradePipeline(YamlUpgradePipeline.builder()
-                        .versionExtractor(new FieldVersionExtractor("__version__"))
-                        .build())
                 .build()
                 .create(ConfigDefinition.class, ConfigDefinition::new);
     }

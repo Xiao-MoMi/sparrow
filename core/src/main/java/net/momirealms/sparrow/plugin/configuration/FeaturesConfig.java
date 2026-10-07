@@ -23,8 +23,6 @@ import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.YamlProperty;
-import net.momirealms.sparrow.yaml.upgrade.YamlUpgradePipeline;
-import net.momirealms.sparrow.yaml.upgrade.version.FieldVersionExtractor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -42,10 +40,6 @@ public final class FeaturesConfig {
         this.yaml = yaml;
         this.mapper = YamlMapperFactory.builder()
                 .sparrowYaml(yaml)
-                .backupOnUpgrade(true)
-                .upgradePipeline(YamlUpgradePipeline.builder()
-                        .versionExtractor(new FieldVersionExtractor("__version__"))
-                        .build())
                 .build()
                 .create(ConfigDefinition.class, ConfigDefinition::new);
         this.config = this.load();

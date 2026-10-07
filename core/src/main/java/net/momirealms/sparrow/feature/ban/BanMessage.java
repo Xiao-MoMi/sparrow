@@ -30,11 +30,20 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
     private final @Nullable IpRange ip;
     private final String reason;            // 空字符串表示未提供原因
     private final String operatorName;
+    private final long createdAt;
     private final long expiresAt;           // 0 表示永久, 解封时为 0
     private final boolean silent;           // 只踢人, 不通知管理员
 
-    public BanMessage(boolean banned, @NotNull String banId, @NotNull String display, @Nullable UUID player, @Nullable IpRange ip,
-                      @NotNull String reason, @NotNull String operatorName, long expiresAt, boolean silent) {
+    public BanMessage(boolean banned,
+                      @NotNull String banId,
+                      @NotNull String display,
+                      @Nullable UUID player,
+                      @Nullable IpRange ip,
+                      @NotNull String reason,
+                      @NotNull String operatorName,
+                      long createdAt,
+                      long expiresAt,
+                      boolean silent) {
         this.banned = banned;
         this.banId = banId;
         this.display = display;
@@ -42,6 +51,7 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
         this.ip = ip;
         this.reason = reason;
         this.operatorName = operatorName;
+        this.createdAt = createdAt;
         this.expiresAt = expiresAt;
         this.silent = silent;
     }
@@ -56,6 +66,7 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
         this.ip = (flags & HAS_IP) != 0 ? new IpRange(buffer.readLong(), buffer.readLong()) : null;
         this.reason = ByteBufHelper.readUtf8(buffer, 32767);
         this.operatorName = ByteBufHelper.readUtf8(buffer, 64);
+        this.createdAt = buffer.readLong();
         this.expiresAt = buffer.readLong();
         this.silent = buffer.readBoolean();
     }
@@ -67,10 +78,15 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
         ByteBufHelper.writeUtf8(buffer, this.banId, BanRecord.ID_LENGTH);
         ByteBufHelper.writeUtf8(buffer, this.display, 255);
         buffer.writeByte((this.player != null ? HAS_PLAYER : 0) | (this.ip != null ? HAS_IP : 0));
-        if (this.player != null) buffer.writeUUID(this.player);
-        if (this.ip != null) buffer.writeLong(this.ip.start()).writeLong(this.ip.end());
+        if (this.player != null) {
+            buffer.writeUUID(this.player);
+        }
+        if (this.ip != null) {
+            buffer.writeLong(this.ip.start()).writeLong(this.ip.end());
+        }
         ByteBufHelper.writeUtf8(buffer, this.reason, 32767);
         ByteBufHelper.writeUtf8(buffer, this.operatorName, 64);
+        buffer.writeLong(this.createdAt);
         buffer.writeLong(this.expiresAt);
         buffer.writeBoolean(this.silent);
     }
@@ -126,6 +142,10 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
     @NotNull
     public String operatorName() {
         return this.operatorName;
+    }
+
+    public long createdAt() {
+        return this.createdAt;
     }
 
     public long expiresAt() {

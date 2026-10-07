@@ -1,6 +1,10 @@
 package net.momirealms.sparrow.plugin.configuration;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import net.momirealms.sparrow.plugin.Plugin;
+import net.momirealms.sparrow.plugin.configuration.serializer.KeySerializer;
+import net.momirealms.sparrow.plugin.configuration.serializer.SoundSerializer;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,14 +15,16 @@ public class ConfigurationManager {
     private final ServerConfig serverConfig;
     private final FeaturesConfig featuresConfig;
 
-    /**
-     * 创建共享 YAML 环境并初始化插件配置.
-     */
     public ConfigurationManager(Plugin plugin) {
+        // 基础配置
         this.sparrowYaml = SparrowYaml.builder()
                 .setAllowDuplicateKeys(false)
                 .setAllowObjectKeys(false)
                 .build();
+        // 序列化器
+        this.sparrowYaml.serializers().register(Key.class, KeySerializer.INSTANCE.serializer());
+        this.sparrowYaml.serializers().register(Sound.class, SoundSerializer.INSTANCE.serializer());
+        // 配置文件
         this.pluginConfig = new PluginConfig(plugin, this.sparrowYaml);
         this.serverConfig = new ServerConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.commandsConfig = new CommandsConfig(plugin.dataFolderPath(), this.sparrowYaml);

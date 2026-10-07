@@ -47,27 +47,6 @@ dependencies {
     compileOnly(libs.mongodb.driver.sync)
     compileOnly(libs.jdbi.core)
     compileOnly(libs.hikari.cp)
-
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter)
-    testRuntimeOnly(libs.junit.platformLauncher)
-    testImplementation(libs.cloud.core)
-    testImplementation(libs.cloud.bukkit)
-    testRuntimeOnly(libs.cloud.minecraft.extras)
-    testImplementation(libs.mockito.core)
-    testImplementation(project(":bukkit-proxy"))
-    testImplementation(libs.sparrow.reflection)
-    testImplementation(libs.lettuce.core)
-    testImplementation(libs.caffeine)
-    testImplementation(libs.luckperms.api)
-    testImplementation(libs.placeholderapi)
-    testRuntimeOnly(libs.mysql.connector.j)
-    testRuntimeOnly(libs.mariadb.driver)
-    testRuntimeOnly(libs.postgresql.driver)
-    testImplementation(libs.test.paper.api)
-    testImplementation(libs.mongodb.driver.sync)
-    testImplementation(libs.jdbi.core)
-    testImplementation(libs.hikari.cp)
 }
 
 // Version
@@ -139,10 +118,6 @@ tasks {
         from(project(":bukkit-proxy").tasks.shadowJar.flatMap { it.archiveFile })
         archiveFileName = "$projectName-${project.version}.jar"
         destinationDirectory.set(file("$rootDir/target"))
-    }
-
-    test {
-        useJUnitPlatform()
     }
 }
 

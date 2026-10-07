@@ -525,10 +525,78 @@ command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 # ban
 ban.expiry.permanent: '<color:#FFB6CB>Permanent</color>'
 ban.expiry.temporary: '<color:#FFE3A3><arg:0></color> <color:#C8E4E9>(<arg:1> left)</color>'
-ban.kick.ip: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>Your IP address is banned</color><newline><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color><newline><color:#C8E4E9>Expires: </color><arg:2><newline><color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>'
-ban.kick.player: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>You are banned</color><newline><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color><newline><color:#C8E4E9>Expires: </color><arg:2><newline><color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>'
-ban.notify.ban: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C7BCE7><arg:1></color> <color:#FFB6CB>banned</color> <color:#C7BCE7><arg:0></color> <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:2></color> <color:#C8E4E9>Expires: </color><arg:3> <color:#7D98BF><arg:4></color>'
-ban.notify.unban: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C7BCE7><arg:1></color> <color:#C9F2C7>unbanned</color> <color:#C7BCE7><arg:0></color>'
+ban.kick.player.permanent: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>PERMANENT BAN</b></gradient>
+
+  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
+  <color:#FFB6CB>This ban does not expire automatically.</color>
+  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
+ban.kick.player.temporary: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>TEMPORARY BAN</b></gradient>
+
+  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>Expires: </color><arg:2>
+  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
+ban.kick.ip.permanent: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>PERMANENT IP BAN</b></gradient>
+
+  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
+  <color:#FFB6CB>This ban does not expire automatically.</color>
+  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
+ban.kick.ip.temporary: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>TEMPORARY IP BAN</b></gradient>
+
+  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>Expires: </color><arg:2>
+  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
+ban.notify.ban.permanent: |-
+  <color:#7D98BF>────────────────────────</color><newline><gradient:#FF6B6B:#D84555><b>${project_name} · PERMANENT BAN</b></gradient>
+  <color:#C8E4E9>Target: </color><color:#F2F4FF><arg:0></color>
+  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:2></color>
+  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>Expires: </color><arg:3>
+  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
+  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:4></color>
+  <color:#7D98BF>────────────────────────</color>
+ban.notify.ban.temporary: |-
+  <color:#7D98BF>────────────────────────</color><newline><gradient:#FF6B6B:#D84555><b>${project_name} · TEMPORARY BAN</b></gradient>
+  <color:#C8E4E9>Target: </color><color:#F2F4FF><arg:0></color>
+  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:2></color>
+  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>Expires: </color><arg:3>
+  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
+  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:4></color>
+  <color:#7D98BF>────────────────────────</color>
+ban.notify.unban.card: |-
+  <color:#7D98BF>────────────────────────</color><newline><color:#C9F2C7><b>${project_name} · BAN REVOKED</b></color>
+  <color:#C8E4E9>Target: </color><color:#F2F4FF><arg:0></color>
+  <color:#C8E4E9>Unbanned by: </color><color:#F2F4FF><arg:1></color>
+  <color:#7D98BF>────────────────────────</color>
+ban.id.copy: 'Click to copy the punishment ID'
 ban.reason.none: '<color:#7D98BF>No reason given</color>'
 ban.status.active: '<color:#FFB6CB>Active</color>'
 ban.status.expired: '<color:#7D98BF>Expired</color>'

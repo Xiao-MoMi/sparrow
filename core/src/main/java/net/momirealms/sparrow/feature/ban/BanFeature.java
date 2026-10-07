@@ -1,14 +1,13 @@
 package net.momirealms.sparrow.feature.ban;
 
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.feature.ban.command.BanCommand;
 import net.momirealms.sparrow.feature.ban.command.BanHistoryCommand;
 import net.momirealms.sparrow.feature.ban.command.BanIpCommand;
 import net.momirealms.sparrow.feature.ban.command.UnbanCommand;
-import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.player.SparrowPlayer;
@@ -97,12 +96,17 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     @SuppressWarnings("deprecation")
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
-        if (!this.enabled() || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+        if (!this.enabled() || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+            return;
+        }
         long now = System.currentTimeMillis();
         BanRecord ban = this.store().findActiveBan(event.getUniqueId(), IpRange.address(event.getAddress()), now).join().orElse(null);
-        if (ban == null) return;
+        if (ban == null) {
+            return;
+        }
         boolean account = event.getUniqueId().equals(ban.player());
-        Component screen = this.kickScreen(account, ban.id(), ban.reason(), ban.operatorName(), ban.expiresAt(), now, null);
+        Component screen = this.kickScreen(account, event.getName(), ban.id(), ban.reason(), ban.operatorName(),
+                ban.createdAt(), ban.expiresAt(), now, null);
         // 先拒绝登录
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, AdventureHelper.componentToLegacy(screen));
         // 本服拒绝登录会被代理转到下一个服务器, 所以先让代理断开整条连接, 等待期间代理没有处理再由本服拒绝.
@@ -164,7 +168,18 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
         String name = player == null ? null : player.name();
         BanRecord record = new BanRecord(BanRecord.newId(), uuid, name, ip, reason, operatorName, ServerConfig.serverId(), System.currentTimeMillis(), expiresAt, 0, null);
         return this.store().saveBan(record).thenApply(replaced -> {
-            this.publish(new BanMessage(true, record.id(), record.display(), uuid, ip, reason, operatorName, expiresAt, silent));
+            this.publish(new BanMessage(
+                            true,
+                            record.id(),
+                            record.display(),
+                            uuid,
+                            ip,
+                            reason,
+                            operatorName,
+                            record.createdAt(),
+                            expiresAt,
+                            silent
+            ));
             return new Result(record, replaced);
         });
     }
@@ -180,7 +195,7 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     public CompletableFuture<List<BanRecord>> unban(@NotNull BanTarget target, @NotNull String operatorName, boolean silent) {
         return this.store().revokeBans(target, System.currentTimeMillis(), operatorName).thenApply(revoked -> {
             if (!revoked.isEmpty()) {
-                this.publish(new BanMessage(false, "", target.display(), null, null, "", operatorName, 0, silent));
+                this.publish(new BanMessage(false, "", target.display(), null, null, "", operatorName, 0, 0, silent));
             }
             return revoked;
         });
@@ -236,34 +251,45 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
 
     // 文本在当前线程渲染好, 踢出放到玩家所属线程
     private void kick(SparrowPlayer player, boolean account, BanMessage message, long now) {
-        Component screen = this.kickScreen(account, message.banId(), message.reason(), message.operatorName(), message.expiresAt(), now, player.locale());
+        Component screen = this.kickScreen(
+                account,
+                player.platformPlayer().getName(),
+                message.banId(),
+                message.reason(),
+                message.operatorName(),
+                message.createdAt(),
+                message.expiresAt(),
+                now,
+                player.locale()
+        );
         this.plugin.scheduler().platform().run(() -> player.kick(screen), () -> {}, player.platformPlayer());
     }
 
     // 同一语言的通知只渲染一次
     private void notifyStaff(BanMessage message, long now) {
         Map<Locale, Component> rendered = new HashMap<>(4);
+        Sound sound = this.config.getNotifySound(message.banned());
         for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             if (player.hasPermission(NOTIFY_PERMISSION)) {
                 player.sendMessage(rendered.computeIfAbsent(player.locale(), locale -> this.notifyMessage(message, now, locale)));
+                if (sound != null) {
+                    player.playSound(sound);
+                }
             }
         }
     }
 
     // account 为 true 时提示账号被封禁, 否则提示所用 IP 被封禁
-    private Component kickScreen(boolean account, String id, String reason, String operatorName, long expiresAt, long now, @Nullable Locale locale) {
-        TranslatableComponent key = account ? MessageConstants.BAN_KICK_PLAYER : MessageConstants.BAN_KICK_IP;
-        TranslatableComponent screen = key.arguments(BanTexts.reason(reason), Component.text(operatorName), BanTexts.expiry(expiresAt, now), Component.text(BanRecord.ID_PREFIX + id));
-        return this.plugin.translationManager().render(screen, locale);
+    private Component kickScreen(
+            boolean account, String playerName, String id, String reason, String operatorName,
+            long createdAt, long expiresAt, long now, @Nullable Locale locale
+    ) {
+        return this.plugin.translationManager().render(
+                BanTexts.kickScreen(account, playerName, id, reason, operatorName, createdAt, expiresAt, now), locale);
     }
 
     private Component notifyMessage(BanMessage message, long now, Locale locale) {
-        Component target = Component.text(message.display());
-        Component operator = Component.text(message.operatorName());
-        TranslatableComponent text = message.banned()
-                ? MessageConstants.BAN_NOTIFY_BAN.arguments(target, operator, BanTexts.reason(message.reason()), BanTexts.expiry(message.expiresAt(), now), BanTexts.id(message.banId()))
-                : MessageConstants.BAN_NOTIFY_UNBAN.arguments(target, operator);
-        return this.plugin.translationManager().render(text, locale);
+        return this.plugin.translationManager().render(BanTexts.notification(message, now), locale);
     }
 
     private static BanTarget.PlayerTarget target(PlayerRef player) {

@@ -7,8 +7,6 @@ import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.YamlProperty;
-import net.momirealms.sparrow.yaml.upgrade.YamlUpgradePipeline;
-import net.momirealms.sparrow.yaml.upgrade.version.FieldVersionExtractor;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -38,13 +36,8 @@ public class ProxyConfig {
                 .setAllowDuplicateKeys(false)
                 .setAllowObjectKeys(false)
                 .build();
-        YamlUpgradePipeline upgradePipeline = YamlUpgradePipeline.builder()
-                .versionExtractor(new FieldVersionExtractor("__version__"))
-                .build();
         YamlMapper<ProxyConfig> mapper = YamlMapperFactory.builder()
-                .backupOnUpgrade(true)
                 .sparrowYaml(sparrowYaml)
-                .upgradePipeline(upgradePipeline)
                 .build()
                 .create(ProxyConfig.class, ProxyConfig::new);
         try {

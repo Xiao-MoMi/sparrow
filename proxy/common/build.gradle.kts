@@ -17,17 +17,6 @@ dependencies {
     implementation(libs.proxy.netty.resolver.dns) { isTransitive = false }
     implementation(libs.proxy.netty.codec.dns) { isTransitive = false }
     compileOnly(libs.proxy.netty.handler)
-
-    testImplementation(platform(libs.junit.bom))
-    testImplementation(libs.junit.jupiter)
-    testRuntimeOnly(libs.junit.platformLauncher)
-    testImplementation(libs.proxy.netty.handler)
-}
-
-tasks {
-    test {
-        useJUnitPlatform()
-    }
 }
 
 buildConfig {

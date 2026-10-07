@@ -525,10 +525,78 @@ command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 # ban
 ban.expiry.permanent: '<color:#FFB6CB>永久</color>'
 ban.expiry.temporary: '<color:#FFE3A3><arg:0></color> <color:#C8E4E9>(剩余 <arg:1>)</color>'
-ban.kick.ip: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>你的 IP 已被封禁</color><newline><newline><color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color><newline><color:#C8E4E9>到期：</color><arg:2><newline><color:#C8E4E9>处罚 ID：</color><color:#F2F4FF><arg:3></color>'
-ban.kick.player: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>你已被封禁</color><newline><newline><color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color><newline><color:#C8E4E9>到期：</color><arg:2><newline><color:#C8E4E9>处罚 ID：</color><color:#F2F4FF><arg:3></color>'
-ban.notify.ban: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C7BCE7><arg:1></color> <color:#FFB6CB>封禁了</color> <color:#C7BCE7><arg:0></color> <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:2></color> <color:#C8E4E9>到期：</color><arg:3> <color:#7D98BF><arg:4></color>'
-ban.notify.unban: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C7BCE7><arg:1></color> <color:#C9F2C7>解封了</color> <color:#C7BCE7><arg:0></color>'
+ban.kick.player.permanent: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>永久封禁</b></gradient>
+
+  <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>玩家：</color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>开始：</color><color:#FFE08A><arg:5></color>
+  <color:#FFB6CB>此封禁不会自动解除</color>
+  <color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>处罚编号：</color><color:#F2F4FF><arg:3></color>
+ban.kick.player.temporary: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>临时封禁</b></gradient>
+
+  <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>玩家：</color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>开始：</color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>解除：</color><arg:2>
+  <color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>处罚编号：</color><color:#F2F4FF><arg:3></color>
+ban.kick.ip.permanent: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>IP 永久封禁</b></gradient>
+
+  <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>玩家：</color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>开始：</color><color:#FFE08A><arg:5></color>
+  <color:#FFB6CB>此封禁不会自动解除</color>
+  <color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>处罚编号：</color><color:#F2F4FF><arg:3></color>
+ban.kick.ip.temporary: |-
+  <color:#7D98BF>${project_name}</color>
+  <gradient:#FF6B6B:#D84555><b>IP 临时封禁</b></gradient>
+
+  <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color>
+
+  <color:#C8E4E9>玩家：</color><color:#F2F4FF><arg:4></color>
+  <color:#C8E4E9>开始：</color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>解除：</color><arg:2>
+  <color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>
+
+  <color:#C8E4E9>处罚编号：</color><color:#F2F4FF><arg:3></color>
+ban.notify.ban.permanent: |-
+  <color:#7D98BF>────────────────────────</color><newline><gradient:#FF6B6B:#D84555><b>${project_name} · 永久封禁</b></gradient>
+  <color:#C8E4E9>对象：</color><color:#F2F4FF><arg:0></color>
+  <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:2></color>
+  <color:#C8E4E9>开始：</color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>解除：</color><arg:3>
+  <color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>
+  <color:#C8E4E9>处罚编号：</color><color:#F2F4FF><arg:4></color>
+  <color:#7D98BF>────────────────────────</color>
+ban.notify.ban.temporary: |-
+  <color:#7D98BF>────────────────────────</color><newline><gradient:#FF6B6B:#D84555><b>${project_name} · 临时封禁</b></gradient>
+  <color:#C8E4E9>对象：</color><color:#F2F4FF><arg:0></color>
+  <color:#C8E4E9>原因：</color><color:#F2F4FF><arg:2></color>
+  <color:#C8E4E9>开始：</color><color:#FFE08A><arg:5></color>
+  <color:#C8E4E9>解除：</color><arg:3>
+  <color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>
+  <color:#C8E4E9>处罚编号：</color><color:#F2F4FF><arg:4></color>
+  <color:#7D98BF>────────────────────────</color>
+ban.notify.unban.card: |-
+  <color:#7D98BF>────────────────────────</color><newline><color:#C9F2C7><b>${project_name} · 封禁已撤销</b></color>
+  <color:#C8E4E9>对象：</color><color:#F2F4FF><arg:0></color>
+  <color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>
+  <color:#7D98BF>────────────────────────</color>
+ban.id.copy: '点击复制处罚编号'
 ban.reason.none: '<color:#7D98BF>未提供原因</color>'
 ban.status.active: '<color:#FFB6CB>生效中</color>'
 ban.status.expired: '<color:#7D98BF>已到期</color>'
