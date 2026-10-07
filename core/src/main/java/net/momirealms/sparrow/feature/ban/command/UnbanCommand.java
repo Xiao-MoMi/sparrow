@@ -1,6 +1,8 @@
-package net.momirealms.sparrow.feature.ban;
+package net.momirealms.sparrow.feature.ban.command;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.sparrow.feature.ban.BanFeature;
+import net.momirealms.sparrow.feature.ban.BanTarget;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;

@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature.warp;
 
 import net.momirealms.sparrow.feature.Feature;
+import net.momirealms.sparrow.feature.warp.command.*;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -86,7 +87,7 @@ public final class WarpFeature extends Feature<WarpSettings> {
 
     // 补全只读内存, 按前缀最多返回 suggestion-limit 个
     @NotNull
-    List<String> suggest(@NotNull CommandSender sender, @NotNull String input) {
+    public List<String> suggest(@NotNull CommandSender sender, @NotNull String input) {
         return this.registry.complete(input, warp -> this.visible(sender, warp), this.config.suggestionLimit());
     }
 }

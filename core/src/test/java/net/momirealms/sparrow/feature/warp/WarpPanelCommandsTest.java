@@ -4,6 +4,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.momirealms.sparrow.feature.warp.command.EditWarpCommand;
+import net.momirealms.sparrow.feature.warp.command.WarpListCommand;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.AbstractCommandFeature;

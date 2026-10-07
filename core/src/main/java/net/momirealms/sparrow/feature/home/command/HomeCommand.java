@@ -1,6 +1,8 @@
-package net.momirealms.sparrow.feature.home;
+package net.momirealms.sparrow.feature.home.command;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.sparrow.feature.home.Home;
+import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import org.bukkit.command.CommandSender;

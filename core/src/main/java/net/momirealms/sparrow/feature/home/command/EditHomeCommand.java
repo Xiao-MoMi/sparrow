@@ -1,7 +1,10 @@
-package net.momirealms.sparrow.feature.home;
+package net.momirealms.sparrow.feature.home.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
+import net.momirealms.sparrow.feature.home.Home;
+import net.momirealms.sparrow.feature.home.HomeFeature;
+import net.momirealms.sparrow.feature.home.HomeService;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;

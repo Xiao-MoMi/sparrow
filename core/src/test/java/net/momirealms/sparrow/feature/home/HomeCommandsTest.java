@@ -8,6 +8,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.HomeStore;
+import net.momirealms.sparrow.feature.home.command.*;
 import net.momirealms.sparrow.feature.home.placehoder.HomesCountPlaceholder;
 import net.momirealms.sparrow.feature.home.placehoder.HomesListPlaceholder;
 import net.momirealms.sparrow.feature.home.placehoder.MaxHomesPlaceholder;

@@ -1,8 +1,9 @@
-package net.momirealms.sparrow.feature.ban;
+package net.momirealms.sparrow.feature.ban.command;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.momirealms.sparrow.feature.ban.*;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;

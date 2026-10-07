@@ -42,7 +42,6 @@ public record BanRecord(@NotNull String id,
     private static final char[] ID_ALPHABET = "0123456789ABCDEFGHJKMNPQRSTVWXYZ".toCharArray();
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    // 8 位随机 ID 约有 1.1 万亿种组合, 主键冲突时写入直接失败
     @NotNull
     public static String newId() {
         char[] id = new char[ID_LENGTH];

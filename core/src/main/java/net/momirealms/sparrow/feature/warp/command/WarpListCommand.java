@@ -1,6 +1,8 @@
-package net.momirealms.sparrow.feature.warp;
+package net.momirealms.sparrow.feature.warp.command;
 
 import net.kyori.adventure.text.Component;
+import net.momirealms.sparrow.feature.warp.Warp;
+import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;

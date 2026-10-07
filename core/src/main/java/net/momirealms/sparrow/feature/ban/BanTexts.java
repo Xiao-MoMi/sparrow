@@ -5,9 +5,11 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.DurationUtils;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-final class BanTexts {
+@ApiStatus.Internal
+public final class BanTexts {
 
     private BanTexts() {
     }
