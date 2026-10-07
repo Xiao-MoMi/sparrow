@@ -12,10 +12,6 @@ import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 public final class HomeSettings implements FeatureSettings {
     private boolean enabled = true;
 
-    @Comment("Seconds before online home data is refreshed from the database on its next use. Must be positive.")
-    @Comment(lang = "zh", value = "在线玩家的 Home 缓存有效秒数, 过期后在下次使用时读库刷新. 必须大于 0.")
-    private int cacheTtlSeconds = 300;
-
     @Comment("Default home name used by /set-home and preferred by /home.")
     @Comment(lang = "zh", value = "/set-home 的默认名称, /home 优先前往这个家.")
     private String defaultName = "home";
@@ -46,10 +42,6 @@ public final class HomeSettings implements FeatureSettings {
         this.enabled = enabled;
     }
 
-    public int cacheTtlSeconds() {
-        return this.cacheTtlSeconds;
-    }
-
     @NotNull
     public String defaultName() {
         return this.defaultName;
@@ -70,7 +62,7 @@ public final class HomeSettings implements FeatureSettings {
 
     public void validate() {
         Pattern.compile(this.namePattern);
-        if (this.cacheTtlSeconds < 1 || this.suggestionLimit < 1 || this.maxHomes < 0 || this.warmupSeconds < 0 || this.cooldownSeconds < 0 || !this.validName(this.defaultName)) {
+        if (this.suggestionLimit < 1 || this.maxHomes < 0 || this.warmupSeconds < 0 || this.cooldownSeconds < 0 || !this.validName(this.defaultName)) {
             throw new IllegalArgumentException("Invalid home settings: check limits, timings and default-name");
         }
     }

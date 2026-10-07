@@ -32,9 +32,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.LongSupplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -43,7 +41,6 @@ class HomeServiceTest {
     private final UUID owner = UUID.randomUUID();
     private final HomeStore store = mock(HomeStore.class);
     private final PluginLogger logger = mock(PluginLogger.class);
-    private final AtomicLong clock = new AtomicLong();
     private final List<HomeChangedMessage> published = new ArrayList<>();
     private HomeService service;
     private final MessageBrokerManager broker = mock(MessageBrokerManager.class);
@@ -58,7 +55,6 @@ class HomeServiceTest {
         when(plugin.configurationManager().featuresConfig().config().home()).thenReturn(new HomeSettings());
         this.context = new PluginTestContext(plugin, "lobby");
         this.service = new HomeService();
-        PluginTestContext.setField(this.service, "clock", (LongSupplier) this.clock::get);
         when(this.broker.publishOneWay(any(HomeChangedMessage.class), eq(""))).thenAnswer(invocation -> {
             this.published.add(invocation.getArgument(0));
             return CompletableFuture.completedFuture(1L);
@@ -71,29 +67,6 @@ class HomeServiceTest {
         this.service.close();
         HomeChangedMessage.listener(null);
         this.context.close();
-    }
-
-    @Test
-    void reusesEmptySnapshotsAndExpiresFromReadStartWithoutExtendingOnReads() {
-        CompletableFuture<List<Home>> initial = new CompletableFuture<>();
-        CompletableFuture<List<Home>> refresh = new CompletableFuture<>();
-        when(this.store.loadByOwner(this.owner)).thenReturn(initial, refresh);
-        this.service.join(this.player());
-        CompletableFuture<HomeSnapshot> waiting = this.service.snapshot(this.owner);
-        this.clock.set(TimeUnit.SECONDS.toNanos(100));
-        initial.complete(List.of());
-        HomeSnapshot empty = waiting.join();
-        assertSame(empty, this.service.snapshot(this.owner).join());
-        this.clock.set(TimeUnit.SECONDS.toNanos(299));
-        assertSame(empty, this.service.snapshot(this.owner).join());
-        verify(this.store).loadByOwner(this.owner);
-        this.clock.set(TimeUnit.SECONDS.toNanos(300));
-        assertTrue(this.service.complete(this.owner, "h", 10).isEmpty());
-        CompletableFuture<HomeSnapshot> refreshed = this.service.snapshot(this.owner);
-        assertFalse(refreshed.isDone());
-        verify(this.store, times(2)).loadByOwner(this.owner);
-        refresh.complete(List.of());
-        assertEquals(0, refreshed.join().size());
     }
 
     @Test
@@ -194,7 +167,7 @@ class HomeServiceTest {
     }
 
     @Test
-    void publishesOnlyCommittedWritesAndKeepsSuccessWhenPublishingFails() {
+    void publishesOnlyCommittedWritesAndInvalidatesLocalSnapshots() {
         this.service.join(this.player());
         Home home = this.home("Home");
         CompletableFuture<HomeStore.SaveResult> commit = new CompletableFuture<>();
@@ -230,18 +203,6 @@ class HomeServiceTest {
         verify(this.store, times(3)).loadByOwner(this.owner);
         this.service.snapshot(this.owner).join();
         verify(this.store, times(4)).loadByOwner(this.owner);
-
-        CompletableFuture<Long> publication = new CompletableFuture<>();
-        IllegalStateException unavailable = new IllegalStateException("redis unavailable");
-        when(this.broker.publishOneWay(any(HomeChangedMessage.class), eq(""))).thenReturn(publication);
-        when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of(home)));
-        assertEquals(HomeStore.Status.SUCCESS, this.service.create(home).join().status());
-        publication.completeExceptionally(unavailable);
-        assertEquals(home, this.service.snapshot(this.owner).join().get("home"));
-        when(this.broker.publishOneWay(any(HomeChangedMessage.class), eq(""))).thenThrow(unavailable);
-        when(this.store.update(home)).thenReturn(CompletableFuture.completedFuture(new HomeStore.SaveResult(HomeStore.Status.SUCCESS, home)));
-        assertEquals(HomeStore.Status.SUCCESS, this.service.update(home).join().status());
-        verify(this.logger, times(2)).warn(contains("could not be published"), same(unavailable));
     }
 
     @Test

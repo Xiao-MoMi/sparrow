@@ -3,7 +3,6 @@ package net.momirealms.sparrow.feature.warp;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.UUIDUtils;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
@@ -19,7 +18,6 @@ public final class WarpService {
     private final WarpStore store;
     private final WarpRegistry registry;
     private final String serverId;
-    private final PluginLogger logger;
     private final WarpFeature feature;
     private final LongSupplier clock = System::currentTimeMillis;
 
@@ -29,7 +27,6 @@ public final class WarpService {
         this.feature = plugin.featureManager().feature(WarpFeature.ID, WarpFeature.class);
         this.registry = this.feature.registry();
         this.serverId = ServerConfig.serverId();
-        this.logger = plugin.logger();
     }
 
     // 覆盖或新建一个 Warp.
@@ -92,7 +89,7 @@ public final class WarpService {
                 return new Result(status, null);
             }
             this.registry.put(saved.warp());
-            this.publish(WarpMessage.save(this.serverId, saved.warp()));
+            SparrowPlugin.instance().messageBrokerManager().publishOneWay(WarpMessage.save(this.serverId, saved.warp()), "");
             return new Result(success, saved.warp());
         });
     }
@@ -103,7 +100,7 @@ public final class WarpService {
         return this.store.delete(id).thenApply(deleted -> {
             if (deleted) {
                 this.registry.remove(id);
-                this.publish(WarpMessage.delete(this.serverId, id));
+                SparrowPlugin.instance().messageBrokerManager().publishOneWay(WarpMessage.delete(this.serverId, id), "");
             }
             return deleted;
         });
@@ -123,24 +120,11 @@ public final class WarpService {
 
     private CompletableFuture<Integer> reloadAfterBulkDelete(int deleted) {
         if (deleted == 0) return CompletableFuture.completedFuture(0);
-        this.publish(WarpMessage.reload(this.serverId));
-        return this.store.loadAll().handle((warps, failure) -> {
-            if (failure == null) {
-                this.registry.replaceAll(warps);
-            } else {
-                this.logger.warn("Warp deletion committed, but reloading the local cache failed", failure);
-            }
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(WarpMessage.reload(this.serverId), "");
+        return this.store.loadAll().thenApply(warps -> {
+            this.registry.replaceAll(warps);
             return deleted;
         });
-    }
-
-    // 广播故障单独报告, 已提交的数据库操作仍返回成功.
-    private void publish(WarpMessage message) {
-        try {
-            SparrowPlugin.instance().messageBrokerManager().broker().publishOneWay(message, "");
-        } catch (RuntimeException failure) {
-            this.logger.warn("Warp database change committed, but publishing failed", failure);
-        }
     }
 
     public enum Status {

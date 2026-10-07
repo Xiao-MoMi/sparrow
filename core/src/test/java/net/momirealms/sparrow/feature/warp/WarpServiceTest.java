@@ -3,7 +3,6 @@ package net.momirealms.sparrow.feature.warp;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.testutil.PluginTestContext;
-import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.AfterEach;
@@ -26,7 +25,6 @@ class WarpServiceTest {
     private final InMemoryWarpStore store = spy(new InMemoryWarpStore());
     private WarpRegistry registry;
     private final WarpSettings settings = mock(WarpSettings.class);
-    private final PluginLogger logger = mock(PluginLogger.class);
     private final List<WarpMessage> published = new ArrayList<>();
     private final AtomicLong clock = new AtomicLong(100);
     private final WorldLocation location = new WorldLocation("world", 1, 64, 2, 90, 0);
@@ -39,7 +37,6 @@ class WarpServiceTest {
         when(this.settings.namePattern()).thenReturn("[\\p{L}\\p{N}_][\\p{L}\\p{N}_-]*");
         when(this.settings.overwriteExisting()).thenReturn(true);
         when(this.plugin.dataStorage().warpStore()).thenReturn(this.store);
-        when(this.plugin.logger()).thenReturn(this.logger);
         this.context = new PluginTestContext(this.plugin, "lobby");
         this.registry = new WarpRegistry();
         WarpFeature feature = mock(WarpFeature.class);
@@ -47,8 +44,8 @@ class WarpServiceTest {
         when(feature.config()).thenReturn(this.settings);
         var features = this.plugin.featureManager();
         doReturn(feature).when(features).feature(WarpFeature.ID, WarpFeature.class);
-        var broker = this.plugin.messageBrokerManager().broker();
-        doAnswer(invocation -> { this.published.add(invocation.getArgument(0)); return null; })
+        var broker = this.plugin.messageBrokerManager();
+        doAnswer(invocation -> { this.published.add(invocation.getArgument(0)); return CompletableFuture.completedFuture(1L); })
                 .when(broker).publishOneWay(any(WarpMessage.class), eq(""));
         this.service = new WarpService();
         PluginTestContext.setField(this.service, "clock", (LongSupplier) this.clock::get);
@@ -174,22 +171,13 @@ class WarpServiceTest {
     }
 
     @Test
-    void databaseFailureRemainsExceptionalAndPublishingFailurePreservesSuccess() {
+    void databaseFailureDoesNotChangeCacheOrPublish() {
         Warp initial = this.service.set("Spawn", "lobby", this.location, null).join().warp();
         this.published.clear();
         doReturn(CompletableFuture.failedFuture(new IllegalStateException("database unavailable"))).when(this.store).update(any());
         assertThrows(CompletionException.class, () -> this.service.rename(initial.id(), "Hub").join());
         assertSame(initial, this.registry.get(initial.id()));
         assertTrue(this.published.isEmpty());
-
-        var broker = this.plugin.messageBrokerManager().broker();
-        doThrow(new IllegalStateException("Redis unavailable")).when(broker).publishOneWay(any(WarpMessage.class), eq(""));
-        WarpService.Result created = this.service.set("Mine", "lobby", this.location, null).join();
-        assertEquals(CREATED, created.status());
-        assertEquals(created.warp(), this.registry.get("mine"));
-        assertTrue(this.service.delete(created.warp().id()).join());
-        assertNull(this.registry.get("mine"));
-        verify(this.logger, times(2)).warn(contains("publishing failed"), any(Throwable.class));
     }
 
     @Test

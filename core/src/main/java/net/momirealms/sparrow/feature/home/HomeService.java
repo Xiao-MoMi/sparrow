@@ -17,16 +17,12 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.function.LongSupplier;
 import java.util.function.UnaryOperator;
 
 public final class HomeService implements AutoCloseable {
     private final HomeStore store;
     private final String serverId;
     private final PluginLogger logger;
-    private final long ttlNanos;
-    private final LongSupplier clock = System::nanoTime;
     private final ConcurrentChainedObject2ObjectHashTable<UUID, OwnerState> online = new ConcurrentChainedObject2ObjectHashTable<>();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, CompletableFuture<Void>> writes = new ConcurrentChainedObject2ObjectHashTable<>();
     private volatile boolean closed;
@@ -36,7 +32,6 @@ public final class HomeService implements AutoCloseable {
         this.store = plugin.dataStorage().homeStore();
         this.serverId = ServerConfig.serverId();
         this.logger = plugin.logger();
-        this.ttlNanos = TimeUnit.SECONDS.toNanos(plugin.configurationManager().featuresConfig().config().home().cacheTtlSeconds());
     }
 
     public void join(@NotNull SparrowPlayer player) {
@@ -79,13 +74,12 @@ public final class HomeService implements AutoCloseable {
         return this.store.findByName(owner, name);
     }
 
-    // 同步补全允许暂用过期建议, 但会在后台共用一次刷新.
+    // 同步补全共用正在加载的查询, 完成后下次补全即可取得结果.
     @NotNull
     public List<String> complete(@NotNull UUID owner, @NotNull String input, int limit) {
         OwnerState state = this.online.get(owner);
         if (state == null) return List.of();
-        state.read();
-        HomeSnapshot snapshot = state.cached();
+        HomeSnapshot snapshot = state.read().getNow(null);
         return snapshot == null ? List.of() : snapshot.complete(input, limit);
     }
 
@@ -210,16 +204,7 @@ public final class HomeService implements AutoCloseable {
 
     private void committed(HomeChangedMessage message) {
         this.invalidate(message.owner());
-        // 数据库已提交, 发布失败不能让调用方误以为保存失败而重试创建.
-        try {
-            SparrowPlugin.instance().messageBrokerManager().publishOneWay(message, "").whenComplete((subscribers, error) -> {
-                if (error != null) {
-                    this.logger.warn("Home changes were saved, but could not be published for owner " + message.owner(), error);
-                }
-            });
-        } catch (RuntimeException exception) {
-            this.logger.warn("Home changes were saved, but could not be published for owner " + message.owner(), exception);
-        }
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(message, "");
     }
 
     public void accept(@NotNull HomeChangedMessage message) {
@@ -259,7 +244,6 @@ public final class HomeService implements AutoCloseable {
     private final class OwnerState {
         private final SparrowPlayer player;
         private @Nullable HomeSnapshot snapshot;
-        private long loadedAt;
         private @Nullable CompletableFuture<HomeSnapshot> loading;
         private boolean dirty;
         private boolean closed;
@@ -273,7 +257,7 @@ public final class HomeService implements AutoCloseable {
             synchronized (this) {
                 if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home owner has left"));
                 if (this.loading != null) return this.loading.copy();
-                if (this.snapshot != null && HomeService.this.clock.getAsLong() - this.loadedAt < HomeService.this.ttlNanos) {
+                if (this.snapshot != null) {
                     return CompletableFuture.completedFuture(this.snapshot);
                 }
                 future = new CompletableFuture<>();
@@ -284,28 +268,26 @@ public final class HomeService implements AutoCloseable {
         }
 
         private void load(CompletableFuture<HomeSnapshot> future) {
-            long startedAt;
             synchronized (this) {
                 if (this.closed) return;
                 this.dirty = false;
-                startedAt = HomeService.this.clock.getAsLong();
             }
             // I/O 和 future 回调都在锁外运行, 避免阻塞进退服与消息处理.
             HomeService.this.store.loadByOwner(this.player.uniqueId()).whenComplete((homes, error) -> {
                 HomeSnapshot loaded = error == null ? new HomeSnapshot(homes) : null;
-                boolean retry;
+                boolean reread;
                 synchronized (this) {
                     if (this.closed) return;
-                    retry = error == null && this.dirty;
-                    if (!retry) {
+                    reread = error == null && this.dirty;
+                    if (!reread) {
                         this.loading = null;
                         if (error == null) {
                             this.snapshot = loaded;
-                            this.loadedAt = startedAt;
                         }
                     }
                 }
-                if (retry) {
+                if (reread) {
+                    // 读取期间收到变更通知, 当前结果作废后重读.
                     this.load(future);
                 } else if (error != null) {
                     future.completeExceptionally(error);
@@ -314,11 +296,6 @@ public final class HomeService implements AutoCloseable {
                     future.complete(loaded);
                 }
             });
-        }
-
-        @Nullable
-        private synchronized HomeSnapshot cached() {
-            return this.snapshot;
         }
 
         private synchronized void invalidate() {

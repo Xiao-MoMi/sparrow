@@ -11,14 +11,12 @@ import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.testutil.PluginTestContext;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.SenderMapper;
@@ -78,20 +76,15 @@ class WarpPanelCommandsTest {
         World world = mock(World.class);
         when(world.getName()).thenReturn("new_world");
         when(this.player.getLocation()).thenReturn(new Location(world, 10.5, 70, -3.25, 45, 10));
-        PlatformExecutor platform = this.plugin.scheduler().platform();
-        doAnswer(invocation -> {
-            invocation.<Runnable>getArgument(0).run();
-            return null;
-        }).when(platform).run(any(Runnable.class), any(Runnable.class), any(Entity.class));
         doAnswer(invocation -> {
             TranslatableComponent key = invocation.getArgument(1);
             if (key.key().equals(CommandPanel.MESSAGE_KEY)) this.panels.add(((Component[]) invocation.getRawArguments()[2])[0]);
             return null;
         }).when(this.feedback).handleCommandFeedback(any(), any(TranslatableComponent.class), any(Component[].class));
-        var broker = this.plugin.messageBrokerManager().broker();
+        var broker = this.plugin.messageBrokerManager();
         doAnswer(invocation -> {
             this.published.add(invocation.getArgument(0));
-            return null;
+            return CompletableFuture.completedFuture(1L);
         }).when(broker).publishOneWay(any(WarpMessage.class), eq(""));
         this.store.put(this.warp("Spawn"), this.warp("矿场"));
         this.serverConfig = mockStatic(ServerConfig.class);
@@ -211,10 +204,10 @@ class WarpPanelCommandsTest {
     }
 
     @Test
-    void relocateReadsThePositionOnThePlayerThreadAndPreservesMetadata() {
+    void relocateReadsTheCurrentPositionWithoutSchedulingAndPreservesMetadata() {
         Warp original = this.feature.registry().get("spawn");
         this.execute(this.player, "edit-warp Spawn relocate");
-        verify(this.plugin.scheduler().platform()).run(any(Runnable.class), any(Runnable.class), same(this.player));
+        verifyNoInteractions(this.plugin.scheduler().platform());
         Warp moved = this.feature.registry().get("spawn");
         assertEquals("lobby", moved.server());
         assertEquals(new WorldLocation("new_world", 10.5, 70, -3.25, 45, 10), moved.location());
