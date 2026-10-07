@@ -2,6 +2,7 @@ package net.momirealms.sparrow.plugin.configuration;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import net.minecraft.world.BossEvent;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -13,6 +14,7 @@ import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.YamlProperty;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -248,9 +250,17 @@ public final class PluginConfig {
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class TeleportDisplay {
-        @Comment("Where the warmup countdown is shown: ACTION_BAR, TITLE, CHAT or NONE.")
-        @Comment(lang = "zh", value = "预热倒计时显示的位置: ACTION_BAR (动作栏)、TITLE (屏幕中央)、CHAT (聊天栏) 或 NONE (不显示).")
+        @Comment("Where the warmup countdown is shown: ACTION_BAR, TITLE, BOSS_BAR, CHAT or NONE.")
+        @Comment(lang = "zh", value = "预热倒计时显示的位置: ACTION_BAR (动作栏)、TITLE (屏幕中央)、BOSS_BAR (进度条)、CHAT (聊天栏) 或 NONE (不显示).")
         WarmupDisplay warmupDisplay = WarmupDisplay.ACTION_BAR;
+
+        @Comment("Boss bar color when warmup-display is BOSS_BAR: PINK, BLUE, RED, GREEN, YELLOW, PURPLE or WHITE.")
+        @Comment(lang = "zh", value = "warmup-display 为 BOSS_BAR 时的颜色: PINK、BLUE、RED、GREEN、YELLOW、PURPLE 或 WHITE.")
+        BossEvent.BossBarColor bossBarColor = BossEvent.BossBarColor.YELLOW;
+
+        @Comment("Boss bar style: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12 or NOTCHED_20.")
+        @Comment(lang = "zh", value = "BossBar 样式: PROGRESS、NOTCHED_6、NOTCHED_10、NOTCHED_12 或 NOTCHED_20.")
+        BossEvent.BossBarOverlay bossBarOverlay = BossEvent.BossBarOverlay.PROGRESS;
 
         @Comment("Sound keys, such as entity.enderman.teleport. Leave empty to play nothing.")
         @Comment(lang = "zh", value = "音效名称, 例如 entity.enderman.teleport. 留空表示不播放.")
@@ -260,6 +270,16 @@ public final class PluginConfig {
 
         public WarmupDisplay warmupDisplay() {
             return this.warmupDisplay;
+        }
+
+        @NotNull
+        public BossEvent.BossBarColor bossBarColor() {
+            return this.bossBarColor;
+        }
+
+        @NotNull
+        public BossEvent.BossBarOverlay bossBarOverlay() {
+            return this.bossBarOverlay;
         }
 
         @Nullable
@@ -288,6 +308,7 @@ public final class PluginConfig {
     public enum WarmupDisplay {
         ACTION_BAR,
         TITLE,
+        BOSS_BAR,
         CHAT,
         NONE
     }

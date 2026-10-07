@@ -84,6 +84,10 @@ public interface SparrowPlayer {
 
     void showBossBar(@NotNull UUID id, @NotNull Component title, float progress, @NotNull BossEvent.BossBarColor color, @NotNull BossEvent.BossBarOverlay overlay);
 
+    void updateBossBarProgress(@NotNull UUID id, float progress);
+
+    void updateBossBarTitle(@NotNull UUID id, @NotNull Component title);
+
     void hideBossBar(@NotNull UUID id);
 
     void sendTotemAnimation(@NotNull ItemStack totem);

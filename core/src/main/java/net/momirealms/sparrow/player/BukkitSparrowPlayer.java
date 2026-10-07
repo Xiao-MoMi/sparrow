@@ -173,6 +173,20 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
     }
 
     @Override
+    public void updateBossBarProgress(@NotNull UUID id, float progress) {
+        PacketBossEvent event = new PacketBossEvent(id);
+        event.setProgress(progress);
+        this.connection.sendPacket(ClientboundBossEventPacket.createUpdateProgressPacket(event));
+    }
+
+    @Override
+    public void updateBossBarTitle(@NotNull UUID id, @NotNull Component title) {
+        PacketBossEvent event = new PacketBossEvent(id);
+        event.setName(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(title)));
+        this.connection.sendPacket(ClientboundBossEventPacket.createUpdateNamePacket(event));
+    }
+
+    @Override
     public void hideBossBar(@NotNull UUID id) {
         this.connection.sendPacket(ClientboundBossEventPacket.createRemovePacket(id));
     }
@@ -244,6 +258,10 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
 
     // 各版本 ServerBossEvent 构造器不同, 继承签名稳定的 BossEvent 仅用于构造封包
     private static final class PacketBossEvent extends BossEvent {
+        private PacketBossEvent(@NotNull UUID id) {
+            this(id, net.minecraft.network.chat.Component.empty(), BossBarColor.WHITE, BossBarOverlay.PROGRESS);
+        }
+
         private PacketBossEvent(UUID id, net.minecraft.network.chat.Component name, BossBarColor color, BossBarOverlay overlay) {
             super(id, name, color, overlay);
         }
