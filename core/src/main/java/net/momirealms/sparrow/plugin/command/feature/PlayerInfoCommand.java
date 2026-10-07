@@ -102,36 +102,17 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
             }
         }
         CommandPanel panel = new CommandPanel(this.commandManager(), sender);
-        panel.line(Component.translatable("command.player-info.title", Component.text(data.name())))
-                .line(Component.translatable(
-                        "command.player-info.status",
-                        Component.translatable(online == null ? "command.player-info.offline" : "command.player-info.online"),
-                        serverName
-                ))
-                .line(Component.translatable("command.player-info.uuid", identity))
-                .line(Component.translatable(
-                        "command.player-info.last-login",
-                        this.time(data.lastLogin(), compact)
-                ))
-                .line(Component.translatable(
-                        "command.player-info.last-logout",
-                        this.time(data.lastLogout(), compact)
-                ));
+        Component status = Component.translatable(
+                "command.player-info.status",
+                Component.translatable(online == null ? "command.player-info.offline" : "command.player-info.online"),
+                serverName
+        );
         if (local != null) {
-            panel.line(Component.translatable(
-                    "command.player-info.session",
-                    Component.text(DurationUtils.format(now - local.connection().connectedAt())),
-                    Component.translatable("command.player-info.ping", Component.text(local.platformPlayer().getPing()))
-            ));
-            panel.line(Component.translatable(
-                    "command.player-info.current-location",
-                    this.position(WorldLocation.from(local.platformPlayer().getLocation()), compact)
-            ));
+            status = status.append(Component.translatable("command.player-info.ping", Component.text(local.platformPlayer().getPing())));
         }
-        panel.line(Component.translatable(
-                "command.player-info.logout-location",
-                data.lastLogoutLocation() == null ? unknown : this.position(data.lastLogoutLocation(), compact)
-        ));
+        panel.line(Component.translatable("command.player-info.title", Component.text(data.name())))
+                .line(status)
+                .line(Component.translatable("command.player-info.uuid", identity));
         if (panel.run(Component.empty(), "ip", "").available()) {
             String ip = data.lastLoginIp();
             Component address = unknown;
@@ -144,33 +125,63 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
             }
             panel.line(Component.translatable("command.player-info.ip", address));
         }
+        Component session = local == null ? Component.empty() : Component.translatable(
+                "command.player-info.session",
+                Component.text(DurationUtils.format(now - local.connection().connectedAt()))
+        );
+        panel.line(Component.translatable("command.player-info.last-login", this.time(data.lastLogin(), compact), session));
+        Component logoutLocation = Component.translatable(
+                "command.player-info.logout-location",
+                data.lastLogoutLocation() == null ? unknown : this.position(data.lastLogoutLocation(), false)
+        );
+        Component logoutTime = this.time(data.lastLogout(), compact);
+        if (compact) {
+            Component fullTime = data.lastLogout() == 0 ? unknown : Component.text(DateTimeUtils.fullTime(data.lastLogout()));
+            logoutTime = logoutTime.hoverEvent(fullTime.append(Component.newline()).append(logoutLocation));
+        }
+        panel.line(Component.translatable("command.player-info.last-logout", logoutTime));
+        if (local != null) {
+            panel.line(Component.translatable(
+                    "command.player-info.current-location",
+                    this.position(WorldLocation.from(local.platformPlayer().getLocation()), compact)
+            ));
+        }
+        if (!compact || local == null) {
+            panel.line(Component.translatable(
+                    "command.player-info.logout-location",
+                    data.lastLogoutLocation() == null ? unknown : this.position(data.lastLogoutLocation(), compact)
+            ));
+        }
         if (showBans) {
-            Component status = Component.translatable("command.player-info.not-banned");
+            Component banStatus = Component.translatable("command.player-info.not-banned");
             if (ban != null) {
                 Component full = Component.translatable("command.player-info.banned", BanTexts.id(ban.id()), BanTexts.expiry(ban.expiresAt(), now));
-                status = compact
+                banStatus = compact
                         ? Component.translatable("command.player-info.banned-short", BanTexts.id(ban.id())).hoverEvent(full)
                         : full;
             }
-            panel.line(Component.translatable("command.player-info.ban", status));
+            panel.line(Component.translatable("command.player-info.ban", banStatus));
         }
-        PanelButton refresh = panel.run(CommandPanel.label("refresh"), this.getFeatureID(), uuid)
-                .style(PanelButton.Style.INFO);
-        PanelButton history = panel.run(Component.translatable("command.player-info.ip-history"), "ip-history", uuid)
+        PanelButton refresh = panel.run(Component.translatable("command.player-info.refresh"), this.getFeatureID(), uuid)
                 .style(PanelButton.Style.INFO)
+                .description(Component.translatable("command.player-info.refresh-hover"));
+        PanelButton history = panel.suggest(Component.translatable("command.player-info.ip-history"), "ip-history", uuid)
+                .style(PanelButton.Style.INFO)
+                .description(Component.translatable("command.player-info.ip-history-hover"))
                 .disabled(data.lastLoginIp() == null ? MessageConstants.COMMAND_NO_ADDRESS.arguments(Component.text(data.name())) : null);
         BanFeature feature = this.plugin().featureManager().feature(BanFeature.ID, BanFeature.class);
         Component banUnavailable = feature.enabled() ? null : Component.translatable("command.panel.unavailable");
-        PanelButton bans = panel.run(Component.translatable("command.player-info.ban-history"), "ban-history", uuid)
+        PanelButton bans = panel.suggest(Component.translatable("command.player-info.ban-history"), "ban-history", uuid)
                 .style(PanelButton.Style.INFO)
+                .description(Component.translatable("command.player-info.ban-history-hover"))
                 .disabled(banUnavailable);
-        PanelButton teleport = panel.run(Component.translatable("command.player-info.teleport"), "tp-offline", data.name())
+        PanelButton teleport = panel.suggest(Component.translatable("command.player-info.teleport"), "tp-offline", data.name())
                 .style(PanelButton.Style.INFO)
+                .description(Component.translatable("command.player-info.teleport-hover").append(Component.newline()).append(logoutLocation))
                 .playersOnly()
                 .disabled(data.lastLogoutLocation() == null || data.lastLogoutServer() == null
                         ? MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION.arguments(Component.text(data.name())) : null);
-        panel.actions(refresh.build(), history.build());
-        panel.actions(bans.build(), teleport.build());
+        panel.actions(refresh.build(), history.build(), bans.build(), teleport.build());
         panel.send();
     }
 

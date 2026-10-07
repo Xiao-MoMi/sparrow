@@ -20,6 +20,7 @@ public final class PanelButton {
     private final String arguments;
     private final boolean suggest;
     private Style style = Style.NORMAL;
+    private @Nullable Component description;
     private @Nullable String permission;
     private @Nullable Component disabled;
     private boolean playersOnly;
@@ -43,6 +44,12 @@ public final class PanelButton {
     @NotNull
     public PanelButton style(@NotNull Style style) {
         this.style = style;
+        return this;
+    }
+
+    @NotNull
+    public PanelButton description(@NotNull Component description) {
+        this.description = description;
         return this;
     }
 
@@ -78,15 +85,25 @@ public final class PanelButton {
         String usage = usage(config);
         Component reason = this.disabledReason(config, usage);
         if (reason != null) {
+            if (this.description != null) {
+                reason = this.description.append(Component.newline()).append(reason);
+            }
+            String disabledKey = this.style == Style.INFO ? "command.panel.disabled.info" : "command.panel.disabled";
             return this.sender instanceof Player
-                    ? Component.translatable("command.panel.disabled", this.caption).hoverEvent(reason)
+                    ? Component.translatable(disabledKey, this.caption).hoverEvent(reason)
                     : Component.translatable("command.panel.console.disabled", this.caption, reason);
         }
         String command = this.arguments.isEmpty() ? usage : usage + " " + this.arguments;
-        if (!(this.sender instanceof Player)) return Component.translatable("command.panel.console.action", this.caption, Component.text(command));
+        if (!(this.sender instanceof Player)) {
+            return Component.translatable("command.panel.console.action", this.caption, Component.text(command));
+        }
+        String confirmKey = this.style == Style.INFO ? "command.panel.confirm.info" : "command.panel.confirm";
         Component hover = this.suggest
-                ? Component.translatable("command.panel.confirm", Component.text(command))
+                ? Component.translatable(confirmKey, Component.text(command))
                 : Component.text(command);
+        if (this.description != null) {
+            hover = this.description.append(Component.newline()).append(hover);
+        }
         ClickEvent<ClickEvent.Payload.Text> clickEvent = this.suggest
                 ? ClickEvent.suggestCommand(command)
                 : ClickEvent.runCommand(command);

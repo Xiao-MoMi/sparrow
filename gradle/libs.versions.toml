@@ -2,10 +2,10 @@
 # Project
 project-version = "26.9-SNAPSHOT-2"
 config-version = "2"
-commands-config-version = "6"
-features-config-version = "6"
+commands-config-version = "7"
+features-config-version = "7"
 server-config-version = "1"
-lang-version = "24"
+lang-version = "30"
 proxy-config-version = "1"
 
 # Database
@@ -84,10 +84,6 @@ reactor = "3.8.5"
 # 代理端打包的 Lettuce 依赖的 netty 版本, 不能高于代理平台自带的 netty
 proxy-netty = "4.2.13.Final"
 
-# Test
-junit = "6.0.1"
-mockito = "5.22.0"
-
 [plugins]
 # Build
 shadow = { id = "com.gradleup.shadow", version = "9.3.2" }
@@ -163,13 +159,6 @@ adventure-text-serializer-json = { module = "net.kyori:adventure-text-serializer
 option = { module = "net.kyori:option", version.ref = "option" }
 examination-api = { module = "net.kyori:examination-api", version.ref = "examination-api" }
 examination-string = { module = "net.kyori:examination-string", version.ref = "examination-api" }
-
-# Test
-junit-bom = { module = "org.junit:junit-bom", version.ref = "junit" }
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
-junit-platformLauncher = { module = "org.junit.platform:junit-platform-launcher" }
-mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
-test-paper-api = { module = "io.papermc.paper:paper-api", version.ref = "paper-api" }
 
 [bundles]
 # ASM
