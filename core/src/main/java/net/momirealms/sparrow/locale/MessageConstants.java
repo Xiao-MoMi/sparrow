@@ -281,6 +281,7 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_BAN_SUCCESS_SELF = Component.translatable("command.ban.success-self");
     TranslatableComponent COMMAND_BAN_REPLACED = Component.translatable("command.ban.replaced");
     TranslatableComponent COMMAND_BAN_REPLACED_SELF = Component.translatable("command.ban.replaced-self");
+    TranslatableComponent COMMAND_BAN_REPLACEMENT_REJECTED = Component.translatable("command.ban.replacement-rejected");
     TranslatableComponent COMMAND_BAN_REASON_TOO_LONG = Component.translatable("command.ban.reason-too-long");
     TranslatableComponent COMMAND_UNBAN_SUCCESS = Component.translatable("command.unban.success");
     TranslatableComponent COMMAND_UNBAN_NONE = Component.translatable("command.unban.none");

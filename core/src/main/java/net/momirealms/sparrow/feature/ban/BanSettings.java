@@ -8,9 +8,24 @@ import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Map;
+
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class BanSettings implements FeatureSettings {
     private boolean enabled = true;
+
+    @Comment({
+            "Reason presets for /ban and /ban-ip, also offered in tab completion.",
+            "An exact preset name expands to its message. Other input remains a custom reason. An empty map disables presets."
+    })
+    @Comment(
+            lang = "zh",
+            value = {
+                    "/ban 与 /ban-ip 的原因预设, 同时提供名称补全.",
+                    "原因完全匹配预设名称时展开为对应文本, 其他内容作为自定义原因. 设置为 {} 可关闭预设."
+            }
+    )
+    private @NotNull Map<String, String> reasonPresets = Map.of("cheating", "Cheating", "grief", "Griefing");
 
     @Comment({
             "Ban notification sound. Accepts a mapping, [key, volume, pitch, source, seed], a comma-separated string or a sound key.",
@@ -37,6 +52,16 @@ public final class BanSettings implements FeatureSettings {
     @Override
     public void enabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @NotNull
+    public Map<String, String> reasonPresets() {
+        return this.reasonPresets;
+    }
+
+    @NotNull
+    public String getReason(@NotNull String input) {
+        return this.reasonPresets.getOrDefault(input, input);
     }
 
     @Nullable

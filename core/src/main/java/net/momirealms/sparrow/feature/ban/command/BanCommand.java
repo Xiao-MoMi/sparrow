@@ -4,9 +4,10 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.ban.BanRecord;
-import net.momirealms.sparrow.feature.ban.BanTarget;
+import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTexts;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -18,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -36,9 +38,14 @@ public final class BanCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
-                .optional("reason", StringParser.greedyFlagYieldingStringParser())
+                .optional(
+                        "reason",
+                        StringParser.greedyFlagYieldingStringParser(),
+                        SuggestionProvider.blockingStrings((context, input) -> this.feature.config().reasonPresets().keySet())
+                )
                 .flag(manager.flagBuilder("time").withAliases("t").withComponent(DurationParser.durationParser()))
                 .flag(manager.flagBuilder("ip").withAliases("I"))
+                .flag(manager.flagBuilder("force"))
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(this::execute));
     }
@@ -47,7 +54,7 @@ public final class BanCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
         String input = context.get("player");
-        String reason = context.getOrDefault("reason", "");
+        String reason = this.feature.config().getReason(context.getOrDefault("reason", ""));
         if (reason.codePointCount(0, reason.length()) > BanRecord.MAX_REASON_LENGTH) {
             this.handleFeedback(sender, MessageConstants.COMMAND_BAN_REASON_TOO_LONG, Component.text(BanRecord.MAX_REASON_LENGTH));
             return;
@@ -56,14 +63,16 @@ public final class BanCommand extends BukkitCommandFeature {
         long expiresAt = time == null ? 0 : Math.addExact(System.currentTimeMillis(), time.toMillis());
         boolean withIp = context.flags().hasFlag("ip");
         boolean silent = context.flags().hasFlag("silent");
+        boolean force = context.flags().hasFlag("force");
         this.feature.resolvePlayer(input).thenCompose(found -> {
             if (found.isEmpty()) {
                 this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));
                 return CompletableFuture.completedFuture(null);
             }
-            BanTarget.PlayerTarget target = found.get();
+            PlayerRef target = found.get();
             if (!withIp) {
-                return this.feature.ban(target, null, reason, expiresAt, sender.getName(), silent).thenAccept(result -> this.sendResult(context, result));
+                return this.feature.ban(target, null, reason, expiresAt, sender.getName(), silent, force)
+                        .thenAccept(result -> this.sendResult(context, result));
             }
             // 在线玩家进服时已经写入当前 IP, 数据库中的记录就是最近一次登录的 IP
             return this.plugin().dataStorage().loadPlayer(target.uuid()).thenCompose(data -> {
@@ -72,7 +81,8 @@ public final class BanCommand extends BukkitCommandFeature {
                     this.handleFeedback(sender, MessageConstants.COMMAND_NO_ADDRESS, Component.text(target.name()));
                     return CompletableFuture.completedFuture(null);
                 }
-                return this.feature.ban(target, IpRange.parse(ip), reason, expiresAt, sender.getName(), silent).thenAccept(result -> this.sendResult(context, result));
+                return this.feature.ban(target, IpRange.parse(ip), reason, expiresAt, sender.getName(), silent, force)
+                        .thenAccept(result -> this.sendResult(context, result));
             });
         }).exceptionally(error -> {
             this.plugin().logger().warn("Failed to ban " + input, error);
@@ -81,14 +91,35 @@ public final class BanCommand extends BukkitCommandFeature {
         });
     }
 
-    // 覆盖了旧封禁时追加一行提示
-    private void sendResult(CommandContext<CommandSender> context, BanFeature.Result result) {
+    // 覆盖被拒绝时照常提示错误, 成功反馈遵守 -s
+    private void sendResult(CommandContext<CommandSender> context, BanResult result) {
         BanRecord record = result.record();
+        BanRecord previous = result.previous();
+        if (result.status() == BanResult.Status.REPLACEMENT_REJECTED) {
+            this.handleFeedback(
+                    context.sender(),
+                    MessageConstants.COMMAND_BAN_REPLACEMENT_REJECTED,
+                    Component.text(record.display()),
+                    BanTexts.id(previous.id())
+            );
+            return;
+        }
+        long now = System.currentTimeMillis();
         boolean self = context.sender() instanceof Player player && player.getUniqueId().equals(record.player());
-        this.handleFeedback(context, self ? MessageConstants.COMMAND_BAN_SUCCESS_SELF : MessageConstants.COMMAND_BAN_SUCCESS, Component.text(record.display()), BanTexts.reason(record.reason()),
-                BanTexts.expiry(record.expiresAt(), System.currentTimeMillis()), BanTexts.id(record.id()));
-        if (result.replaced()) {
-            this.handleFeedback(context, self ? MessageConstants.COMMAND_BAN_REPLACED_SELF : MessageConstants.COMMAND_BAN_REPLACED, Component.text(record.display()));
+        this.handleFeedback(
+                context,
+                self ? MessageConstants.COMMAND_BAN_SUCCESS_SELF : MessageConstants.COMMAND_BAN_SUCCESS,
+                Component.text(record.display()),
+                BanTexts.reason(record.reason()),
+                BanTexts.expiry(record.expiresAt(), now),
+                BanTexts.id(record.id())
+        );
+        if (previous != null) {
+            this.handleFeedback(
+                    context,
+                    self ? MessageConstants.COMMAND_BAN_REPLACED_SELF : MessageConstants.COMMAND_BAN_REPLACED,
+                    Component.text(record.display())
+            );
         }
     }
 

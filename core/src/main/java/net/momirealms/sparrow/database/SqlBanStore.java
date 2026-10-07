@@ -2,11 +2,13 @@ package net.momirealms.sparrow.database;
 
 import net.momirealms.sparrow.feature.ban.BanQuery;
 import net.momirealms.sparrow.feature.ban.BanRecord;
+import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTarget;
+import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.util.IpRange;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.Query;
 import org.jdbi.v3.core.statement.SqlStatement;
-import org.jdbi.v3.core.statement.Update;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -81,23 +83,41 @@ public abstract class SqlBanStore implements BanStore {
                 .bind("ip", ip).bind("now", now).map((result, context) -> this.readBan(result)).findOne()), this.executor);
     }
 
-    @Override
     @NotNull
-    public CompletableFuture<Boolean> saveBan(@NotNull BanRecord record) {
+    @Override
+    public CompletableFuture<BanResult> saveBan(@NotNull BanRecord record, boolean force) {
         IpRange ip = record.ip();
         // 带玩家的记录覆盖该玩家的旧封禁, 纯 IP 记录覆盖同一段的纯 IP 封禁
         String sameTarget = record.player() != null ? "player = :player" : "player IS NULL AND ip_start = :ip_start AND ip_end = :ip_end";
-        String revoke = "UPDATE " + this.bans + " SET revoked_at = :now, revoked_by = :by WHERE " + ACTIVE + " AND " + sameTarget;
+        String select = "SELECT * FROM " + this.bans + " WHERE " + ACTIVE + " AND " + sameTarget + " FOR UPDATE";
+        String revoke = "UPDATE " + this.bans + " SET revoked_at = :now, revoked_by = :by WHERE id IN (<ids>)";
         String insert = "INSERT INTO " + this.bans + " (id, player, player_name, ip_start, ip_end, reason, operator_name, server, created_at, expires_at)"
                 + " VALUES (:id, :player, :player_name, :ip_start, :ip_end, :reason, :operator_name, :server, :created_at, :expires_at)";
         return CompletableFuture.supplyAsync(() -> this.sql().inTransaction(handle -> {
-            Update revokeStatement = handle.createUpdate(revoke).bind("now", record.createdAt()).bind("by", record.operatorName());
+            Query selectStatement = handle.createQuery(select).bind("now", record.createdAt());
             if (record.player() != null) {
-                this.bindUuid(revokeStatement, "player", record.player());
+                this.bindUuid(selectStatement, "player", record.player());
             } else {
-                revokeStatement.bind("ip_start", ip.start()).bind("ip_end", ip.end());
+                selectStatement.bind("ip_start", ip.start()).bind("ip_end", ip.end());
             }
-            int revoked = revokeStatement.execute();
+            // 事务内锁住当前封禁, 只撤销本次检查过的记录
+            List<BanRecord> active = selectStatement.map((row, context) -> this.readBan(row)).list();
+            BanResult result = BanResult.evaluate(record, active, force);
+            if (result.status() == BanResult.Status.REPLACEMENT_REJECTED) {
+                return result;
+            }
+            if (!active.isEmpty()) {
+                int size = active.size();
+                List<String> ids = new ArrayList<>(size);
+                for (int i = 0; i < size; i++) {
+                    ids.add(active.get(i).id());
+                }
+                handle.createUpdate(revoke)
+                        .bindList("ids", ids)
+                        .bind("now", record.createdAt())
+                        .bind("by", record.operatorName())
+                        .execute();
+            }
             this.bindRecordTarget(handle.createUpdate(insert), record)
                     .bind("id", record.id())
                     .bind("reason", record.reason())
@@ -106,7 +126,7 @@ public abstract class SqlBanStore implements BanStore {
                     .bind("created_at", record.createdAt())
                     .bind("expires_at", record.expiresAt())
                     .execute();
-            return revoked > 0;
+            return result;
         }), this.executor);
     }
 
@@ -190,7 +210,7 @@ public abstract class SqlBanStore implements BanStore {
 
     private <S extends SqlStatement<S>> S bindTarget(S statement, BanTarget target) {
         return switch (target) {
-            case BanTarget.PlayerTarget player -> this.bindUuid(statement, "player", player.uuid());
+            case BanTarget.PlayerTarget(PlayerRef player) -> this.bindUuid(statement, "player", player.uuid());
             case BanTarget.IpTarget ip -> statement.bind("ip_start", ip.range().start()).bind("ip_end", ip.range().end());
             case BanTarget.IdTarget id -> statement.bind("id", id.id());
         };

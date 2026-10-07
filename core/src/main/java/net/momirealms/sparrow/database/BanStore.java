@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database;
 
 import net.momirealms.sparrow.feature.ban.BanQuery;
 import net.momirealms.sparrow.feature.ban.BanRecord;
+import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTarget;
 import net.momirealms.sparrow.util.IpRange;
 import org.jetbrains.annotations.NotNull;
@@ -31,12 +32,14 @@ public interface BanStore {
     /**
      * 写入封禁, 并撤销同一对象上仍生效的旧封禁.
      * 带玩家的记录按 UUID 判定同一对象, 纯 IP 记录按 IP 段完全相同判定.
+     * 覆盖生效中的封禁需要 force, 拒绝时保留旧记录.
      *
      * @param record 新的封禁记录
-     * @return 写入任务, 结果表示是否覆盖了旧封禁
+     * @param force 是否允许覆盖仍生效的封禁
+     * @return 写入结果, 包含新记录、已有封禁中的一条及写入或拒绝状态
      */
     @NotNull
-    CompletableFuture<Boolean> saveBan(@NotNull BanRecord record);
+    CompletableFuture<BanResult> saveBan(@NotNull BanRecord record, boolean force);
 
     /**
      * 撤销仍生效的封禁.

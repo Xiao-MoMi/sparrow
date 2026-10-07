@@ -258,7 +258,9 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @NotNull
     public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull String name) {
         ClusterPlayer online = this.cluster.find(name);
-        if (online != null) return CompletableFuture.completedFuture(Optional.of(online.ref()));
+        if (online != null) {
+            return CompletableFuture.completedFuture(Optional.of(new PlayerRef(online.uuid(), online.name())));
+        }
         return this.plugin.dataStorage().lookupUser(name).thenApply(found -> found.map(uuid -> new PlayerRef(uuid, name)));
     }
 
@@ -271,7 +273,9 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @NotNull
     public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull UUID uniqueId) {
         ClusterPlayer online = this.cluster.find(uniqueId);
-        if (online != null) return CompletableFuture.completedFuture(Optional.of(online.ref()));
+        if (online != null) {
+            return CompletableFuture.completedFuture(Optional.of(new PlayerRef(online.uuid(), online.name())));
+        }
         return this.plugin.dataStorage().lookupName(uniqueId).thenApply(found -> found.map(name -> new PlayerRef(uniqueId, name)));
     }
 }

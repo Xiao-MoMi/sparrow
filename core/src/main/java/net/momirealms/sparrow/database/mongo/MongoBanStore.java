@@ -8,7 +8,9 @@ import com.mongodb.client.model.Updates;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.feature.ban.BanQuery;
 import net.momirealms.sparrow.feature.ban.BanRecord;
+import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTarget;
+import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.IpRange;
@@ -96,9 +98,9 @@ final class MongoBanStore implements BanStore {
     }
 
     // 撤销与写入分两步执行, 不要求副本集. 中途失败时旧封禁已撤销而新封禁未写入
-    @Override
     @NotNull
-    public CompletableFuture<Boolean> saveBan(@NotNull BanRecord record) {
+    @Override
+    public CompletableFuture<BanResult> saveBan(@NotNull BanRecord record, boolean force) {
         Document document = new Document("_id", record.id())
                 .append(BAN_REASON, record.reason())
                 .append(BAN_OPERATOR_NAME, record.operatorName())
@@ -120,9 +122,23 @@ final class MongoBanStore implements BanStore {
         Bson revoke = Updates.combine(Updates.set(BAN_REVOKED_AT, record.createdAt()), Updates.set(BAN_REVOKED_BY, record.operatorName()));
         return CompletableFuture.supplyAsync(() -> {
             MongoCollection<Document> bans = this.bans();
-            long revoked = bans.updateMany(Filters.and(active(record.createdAt()), sameTarget), revoke).getModifiedCount();
+            List<BanRecord> active = bans.find(Filters.and(active(record.createdAt()), sameTarget))
+                    .map(MongoBanStore::readBan)
+                    .into(new ArrayList<>());
+            BanResult result = BanResult.evaluate(record, active, force);
+            if (result.status() == BanResult.Status.REPLACEMENT_REJECTED) {
+                return result;
+            }
+            if (!active.isEmpty()) {
+                int size = active.size();
+                List<String> ids = new ArrayList<>(size);
+                for (int i = 0; i < size; i++) {
+                    ids.add(active.get(i).id());
+                }
+                bans.updateMany(Filters.in("_id", ids), revoke);
+            }
             bans.insertOne(document);
-            return revoked > 0;
+            return result;
         }, this.executor);
     }
 
@@ -130,7 +146,7 @@ final class MongoBanStore implements BanStore {
     @NotNull
     public CompletableFuture<List<BanRecord>> revokeBans(@NotNull BanTarget target, long now, @NotNull String revokedBy) {
         Bson match = switch (target) {
-            case BanTarget.PlayerTarget player -> Filters.eq(BAN_PLAYER, player.uuid());
+            case BanTarget.PlayerTarget(PlayerRef player) -> Filters.eq(BAN_PLAYER, player.uuid());
             case BanTarget.IpTarget ip -> Filters.and(Filters.exists(BAN_PLAYER, false),
                     Filters.eq(BAN_IP_START, ip.range().start()), Filters.eq(BAN_IP_END, ip.range().end()));
             case BanTarget.IdTarget id -> Filters.eq("_id", id.id());
@@ -171,7 +187,7 @@ final class MongoBanStore implements BanStore {
         BanTarget target = query.target();
         if (target != null) {
             conditions.add(switch (target) {
-                case BanTarget.PlayerTarget player -> Filters.eq(BAN_PLAYER, player.uuid());
+                case BanTarget.PlayerTarget(PlayerRef player) -> Filters.eq(BAN_PLAYER, player.uuid());
                 case BanTarget.IpTarget ip -> Filters.and(Filters.lte(BAN_IP_START, ip.range().start()), Filters.gte(BAN_IP_END, ip.range().end()));
                 case BanTarget.IdTarget id -> Filters.eq("_id", id.id());
             });

@@ -1,21 +1,20 @@
 package net.momirealms.sparrow.feature.ban;
 
+import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.util.IpRange;
 import org.jetbrains.annotations.NotNull;
-
-import java.util.UUID;
 
 public sealed interface BanTarget {
 
     @NotNull
     String display();
 
-    record PlayerTarget(@NotNull UUID uuid, @NotNull String name) implements BanTarget {
+    record PlayerTarget(@NotNull PlayerRef player) implements BanTarget {
 
-        @Override
         @NotNull
+        @Override
         public String display() {
-            return this.name;
+            return this.player.name();
         }
     }
 

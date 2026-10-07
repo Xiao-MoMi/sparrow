@@ -105,8 +105,19 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
             return;
         }
         boolean account = event.getUniqueId().equals(ban.player());
-        Component screen = this.kickScreen(account, event.getName(), ban.id(), ban.reason(), ban.operatorName(),
-                ban.createdAt(), ban.expiresAt(), now, null);
+        Component screen = this.plugin.translationManager().render(
+                BanTexts.kickScreen(
+                        account,
+                        event.getName(),
+                        ban.id(),
+                        ban.reason(),
+                        ban.operatorName(),
+                        ban.createdAt(),
+                        ban.expiresAt(),
+                        now
+                ),
+                null
+        );
         // 先拒绝登录
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, AdventureHelper.componentToLegacy(screen));
         // 本服拒绝登录会被代理转到下一个服务器, 所以先让代理断开整条连接, 等待期间代理没有处理再由本服拒绝.
@@ -127,11 +138,14 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
      * @return 解析任务, 玩家名没有记录时结果为空
      */
     @NotNull
-    public CompletableFuture<Optional<BanTarget.PlayerTarget>> resolvePlayer(@NotNull String input) {
+    public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull String input) {
         UUID uuid = UUIDUtils.parse(input);
         PlayerManager players = this.plugin.playerManager();
-        if (uuid == null) return players.resolvePlayer(input).thenApply(found -> found.map(BanFeature::target));
-        return players.resolvePlayer(uuid).thenApply(found -> Optional.of(found.map(BanFeature::target).orElse(new BanTarget.PlayerTarget(uuid, uuid.toString()))));
+        if (uuid == null) {
+            return players.resolvePlayer(input);
+        }
+        return players.resolvePlayer(uuid)
+                .thenApply(found -> found.isEmpty() ? Optional.of(new PlayerRef(uuid, uuid.toString())) : found);
     }
 
     /**
@@ -144,11 +158,15 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     public CompletableFuture<Optional<BanTarget>> resolveTarget(@NotNull String input) {
         if (input.charAt(0) == BanRecord.ID_PREFIX) {
             String id = BanRecord.parseId(input);
-            if (id == null) throw new IllegalArgumentException("Invalid punishment id: " + input);
+            if (id == null) {
+                throw new IllegalArgumentException("Invalid punishment id: " + input);
+            }
             return CompletableFuture.completedFuture(Optional.of(new BanTarget.IdTarget(id)));
         }
-        if (IpRange.looksLikeIp(input)) return CompletableFuture.completedFuture(Optional.of(new BanTarget.IpTarget(IpRange.parse(input))));
-        return this.resolvePlayer(input).thenApply(found -> found.map(BanTarget.class::cast));
+        if (IpRange.looksLikeIp(input)) {
+            return CompletableFuture.completedFuture(Optional.of(new BanTarget.IpTarget(IpRange.parse(input))));
+        }
+        return this.resolvePlayer(input).thenApply(found -> found.map(BanTarget.PlayerTarget::new));
     }
 
     /**
@@ -160,14 +178,38 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
      * @param reason 封禁原因, 空字符串表示未提供
      * @param expiresAt 到期时间, 单位为 Unix 毫秒, 0 表示永久
      * @param silent 是否跳过管理员通知
-     * @return 写入任务, 结果包含新记录和是否覆盖了旧封禁
+     * @param force 是否允许覆盖仍生效的封禁
+     * @return 写入结果, 覆盖被拒绝时保留旧记录并跳过踢人与通知
      */
     @NotNull
-    public CompletableFuture<Result> ban(@Nullable BanTarget.PlayerTarget player, @Nullable IpRange ip, @NotNull String reason, long expiresAt, @NotNull String operatorName, boolean silent) {
+    public CompletableFuture<BanResult> ban(
+            @Nullable PlayerRef player,
+            @Nullable IpRange ip,
+            @NotNull String reason,
+            long expiresAt,
+            @NotNull String operatorName,
+            boolean silent,
+            boolean force
+    ) {
         UUID uuid = player == null ? null : player.uuid();
         String name = player == null ? null : player.name();
-        BanRecord record = new BanRecord(BanRecord.newId(), uuid, name, ip, reason, operatorName, ServerConfig.serverId(), System.currentTimeMillis(), expiresAt, 0, null);
-        return this.store().saveBan(record).thenApply(replaced -> {
+        BanRecord record = new BanRecord(
+                BanRecord.newId(),
+                uuid,
+                name,
+                ip,
+                reason,
+                operatorName,
+                ServerConfig.serverId(),
+                System.currentTimeMillis(),
+                expiresAt,
+                0,
+                null
+        );
+        return this.store().saveBan(record, force).thenApply(result -> {
+            if (result.status() == BanResult.Status.REPLACEMENT_REJECTED) {
+                return result;
+            }
             this.publish(new BanMessage(
                             true,
                             record.id(),
@@ -180,7 +222,7 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
                             expiresAt,
                             silent
             ));
-            return new Result(record, replaced);
+            return result;
         });
     }
 
@@ -251,15 +293,17 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
 
     // 文本在当前线程渲染好, 踢出放到玩家所属线程
     private void kick(SparrowPlayer player, boolean account, BanMessage message, long now) {
-        Component screen = this.kickScreen(
-                account,
-                player.platformPlayer().getName(),
-                message.banId(),
-                message.reason(),
-                message.operatorName(),
-                message.createdAt(),
-                message.expiresAt(),
-                now,
+        Component screen = this.plugin.translationManager().render(
+                BanTexts.kickScreen(
+                        account,
+                        player.platformPlayer().getName(),
+                        message.banId(),
+                        message.reason(),
+                        message.operatorName(),
+                        message.createdAt(),
+                        message.expiresAt(),
+                        now
+                ),
                 player.locale()
         );
         this.plugin.scheduler().platform().run(() -> player.kick(screen), () -> {}, player.platformPlayer());
@@ -271,35 +315,14 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
         Sound sound = this.config.getNotifySound(message.banned());
         for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             if (player.hasPermission(NOTIFY_PERMISSION)) {
-                player.sendMessage(rendered.computeIfAbsent(player.locale(), locale -> this.notifyMessage(message, now, locale)));
+                player.sendMessage(rendered.computeIfAbsent(
+                        player.locale(),
+                        locale -> this.plugin.translationManager().render(BanTexts.notification(message, now), locale)
+                ));
                 if (sound != null) {
                     player.playSound(sound);
                 }
             }
         }
-    }
-
-    // account 为 true 时提示账号被封禁, 否则提示所用 IP 被封禁
-    private Component kickScreen(
-            boolean account, String playerName, String id, String reason, String operatorName,
-            long createdAt, long expiresAt, long now, @Nullable Locale locale
-    ) {
-        return this.plugin.translationManager().render(
-                BanTexts.kickScreen(account, playerName, id, reason, operatorName, createdAt, expiresAt, now), locale);
-    }
-
-    private Component notifyMessage(BanMessage message, long now, Locale locale) {
-        return this.plugin.translationManager().render(BanTexts.notification(message, now), locale);
-    }
-
-    private static BanTarget.PlayerTarget target(PlayerRef player) {
-        return new BanTarget.PlayerTarget(player.uuid(), player.name());
-    }
-
-    /**
-     * @param record 新写入的封禁记录
-     * @param replaced 是否覆盖了同一对象上的旧封禁
-     */
-    public record Result(@NotNull BanRecord record, boolean replaced) {
     }
 }
