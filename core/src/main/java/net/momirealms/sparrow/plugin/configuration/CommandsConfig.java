@@ -188,6 +188,14 @@ public final class CommandsConfig {
         CommandConfig more = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"), DependencyVersions.PROJECT_ID + ".command.more");
 
         @BlankLineBefore
+        @YamlProperty("player-info")
+        CommandConfig playerInfo = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " player-info", "/player-info", "/whois"),
+                DependencyVersions.PROJECT_ID + ".command.player-info"
+        );
+
+        @BlankLineBefore
         @YamlProperty("player-name")
         CommandConfig playerName = new CommandConfig(true, List.of("/" + DependencyVersions.PROJECT_ID + " player-name", "/player-name"), DependencyVersions.PROJECT_ID + ".command.player-name");
 
@@ -369,6 +377,7 @@ public final class CommandsConfig {
                 case "knockback" -> this.knockback;
                 case "look" -> this.look;
                 case "more" -> this.more;
+                case "player-info" -> this.playerInfo;
                 case "player-name" -> this.playerName;
                 case "player-uuid" -> this.playerUuid;
                 case "smithing-table" -> this.smithingTable;

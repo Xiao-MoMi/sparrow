@@ -9,6 +9,7 @@ import net.momirealms.sparrow.plugin.command.feature.TpOfflineCommand;
 import net.momirealms.sparrow.plugin.command.feature.IpCommand;
 import net.momirealms.sparrow.plugin.command.feature.IpHistoryCommand;
 import net.momirealms.sparrow.plugin.command.feature.PlayerNameCommand;
+import net.momirealms.sparrow.plugin.command.feature.PlayerInfoCommand;
 import net.momirealms.sparrow.plugin.command.feature.PlayerUuidCommand;
 import net.momirealms.sparrow.plugin.command.feature.ActionBarCommand;
 import net.momirealms.sparrow.plugin.command.feature.BroadcastCommand;
@@ -135,6 +136,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new KnockbackCommand(this, plugin),
                 new LookCommand(this, plugin),
                 new MoreCommand(this, plugin),
+                new PlayerInfoCommand(this, plugin),
                 new PlayerNameCommand(this, plugin),
                 new PlayerUuidCommand(this, plugin),
                 new SmithingTableCommand(this, plugin),
