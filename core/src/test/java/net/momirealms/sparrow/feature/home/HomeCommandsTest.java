@@ -1,11 +1,19 @@
 package net.momirealms.sparrow.feature.home;
 
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import me.clip.placeholderapi.replacer.CharsReplacer;
+import me.clip.placeholderapi.replacer.Replacer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
+import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.HomeStore;
+import net.momirealms.sparrow.feature.home.placehoder.HomesCountPlaceholder;
+import net.momirealms.sparrow.feature.home.placehoder.HomesListPlaceholder;
+import net.momirealms.sparrow.feature.home.placehoder.MaxHomesPlaceholder;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.player.teleport.TeleportResult;
 import net.momirealms.sparrow.player.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -27,10 +35,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.MockedConstruction;
 
 import java.util.List;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -46,6 +56,7 @@ class HomeCommandsTest {
     private final CommandManager feedback = mock(CommandManager.class);
     private final HomeStore store = mock(HomeStore.class);
     private final Player player = mock(Player.class);
+    private final World world = mock(World.class);
     private final ConsoleCommandSender console = mock(ConsoleCommandSender.class);
     private final org.incendo.cloud.CommandManager<CommandSender> manager = new org.incendo.cloud.CommandManager<>(ExecutionCoordinator.simpleCoordinator(), CommandRegistrationHandler.nullCommandRegistrationHandler()) {
         @Override
@@ -78,9 +89,8 @@ class HomeCommandsTest {
         when(this.player.getName()).thenReturn("Self");
         when(this.player.hasPermission(anyString())).thenAnswer(invocation -> !invocation.<String>getArgument(0).startsWith("sparrow.bypass."));
         when(this.console.hasPermission(anyString())).thenReturn(true);
-        World world = mock(World.class);
-        when(world.getName()).thenReturn("world");
-        when(this.player.getLocation()).thenReturn(new Location(world, 1, 64, 2));
+        when(this.world.getName()).thenReturn("world");
+        when(this.player.getLocation()).thenReturn(new Location(this.world, 1, 64, 2));
         when(this.plugin.compatibilityManager().permissionLimit(this.player, "sparrow.max-homes", 3)).thenReturn(3);
         when(this.plugin.compatibilityManager().permissionMinimum(any(), anyString(), anyInt())).thenAnswer(invocation -> invocation.getArgument(2));
         when(this.plugin.playerManager().teleportService().teleport(any(), anyString(), any(), any())).thenReturn(CompletableFuture.completedFuture(TeleportResult.SUCCESS));
@@ -105,6 +115,71 @@ class HomeCommandsTest {
             }
         } finally {
             this.context.close();
+        }
+    }
+
+    @Test
+    void registersOnlinePlaceholdersAndOnlyReadsCachedHomes() {
+        var features = this.plugin.featureManager();
+        doReturn(this.feature).when(features).feature(HomeFeature.ID, HomeFeature.class);
+        when(this.player.isOnline()).thenReturn(true);
+        when(this.player.getPlayer()).thenReturn(this.player);
+        List<PlaceholderExpansion> registered;
+        try (MockedConstruction<HomesCountPlaceholder> count = mockConstruction(HomesCountPlaceholder.class, (expansion, context) -> when(expansion.register()).thenReturn(true));
+             MockedConstruction<MaxHomesPlaceholder> max = mockConstruction(MaxHomesPlaceholder.class, (expansion, context) -> when(expansion.register()).thenReturn(true));
+             MockedConstruction<HomesListPlaceholder> list = mockConstruction(HomesListPlaceholder.class, (expansion, context) -> when(expansion.register()).thenReturn(true))) {
+            this.feature.onDisable();
+            when(this.plugin.compatibilityManager().isPluginEnabled("PlaceholderAPI")).thenReturn(true);
+            this.feature.onEnable();
+            registered = List.of(count.constructed().getFirst(), max.constructed().getFirst(), list.constructed().getFirst());
+            int size = registered.size();
+            for (int i = 0; i < size; i++) {
+                verify(registered.get(i)).register();
+            }
+        }
+        HomesCountPlaceholder count = new HomesCountPlaceholder();
+        MaxHomesPlaceholder max = new MaxHomesPlaceholder();
+        HomesListPlaceholder list = new HomesListPlaceholder();
+        Map<String, PlaceholderExpansion> expansions = Map.of(count.getIdentifier(), count, max.getIdentifier(), max, list.getIdentifier(), list);
+        CharsReplacer replacer = new CharsReplacer(Replacer.Closure.PERCENT);
+        String placeholders = "%sparrow-homes-count_value%|%sparrow-max-homes_value%|%sparrow-homes-list_value%";
+        try {
+            clearInvocations(this.store);
+            assertEquals("0|3|", replacer.apply(placeholders, this.player, expansions::get));
+            verifyNoInteractions(this.store);
+
+            SparrowPlayer online = mock(SparrowPlayer.class);
+            when(online.uniqueId()).thenReturn(this.owner);
+            CompletableFuture<List<Home>> loading = new CompletableFuture<>();
+            when(this.store.loadByOwner(this.owner)).thenReturn(loading);
+            this.feature.service().join(online);
+            clearInvocations(this.store);
+            assertEquals("0|3|", replacer.apply(placeholders, this.player, expansions::get));
+            loading.complete(List.of(this.home(this.owner, "mine"), this.home(this.owner, "HOME")));
+            assertEquals("2|3|HOME, mine", replacer.apply(placeholders, this.player, expansions::get));
+            when(this.plugin.compatibilityManager().permissionLimit(this.player, "sparrow.max-homes", 3)).thenReturn(CompatibilityManager.UNLIMITED);
+            assertEquals("2|-1|HOME, mine", replacer.apply(placeholders, this.player, expansions::get));
+
+            when(this.player.isOnline()).thenReturn(false);
+            assertEquals(placeholders, replacer.apply(placeholders, this.player, expansions::get));
+            assertEquals(placeholders, replacer.apply(placeholders, null, expansions::get));
+            when(this.player.isOnline()).thenReturn(true);
+            this.feature.service().accept(HomeChangedMessage.invalidateOwner("survival", this.owner));
+            assertEquals("0|-1|", replacer.apply(placeholders, this.player, expansions::get));
+            verifyNoInteractions(this.store);
+            verifyNoInteractions(this.plugin.scheduler().platform());
+
+            when(this.store.loadByOwner(this.owner)).thenReturn(CompletableFuture.completedFuture(List.of(this.home(this.owner, "home"))));
+            this.feature.service().snapshot(this.owner).join();
+            clearInvocations(this.store);
+            assertEquals("1|-1|home", replacer.apply(placeholders, this.player, expansions::get));
+            verifyNoInteractions(this.store);
+        } finally {
+            this.feature.onDisable();
+        }
+        int size = registered.size();
+        for (int i = 0; i < size; i++) {
+            verify(registered.get(i)).unregister();
         }
     }
 

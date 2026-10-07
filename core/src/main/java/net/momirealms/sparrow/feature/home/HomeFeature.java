@@ -1,6 +1,10 @@
 package net.momirealms.sparrow.feature.home;
 
+import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.momirealms.sparrow.feature.Feature;
+import net.momirealms.sparrow.feature.home.placehoder.HomesCountPlaceholder;
+import net.momirealms.sparrow.feature.home.placehoder.HomesListPlaceholder;
+import net.momirealms.sparrow.feature.home.placehoder.MaxHomesPlaceholder;
 import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -13,6 +17,7 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -22,6 +27,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
 
     private final SparrowPlugin plugin;
     private volatile HomeService service;
+    private final List<PlaceholderExpansion> placeholders = new ArrayList<>(3);
     private final Cache<String, CompletableFuture<HomeSnapshot>> suggestions = Caffeine.newBuilder().maximumSize(128).expireAfterWrite(Duration.ofSeconds(5)).build();
 
     public HomeFeature(@NotNull SparrowPlugin plugin) {
@@ -63,6 +69,15 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
                     this.onJoin(player);
                 }
             }, () -> {}, player.platformPlayer());
+        }
+        if (this.plugin.compatibilityManager().hasPlaceholderAPI()) {
+            PlaceholderExpansion[] placeholders = {new HomesCountPlaceholder(), new MaxHomesPlaceholder(), new HomesListPlaceholder()};
+            for (int i = 0; i < placeholders.length; i++) {
+                PlaceholderExpansion placeholder = placeholders[i];
+                if (placeholder.register()) {
+                    this.placeholders.add(placeholder);
+                }
+            }
         }
     }
 
@@ -124,6 +139,11 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
 
     @Override
     protected void onDisable() {
+        int size = this.placeholders.size();
+        for (int i = 0; i < size; i++) {
+            this.placeholders.get(i).unregister();
+        }
+        this.placeholders.clear();
         HomeChangedMessage.listener(null);
         this.suggestions.invalidateAll();
         HomeService service = this.service;

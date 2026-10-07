@@ -68,6 +68,13 @@ public final class HomeService implements AutoCloseable {
         return state == null ? this.store.loadByOwner(owner).thenApply(HomeSnapshot::new) : state.read();
     }
 
+    // 读取在线缓存, 未加载或已失效时返回 null.
+    @Nullable
+    public HomeSnapshot cachedSnapshot(@NotNull UUID owner) {
+        OwnerState state = this.online.get(owner);
+        return state == null ? null : state.cached();
+    }
+
     @NotNull
     public CompletableFuture<Optional<Home>> find(@NotNull UUID owner, @NotNull String name) {
         if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
@@ -296,6 +303,11 @@ public final class HomeService implements AutoCloseable {
                     future.complete(loaded);
                 }
             });
+        }
+
+        @Nullable
+        private synchronized HomeSnapshot cached() {
+            return this.snapshot;
         }
 
         private synchronized void invalidate() {
