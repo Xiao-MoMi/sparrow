@@ -27,6 +27,7 @@ import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +96,7 @@ public final class MongoDataStorage extends DataStorage {
     @Override
     @NotNull
     public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long ip, long timestamp) {
-        return this.save(player, name, timestamp, ip, null, null);
+        return this.save(player, name, timestamp, ip, null, null, "last_login");
     }
 
     @Override
@@ -107,23 +108,39 @@ public final class MongoDataStorage extends DataStorage {
             @NotNull String server,
             @NotNull WorldLocation location
     ) {
-        return this.save(player, name, timestamp, IpRange.NONE, server, location);
+        return this.save(player, name, timestamp, IpRange.NONE, server, location, "last_logout");
     }
 
-    private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, String server, WorldLocation location) {
-        boolean logout = location != null;
-        String time = logout ? "last_logout" : "last_login";
+    @Override
+    @NotNull
+    public CompletableFuture<Void> saveDeath(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location) {
+        return this.save(player, name, timestamp, IpRange.NONE, server, location, "last_death");
+    }
+
+    @NotNull
+    private CompletableFuture<Void> save(
+            @NotNull UUID player,
+            @NotNull String name,
+            long timestamp,
+            long ip,
+            @Nullable String server,
+            @Nullable WorldLocation location,
+            @NotNull String time
+    ) {
+        boolean withLocation = location != null;
         Document newer = new Document("$gte", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L))));
         Document current = new Document("$ifNull", List.of("$" + USER_UPDATED_AT, 0L));
         Document fields = new Document(
                 USER_NAME,
                 new Document("$cond", List.of(new Document("$gte", List.of(timestamp, current)), new Document("$literal", name), "$name"))
-        )
-                .append(USER_UPDATED_AT, new Document("$max", List.of(timestamp, current)))
-                .append(time, new Document("$max", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L)))))
-                .append(logout ? "last_login" : "last_logout", new Document("$ifNull", List.of(logout ? "$last_login" : "$last_logout", 0L)));
-        if (logout) {
-            Document values = new Document("last_logout_server", server).append("last_logout_location", Document.parse(location.toJson()));
+        ).append(USER_UPDATED_AT, new Document("$max", List.of(timestamp, current)));
+        String[] times = {"last_login", "last_logout", "last_death"};
+        for (String field : times) {
+            fields.append(field, new Document("$ifNull", List.of("$" + field, 0L)));
+        }
+        fields.append(time, new Document("$max", List.of(timestamp, new Document("$ifNull", List.of("$" + time, 0L)))));
+        if (withLocation) {
+            Document values = new Document(time + "_server", server).append(time + "_location", Document.parse(location.toJson()));
             values.forEach((key, value) -> fields.append(key, new Document("$cond", List.of(newer, new Document("$literal", value), "$" + key))));
         }
         if (ip != IpRange.NONE) {
@@ -172,6 +189,8 @@ public final class MongoDataStorage extends DataStorage {
     private static PlayerData readPlayer(Document document) {
         Document stored = document.get("last_logout_location", Document.class);
         WorldLocation location = stored == null ? null : WorldLocation.fromJson(stored.toJson());
+        Document deathStored = document.get("last_death_location", Document.class);
+        WorldLocation deathLocation = deathStored == null ? null : WorldLocation.fromJson(deathStored.toJson());
         Long ip = document.getLong(USER_LOGIN_IP);
         return new PlayerData(
                 document.get("_id", UUID.class),
@@ -180,6 +199,9 @@ public final class MongoDataStorage extends DataStorage {
                 document.getLong("last_logout"),
                 document.getString("last_logout_server"),
                 location,
+                document.getLong("last_death"),
+                document.getString("last_death_server"),
+                deathLocation,
                 ip == null ? null : IpRange.format(ip),
                 document.getLong(USER_UPDATED_AT)
         );

@@ -151,8 +151,8 @@ public final class FeaturesConfig {
         private BanSettings ban = new BanSettings();
 
         @BlankLineBefore
-        @Comment("Return to the previous location with /back, including the death location and the previous server.")
-        @Comment(lang = "zh", value = "使用 /back 回到上一个位置, 包括死亡位置和上一个服务器离开时的位置.")
+        @Comment("Return to the previous teleport location or server with /back, and to the last death location with /death-back.")
+        @Comment(lang = "zh", value = "使用 /back 返回上次传送前的位置或上一个服务器, 使用 /death-back 返回上次死亡位置.")
         private BackSettings back = new BackSettings();
 
         @BlankLineBefore

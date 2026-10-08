@@ -36,8 +36,9 @@ public final class MysqlSchema {
         // UUID 保存为固定 16 字节, 名字按 utf8mb4_bin 区分大小写.
         handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "data` ("
                 + "player BINARY(16) PRIMARY KEY, name VARCHAR(64) NOT NULL, "
-                + "last_login BIGINT NOT NULL DEFAULT 0, last_logout BIGINT NOT NULL DEFAULT 0, "
-                + "last_logout_server VARCHAR(255), last_logout_location JSON, last_login_ip BIGINT, updated_at BIGINT NOT NULL, "
+                + "last_login BIGINT NOT NULL DEFAULT 0, last_logout BIGINT NOT NULL DEFAULT 0, last_death BIGINT NOT NULL DEFAULT 0, "
+                + "last_logout_server VARCHAR(255), last_logout_location JSON, last_death_server VARCHAR(255), last_death_location JSON, "
+                + "last_login_ip BIGINT, updated_at BIGINT NOT NULL, "
                 + "KEY data_name_updated (name, updated_at), KEY data_login_ip (last_login_ip))" + TABLE_OPTIONS);
     }
 

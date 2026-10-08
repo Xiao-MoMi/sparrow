@@ -20,6 +20,7 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Update;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -100,7 +101,7 @@ public class MysqlDataStorage extends DataStorage {
     @Override
     @NotNull
     public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long ip, long timestamp) {
-        return this.save(player, name, timestamp, ip, null, null);
+        return this.save(player, name, timestamp, ip, null, null, "last_login");
     }
 
     @Override
@@ -112,39 +113,44 @@ public class MysqlDataStorage extends DataStorage {
             @NotNull String server,
             @NotNull WorldLocation location
     ) {
-        return this.save(player, name, timestamp, IpRange.NONE, server, location);
+        return this.save(player, name, timestamp, IpRange.NONE, server, location, "last_logout");
     }
 
-    private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, String server, WorldLocation location) {
-        boolean logout = location != null;
+    @Override
+    @NotNull
+    public CompletableFuture<Void> saveDeath(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location) {
+        return this.save(player, name, timestamp, IpRange.NONE, server, location, "last_death");
+    }
+
+    @NotNull
+    private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, @Nullable String server, @Nullable WorldLocation location, String time) {
+        boolean withLocation = location != null;
         boolean withIp = ip != IpRange.NONE;
-        String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "")
-                + (withIp ? ", last_login_ip" : "");
-        String values = ":player, :name, :time, :time" + (logout ? ", :server, :location" : "") + (withIp ? ", :ip" : "");
+        String columns = "player, name, " + time + ", updated_at" + (withLocation ? ", " + time + "_server, " + time + "_location" : "") + (withIp ? ", last_login_ip" : "");
+        String values = ":player, :name, :time, :time" + (withLocation ? ", :server, :location" : "") + (withIp ? ", :ip" : "");
         String updates = "name = CASE WHEN :time >= updated_at THEN :name ELSE name END";
         // MySQL 按书写顺序赋值, 需要在 last_login 更新之前比较
         if (withIp) {
             updates += ", last_login_ip = CASE WHEN :time >= last_login THEN :ip ELSE last_login_ip END";
         }
-        if (logout) {
-            updates += ", last_logout_server = CASE WHEN :time >= last_logout THEN :server ELSE last_logout_server END"
-                    + ", last_logout_location = CASE WHEN :time >= last_logout THEN :location ELSE last_logout_location END";
+        if (withLocation) {
+            updates += ", " + time + "_server = CASE WHEN :time >= " + time + " THEN :server ELSE " + time + "_server END"
+                    + ", " + time + "_location = CASE WHEN :time >= " + time + " THEN :location ELSE " + time + "_location END";
         }
-        // 两服的异步写入可能交错, 登录与下线各自按事件时间更新.
+        // 各类事件按自己的时间更新位置与状态
         updates += ", " + time + " = GREATEST(" + time + ", :time), updated_at = GREATEST(updated_at, :time)";
         String upsert = "INSERT INTO " + this.data + " (" + columns + ") VALUES (" + values + ")"
                 + " ON DUPLICATE KEY UPDATE " + updates;
         return CompletableFuture.runAsync(() -> {
-            if (!this.storable(name)) {
-                throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
-            }
-            this.sql().useHandle(handle -> {
+                    if (!this.storable(name)) {
+                        throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
+                    }
+                    this.sql().useHandle(handle -> {
                         Update query = handle.createUpdate(upsert)
                                 .bind("player", UUIDUtils.toBytes(player))
                                 .bind("name", name)
                                 .bind("time", timestamp);
-                        if (logout) {
+                        if (withLocation) {
                             query.bind("server", server).bind("location", location.toJson());
                         }
                         if (withIp) {
@@ -152,7 +158,7 @@ public class MysqlDataStorage extends DataStorage {
                         }
                         query.execute();
                     });
-        }, super.executor);
+                }, super.executor);
     }
 
     @Override
@@ -198,6 +204,8 @@ public class MysqlDataStorage extends DataStorage {
     private static PlayerData readPlayer(ResultSet result) throws SQLException {
         String json = result.getString("last_logout_location");
         WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
+        String deathJson = result.getString("last_death_location");
+        WorldLocation deathLocation = deathJson == null ? null : WorldLocation.fromJson(deathJson);
         long ip = result.getLong("last_login_ip");
         String lastIp = result.wasNull() ? null : IpRange.format(ip);
         return new PlayerData(
@@ -207,6 +215,9 @@ public class MysqlDataStorage extends DataStorage {
                 result.getLong("last_logout"),
                 result.getString("last_logout_server"),
                 location,
+                result.getLong("last_death"),
+                result.getString("last_death_server"),
+                deathLocation,
                 lastIp,
                 result.getLong("updated_at")
         );

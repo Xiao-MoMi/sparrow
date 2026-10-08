@@ -10,6 +10,7 @@ import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -22,8 +23,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 public final class BackFeature extends Feature<BackSettings> implements Listener, PlayerListener {
@@ -32,6 +35,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
 
     private final SparrowPlugin plugin;
     private final ConcurrentChainedObject2ObjectHashTable<UUID, WorldLocation> points = new ConcurrentChainedObject2ObjectHashTable<>();
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, CompletableFuture<Void>> deathWrites = new ConcurrentChainedObject2ObjectHashTable<>();
     private volatile Set<TeleportCause> causes = Set.of();
 
     public BackFeature(@NotNull SparrowPlugin plugin) {
@@ -55,6 +59,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
     @Override
     protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
         register.accept(new BackCommand(this.plugin.commandManager(), this.plugin));
+        register.accept(new DeathBackCommand(this.plugin.commandManager(), this.plugin));
     }
 
     @Override
@@ -95,12 +100,36 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
         if (!this.enabled() || !super.config.recordDeath()) {
             return;
         }
-        this.points.put(event.getEntity().getUniqueId(), WorldLocation.from(event.getEntity().getLocation()));
+        Player player = event.getEntity();
+        UUID uniqueId = player.getUniqueId();
+        String name = player.getName();
+        WorldLocation location = WorldLocation.from(player.getLocation());
+        CompletableFuture<Void> write = this.plugin.dataStorage().saveDeath(uniqueId, name, System.currentTimeMillis(), ServerConfig.serverId(), location);
+        this.deathWrites.put(uniqueId, write);
+        write.whenComplete((ignored, failure) -> {
+            this.deathWrites.remove(uniqueId, write);
+            if (failure != null) {
+                this.plugin.logger().warn("Failed to save death location for " + name, failure);
+            }
+        });
     }
 
     @Nullable
     public WorldLocation point(@NotNull UUID player) {
         return this.points.get(player);
+    }
+
+    @NotNull
+    public CompletableFuture<Optional<PlayerData>> loadDeath(@NotNull UUID player) {
+        CompletableFuture<Void> write = this.deathWrites.get(player);
+        CompletableFuture<Void> ready = write == null ? CompletableFuture.completedFuture(null) : write;
+        return ready.thenCompose(ignored -> this.plugin.dataStorage()
+                .loadPlayer(player)
+                .whenComplete((found, failure) -> {
+                    if (failure != null) {
+                        this.plugin.logger().warn("Failed to load death location for " + player, failure);
+                    }
+                }));
     }
 
     /**

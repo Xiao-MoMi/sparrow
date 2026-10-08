@@ -79,6 +79,9 @@ public abstract class DataStorage implements AutoCloseable {
     @NotNull
     public abstract CompletableFuture<Void> saveLogout(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location);
 
+    @NotNull
+    public abstract CompletableFuture<Void> saveDeath(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location);
+
     /**
      * 按名字精确查询玩家 UUID, 区分大小写. 多名玩家先后用过同一名字时返回最近出现的那一位.
      *

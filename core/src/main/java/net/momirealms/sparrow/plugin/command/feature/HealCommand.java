@@ -24,11 +24,11 @@ public final class HealCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        Command.Builder<CommandSender> command = builder.flag(manager.flagBuilder("value").withComponent(DoubleParser.doubleParser(0)));
-        manager.command(command.required("player", PlayerParser.playerParser())
-                .permission(this.otherPermission(command))
+        manager.command(builder.required("player", PlayerParser.playerParser())
+                .flag(manager.flagBuilder("value").withComponent(DoubleParser.doubleParser(0)))
+                .permission(this.otherPermission(builder))
                 .handler(this::execute));
-        manager.command(command.handler(this::execute));
+        manager.command(builder.handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {

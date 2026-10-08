@@ -17,6 +17,7 @@ import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Update;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -76,52 +77,72 @@ public final class PostgresDataStorage extends DataStorage {
     @Override
     @NotNull
     public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long ip, long timestamp) {
-        return this.save(player, name, timestamp, ip, null, null);
+        return this.save(player, name, timestamp, ip, null, null, "last_login");
     }
 
     @Override
     @NotNull
     public CompletableFuture<Void> saveLogout(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location) {
-        return this.save(player, name, timestamp, IpRange.NONE, server, location);
+        return this.save(player, name, timestamp, IpRange.NONE, server, location, "last_logout");
     }
 
-    private CompletableFuture<Void> save(UUID player, String name, long timestamp, long ip, String server, WorldLocation location) {
-        boolean logout = location != null;
+    @Override
+    @NotNull
+    public CompletableFuture<Void> saveDeath(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location) {
+        return this.save(player, name, timestamp, IpRange.NONE, server, location, "last_death");
+    }
+
+    @NotNull
+    private CompletableFuture<Void> save(
+            @NotNull UUID player,
+            @NotNull String name,
+            long timestamp,
+            long ip,
+            @Nullable String server,
+            @Nullable WorldLocation location,
+            @NotNull String time
+    ) {
+        boolean withLocation = location != null;
         boolean withIp = ip != IpRange.NONE;
-        String time = logout ? "last_logout" : "last_login";
-        String columns = "player, name, " + time + ", updated_at" + (logout ? ", last_logout_server, last_logout_location" : "") + (withIp ? ", last_login_ip" : "");
-        String values = ":player, :name, :time, :time" + (logout ? ", :server, CAST(:location AS JSONB)" : "") + (withIp ? ", :ip" : "");
+        String columns = "player, name, " + time + ", updated_at" + (withLocation ? ", " + time + "_server, " + time + "_location" : "")
+                + (withIp ? ", last_login_ip" : "");
+        String values = ":player, :name, :time, :time" + (withLocation ? ", :server, CAST(:location AS JSONB)" : "") + (withIp ? ", :ip" : "");
         String table = this.data + ".";
         String updates = "name = CASE WHEN :time >= " + table + "updated_at THEN :name ELSE " + table + "name END";
         if (withIp) {
             updates += ", last_login_ip = CASE WHEN :time >= " + table + "last_login THEN EXCLUDED.last_login_ip ELSE " + table + "last_login_ip END";
         }
-        if (logout) {
-            String[] fields = {"last_logout_server", "last_logout_location"};
-            for (int i = 0; i < fields.length; i++) {
-                String field = fields[i];
+        if (withLocation) {
+            String[] fields = {time + "_server", time + "_location"};
+            for (String field : fields) {
                 updates += ", " + field + " = CASE WHEN :time >= " + table + time + " THEN EXCLUDED." + field + " ELSE " + table + field + " END";
             }
         }
-        // 两服的异步写入可能交错, 登录与下线各自按事件时间更新.
+        // 各类事件按自己的时间更新位置与状态
         updates += ", " + time + " = GREATEST(" + table + time + ", :time), updated_at = GREATEST(" + table + "updated_at, :time)";
         String upsert = "INSERT INTO " + this.data + " (" + columns + ") VALUES (" + values + ")"
                 + " ON CONFLICT (player) DO UPDATE SET " + updates;
-        return CompletableFuture.runAsync(() -> {
-            if (!this.storable(name)) {
-                throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
-            }
-            this.sql().useHandle(handle -> {
-                Update query = handle.createUpdate(upsert).bind("player", player).bind("name", name).bind("time", timestamp);
-                if (logout) {
-                    query.bind("server", server).bind("location", location.toJson());
-                }
-                if (withIp) {
-                    query.bind("ip", ip);
-                }
-                query.execute();
-            });
-        }, super.executor);
+        return CompletableFuture.runAsync(
+                () -> {
+                    if (!this.storable(name)) {
+                        throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
+                    }
+                    this.sql().useHandle(handle -> {
+                        Update query = handle.createUpdate(upsert)
+                                .bind("player", player)
+                                .bind("name", name)
+                                .bind("time", timestamp);
+                        if (withLocation) {
+                            query.bind("server", server).bind("location", location.toJson());
+                        }
+                        if (withIp) {
+                            query.bind("ip", ip);
+                        }
+                        query.execute();
+                    });
+                },
+                super.executor
+        );
     }
 
     @Override
@@ -167,6 +188,8 @@ public final class PostgresDataStorage extends DataStorage {
     private static PlayerData readPlayer(ResultSet result) throws SQLException {
         String json = result.getString("last_logout_location");
         WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
+        String deathJson = result.getString("last_death_location");
+        WorldLocation deathLocation = deathJson == null ? null : WorldLocation.fromJson(deathJson);
         long ip = result.getLong("last_login_ip");
         String lastIp = result.wasNull() ? null : IpRange.format(ip);
         return new PlayerData(
@@ -176,6 +199,9 @@ public final class PostgresDataStorage extends DataStorage {
                 result.getLong("last_logout"),
                 result.getString("last_logout_server"),
                 location,
+                result.getLong("last_death"),
+                result.getString("last_death_server"),
+                deathLocation,
                 lastIp,
                 result.getLong("updated_at")
         );

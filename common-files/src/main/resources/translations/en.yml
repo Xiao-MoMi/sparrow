@@ -150,6 +150,17 @@ command.custom-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>$
 # command.del-warp
 command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Deleted warp <color:#C7BCE7><arg:0></color></color>'
 
+# command.death-back
+command.death-back.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending <color:#C7BCE7><arg:0></color> to their last death location on <color:#C7BCE7><arg:1></color></color>'
+command.death-back.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending you to your last death location on <color:#C7BCE7><arg:1></color></color>'
+command.death-back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#C7BCE7><arg:1></color> is offline; cannot return to the death location</color>'
+command.death-back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The death location server did not respond within 5 seconds</color>'
+command.death-back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> back to their last death location</color>'
+command.death-back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent you back to your last death location</color>'
+command.death-back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no recorded death location</color>'
+command.death-back.none-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no recorded death location</color>'
+command.death-back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The world of the last death location no longer exists</color>'
+
 # command.demo
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for <color:#C7BCE7><arg:0></color></color>'
 command.demo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for you</color>'

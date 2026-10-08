@@ -35,8 +35,9 @@ public final class PostgresSchema {
         // 使用 PostgreSQL 原生 UUID, 名字以 C 排序规则精确比较.
         handle.execute("CREATE TABLE IF NOT EXISTS " + data + " ("
                 + "player UUID PRIMARY KEY, name VARCHAR(64) COLLATE \"C\" NOT NULL, "
-                + "last_login BIGINT NOT NULL DEFAULT 0, last_logout BIGINT NOT NULL DEFAULT 0, "
-                + "last_logout_server VARCHAR(255), last_logout_location JSONB, last_login_ip BIGINT, updated_at BIGINT NOT NULL)");
+                + "last_login BIGINT NOT NULL DEFAULT 0, last_logout BIGINT NOT NULL DEFAULT 0, last_death BIGINT NOT NULL DEFAULT 0, "
+                + "last_logout_server VARCHAR(255), last_logout_location JSONB, last_death_server VARCHAR(255), last_death_location JSONB, "
+                + "last_login_ip BIGINT, updated_at BIGINT NOT NULL)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "data_name_updated\" ON " + data + " (name, updated_at, player)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "data_login_ip\" ON " + data + " (last_login_ip)");
     }

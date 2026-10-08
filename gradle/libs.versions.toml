@@ -2,10 +2,10 @@
 # Project
 project-version = "26.9-SNAPSHOT-2"
 config-version = "2"
-commands-config-version = "9"
-features-config-version = "8"
+commands-config-version = "10"
+features-config-version = "9"
 server-config-version = "1"
-lang-version = "32"
+lang-version = "34"
 proxy-config-version = "1"
 
 # Database

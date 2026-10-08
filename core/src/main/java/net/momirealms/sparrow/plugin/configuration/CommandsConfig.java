@@ -442,6 +442,14 @@ public final class CommandsConfig {
                 DependencyVersions.PROJECT_ID + ".command.back"
         );
 
+        @BlankLineBefore
+        @YamlProperty("death-back")
+        CommandConfig deathBack = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " death-back", "/death-back"),
+                DependencyVersions.PROJECT_ID + ".command.death-back"
+        );
+
         // ban 模块
         @BlankLineBefore
         CommandConfig ban = new CommandConfig(
@@ -701,6 +709,7 @@ public final class CommandsConfig {
                 case "world" -> this.world;
                 // feature
                 case "back" -> this.back;
+                case "death-back" -> this.deathBack;
                 case "ban" -> this.ban;
                 case "ban-history" -> this.banHistory;
                 case "ban-ip" -> this.banIp;

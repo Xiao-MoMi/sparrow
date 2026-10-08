@@ -6,6 +6,7 @@ public enum TeleportType {
     WARP("warp"),
     HOME("home"),
     BACK("back"),
+    DEATH_BACK("death-back"),
     BED("bed"),
     SPAWN("spawn");
 

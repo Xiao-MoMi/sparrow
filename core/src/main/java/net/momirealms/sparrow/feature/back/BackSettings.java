@@ -14,8 +14,8 @@ import java.util.List;
 public final class BackSettings implements FeatureSettings {
     private boolean enabled = true;
 
-    @Comment("Record where players die, so /back can return them to the death location.")
-    @Comment(lang = "zh", value = "是否记录死亡位置, 开启后 /back 可以回到死亡的地方.")
+    @Comment("Save the last death location and server to the database for /death-back.")
+    @Comment(lang = "zh", value = "把最后死亡位置和服务器保存到数据库, 供 /death-back 返回.")
     private boolean recordDeath = true;
 
     @Comment({
@@ -37,12 +37,12 @@ public final class BackSettings implements FeatureSettings {
     private int serverSwitchWindowSeconds = 30;
 
     @BlankLineBefore
-    @Comment("Seconds a player must stand still before returning. sparrow.teleport-warmup.<seconds> overrides it (lowest node wins), sparrow.bypass.teleport-warmup skips it.")
-    @Comment(lang = "zh", value = "返回前需要原地等待的秒数. sparrow.teleport-warmup.<秒> 可覆盖该值 (取最小的节点), sparrow.bypass.teleport-warmup 可跳过.")
+    @Comment("Seconds a player must stand still before using /back or /death-back. sparrow.teleport-warmup.<seconds> overrides it (lowest node wins), sparrow.bypass.teleport-warmup skips it.")
+    @Comment(lang = "zh", value = "/back 与 /death-back 的预热秒数. sparrow.teleport-warmup.<秒> 可覆盖该值 (取最小的节点), sparrow.bypass.teleport-warmup 可跳过.")
     private int warmupSeconds = 3;
 
-    @Comment("Seconds before a player can use /back again, shared across servers. 0 disables it. sparrow.bypass.teleport-cooldown skips it.")
-    @Comment(lang = "zh", value = "两次 /back 之间的冷却秒数, 各服务器共享. 0 表示不限制. sparrow.bypass.teleport-cooldown 可跳过.")
+    @Comment("Cooldown seconds for /back and /death-back. Each command has its own cooldown, shared across servers. 0 disables it. sparrow.bypass.teleport-cooldown skips it.")
+    @Comment(lang = "zh", value = "/back 与 /death-back 的冷却秒数. 两条命令独立计时, 各自跨服共享. 0 表示不限制, sparrow.bypass.teleport-cooldown 可跳过.")
     private int cooldownSeconds = 0;
 
     @Comment("Cancel the warmup when the player moves or takes damage.")
@@ -81,5 +81,10 @@ public final class BackSettings implements FeatureSettings {
     @NotNull
     public TeleportOptions teleportOptions() {
         return new TeleportOptions(TeleportType.BACK, this.warmupSeconds, this.cooldownSeconds, this.cancelOnMove, this.cancelOnDamage);
+    }
+
+    @NotNull
+    public TeleportOptions deathTeleportOptions() {
+        return new TeleportOptions(TeleportType.DEATH_BACK, this.warmupSeconds, this.cooldownSeconds, this.cancelOnMove, this.cancelOnDamage);
     }
 }
