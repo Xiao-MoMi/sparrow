@@ -12,6 +12,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOptions;
 import net.momirealms.sparrow.database.BanStore;
+import net.momirealms.sparrow.database.MuteStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.database.SpawnStore;
@@ -53,6 +54,7 @@ public final class MongoDataStorage extends DataStorage {
     private static final String USER_LOGIN_IP = "last_login_ip";
 
     private final MongoBanStore banStore;
+    private final MongoMuteStore muteStore;
     private final MongoWarpStore warpStore;
     private final MongoHomeStore homeStore;
     private final MongoSpawnStore spawnStore;
@@ -63,6 +65,7 @@ public final class MongoDataStorage extends DataStorage {
     public MongoDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
         this.banStore = new MongoBanStore(this::database, executor, logger, this.namePrefix());
+        this.muteStore = new MongoMuteStore(this::database, executor, logger, this.namePrefix());
         this.warpStore = new MongoWarpStore(this::database, executor, logger, this.namePrefix());
         this.homeStore = new MongoHomeStore(this::database, executor, logger, this.namePrefix());
         this.spawnStore = new MongoSpawnStore(this::database, executor, this.namePrefix());
@@ -234,6 +237,12 @@ public final class MongoDataStorage extends DataStorage {
     @NotNull
     public BanStore banStore() {
         return this.banStore;
+    }
+
+    @Override
+    @NotNull
+    public MuteStore muteStore() {
+        return this.muteStore;
     }
 
     @Override

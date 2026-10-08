@@ -1,5 +1,23 @@
 __version__: '${lang_version}'
 
+# mute
+command.mute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 禁言 <color:#C7BCE7><arg:1></color>.</color>'
+command.mute.already-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 已有生效中的禁言, 请先解禁再设置.</color>'
+command.mute.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>禁言原因最多 <color:#C7BCE7><arg:0></color> 个字符.</color>'
+command.mute.time-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>禁言时长超出了支持的日期范围.</color>'
+command.unmute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已解除 <color:#C7BCE7><arg:0></color> 的禁言.</color>'
+command.unmute.not-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 当前没有生效中的禁言.</color>'
+mute.blocked: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你已被禁言, 剩余 <color:#C7BCE7><arg:3></color>. 原因: <color:#C7BCE7><arg:1></color></color>'
+mute.applied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>你已被 <color:#C7BCE7><arg:2></color> 禁言至 <color:#C7BCE7><arg:4></color> (剩余 <color:#C7BCE7><arg:3></color>). 原因: <color:#C7BCE7><arg:1></color></color>'
+mute.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> 已解除你的禁言.</color>'
+mute.notify.applied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> 将 <color:#C7BCE7><arg:0></color> 禁言至 <color:#C7BCE7><arg:4></color>. 原因: <color:#C7BCE7><arg:1></color></color>'
+mute.notify.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> 解除了 <color:#C7BCE7><arg:0></color> 的禁言.</color>'
+mute.no-reason: '未提供原因'
+command.player-info.mute: '<color:#C8E4E9>禁言: </color><color:#F2F4FF><arg:0></color>'
+command.player-info.not-muted: '未被禁言'
+command.player-info.mute-disabled: '禁言模块已停用'
+command.player-info.muted: '禁言至 <arg:4> (剩余 <arg:3>), 执行人: <arg:2>, 原因: <arg:1>, ID: <arg:5>'
+
 # exception
 exception.invalid_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>参数有误：<color:#F2F4FF><arg:0></color></color>'
 exception.invalid_sender: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:0> 不能执行此命令，请使用 <arg:1> 执行</color>'

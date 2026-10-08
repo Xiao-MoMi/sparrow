@@ -2,6 +2,7 @@ package net.momirealms.sparrow.redis;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.feature.ban.BanMessage;
+import net.momirealms.sparrow.feature.mute.MuteMessage;
 import net.momirealms.sparrow.feature.home.HomeChangedMessage;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.feature.spawn.SpawnMessage;
@@ -50,6 +51,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(KickMessage.ID, KickMessage.CODEC);
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
         this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);
+        this.broker.registry().register(MuteMessage.ID, MuteMessage.CODEC);
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
         this.broker.registry().register(SpawnMessage.ID, SpawnMessage.CODEC);
         this.broker.registry().register(HomeChangedMessage.ID, HomeChangedMessage.CODEC);

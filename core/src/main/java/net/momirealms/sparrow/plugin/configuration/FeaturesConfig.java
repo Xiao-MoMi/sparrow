@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.configuration;
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.feature.back.BackSettings;
 import net.momirealms.sparrow.feature.ban.BanSettings;
+import net.momirealms.sparrow.feature.mute.MuteSettings;
 import net.momirealms.sparrow.feature.bed.BedSettings;
 import net.momirealms.sparrow.feature.head.HeadSettings;
 import net.momirealms.sparrow.feature.home.HomeSettings;
@@ -151,6 +152,11 @@ public final class FeaturesConfig {
         private BanSettings ban = new BanSettings();
 
         @BlankLineBefore
+        @Comment("Network-wide timed mutes. Blocks ordinary chat and shows the remaining time.")
+        @Comment(lang = "zh", value = "全服限时禁言, 拦截普通聊天并提示剩余时间.")
+        private MuteSettings mute = new MuteSettings();
+
+        @BlankLineBefore
         @Comment("Return to the previous teleport location or server with /back, and to the last death location with /death-back.")
         @Comment(lang = "zh", value = "使用 /back 返回上次传送前的位置或上一个服务器, 使用 /death-back 返回上次死亡位置.")
         private BackSettings back = new BackSettings();
@@ -183,6 +189,11 @@ public final class FeaturesConfig {
         @NotNull
         public BanSettings ban() {
             return this.ban;
+        }
+
+        @NotNull
+        public MuteSettings mute() {
+            return this.mute;
         }
 
         @NotNull
@@ -252,6 +263,7 @@ public final class FeaturesConfig {
                 case "maintenance" -> this.maintenance;
                 case "player-limit" -> this.playerLimit;
                 case "ban" -> this.ban;
+                case "mute" -> this.mute;
                 case "back" -> this.back;
                 case "bed" -> this.bed;
                 case "spawn" -> this.spawn;

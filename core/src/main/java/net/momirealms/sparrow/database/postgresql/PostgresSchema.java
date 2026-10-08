@@ -11,9 +11,13 @@ public final class PostgresSchema {
     public static final String DATA_COMPONENT = "schema";
     public static final List<String> DATA_TABLES = List.of("data");
 
-    // 封禁模块
+    // ban 模块
     public static final String BAN_COMPONENT = "ban_schema";
     public static final List<String> BAN_TABLES = List.of("bans");
+
+    // mute 模块
+    public static final String MUTE_COMPONENT = "mute_schema";
+    public static final List<String> MUTE_TABLES = List.of("mutes");
 
     // warp 模块
     public static final String WARP_COMPONENT = "warp_schema";
@@ -53,6 +57,13 @@ public final class PostgresSchema {
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "bans_ip\" ON " + bans + " (ip_start, ip_end)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "bans_operator\" ON " + bans + " (LOWER(operator_name))");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "bans_created\" ON " + bans + " (created_at)");
+    }
+
+    public static void initializeMutes(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS \"" + prefix + "mutes\" ("
+                + "id VARCHAR(36) PRIMARY KEY, player UUID NOT NULL, active_player UUID UNIQUE, player_name VARCHAR(64) NOT NULL, "
+                + "reason VARCHAR(256) NOT NULL, operator_name VARCHAR(64) NOT NULL, server VARCHAR(255) NOT NULL, "
+                + "created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL, revoked_at BIGINT NOT NULL DEFAULT 0, revoked_by VARCHAR(64))");
     }
 
     // name_key 是小写后的名称, 个别字符转小写后会变长, 所以比 name 宽

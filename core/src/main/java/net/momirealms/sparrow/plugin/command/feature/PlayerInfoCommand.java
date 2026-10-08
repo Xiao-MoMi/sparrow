@@ -6,6 +6,9 @@ import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.ban.BanRecord;
 import net.momirealms.sparrow.feature.ban.BanTexts;
+import net.momirealms.sparrow.feature.mute.MuteFeature;
+import net.momirealms.sparrow.feature.mute.MuteRecord;
+import net.momirealms.sparrow.feature.mute.MuteTexts;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
@@ -68,7 +71,15 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
             CompletableFuture<Optional<BanRecord>> active = showBans
                     ? feature.store().findActiveBan(data.player(), ip, System.currentTimeMillis())
                     : CompletableFuture.completedFuture(Optional.empty());
-            return active.thenAccept(ban -> this.render(sender, data, ban.orElse(null), showBans));
+            MuteFeature muteFeature = this.plugin().featureManager().feature(MuteFeature.ID, MuteFeature.class);
+            boolean showMutes = muteFeature.enabled();
+            CompletableFuture<Optional<MuteRecord>> activeMute = showMutes
+                    ? muteFeature.store().findActive(data.player(), System.currentTimeMillis())
+                    : CompletableFuture.completedFuture(Optional.empty());
+            return active.thenCombine(activeMute, (ban, mute) -> {
+                this.render(sender, data, ban.orElse(null), showBans, mute.orElse(null), showMutes);
+                return null;
+            });
         })
                 .exceptionally(error -> {
                     this.plugin().logger().warn("Failed to query player information of " + input, error);
@@ -77,7 +88,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
                 });
     }
 
-    private void render(@NotNull CommandSender sender, @NotNull PlayerData data, @Nullable BanRecord ban, boolean showBans) {
+    private void render(@NotNull CommandSender sender, @NotNull PlayerData data, @Nullable BanRecord ban, boolean showBans, @Nullable MuteRecord mute, boolean showMutes) {
         long now = System.currentTimeMillis();
         boolean compact = sender instanceof Player;
         String uuid = data.player().toString();
@@ -159,6 +170,11 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
             }
             panel.line(Component.translatable("command.player-info.ban", banStatus));
         }
+        Component muteStatus = Component.translatable(showMutes ? "command.player-info.not-muted" : "command.player-info.mute-disabled");
+        if (showMutes && mute != null && mute.active(now)) {
+            muteStatus = MuteTexts.describe("command.player-info.muted", mute, now);
+        }
+        panel.line(Component.translatable("command.player-info.mute", muteStatus));
         PanelButton refresh = panel.run(Component.translatable("command.player-info.refresh"), this.getFeatureID(), uuid)
                 .style(PanelButton.Style.INFO)
                 .description(Component.translatable("command.player-info.refresh-hover"));

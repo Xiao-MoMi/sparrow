@@ -1,5 +1,23 @@
 __version__: '${lang_version}'
 
+# mute
+command.mute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Muted <color:#C7BCE7><arg:0></color> for <color:#C7BCE7><arg:1></color>.</color>'
+command.mute.already-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> is already muted. Unmute them before applying another mute.</color>'
+command.mute.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The reason must contain at most <color:#C7BCE7><arg:0></color> characters.</color>'
+command.mute.time-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The mute duration exceeds the supported date range.</color>'
+command.unmute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Unmuted <color:#C7BCE7><arg:0></color>.</color>'
+command.unmute.not-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no active mute.</color>'
+mute.blocked: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are muted for another <color:#C7BCE7><arg:3></color>. Reason: <color:#C7BCE7><arg:1></color></color>'
+mute.applied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>You have been muted by <color:#C7BCE7><arg:2></color> until <color:#C7BCE7><arg:4></color> (<color:#C7BCE7><arg:3></color> remaining). Reason: <color:#C7BCE7><arg:1></color></color>'
+mute.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> has removed your mute.</color>'
+mute.notify.applied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> muted <color:#C7BCE7><arg:0></color> until <color:#C7BCE7><arg:4></color>. Reason: <color:#C7BCE7><arg:1></color></color>'
+mute.notify.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> unmuted <color:#C7BCE7><arg:0></color>.</color>'
+mute.no-reason: 'No reason provided'
+command.player-info.mute: '<color:#C8E4E9>Mute: </color><color:#F2F4FF><arg:0></color>'
+command.player-info.not-muted: 'Not muted'
+command.player-info.mute-disabled: 'Mute feature disabled'
+command.player-info.muted: 'Muted until <arg:4> (<arg:3> remaining). By <arg:2>. Reason: <arg:1>. ID: <arg:5>'
+
 # exception
 exception.invalid_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid argument: <color:#F2F4FF><arg:0></color></color>'
 exception.invalid_sender: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:0> cannot run this command. Use <arg:1> instead</color>'

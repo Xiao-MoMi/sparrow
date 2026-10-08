@@ -10,10 +10,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.util.AdventureHelper;
-import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,7 +20,7 @@ import java.util.function.Consumer;
  * 维护模式. 在登录阶段拒绝没有绕过权限的玩家, 使其无法进入配置阶段.
  * 登录阶段只能通过 LuckPerms 查询权限, 未接入时仅放行 OP.
  */
-public final class MaintenanceFeature extends Feature<MaintenanceSettings> implements Listener, PlayerListener {
+public final class MaintenanceFeature extends Feature<MaintenanceSettings> implements PlayerListener {
     public static final String ID = "maintenance";
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.maintenance";
 
@@ -47,7 +43,6 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
 
     @Override
     protected void onLoad() {
-        Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
         this.plugin.playerManager().registerListener(this);
     }
 
@@ -79,8 +74,8 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
         this.plugin.playerManager().unregisterListener(this);
     }
 
-    // LuckPerms 在 LOW 优先级加载用户数据, 此时已可查询; 在这里拒绝可以赶在配置阶段的插件处理之前.
-    @EventHandler(priority = EventPriority.HIGHEST)
+    // LuckPerms 在 LOW 优先级加载用户数据, 在它之后可以正常判断权限.
+    @Override
     @SuppressWarnings("deprecation")
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
         if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {

@@ -15,6 +15,9 @@ public final class MysqlSchema {
     public static final String BAN_COMPONENT = "ban_schema";
     public static final List<String> BAN_TABLES = List.of("bans");
 
+    public static final String MUTE_COMPONENT = "mute_schema";
+    public static final List<String> MUTE_TABLES = List.of("mutes");
+
     // warp 模块
     public static final String WARP_COMPONENT = "warp_schema";
     public static final List<String> WARP_TABLES = List.of("warps");
@@ -49,6 +52,13 @@ public final class MysqlSchema {
                 + "reason VARCHAR(256) NOT NULL, operator_name VARCHAR(64) NOT NULL, server VARCHAR(255) NOT NULL, "
                 + "created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL DEFAULT 0, revoked_at BIGINT NOT NULL DEFAULT 0, revoked_by VARCHAR(64), "
                 + "KEY bans_player (player, revoked_at), KEY bans_ip (ip_start, ip_end), KEY bans_created (created_at))" + TABLE_OPTIONS);
+    }
+
+    public static void initializeMutes(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "mutes` ("
+                + "id VARCHAR(36) PRIMARY KEY, player BINARY(16) NOT NULL, active_player BINARY(16) UNIQUE, player_name VARCHAR(64) NOT NULL, "
+                + "reason VARCHAR(256) NOT NULL, operator_name VARCHAR(64) NOT NULL, server VARCHAR(255) NOT NULL, "
+                + "created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL, revoked_at BIGINT NOT NULL DEFAULT 0, revoked_by VARCHAR(64))" + TABLE_OPTIONS);
     }
 
     // name_key 是小写后的名称, 个别字符转小写后会变长, 所以比 name 宽

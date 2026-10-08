@@ -5,6 +5,7 @@ import net.momirealms.sparrow.feature.bed.BedFeature;
 import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.feature.ban.BanFeature;
+import net.momirealms.sparrow.feature.mute.MuteFeature;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.head.HeadFeature;
 import net.momirealms.sparrow.feature.home.HomeFeature;
@@ -53,6 +54,7 @@ public final class FeatureManager {
         this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
         this.features.put(PlayerLimitFeature.ID, new PlayerLimitFeature(plugin));
         this.features.put(BanFeature.ID, new BanFeature(plugin));
+        this.features.put(MuteFeature.ID, new MuteFeature());
         this.features.put(BackFeature.ID, new BackFeature(plugin));
         this.features.put(BedFeature.ID, new BedFeature(plugin));
         this.features.put(SpawnFeature.ID, new SpawnFeature(plugin));

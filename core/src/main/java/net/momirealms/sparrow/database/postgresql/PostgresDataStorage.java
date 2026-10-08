@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.postgresql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.BanStore;
+import net.momirealms.sparrow.database.MuteStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.database.SpawnStore;
@@ -33,6 +34,7 @@ public final class PostgresDataStorage extends DataStorage {
 
     private final String data;
     private final PostgresBanStore banStore;
+    private final PostgresMuteStore muteStore;
     private final PostgresWarpStore warpStore;
     private final PostgresHomeStore homeStore;
     private final PostgresSpawnStore spawnStore;
@@ -43,6 +45,7 @@ public final class PostgresDataStorage extends DataStorage {
         super(options, executor, logger);
         this.data = "\"" + this.namePrefix() + "data\"";
         this.banStore = new PostgresBanStore(this::sql, executor, logger, this.namePrefix());
+        this.muteStore = new PostgresMuteStore(this::sql, executor, logger, this.namePrefix());
         this.warpStore = new PostgresWarpStore(this::sql, executor, logger, this.namePrefix());
         this.homeStore = new PostgresHomeStore(this::sql, executor, logger, this.namePrefix());
         this.spawnStore = new PostgresSpawnStore(this::sql, executor, logger, this.namePrefix());
@@ -240,6 +243,12 @@ public final class PostgresDataStorage extends DataStorage {
     @NotNull
     public BanStore banStore() {
         return this.banStore;
+    }
+
+    @Override
+    @NotNull
+    public MuteStore muteStore() {
+        return this.muteStore;
     }
 
     @Override

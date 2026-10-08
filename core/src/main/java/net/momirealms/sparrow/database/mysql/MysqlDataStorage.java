@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.mysql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.BanStore;
+import net.momirealms.sparrow.database.MuteStore;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.database.SpawnStore;
@@ -36,6 +37,7 @@ public class MysqlDataStorage extends DataStorage {
 
     private final String data;
     private final MysqlBanStore banStore;
+    private final MysqlMuteStore muteStore;
     private final MysqlWarpStore warpStore;
     private final MysqlHomeStore homeStore;
     private final MysqlSpawnStore spawnStore;
@@ -46,6 +48,7 @@ public class MysqlDataStorage extends DataStorage {
         super(options, executor, logger);
         this.data = "`" + this.namePrefix() + "data`";
         this.banStore = new MysqlBanStore(this::sql, executor, logger, this.namePrefix());
+        this.muteStore = new MysqlMuteStore(this::sql, executor, logger, this.namePrefix());
         this.warpStore = new MysqlWarpStore(this::sql, executor, logger, this.namePrefix());
         this.homeStore = new MysqlHomeStore(this::sql, executor, logger, this.namePrefix());
         this.spawnStore = new MysqlSpawnStore(this::sql, executor, logger, this.namePrefix());
@@ -255,6 +258,12 @@ public class MysqlDataStorage extends DataStorage {
     @NotNull
     public BanStore banStore() {
         return this.banStore;
+    }
+
+    @Override
+    @NotNull
+    public MuteStore muteStore() {
+        return this.muteStore;
     }
 
     @Override

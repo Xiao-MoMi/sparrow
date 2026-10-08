@@ -104,6 +104,10 @@ public abstract class DataStorage implements AutoCloseable {
     @NotNull
     public abstract BanStore banStore();
 
+    // Mute 模块的存储
+    @NotNull
+    public abstract MuteStore muteStore();
+
     // Warp 模块的存储
     @NotNull
     public abstract WarpStore warpStore();

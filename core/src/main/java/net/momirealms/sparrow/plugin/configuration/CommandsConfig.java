@@ -482,6 +482,20 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig mute = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " mute", "/mute"),
+                DependencyVersions.PROJECT_ID + ".command.mute"
+        );
+
+        @BlankLineBefore
+        CommandConfig unmute = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " unmute", "/unmute"),
+                DependencyVersions.PROJECT_ID + ".command.unmute"
+        );
+
+        @BlankLineBefore
         CommandConfig bed = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " bed", "/bed"),
@@ -714,6 +728,8 @@ public final class CommandsConfig {
                 case "ban-history" -> this.banHistory;
                 case "ban-ip" -> this.banIp;
                 case "unban" -> this.unban;
+                case "mute" -> this.mute;
+                case "unmute" -> this.unmute;
                 case "head" -> this.head;
                 case "highlight" -> this.highlight;
                 case "maintenance" -> this.maintenance;

@@ -9,6 +9,7 @@ import net.momirealms.sparrow.feature.ban.command.BanHistoryCommand;
 import net.momirealms.sparrow.feature.ban.command.BanIpCommand;
 import net.momirealms.sparrow.feature.ban.command.UnbanCommand;
 import net.momirealms.sparrow.player.PlayerManager;
+import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.PlayerRef;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
@@ -22,10 +23,6 @@ import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
 import net.momirealms.sparrow.util.VersionHelper;
-import org.bukkit.Bukkit;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,7 +37,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
-public final class BanFeature extends Feature<BanSettings> implements Listener {
+public final class BanFeature extends Feature<BanSettings> implements PlayerListener {
     public static final String ID = "ban";
     public static final String NOTIFY_PERMISSION = DependencyVersions.PROJECT_ID + ".notify.ban";
     private static final long PROXY_DISCONNECT_WAIT_MILLIS = 1000;
@@ -59,7 +56,7 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
 
     @Override
     protected void onLoad() {
-        Bukkit.getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        this.plugin.playerManager().registerListener(this);
     }
 
     @Override
@@ -93,7 +90,7 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     }
 
     // 在登录线程同步查库, 数据库出错时异常交给 Bukkit 记录, 本次登录照常放行.
-    @EventHandler(priority = EventPriority.LOW)
+    @Override
     @SuppressWarnings("deprecation")
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
         if (!this.enabled() || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {

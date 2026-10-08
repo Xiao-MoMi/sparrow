@@ -24,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -87,6 +88,14 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         // 关闭监听放在 map 操作之外. 已关闭的 Channel 可能在当前线程立即回调并移除这一条目
         if (this.connections.putIfAbsent(connection.channel(), connection) == null) {
             connection.channel().closeFuture().addListener(this);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
+        for (PlayerListener listener : this.listeners) {
+            if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+            listener.onPreLogin(event);
         }
     }
 
