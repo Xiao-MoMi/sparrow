@@ -2,9 +2,11 @@ package net.momirealms.sparrow.feature.home;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.player.teleport.TeleportSettings;
 import net.momirealms.sparrow.player.teleport.TeleportType;
 import org.jetbrains.annotations.NotNull;
 import java.util.regex.Pattern;
+import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 
@@ -25,12 +27,10 @@ public final class HomeSettings implements FeatureSettings {
     private String namePattern = "[\\p{L}\\p{N}_][\\p{L}\\p{N}_-]*";
     private int suggestionLimit = 100;
 
-    @Comment("Teleport warmup and cooldown in seconds. Home cooldowns are shared across servers and separate from Warp.")
-    @Comment(lang = "zh", value = "传送预热与冷却秒数. Home 冷却跨服共享, 与 Warp 分开计算.")
-    private int warmupSeconds = 3;
-    private int cooldownSeconds = 0;
-    private boolean cancelOnMove = true;
-    private boolean cancelOnDamage = true;
+    @BlankLineBefore
+    @Comment("Teleport warmup, cooldown, display and sounds.")
+    @Comment(lang = "zh", value = "传送预热、冷却、显示和音效.")
+    private TeleportSettings teleport = new TeleportSettings();
 
     @Override
     public boolean enabled() {
@@ -62,13 +62,14 @@ public final class HomeSettings implements FeatureSettings {
 
     public void validate() {
         Pattern.compile(this.namePattern);
-        if (this.suggestionLimit < 1 || this.maxHomes < 0 || this.warmupSeconds < 0 || this.cooldownSeconds < 0 || !this.validName(this.defaultName)) {
+        this.teleport.validate();
+        if (this.suggestionLimit < 1 || this.maxHomes < 0 || !this.validName(this.defaultName)) {
             throw new IllegalArgumentException("Invalid home settings: check limits, timings and default-name");
         }
     }
 
     @NotNull
     public TeleportOptions teleportOptions() {
-        return new TeleportOptions(TeleportType.HOME, this.warmupSeconds, this.cooldownSeconds, this.cancelOnMove, this.cancelOnDamage);
+        return this.teleport.createOptions(TeleportType.HOME);
     }
 }

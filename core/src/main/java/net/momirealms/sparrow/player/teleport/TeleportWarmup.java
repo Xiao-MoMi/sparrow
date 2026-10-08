@@ -5,7 +5,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
-import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +21,6 @@ final class TeleportWarmup {
     private final TeleportOptions options;
     private final CompletableFuture<Boolean> result;
     private final Location start;
-    private final PluginConfig.WarmupDisplay display;
     private final UUID bossBarId = UUID.randomUUID();
     private final int warmupTicks;
     private int ticksLeft;
@@ -39,7 +37,6 @@ final class TeleportWarmup {
         this.options = options;
         this.result = result;
         this.start = player.platformPlayer().getLocation();
-        this.display = PluginConfig.teleport().warmupDisplay();
         this.warmupTicks = options.warmupSeconds() * 20;
         this.ticksLeft = this.warmupTicks;
     }
@@ -71,7 +68,7 @@ final class TeleportWarmup {
             this.stop(true);
             return;
         }
-        if (this.display == PluginConfig.WarmupDisplay.BOSS_BAR) {
+        if (this.options.warmupDisplay() == WarmupDisplay.BOSS_BAR) {
             this.player.updateBossBarProgress(this.bossBarId, (float) this.ticksLeft / this.warmupTicks);
         }
         // 每过一秒刷新一次倒计时
@@ -83,7 +80,7 @@ final class TeleportWarmup {
     // 按配置的位置显示剩余秒数并播放预热音效
     private void countdown() {
         Component seconds = Component.text(this.ticksLeft / 20);
-        switch (this.display) {
+        switch (this.options.warmupDisplay()) {
             case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_WARMUP, seconds);
             case TITLE -> this.player.sendTitle(
                     Component.empty(),
@@ -95,8 +92,7 @@ final class TeleportWarmup {
             case BOSS_BAR -> {
                 Component title = this.player.render(MessageConstants.TELEPORT_WARMUP.arguments(seconds));
                 if (this.ticksLeft == this.warmupTicks) {
-                    PluginConfig.TeleportDisplay settings = PluginConfig.teleport();
-                    this.player.showBossBar(this.bossBarId, title, 1.0f, settings.bossBarColor(), settings.bossBarOverlay());
+                    this.player.showBossBar(this.bossBarId, title, 1.0f, this.options.bossBarColor(), this.options.bossBarOverlay());
                 } else {
                     this.player.updateBossBarTitle(this.bossBarId, title);
                 }
@@ -105,7 +101,7 @@ final class TeleportWarmup {
             case NONE -> {
             }
         }
-        Sound warmupSound = PluginConfig.teleport().warmupSound();
+        Sound warmupSound = this.options.warmupSound();
         if (warmupSound != null) {
             this.player.playSound(warmupSound);
         }
@@ -122,7 +118,7 @@ final class TeleportWarmup {
             return;
         }
         this.player.sendMessage(reason);
-        Sound cancelSound = PluginConfig.teleport().cancelSound();
+        Sound cancelSound = this.options.cancelSound();
         if (cancelSound != null) {
             this.player.playSound(cancelSound);
         }
@@ -141,7 +137,7 @@ final class TeleportWarmup {
         // 先替换掉倒计时再交出结果, 避免传送后客户端还显示着剩余秒数
         if (completed) {
             // 走完时在倒计时的位置显示正在传送;
-            switch (this.display) {
+            switch (this.options.warmupDisplay()) {
                 case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_PROCESSING);
                 case TITLE -> this.player.sendTitle(Component.empty(), this.player.render(MessageConstants.TELEPORT_PROCESSING), 0, 20, 5);
                 case BOSS_BAR, CHAT, NONE -> {
@@ -154,14 +150,14 @@ final class TeleportWarmup {
     }
 
     private void hideBossBar() {
-        if (this.display == PluginConfig.WarmupDisplay.BOSS_BAR) {
+        if (this.options.warmupDisplay() == WarmupDisplay.BOSS_BAR) {
             this.player.hideBossBar(this.bossBarId);
         }
     }
 
     // 取消时主动清除动作栏和标题
     private void clearCountdown() {
-        switch (this.display) {
+        switch (this.options.warmupDisplay()) {
             case ACTION_BAR -> this.player.sendActionBar(Component.empty());
             case TITLE -> this.player.clearTitle();
             case BOSS_BAR, CHAT, NONE -> {

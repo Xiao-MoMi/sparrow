@@ -7,7 +7,6 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -90,7 +89,7 @@ public final class TeleportService implements Listener {
                     }
                     // 到达音效只在本服到达时播放, 跨服到达发生在对方服务器上
                     if (result == TransferResult.SUCCESS) {
-                        Sound sound = PluginConfig.teleport().completeSound();
+                        Sound sound = options.completeSound();
                         SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
                         if (sound != null && sparrow != null) {
                             sparrow.playSound(sound);

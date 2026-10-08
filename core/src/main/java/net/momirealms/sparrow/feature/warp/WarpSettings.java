@@ -2,6 +2,7 @@ package net.momirealms.sparrow.feature.warp;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.player.teleport.TeleportSettings;
 import net.momirealms.sparrow.player.teleport.TeleportType;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
@@ -29,18 +30,9 @@ public final class WarpSettings implements FeatureSettings {
     private int suggestionLimit = 100;
 
     @BlankLineBefore
-    @Comment("Seconds a player must stand still before warping. sparrow.teleport-warmup.<seconds> overrides it (lowest node wins), sparrow.bypass.teleport-warmup skips it.")
-    @Comment(lang = "zh", value = "传送前需要原地等待的秒数. sparrow.teleport-warmup.<秒> 可覆盖该值 (取最小的节点), sparrow.bypass.teleport-warmup 可跳过.")
-    private int warmupSeconds = 3;
-
-    @Comment("Seconds before a player can warp again, shared across servers. 0 disables it. sparrow.bypass.teleport-cooldown skips it.")
-    @Comment(lang = "zh", value = "两次 warp 之间的冷却秒数, 各服务器共享. 0 表示不限制. sparrow.bypass.teleport-cooldown 可跳过.")
-    private int cooldownSeconds = 0;
-
-    @Comment("Cancel the warmup when the player moves or takes damage.")
-    @Comment(lang = "zh", value = "预热期间移动或受伤时是否取消传送.")
-    private boolean cancelOnMove = true;
-    private boolean cancelOnDamage = true;
+    @Comment("Teleport warmup, cooldown, display and sounds.")
+    @Comment(lang = "zh", value = "传送预热、冷却、显示和音效.")
+    private TeleportSettings teleport = new TeleportSettings();
 
     @Override
     public boolean enabled() {
@@ -72,6 +64,6 @@ public final class WarpSettings implements FeatureSettings {
     // 玩家自己传送时的默认参数, 实际参数由 TeleportOptions.resolve 按权限与命令参数调整
     @NotNull
     public TeleportOptions teleportOptions() {
-        return new TeleportOptions(TeleportType.WARP, this.warmupSeconds, this.cooldownSeconds, this.cancelOnMove, this.cancelOnDamage);
+        return this.teleport.createOptions(TeleportType.WARP);
     }
 }
