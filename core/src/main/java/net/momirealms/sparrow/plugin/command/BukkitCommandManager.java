@@ -56,6 +56,8 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.util.ReflectionUtils;
 import io.leangen.geantyref.TypeToken;
 import net.minecraft.commands.arguments.GameProfileArgument;
+import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
+import net.momirealms.sparrow.plugin.command.parser.OptionalWordParser;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -167,6 +169,14 @@ public final class BukkitCommandManager extends AbstractCommandManager {
             // 读到空格为止且不限字符的原版参数.
             manager.brigadierManager().registerMapping(
                     new TypeToken<TokenParser<CommandSender>>() {},
+                    builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile())
+            );
+            manager.brigadierManager().registerMapping(
+                    new TypeToken<ClusterPlayerParser<CommandSender>>() {},
+                    builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile())
+            );
+            manager.brigadierManager().registerMapping(
+                    new TypeToken<OptionalWordParser<CommandSender>>() {},
                     builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile())
             );
         } else if (manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
