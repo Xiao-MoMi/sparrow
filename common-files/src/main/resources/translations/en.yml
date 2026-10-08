@@ -240,6 +240,8 @@ command.features.row: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> 
 command.features.unavailable: 'This command is disabled'
 
 # command.feed
+command.feed.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> food points for <color:#C7BCE7><arg:0></color></color>'
+command.feed.restored-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> food points for you</color>'
 command.feed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Fed <color:#C7BCE7><arg:0></color></color>'
 command.feed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Fed you</color>'
 
@@ -266,6 +268,8 @@ command.hat.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name
 command.hat.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Put your main-hand item on your head</color>'
 
 # command.heal
+command.heal.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> health points for <color:#C7BCE7><arg:0></color></color>'
+command.heal.restored-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> health points for you</color>'
 command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed <color:#C7BCE7><arg:0></color></color>'
 command.heal.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed you</color>'
 
@@ -360,6 +364,10 @@ command.lookup.invalid-uuid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proj
 command.lookup.no-address: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No login IP was found for <color:#F2F4FF><arg:0></color>.</color>'
 command.lookup.unknown-player: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No database record was found for <color:#F2F4FF><arg:0></color>.</color>'
 
+# command.loom
+command.loom.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a loom for <color:#C7BCE7><arg:0></color></color>'
+command.loom.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a loom for you</color>'
+
 # command.maintenance
 command.maintenance.active: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The server is under maintenance</color>'
 command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Maintenance mode disabled</color>'
@@ -428,6 +436,11 @@ command.player-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proj
 
 # command.player-uuid
 command.player-uuid.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C8E4E9>UUID of </color><color:#C7BCE7><arg:0></color><color:#C8E4E9>: </color><color:#F2F4FF><arg:1></color>'
+
+# command.repair
+command.repair.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no item in slot <color:#C7BCE7><arg:1></color></color>'
+command.repair.not-damageable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item in slot <color:#C7BCE7><arg:1></color> of <color:#C7BCE7><arg:0></color> has no durability</color>'
+command.repair.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:2></color> durability for the item in slot <color:#C7BCE7><arg:1></color> of <color:#C7BCE7><arg:0></color> (<color:#C7BCE7><arg:3></color>/<color:#C7BCE7><arg:4></color>)</color>'
 
 # command.reload
 command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Reload failed. Check the console log</color>'

@@ -301,6 +301,13 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig loom = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " loom", "/loom"),
+                DependencyVersions.PROJECT_ID + ".command.loom"
+        );
+
+        @BlankLineBefore
         CommandConfig more = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"),
@@ -329,6 +336,13 @@ public final class CommandsConfig {
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " player-uuid", "/player-uuid"),
                 DependencyVersions.PROJECT_ID + ".command.player-uuid"
+        );
+
+        @BlankLineBefore
+        CommandConfig repair = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " repair", "/repair"),
+                DependencyVersions.PROJECT_ID + ".command.repair"
         );
 
         @BlankLineBefore
@@ -667,10 +681,12 @@ public final class CommandsConfig {
                 case "kick" -> this.kick;
                 case "knockback" -> this.knockback;
                 case "look" -> this.look;
+                case "loom" -> this.loom;
                 case "more" -> this.more;
                 case "player-info" -> this.playerInfo;
                 case "player-name" -> this.playerName;
                 case "player-uuid" -> this.playerUuid;
+                case "repair" -> this.repair;
                 case "smithing-table" -> this.smithingTable;
                 case "stonecutter" -> this.stonecutter;
                 case "sudo" -> this.sudo;

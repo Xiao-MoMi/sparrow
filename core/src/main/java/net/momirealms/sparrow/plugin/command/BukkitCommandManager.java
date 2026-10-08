@@ -2,6 +2,7 @@ package net.momirealms.sparrow.plugin.command;
 
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
+import net.momirealms.sparrow.plugin.command.feature.RepairCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantmentTableCommand;
 import net.momirealms.sparrow.plugin.command.feature.WorldCommand;
@@ -38,6 +39,7 @@ import net.momirealms.sparrow.plugin.command.feature.BurnCommand;
 import net.momirealms.sparrow.plugin.command.feature.ExtinguishCommand;
 import net.momirealms.sparrow.plugin.command.feature.SudoCommand;
 import net.momirealms.sparrow.plugin.command.feature.LookCommand;
+import net.momirealms.sparrow.plugin.command.feature.LoomCommand;
 import net.momirealms.sparrow.plugin.command.feature.TopBlockCommand;
 import net.momirealms.sparrow.plugin.command.feature.WorkbenchCommand;
 import net.momirealms.sparrow.plugin.command.feature.AnvilCommand;
@@ -137,10 +139,12 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new KickCommand(this, plugin),
                 new KnockbackCommand(this, plugin),
                 new LookCommand(this, plugin),
+                new LoomCommand(this, plugin),
                 new MoreCommand(this, plugin),
                 new PlayerInfoCommand(this, plugin),
                 new PlayerNameCommand(this, plugin),
                 new PlayerUuidCommand(this, plugin),
+                new RepairCommand(this, plugin),
                 new SmithingTableCommand(this, plugin),
                 new StonecutterCommand(this, plugin),
                 new SudoCommand(this, plugin),
