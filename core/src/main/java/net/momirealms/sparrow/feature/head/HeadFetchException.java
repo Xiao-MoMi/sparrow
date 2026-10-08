@@ -8,7 +8,9 @@ public final class HeadFetchException extends RuntimeException {
         this.reason = reason;
     }
 
-    public Reason reason() { return this.reason; }
+    public Reason reason() {
+        return this.reason;
+    }
 
     public enum Reason {
         THROTTLED, INVALID_RESPONSE, INVALID_INPUT, SERVICE_ERROR

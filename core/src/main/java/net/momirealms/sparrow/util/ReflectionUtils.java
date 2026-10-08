@@ -50,13 +50,13 @@ public final class ReflectionUtils {
      * 按给定的全限定类名列表依次尝试加载类, 并返回第一个成功加载的结果.
      * 该方法适合处理不同平台, 版本或混淆映射下可能变化的类名.
      *
+     * 候选项中单个元素为 `null` 时, 会被内部单类加载方法视为失败并继续尝试下一个名称
      * @param classes 候选类名列表, 按优先级从前到后匹配
      * @return 首个成功加载的 `Class` 对象, 如果全部失败则返回 `null`
-     * @throws NullPointerException 当 `classes` 为 `null` 时, `for-each` 遍历会抛出该异常
-     * @apiNote 候选项中单个元素为 `null` 时, 会被内部单类加载方法视为失败并继续尝试下一个名称
      */
     public static Class<?> getClazz(String... classes) {
-        for (String className : classes) {
+        for (int classNameIndex = 0, classNameCount = classes.length; classNameIndex < classNameCount; classNameIndex++) {
+            String className = classes[classNameIndex];
             Class<?> clazz = getClazz(className);
             if (clazz != null) {
                 return clazz;
@@ -69,9 +69,9 @@ public final class ReflectionUtils {
      * 根据单个全限定类名尝试加载类.
      * 如果类不存在或加载过程中出现任意异常, 方法会吞掉异常并返回 `null`.
      *
+     * 该方法会捕获所有 `Throwable`, 因此包括 `ClassNotFoundException`, `LinkageError` 等错误也会被折叠为 `null`
      * @param clazz 需要加载的类全限定名
      * @return 成功时返回对应的 `Class` 对象, 失败时返回 `null`
-     * @apiNote 该方法会捕获所有 `Throwable`, 因此包括 `ClassNotFoundException`, `LinkageError` 等错误也会被折叠为 `null`
      */
     public static Class<?> getClazz(String clazz) {
         try {
@@ -84,10 +84,9 @@ public final class ReflectionUtils {
     /**
      * 判断指定类名对应的类是否存在并可被当前类加载器加载.
      *
+     * 该方法同样会将加载阶段的各种错误统一视为不存在
      * @param clazz 目标类的全限定名
      * @return 如果类可以成功加载则返回 `true`, 否则返回 `false`
-     * @throws NullPointerException 当 `clazz` 为 `null` 时, `Class.forName` 会抛出该异常
-     * @apiNote 该方法同样会将加载阶段的各种错误统一视为不存在
      */
     public static boolean classExists(@NotNull final String clazz) {
         try {
@@ -102,12 +101,11 @@ public final class ReflectionUtils {
      * 判断指定公共方法是否存在.
      * 该方法使用 `Class.getMethod`, 因此只会查找当前类及其父类, 接口中可见的公共方法.
      *
+     * 该方法不会检查返回值类型, 也不会匹配私有或受保护方法
      * @param clazz 目标类
      * @param method 目标方法名
      * @param parameterTypes 参数类型列表, 需要与方法签名完全一致
      * @return 如果找到匹配的公共方法则返回 `true`, 否则返回 `false`
-     * @throws NullPointerException 当任一必需参数为 `null` 时, 反射调用可能抛出该异常
-     * @apiNote 该方法不会检查返回值类型, 也不会匹配私有或受保护方法
      */
     public static boolean methodExists(@NotNull final Class<?> clazz, @NotNull final String method, @NotNull final Class<?>... parameterTypes) {
         try {
@@ -121,12 +119,11 @@ public final class ReflectionUtils {
     /**
      * 根据字段名获取当前类中声明的字段, 并尝试设置为可访问.
      *
+     * 仅查找当前类声明字段, 不会向父类继续搜索
      * @param clazz 目标类
      * @param field 字段名
      * @return 找到时返回已执行 `setAccessible(true)` 的字段对象, 未找到时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `field` 为 `null` 时, 反射调用可能抛出该异常
      * @throws SecurityException 当 JVM 安全策略阻止访问控制修改时抛出
-     * @apiNote 仅查找当前类声明字段, 不会向父类继续搜索
      */
     @Nullable
     public static Field getDeclaredField(final Class<?> clazz, final String field) {
@@ -141,16 +138,17 @@ public final class ReflectionUtils {
      * 根据多个候选字段名获取当前类中声明的字段.
      * 方法会遍历 `getDeclaredFields()` 的结果, 按声明顺序返回第一个名称命中的字段.
      *
+     * 该重载不会调用 `setAccessible(true)`, 返回字段前不会主动修改访问性
      * @param clazz 目标类
      * @param possibleNames 候选字段名列表
      * @return 命中时返回字段对象, 未命中时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `possibleNames` 为 `null` 时可能抛出该异常
-     * @apiNote 该重载不会调用 `setAccessible(true)`, 返回字段前不会主动修改访问性
      */
     @Nullable
     public static Field getDeclaredField(@NotNull Class<?> clazz, @NotNull String... possibleNames) {
         List<String> possibleNameList = Arrays.asList(possibleNames);
-        for (Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            Field field = fieldValues[fieldIndex];
             if (possibleNameList.contains(field.getName())) {
                 return field;
             }
@@ -161,17 +159,18 @@ public final class ReflectionUtils {
     /**
      * 按声明顺序获取当前类中指定索引位置的字段, 并尝试设置为可访问.
      *
+     * 反射返回的字段顺序依赖 JVM 实现, 不适合作为长期稳定协议
      * @param clazz 目标类
      * @param index 字段索引, 基于 `getDeclaredFields()` 的返回顺序从 0 开始
      * @return 命中时返回字段对象, 索引越界时返回 `null`
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
-     * @apiNote 反射返回的字段顺序依赖 JVM 实现, 不适合作为长期稳定协议
      */
     @Nullable
     public static Field getDeclaredField(final Class<?> clazz, final int index) {
         int i = 0;
-        for (final Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            final Field field = fieldValues[fieldIndex];
             if (index == i) {
                 return setAccessible(field);
             }
@@ -186,13 +185,14 @@ public final class ReflectionUtils {
      * @param clazz 目标类
      * @param index 实例字段索引, 仅统计非 `static` 字段
      * @return 命中时返回字段对象, 未找到时返回 `null`
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @Nullable
     public static Field getInstanceDeclaredField(final Class<?> clazz, final int index) {
         int i = 0;
-        for (final Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            final Field field = fieldValues[fieldIndex];
             if (!Modifier.isStatic(field.getModifiers())) {
                 if (index == i) {
                     return setAccessible(field);
@@ -210,13 +210,14 @@ public final class ReflectionUtils {
      * @param type 字段类型, 需要完全相等匹配
      * @param index 同类型静态字段中的序号, 从 0 开始
      * @return 命中时返回字段对象, 未找到时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `type` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @Nullable
     public static Field getStaticDeclaredField(final Class<?> clazz, final Class<?> type, final int index) {
         int i = 0;
-        for (final Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            final Field field = fieldValues[fieldIndex];
             if (field.getType() == type) {
                 if (Modifier.isStatic(field.getModifiers())) {
                     if (index == i) {
@@ -237,13 +238,14 @@ public final class ReflectionUtils {
      * @param type 字段类型, 需要完全相等匹配
      * @param index 同类型公共静态字段中的序号, 从 0 开始
      * @return 命中时返回字段对象, 未找到时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `type` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @Nullable
     public static Field getStaticField(final Class<?> clazz, final Class<?> type, final int index) {
         int i = 0;
-        for (final Field field : clazz.getFields()) {
+        Field[] fieldValues = clazz.getFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            final Field field = fieldValues[fieldIndex];
             if (field.getType() == type) {
                 if (Modifier.isStatic(field.getModifiers())) {
                     if (index == i) {
@@ -263,13 +265,14 @@ public final class ReflectionUtils {
      * @param type 字段类型, 需要完全相等匹配
      * @param index 同类型字段中的序号, 从 0 开始
      * @return 命中时返回字段对象, 未找到时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `type` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @Nullable
     public static Field getDeclaredField(final Class<?> clazz, final Class<?> type, int index) {
         int i = 0;
-        for (final Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            final Field field = fieldValues[fieldIndex];
             if (field.getType() == type) {
                 if (index == i) {
                     return setAccessible(field);
@@ -288,7 +291,6 @@ public final class ReflectionUtils {
      * @param type 字段类型, 需要完全相等匹配
      * @param index 逆序遍历下同类型字段中的序号, 从 0 开始
      * @return 命中时返回字段对象, 未找到时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `type` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @Nullable
@@ -314,13 +316,14 @@ public final class ReflectionUtils {
      * @param type 字段类型, 需要完全相等匹配
      * @param index 同类型实例字段中的序号, 从 0 开始
      * @return 命中时返回字段对象, 未找到时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `type` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @Nullable
     public static Field getInstanceDeclaredField(@NotNull Class<?> clazz, final Class<?> type, int index) {
         int i = 0;
-        for (final Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            final Field field = fieldValues[fieldIndex];
             if (field.getType() == type && !Modifier.isStatic(field.getModifiers())) {
                 if (index == i) {
                     return setAccessible(field);
@@ -336,7 +339,6 @@ public final class ReflectionUtils {
      *
      * @param clazz 目标类
      * @return 包含全部声明字段的列表, 列表顺序与 `getDeclaredFields()` 返回顺序一致
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @NotNull
@@ -353,13 +355,14 @@ public final class ReflectionUtils {
      *
      * @param clazz 目标类
      * @return 包含所有非静态字段的列表
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @NotNull
     public static List<Field> getInstanceDeclaredFields(@NotNull Class<?> clazz) {
         List<Field> list = new ArrayList<>();
-        for (Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            Field field = fieldValues[fieldIndex];
             if (!Modifier.isStatic(field.getModifiers())) {
                 list.add(setAccessible(field));
             }
@@ -373,13 +376,14 @@ public final class ReflectionUtils {
      * @param clazz 目标类
      * @param type 目标字段类型, 需要完全相等匹配
      * @return 所有命中字字段组成的列表
-     * @throws NullPointerException 当 `clazz` 或 `type` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @NotNull
     public static List<Field> getDeclaredFields(@NotNull final Class<?> clazz, @NotNull final Class<?> type) {
         List<Field> fields = new ArrayList<>();
-        for (Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            Field field = fieldValues[fieldIndex];
             if (field.getType() == type) {
                 fields.add(setAccessible(field));
             }
@@ -393,13 +397,14 @@ public final class ReflectionUtils {
      * @param clazz 目标类
      * @param type 目标字段类型, 需要完全相等匹配
      * @return 所有命中的非静态字段列表
-     * @throws NullPointerException 当 `clazz` 或 `type` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改字段访问性被拒绝时抛出
      */
     @NotNull
     public static List<Field> getInstanceDeclaredFields(@NotNull Class<?> clazz, @NotNull Class<?> type) {
         List<Field> list = new ArrayList<>();
-        for (Field field : clazz.getDeclaredFields()) {
+        Field[] fieldValues = clazz.getDeclaredFields();
+        for (int fieldIndex = 0, fieldCount = fieldValues.length; fieldIndex < fieldCount; fieldIndex++) {
+            Field field = fieldValues[fieldIndex];
             if (field.getType() == type && !Modifier.isStatic(field.getModifiers())) {
                 list.add(setAccessible(field));
             }
@@ -411,18 +416,19 @@ public final class ReflectionUtils {
      * 在公共方法中按返回值类型, 候选方法名和参数类型查找目标方法.
      * 搜索范围基于 `Class.getMethods()`, 因此会包含继承而来的公共方法.
      *
+     * 返回的方法不会主动调用 `setAccessible(true)`, 但由于来源于 `getMethods()`, 本身通常已是可访问的公共方法
      * @param clazz 目标类
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param possibleMethodNames 候选方法名列表
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 命中时返回方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
-     * @apiNote 返回的方法不会主动调用 `setAccessible(true)`, 但由于来源于 `getMethods()`, 本身通常已是可访问的公共方法
      */
     @Nullable
     public static Method getMethod(final Class<?> clazz, Class<?> returnType, final String[] possibleMethodNames, final Class<?>... parameterTypes) {
+        Method[] methodValues = clazz.getMethods();
         outer:
-        for (Method method : clazz.getMethods()) {
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (method.getParameterCount() != parameterTypes.length) {
                 continue;
             }
@@ -432,7 +438,8 @@ public final class ReflectionUtils {
                     continue outer;
                 }
             }
-            for (String name : possibleMethodNames) {
+            for (int nameIndex = 0, nameCount = possibleMethodNames.length; nameIndex < nameCount; nameIndex++) {
+                String name = possibleMethodNames[nameIndex];
                 if (name.equals(method.getName())) {
                     if (returnType.isAssignableFrom(method.getReturnType())) {
                         return method;
@@ -446,17 +453,18 @@ public final class ReflectionUtils {
     /**
      * 在公共方法中按候选方法名和参数类型查找目标方法.
      *
+     * 搜索范围包含父类和接口中的公共方法
      * @param clazz 目标类
      * @param possibleMethodNames 候选方法名列表
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 命中时返回方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
-     * @apiNote 搜索范围包含父类和接口中的公共方法
      */
     @Nullable
     public static Method getMethod(final Class<?> clazz, final String[] possibleMethodNames, final Class<?>... parameterTypes) {
+        Method[] methodValues = clazz.getMethods();
         outer:
-        for (Method method : clazz.getMethods()) {
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (method.getParameterCount() != parameterTypes.length) {
                 continue;
             }
@@ -466,8 +474,11 @@ public final class ReflectionUtils {
                     continue outer;
                 }
             }
-            for (String name : possibleMethodNames) {
-                if (name.equals(method.getName())) return method;
+            for (int nameIndex = 0, nameCount = possibleMethodNames.length; nameIndex < nameCount; nameIndex++) {
+                String name = possibleMethodNames[nameIndex];
+                if (name.equals(method.getName())) {
+                    return method;
+                }
             }
         }
         return null;
@@ -480,12 +491,13 @@ public final class ReflectionUtils {
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 命中时返回方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
      */
     @Nullable
     public static Method getMethod(final Class<?> clazz, Class<?> returnType, final Class<?>... parameterTypes) {
+        Method[] methodValues = clazz.getMethods();
         outer:
-        for (Method method : clazz.getMethods()) {
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (method.getParameterCount() != parameterTypes.length) {
                 continue;
             }
@@ -495,7 +507,9 @@ public final class ReflectionUtils {
                     continue outer;
                 }
             }
-            if (returnType.isAssignableFrom(method.getReturnType())) return method;
+            if (returnType.isAssignableFrom(method.getReturnType())) {
+                return method;
+            }
         }
         return null;
     }
@@ -508,12 +522,13 @@ public final class ReflectionUtils {
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 命中时返回实例方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
      */
     @Nullable
     public static Method getInstanceMethod(final Class<?> clazz, Class<?> returnType, final Class<?>... parameterTypes) {
+        Method[] methodValues = clazz.getMethods();
         outer:
-        for (Method method : clazz.getMethods()) {
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (method.getParameterCount() != parameterTypes.length) {
                 continue;
             }
@@ -526,7 +541,9 @@ public final class ReflectionUtils {
                     continue outer;
                 }
             }
-            if (returnType.isAssignableFrom(method.getReturnType())) return method;
+            if (returnType.isAssignableFrom(method.getReturnType())) {
+                return method;
+            }
         }
         return null;
     }
@@ -534,19 +551,25 @@ public final class ReflectionUtils {
     /**
      * 在当前类声明的方法中按返回值类型, 候选方法名和参数类型查找目标方法, 并尝试设置为可访问.
      *
+     * 搜索范围仅限当前类声明方法, 不包含继承方法
      * @param clazz 目标类
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param possibleMethodNames 候选方法名列表
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 命中时返回已执行 `setAccessible(true)` 的方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改方法访问性被拒绝时抛出
-     * @apiNote 搜索范围仅限当前类声明方法, 不包含继承方法
      */
     @Nullable
-    public static Method getDeclaredMethod(final Class<?> clazz, Class<?> returnType, final String[] possibleMethodNames, final Class<?>... parameterTypes) {
+    public static Method getDeclaredMethod(
+            final Class<?> clazz,
+            Class<?> returnType,
+            final String[] possibleMethodNames,
+            final Class<?>... parameterTypes
+    ) {
+        Method[] methodValues = clazz.getDeclaredMethods();
         outer:
-        for (Method method : clazz.getDeclaredMethods()) {
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (method.getParameterCount() != parameterTypes.length) {
                 continue;
             }
@@ -556,7 +579,8 @@ public final class ReflectionUtils {
                     continue outer;
                 }
             }
-            for (String name : possibleMethodNames) {
+            for (int nameIndex = 0, nameCount = possibleMethodNames.length; nameIndex < nameCount; nameIndex++) {
+                String name = possibleMethodNames[nameIndex];
                 if (name.equals(method.getName())) {
                     if (returnType.isAssignableFrom(method.getReturnType())) {
                         return setAccessible(method);
@@ -574,13 +598,14 @@ public final class ReflectionUtils {
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 命中时返回已执行 `setAccessible(true)` 的方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改方法访问性被拒绝时抛出
      */
     @Nullable
     public static Method getDeclaredMethod(final Class<?> clazz, Class<?> returnType, final Class<?>... parameterTypes) {
+        Method[] methodValues = clazz.getDeclaredMethods();
         outer:
-        for (Method method : clazz.getDeclaredMethods()) {
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (method.getParameterCount() != parameterTypes.length) {
                 continue;
             }
@@ -590,7 +615,9 @@ public final class ReflectionUtils {
                     continue outer;
                 }
             }
-            if (returnType.isAssignableFrom(method.getReturnType())) return setAccessible(method);
+            if (returnType.isAssignableFrom(method.getReturnType())) {
+                return setAccessible(method);
+            }
         }
         return null;
     }
@@ -598,18 +625,19 @@ public final class ReflectionUtils {
     /**
      * 按返回值类型和序号获取公共方法, 并尝试设置为可访问.
      *
+     * 序号基于 `getMethods()` 的返回顺序, 不保证跨 JVM 版本稳定
      * @param clazz 目标类
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param index 命中方法中的序号, 从 0 开始
      * @return 命中时返回方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或 `returnType` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改方法访问性被拒绝时抛出
-     * @apiNote 序号基于 `getMethods()` 的返回顺序, 不保证跨 JVM 版本稳定
      */
     @Nullable
     public static Method getMethod(final Class<?> clazz, Class<?> returnType, int index) {
         int i = 0;
-        for (Method method : clazz.getMethods()) {
+        Method[] methodValues = clazz.getMethods();
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (returnType.isAssignableFrom(method.getReturnType())) {
                 if (i == index) {
                     return setAccessible(method);
@@ -627,46 +655,14 @@ public final class ReflectionUtils {
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 命中时返回静态方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改方法访问性被拒绝时抛出
      */
     @Nullable
     public static Method getStaticMethod(final Class<?> clazz, Class<?> returnType, final Class<?>... parameterTypes) {
+        Method[] methodValues = clazz.getMethods();
         outer:
-        for (Method method : clazz.getMethods()) {
-            if (method.getParameterCount() != parameterTypes.length) {
-                continue;
-            }
-            if (!Modifier.isStatic(method.getModifiers())) {
-                continue;
-            }
-            Class<?>[] types = method.getParameterTypes();
-            for (int i = 0; i < types.length; i++) {
-                if (types[i] != parameterTypes[i]) {
-                    continue outer;
-                }
-            }
-            if (returnType.isAssignableFrom(method.getReturnType()))
-                return setAccessible(method);
-        }
-        return null;
-    }
-
-    /**
-     * 在公共静态方法中按返回值类型, 候选方法名和参数类型查找目标方法, 并尝试设置为可访问.
-     *
-     * @param clazz 目标类
-     * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
-     * @param possibleNames 候选方法名列表
-     * @param parameterTypes 参数类型列表, 需要逐项完全匹配
-     * @return 命中时返回静态方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
-     * @throws SecurityException 当修改方法访问性被拒绝时抛出
-     */
-    @Nullable
-    public static Method getStaticMethod(final Class<?> clazz, Class<?> returnType, String[] possibleNames, final Class<?>... parameterTypes) {
-        outer:
-        for (Method method : clazz.getMethods()) {
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (method.getParameterCount() != parameterTypes.length) {
                 continue;
             }
@@ -680,7 +676,43 @@ public final class ReflectionUtils {
                 }
             }
             if (returnType.isAssignableFrom(method.getReturnType())) {
-                for (String name : possibleNames) {
+                return setAccessible(method);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 在公共静态方法中按返回值类型, 候选方法名和参数类型查找目标方法, 并尝试设置为可访问.
+     *
+     * @param clazz 目标类
+     * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
+     * @param possibleNames 候选方法名列表
+     * @param parameterTypes 参数类型列表, 需要逐项完全匹配
+     * @return 命中时返回静态方法对象, 未命中时返回 `null`
+     * @throws SecurityException 当修改方法访问性被拒绝时抛出
+     */
+    @Nullable
+    public static Method getStaticMethod(final Class<?> clazz, Class<?> returnType, String[] possibleNames, final Class<?>... parameterTypes) {
+        Method[] methodValues = clazz.getMethods();
+        outer:
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
+            if (method.getParameterCount() != parameterTypes.length) {
+                continue;
+            }
+            if (!Modifier.isStatic(method.getModifiers())) {
+                continue;
+            }
+            Class<?>[] types = method.getParameterTypes();
+            for (int i = 0; i < types.length; i++) {
+                if (types[i] != parameterTypes[i]) {
+                    continue outer;
+                }
+            }
+            if (returnType.isAssignableFrom(method.getReturnType())) {
+                for (int nameIndex = 0, nameCount = possibleNames.length; nameIndex < nameCount; nameIndex++) {
+                    String name = possibleNames[nameIndex];
                     if (name.equals(method.getName())) {
                         return setAccessible(method);
                     }
@@ -693,16 +725,17 @@ public final class ReflectionUtils {
     /**
      * 按序号获取公共静态方法, 并尝试设置为可访问.
      *
+     * 序号基于 `getMethods()` 的返回顺序, 不保证稳定
      * @param clazz 目标类
      * @param index 静态方法序号, 从 0 开始
      * @return 命中时返回静态方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改方法访问性被拒绝时抛出
-     * @apiNote 序号基于 `getMethods()` 的返回顺序, 不保证稳定
      */
     public static Method getStaticMethod(final Class<?> clazz, int index) {
         int i = 0;
-        for (Method method : clazz.getMethods()) {
+        Method[] methodValues = clazz.getMethods();
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (Modifier.isStatic(method.getModifiers())) {
                 if (i == index) {
                     return setAccessible(method);
@@ -716,17 +749,18 @@ public final class ReflectionUtils {
     /**
      * 按序号获取公共方法, 并尝试设置为可访问.
      *
+     * 结果包含继承方法, 且顺序依赖反射实现
      * @param clazz 目标类
      * @param index 公共方法序号, 从 0 开始
      * @return 命中时返回方法对象, 未命中时返回 `null`
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改方法访问性被拒绝时抛出
-     * @apiNote 结果包含继承方法, 且顺序依赖反射实现
      */
     @Nullable
     public static Method getMethod(final Class<?> clazz, int index) {
         int i = 0;
-        for (Method method : clazz.getMethods()) {
+        Method[] methodValues = clazz.getMethods();
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (i == index) {
                 return setAccessible(method);
             }
@@ -738,15 +772,15 @@ public final class ReflectionUtils {
     /**
      * 按候选方法名和参数类型获取公共方法, 若未找到则抛出异常.
      *
+     * 异常消息中会包含候选名称, 参数类型和类名, 便于定位版本差异问题
      * @param clazz 目标类
      * @param possibleMethodNames 候选方法名列表
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 找到的公共方法对象
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
      * @throws NoSuchMethodException 当所有候选名称都未匹配到对应方法时抛出
-     * @apiNote 异常消息中会包含候选名称, 参数类型和类名, 便于定位版本差异问题
      */
-    public static Method getMethodOrElseThrow(final Class<?> clazz, final String[] possibleMethodNames, final Class<?>[] parameterTypes) throws NoSuchMethodException {
+    public static Method getMethodOrElseThrow(final Class<?> clazz, final String[] possibleMethodNames, final Class<
+            ?>[] parameterTypes) throws NoSuchMethodException {
         Method method = getMethod(clazz, possibleMethodNames, parameterTypes);
         if (method == null) {
             throw new NoSuchMethodException("No method found with possible names " + Arrays.toString(possibleMethodNames) + " with parameters " +
@@ -758,20 +792,23 @@ public final class ReflectionUtils {
     /**
      * 获取所有满足返回值类型和参数签名的公共方法列表.
      *
+     * 返回结果不会主动设置可访问性, 且包含继承自父类或接口的公共方法
      * @param clazz 目标类
      * @param returnType 期望返回值类型, 使用 `isAssignableFrom` 判断兼容性
      * @param parameterTypes 参数类型列表, 需要逐项完全匹配
      * @return 所有命中方法组成的列表, 如果没有匹配项则返回空列表
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
-     * @apiNote 返回结果不会主动设置可访问性, 且包含继承自父类或接口的公共方法
      */
     @NotNull
     public static List<Method> getMethods(@NotNull Class<?> clazz, @NotNull Class<?> returnType, @NotNull Class<?>... parameterTypes) {
         List<Method> list = new ArrayList<>();
-        for (Method method : clazz.getMethods()) {
+        Method[] methodValues = clazz.getMethods();
+        for (int methodIndex = 0, methodCount = methodValues.length; methodIndex < methodCount; methodIndex++) {
+            Method method = methodValues[methodIndex];
             if (!returnType.isAssignableFrom(method.getReturnType()) // check type
                     || method.getParameterCount() != parameterTypes.length // check length
-            ) continue;
+            ) {
+                continue;
+            }
             Class<?>[] types = method.getParameterTypes();
             outer: {
                 for (int i = 0; i < types.length; i++) {
@@ -788,12 +825,11 @@ public final class ReflectionUtils {
     /**
      * 将反射对象设置为可访问并原样返回, 便于链式调用.
      *
+     * 在强模块封装环境下, 该方法也可能触发运行时访问异常
      * @param o 需要开放访问权限的反射对象, 例如 `Field`, `Method`, `Constructor`
      * @param <T> 反射对象类型
      * @return 已执行 `setAccessible(true)` 的原对象
-     * @throws NullPointerException 当 `o` 为 `null` 时调用其方法会抛出该异常
      * @throws SecurityException 当 JVM 安全策略阻止修改访问性时抛出
-     * @apiNote 在强模块封装环境下, 该方法也可能触发运行时访问异常
      */
     @NotNull
     public static <T extends AccessibleObject> T setAccessible(@NotNull final T o) {
@@ -808,7 +844,6 @@ public final class ReflectionUtils {
      * @param clazz 目标类
      * @param parameterTypes 构造参数类型列表, 需要逐项完全匹配
      * @return 命中时返回构造器对象, 未找到或访问受限时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或参数数组中的必要元素为 `null` 时可能抛出该异常
      */
     @Nullable
     public static Constructor<?> getConstructor(Class<?> clazz, Class<?>... parameterTypes) {
@@ -826,7 +861,6 @@ public final class ReflectionUtils {
      * @param clazz 目标类
      * @param parameterTypes 构造参数类型列表, 需要逐项完全匹配
      * @return 命中时返回已执行 `setAccessible(true)` 的构造器对象, 未找到或访问受限时返回 `null`
-     * @throws NullPointerException 当 `clazz` 或参数数组中的必要元素为 `null` 时可能抛出该异常
      * @throws SecurityException 当修改构造器访问性被拒绝时可能被内部捕获并折叠为 `null`
      */
     @Nullable
@@ -842,12 +876,11 @@ public final class ReflectionUtils {
      * 按索引获取声明构造器, 并尝试设置为可访问.
      * 该方法实际使用 `getDeclaredConstructors()` 的返回结果, 因此包含非公共构造器.
      *
+     * 构造器顺序依赖反射实现, 不适合作为稳定协议
      * @param clazz 目标类
      * @param index 构造器索引, 基于 `getDeclaredConstructors()` 的返回顺序从 0 开始
      * @return 命中时返回构造器对象, 访问受限时返回 `null`
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws IndexOutOfBoundsException 当 `index` 不在有效范围内时抛出
-     * @apiNote 构造器顺序依赖反射实现, 不适合作为稳定协议
      */
     @Nullable
     public static Constructor<?> getConstructor(Class<?> clazz, int index) {
@@ -865,11 +898,10 @@ public final class ReflectionUtils {
     /**
      * 获取目标类唯一的公共构造器.
      *
+     * 该方法只统计 `getConstructors()` 返回的公共构造器, 不包含私有构造器
      * @param clazz 目标类
      * @return 唯一的公共构造器
-     * @throws NullPointerException 当 `clazz` 为 `null` 时可能抛出该异常
      * @throws RuntimeException 当公共构造器数量不等于 1 时抛出
-     * @apiNote 该方法只统计 `getConstructors()` 返回的公共构造器, 不包含私有构造器
      */
     @NotNull
     public static Constructor<?> getTheOnlyConstructor(Class<?> clazz) {
@@ -886,7 +918,6 @@ public final class ReflectionUtils {
      *
      * @param field 目标字段
      * @return 可用于读取字段值的 `MethodHandle`
-     * @throws NullPointerException 当 `field` 为 `null` 时可能抛出该异常
      * @throws IllegalAccessException 当重试后仍无法访问该字段时抛出
      */
     public static MethodHandle unreflectGetter(Field field) throws IllegalAccessException {
@@ -903,10 +934,9 @@ public final class ReflectionUtils {
      * 方法会先走标准 `Lookup.unreflectSetter(Field)` 流程.
      * 如果因访问限制失败, 会退回到基于 JDK 内部 `MemberName` 和 `getDirectField` 的绕过逻辑, 以尝试为受限字段构造 setter 句柄.
      *
+     * 该方法依赖 JDK 内部实现细节和 `Unsafe`, 在不同 Java 版本上存在兼容性风险
      * @param field 目标字段
      * @return 成功时返回可写入字段的 `MethodHandle`, 全部尝试失败时返回 `null`
-     * @throws NullPointerException 当 `field` 为 `null` 时可能抛出该异常
-     * @apiNote 该方法依赖 JDK 内部实现细节和 `Unsafe`, 在不同 Java 版本上存在兼容性风险
      */
     @Nullable
     public static MethodHandle unreflectSetter(Field field) {
@@ -917,7 +947,12 @@ public final class ReflectionUtils {
                 Object memberName = methodHandle$constructor$MemberName.invoke(field, true);
                 Object refKind = methodHandle$MemberName$getReferenceKind.invoke(memberName);
                 methodHandle$MethodHandleNatives$refKindIsSetter.invoke(refKind);
-                return (MethodHandle) methodHandle$MethodHandles$Lookup$getDirectField.invoke(LOOKUP, refKind, field.getDeclaringClass(), memberName);
+                return (MethodHandle) methodHandle$MethodHandles$Lookup$getDirectField.invoke(
+                        LOOKUP,
+                        refKind,
+                        field.getDeclaringClass(),
+                        memberName
+                );
             } catch (Throwable ex) {
                 return null;
             }
@@ -930,7 +965,6 @@ public final class ReflectionUtils {
      *
      * @param method 目标方法
      * @return 对应的 `MethodHandle`
-     * @throws NullPointerException 当 `method` 为 `null` 时可能抛出该异常
      * @throws IllegalAccessException 当重试后仍无法访问该方法时抛出
      */
     public static MethodHandle unreflectMethod(Method method) throws IllegalAccessException {
@@ -948,7 +982,6 @@ public final class ReflectionUtils {
      *
      * @param constructor 目标构造器
      * @return 对应的 `MethodHandle`
-     * @throws NullPointerException 当 `constructor` 为 `null` 时可能抛出该异常
      * @throws IllegalAccessException 当重试后仍无法访问该构造器时抛出
      */
     public static MethodHandle unreflectConstructor(Constructor<?> constructor) throws IllegalAccessException {
@@ -964,12 +997,11 @@ public final class ReflectionUtils {
      * 根据类, 字段名和字段类型查找 `VarHandle`.
      * 方法会先通过 `privateLookupIn` 创建针对目标类的私有查找上下文, 再执行字段查找.
      *
+     * 该方法既可处理实例字段, 也可处理静态字段, 具体取决于目标字段定义
      * @param clazz 声明字段的类
      * @param name 字段名
      * @param type 字段类型
      * @return 成功时返回对应的 `VarHandle`, 未找到或访问失败时返回 `null`
-     * @throws NullPointerException 当任一必需参数为 `null` 时可能抛出该异常
-     * @apiNote 该方法既可处理实例字段, 也可处理静态字段, 具体取决于目标字段定义
      */
     public static VarHandle findVarHandle(Class<?> clazz, String name, Class<?> type) {
         try {
@@ -983,10 +1015,9 @@ public final class ReflectionUtils {
     /**
      * 根据字段对象直接查找对应的 `VarHandle`.
      *
+     * 该方法会从字段对象中提取声明类, 名称和类型, 再复用私有查找逻辑完成定位
      * @param field 目标字段
      * @return 成功时返回对应的 `VarHandle`, 未找到或访问失败时返回 `null`
-     * @throws NullPointerException 当 `field` 为 `null` 时可能抛出该异常
-     * @apiNote 该方法会从字段对象中提取声明类, 名称和类型, 再复用私有查找逻辑完成定位
      */
     public static VarHandle findVarHandle(Field field) {
         try {

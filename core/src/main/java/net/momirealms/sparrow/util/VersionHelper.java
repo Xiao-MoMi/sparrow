@@ -54,7 +54,8 @@ public final class VersionHelper {
             if (WORLD_VERSION == -1) {
                 throw new IllegalStateException("Failed to get world_version from version.json");
             }
-            String versionString = json.getAsJsonPrimitive("id").getAsString()
+            String versionString = json.getAsJsonPrimitive("id")
+                    .getAsString()
                     .split("-", 2)[0]  // 1.21.10-rc1          -> 1.21.10
                     .split("_", 2)[0]; // 1.21.11_unobfuscated -> 1.21.11
 

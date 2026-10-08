@@ -53,7 +53,7 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
-        this.plugin().scheduler().platform().run(() -> {
+        Runnable action = () -> {
             ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_ITEMLESS);
@@ -78,10 +78,15 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
                 }
             }
             int minimum = operation == Operation.UP ? 2 : 1;
-            int maximum = lines.size() + (operation == Operation.INSERT ? 1 : operation == Operation.DOWN ? -1 : 0);
+            int maximum = lines.size() + (operation == Operation.INSERT ? 1 : (operation == Operation.DOWN ? -1 : 0));
             if (line < minimum || line > maximum) {
-                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_BOUND, Component.text(line),
-                        Component.text(maximum < minimum ? 0 : minimum), Component.text(maximum < minimum ? 0 : maximum));
+                this.handleFeedback(
+                        context,
+                        MessageConstants.COMMAND_ITEM_LORE_BOUND,
+                        Component.text(line),
+                        Component.text(maximum < minimum ? 0 : minimum),
+                        Component.text(maximum < minimum ? 0 : maximum)
+                );
                 return;
             }
             switch (operation) {
@@ -99,7 +104,7 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
                     try {
                         Component parsed = context.flags().hasFlag("json")
                                 ? AdventureHelper.jsonToComponent(input)
-                                : AdventureHelper.miniMessage("<!i><white>" + input, context.flags().hasFlag("legacy-color"));
+                                : AdventureHelper.miniMessage("<!i><white>" + input, context.flags().hasFlag("legacy-color"), player);
                         text = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(parsed));
                     } catch (RuntimeException exception) {
                         this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_INVALID);
@@ -121,7 +126,12 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
                 item.set(DataComponents.LORE, new ItemLore(List.copyOf(lines)));
             }
             this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_SUCCESS, this.getQueryResult(player, lines));
-        }, () -> {}, player);
+        };
+        if (!context.flags().hasFlag("operation")) {
+            action.run();
+        } else {
+            this.plugin().scheduler().platform().run(action, () -> {}, player);
+        }
     }
 
     private Component getQueryResult(Player player, List<net.minecraft.network.chat.Component> lines) {
@@ -134,39 +144,50 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
             String json = CraftChatMessage.toJSON(lines.get(i));
             Component preview = AdventureHelper.jsonToComponent(json);
             String miniMessage = AdventureHelper.miniMessage().serialize(preview);
-            Component source = Component.text("JSON: " + json, NamedTextColor.GRAY).append(Component.newline())
+            Component source = Component.text("JSON: " + json, NamedTextColor.GRAY)
+                    .append(Component.newline())
                     .append(Component.text("MiniMessage: " + miniMessage, NamedTextColor.WHITE));
             int line = i + 1;
             String action = usage + " --operation ";
             String target = " --line " + line + " --internal " + internal;
-            result.append(Component.text("[" + line + "] ", NamedTextColor.YELLOW).hoverEvent(editHint)
+            result.append(Component.text("[" + line + "] ", NamedTextColor.YELLOW)
+                    .hoverEvent(editHint)
                     .clickEvent(ClickEvent.suggestCommand(action + "edit --line " + line + " --json --lore " + json)));
-            result.append(preview.applyFallbackStyle(Style.style(NamedTextColor.DARK_PURPLE, TextDecoration.ITALIC)).hoverEvent(source)
+            result.append(preview.applyFallbackStyle(Style.style(NamedTextColor.DARK_PURPLE, TextDecoration.ITALIC))
+                    .hoverEvent(source)
                     .clickEvent(ClickEvent.suggestCommand(action + "edit --line " + line + " --lore " + miniMessage)));
             result.append(Component.space());
-            result.append(Component.text("[X]", TextColor.color(0xDC143C)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DELETE)
+            result.append(Component.text("[X]", TextColor.color(0xDC143C))
+                    .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DELETE)
                     .clickEvent(ClickEvent.runCommand(action + "remove" + target)));
             if (i > 0) {
                 result.append(Component.space());
-                result.append(Component.text("[↑]", TextColor.color(0x7B68EE)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_UP)
+                result.append(Component.text("[↑]", TextColor.color(0x7B68EE))
+                        .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_UP)
                         .clickEvent(ClickEvent.runCommand(action + "up" + target)));
             }
             if (i < size - 1) {
                 result.append(Component.space());
-                result.append(Component.text("[↓]", TextColor.color(0xDA70D6)).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DOWN)
+                result.append(Component.text("[↓]", TextColor.color(0xDA70D6))
+                        .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DOWN)
                         .clickEvent(ClickEvent.runCommand(action + "down" + target)));
             }
             result.append(Component.newline());
         }
         result.append(Component.text("[" + (lines.size() + 1) + "] ", NamedTextColor.YELLOW));
-        result.append(Component.text("[+]", NamedTextColor.GREEN).hoverEvent(MessageConstants.COMMAND_ITEM_LORE_INSERT)
+        result.append(Component.text("[+]", NamedTextColor.GREEN)
+                .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_INSERT)
                 .clickEvent(ClickEvent.suggestCommand(usage + " --operation insert --line " + (lines.size() + 1) + " --lore ")));
         return result.asComponent();
     }
 
     private int internalId(Player player) {
-        for (MetadataValue value : player.getMetadata(LORE_META_KEY)) {
-            if (value.getOwningPlugin() == this.plugin().javaPlugin()) return value.asInt();
+        List<MetadataValue> valueValues = player.getMetadata(LORE_META_KEY);
+        for (int valueIndex = 0, valueCount = valueValues.size(); valueIndex < valueCount; valueIndex++) {
+            MetadataValue value = valueValues.get(valueIndex);
+            if (value.getOwningPlugin() == this.plugin().javaPlugin()) {
+                return value.asInt();
+            }
         }
         return 0;
     }

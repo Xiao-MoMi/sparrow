@@ -43,13 +43,18 @@ final class ProfileClient {
         try {
             UUID id = requestedUuid;
             if (id == null) {
-                JsonObject result = this.get(endpoint(this.settings.nameUrl().replace("{name}", URLEncoder.encode(player, StandardCharsets.UTF_8))), true);
+                JsonObject result = this.get(
+                        endpoint(this.settings.nameUrl().replace("{name}", URLEncoder.encode(player, StandardCharsets.UTF_8))),
+                        true
+                );
                 if (result != null) {
                     id = uuid(string(result, "id"));
                 }
             }
             HeadData data = id == null ? null : this.fetchProfile(id);
-            if (data != null) return data;
+            if (data != null) {
+                return data;
+            }
         } catch (IOException | HeadFetchException exception) {
             failure = exception;
         }
@@ -58,18 +63,26 @@ final class ProfileClient {
             try {
                 JsonObject result = this.get(endpoint(urls.get(i).replace("{player}", URLEncoder.encode(player, StandardCharsets.UTF_8))), false);
                 HeadData data = result == null ? null : profile(result, requestedUuid);
-                if (data != null) return data;
+                if (data != null) {
+                    return data;
+                }
             } catch (IOException | HeadFetchException exception) {
                 failure = exception;
             }
         }
-        if (failure instanceof IOException exception) throw exception;
-        if (failure instanceof HeadFetchException exception) throw exception;
+        if (failure instanceof IOException exception) {
+            throw exception;
+        }
+        if (failure instanceof HeadFetchException exception) {
+            throw exception;
+        }
         return null;
     }
 
     private HeadData fetchProfile(UUID uuid) throws IOException, InterruptedException {
-        String url = this.settings.profileUrl().replace("{uuid}", uuid.toString().replace("-", "")).replace("{uuid-dashed}", uuid.toString());
+        String url = this.settings.profileUrl()
+                .replace("{uuid}", uuid.toString().replace("-", ""))
+                .replace("{uuid-dashed}", uuid.toString());
         JsonObject result = this.get(endpoint(url), true);
         return result == null ? null : profile(result, uuid);
     }
@@ -77,7 +90,9 @@ final class ProfileClient {
     private static HeadData profile(JsonObject result, UUID requestedUuid) {
         boolean ashcon = result.has("uuid");
         UUID returned = uuid(string(result, ashcon ? "uuid" : "id"));
-        if (requestedUuid != null && !returned.equals(requestedUuid)) throw invalid("Profile UUID does not match the request");
+        if (requestedUuid != null && !returned.equals(requestedUuid)) {
+            throw invalid("Profile UUID does not match the request");
+        }
         String name = string(result, ashcon ? "username" : "name");
         if (ashcon) {
             JsonObject textures = object(result, "textures");
@@ -85,12 +100,18 @@ final class ProfileClient {
             return raw == null ? null : new HeadData(returned, name, string(raw, "value"), optionalString(raw, "signature"));
         }
         JsonElement properties = result.get("properties");
-        if (properties == null) return null;
-        if (!properties.isJsonArray()) throw invalid("Profile properties must be an array");
+        if (properties == null) {
+            return null;
+        }
+        if (!properties.isJsonArray()) {
+            throw invalid("Profile properties must be an array");
+        }
         JsonArray array = properties.getAsJsonArray();
         for (int i = 0; i < array.size(); i++) {
             JsonElement element = array.get(i);
-            if (!element.isJsonObject()) throw invalid("Invalid profile property");
+            if (!element.isJsonObject()) {
+                throw invalid("Invalid profile property");
+            }
             JsonObject property = element.getAsJsonObject();
             if (string(property, "name").equals("textures")) {
                 return new HeadData(returned, name, string(property, "value"), optionalString(property, "signature"));
@@ -106,12 +127,20 @@ final class ProfileClient {
         }
         HttpResponse<String> response = this.client.send(builder.build(), HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
         int code = response.statusCode();
-        if (code == 204 || code == 404) return null;
-        if (code == 429) throw new HeadFetchException(HeadFetchException.Reason.THROTTLED, "Head service rate limited the request");
-        if (code != 200) throw new HeadFetchException(HeadFetchException.Reason.SERVICE_ERROR, "Head service returned HTTP " + code);
+        if (code == 204 || code == 404) {
+            return null;
+        }
+        if (code == 429) {
+            throw new HeadFetchException(HeadFetchException.Reason.THROTTLED, "Head service rate limited the request");
+        }
+        if (code != 200) {
+            throw new HeadFetchException(HeadFetchException.Reason.SERVICE_ERROR, "Head service returned HTTP " + code);
+        }
         try {
             JsonElement value = JsonParser.parseString(response.body());
-            if (!value.isJsonObject()) throw invalid("Expected a JSON object");
+            if (!value.isJsonObject()) {
+                throw invalid("Expected a JSON object");
+            }
             return value.getAsJsonObject();
         } catch (JsonParseException exception) {
             throw invalid("Head service returned invalid JSON");
@@ -136,21 +165,31 @@ final class ProfileClient {
 
     private static String string(JsonObject parent, String key) {
         String value = optionalString(parent, key);
-        if (value == null || value.isEmpty()) throw invalid("Missing string: " + key);
+        if (value == null || value.isEmpty()) {
+            throw invalid("Missing string: " + key);
+        }
         return value;
     }
 
     private static String optionalString(JsonObject parent, String key) {
         JsonElement value = parent.get(key);
-        if (value == null || value.isJsonNull()) return null;
-        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) throw invalid("Invalid string: " + key);
+        if (value == null || value.isJsonNull()) {
+            return null;
+        }
+        if (!value.isJsonPrimitive() || !value.getAsJsonPrimitive().isString()) {
+            throw invalid("Invalid string: " + key);
+        }
         return value.getAsString();
     }
 
     private static JsonObject object(JsonObject parent, String key) {
         JsonElement value = parent.get(key);
-        if (value == null || value.isJsonNull()) return null;
-        if (!value.isJsonObject()) throw invalid("Invalid object: " + key);
+        if (value == null || value.isJsonNull()) {
+            return null;
+        }
+        if (!value.isJsonObject()) {
+            throw invalid("Invalid object: " + key);
+        }
         return value.getAsJsonObject();
     }
 

@@ -27,9 +27,7 @@ public final class SpawnService {
     public CompletableFuture<Void> set(@NotNull Spawn spawn) {
         return this.store.save(spawn).thenCompose(ignored -> {
             this.feature.setSpawn(spawn);
-            return SparrowPlugin.instance().messageBrokerManager()
-                    .publishOneWay(new SpawnMessage(this.serverId, spawn), "")
-                    .thenApply(receivers -> null);
+            return SparrowPlugin.instance().messageBrokerManager().publishOneWay(new SpawnMessage(this.serverId, spawn), "").thenApply(receivers -> null);
         });
     }
 
@@ -37,9 +35,7 @@ public final class SpawnService {
     public CompletableFuture<Boolean> delete() {
         return this.store.delete().thenCompose(deleted -> {
             this.feature.setSpawn(null);
-            return SparrowPlugin.instance().messageBrokerManager()
-                    .publishOneWay(new SpawnMessage(this.serverId, null), "")
-                    .thenApply(receivers -> deleted);
+            return SparrowPlugin.instance().messageBrokerManager().publishOneWay(new SpawnMessage(this.serverId, null), "").thenApply(receivers -> deleted);
         });
     }
 }

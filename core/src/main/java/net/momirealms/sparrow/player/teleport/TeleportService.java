@@ -32,11 +32,14 @@ public final class TeleportService implements Listener {
      * @return 传送结果, 目标服务器 5 秒内没有应答时以 {@link java.util.concurrent.TimeoutException} 异常完成
      */
     @NotNull
-    public CompletableFuture<TeleportResult> teleport(@NotNull Player player,
-                                                      @NotNull String server,
-                                                      @NotNull WorldLocation destination,
-                                                      @NotNull TeleportOptions options) {
-        CompletableFuture<Long> remaining = options.cooldownSeconds() > 0 ? this.remainingCooldown(player.getUniqueId(), options.type()) : CompletableFuture.completedFuture(0L);
+    public CompletableFuture<TeleportResult> teleport(
+            @NotNull Player player,
+            @NotNull String server,
+            @NotNull WorldLocation destination,
+            @NotNull TeleportOptions options
+    ) {
+        CompletableFuture<Long> remaining = options.cooldownSeconds() > 0 ? this.remainingCooldown(player.getUniqueId(), options.type())
+                : CompletableFuture.completedFuture(0L);
         return remaining.thenCompose(millis -> {
             // 正在冷却
             if (millis > 0) {
@@ -62,33 +65,39 @@ public final class TeleportService implements Listener {
     private CompletableFuture<Boolean> warmup(Player player, TeleportOptions options) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         this.plugin.scheduler().platform().run(() -> {
-            SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
-            if (sparrow == null) {
-                result.complete(false);
-                return;
-            }
-            TeleportWarmup warmup = new TeleportWarmup(this, sparrow, options, result);
-            TeleportWarmup previous = this.warmups.put(player.getUniqueId(), warmup);
-            if (previous != null) previous.cancel(null);
-            warmup.start();
-        }, () -> result.complete(false), player);
+                    SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
+                    if (sparrow == null) {
+                        result.complete(false);
+                        return;
+                    }
+                    TeleportWarmup warmup = new TeleportWarmup(this, sparrow, options, result);
+                    TeleportWarmup previous = this.warmups.put(player.getUniqueId(), warmup);
+                    if (previous != null) {
+                        previous.cancel(null);
+                    }
+                    warmup.start();
+                }, () -> result.complete(false), player);
         return result;
     }
 
     // 传送成功或开始切服后才开始冷却
     private CompletableFuture<TeleportResult> transfer(Player player, String server, WorldLocation destination, TeleportOptions options) {
-        return this.plugin.playerManager().teleports().transfer(player, server, destination).thenApply(result -> {
-            if (options.cooldownSeconds() > 0 && (result == TransferResult.SUCCESS || result == TransferResult.CONNECTING)) {
-                this.startCooldown(player.getUniqueId(), options);
-            }
-            // 到达音效只在本服到达时播放, 跨服到达发生在对方服务器上
-            if (result == TransferResult.SUCCESS) {
-                Sound sound = PluginConfig.teleport().completeSound();
-                SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
-                if (sound != null && sparrow != null) sparrow.playSound(sound);
-            }
-            return TeleportResult.of(result);
-        });
+        return this.plugin.playerManager().teleports()
+                .transfer(player, server, destination)
+                .thenApply(result -> {
+                    if (options.cooldownSeconds() > 0 && (result == TransferResult.SUCCESS || result == TransferResult.CONNECTING)) {
+                        this.startCooldown(player.getUniqueId(), options);
+                    }
+                    // 到达音效只在本服到达时播放, 跨服到达发生在对方服务器上
+                    if (result == TransferResult.SUCCESS) {
+                        Sound sound = PluginConfig.teleport().completeSound();
+                        SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
+                        if (sound != null && sparrow != null) {
+                            sparrow.playSound(sound);
+                        }
+                    }
+                    return TeleportResult.of(result);
+                });
     }
 
     // 记录冷却到 Redis
@@ -111,8 +120,9 @@ public final class TeleportService implements Listener {
     public void onDamage(@NotNull EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         TeleportWarmup warmup = this.warmups.get(player.getUniqueId());
-        if (warmup != null && warmup.cancelOnDamage())
+        if (warmup != null && warmup.cancelOnDamage()) {
             warmup.cancel(MessageConstants.TELEPORT_CANCELLED_DAMAGED);
+        }
     }
 
     // 离开本服取消预热
@@ -122,7 +132,9 @@ public final class TeleportService implements Listener {
     }
 
     public void shutdown() {
-        for (TeleportWarmup warmup : this.warmups.values()) warmup.cancel(null);
+        for (TeleportWarmup warmup : this.warmups.values()) {
+            warmup.cancel(null);
+        }
     }
 
     void finished(@NotNull UUID player, @NotNull TeleportWarmup warmup) {

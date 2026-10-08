@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.dependency;
 import java.util.List;
 
 public final class Dependencies {
+
     private Dependencies() {}
 
     /**

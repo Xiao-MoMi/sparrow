@@ -51,19 +51,53 @@ public final class ToastPackets {
         // 26.1 起进度图标改用物品模板
         DisplayInfo display;
         if (VersionHelper.isOrAbove26_1) {
-            display = (DisplayInfo) DisplayInfoProxy.INSTANCE.create$0(ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(minecraftIcon), title, net.minecraft.network.chat.Component.empty(), Optional.empty(), type, true, false, true);
+            display = (DisplayInfo) DisplayInfoProxy.INSTANCE.create$0(
+                    ItemStackTemplateProxy.INSTANCE.fromNonEmptyStack(minecraftIcon),
+                    title,
+                    net.minecraft.network.chat.Component.empty(),
+                    Optional.empty(),
+                    type,
+                    true,
+                    false,
+                    true
+            );
         } else {
-            display = (DisplayInfo) DisplayInfoProxy.INSTANCE.create(minecraftIcon, title, net.minecraft.network.chat.Component.empty(), Optional.empty(), type, true, false, true);
+            display = (DisplayInfo) DisplayInfoProxy.INSTANCE.create(
+                    minecraftIcon,
+                    title,
+                    net.minecraft.network.chat.Component.empty(),
+                    Optional.empty(),
+                    type,
+                    true,
+                    false,
+                    true
+            );
         }
-        Object criterion = CriterionProxy.INSTANCE.create(ImpossibleTriggerProxy.INSTANCE.create(), ImpossibleTriggerProxy.TriggerInstanceProxy.INSTANCE.create());
+        Object criterion = CriterionProxy.INSTANCE.create(
+                ImpossibleTriggerProxy.INSTANCE.create(),
+                ImpossibleTriggerProxy.TriggerInstanceProxy.INSTANCE.create()
+        );
         AdvancementRequirements requirements = new AdvancementRequirements(List.of(List.of("impossible")));
-        Advancement advancement = (Advancement) AdvancementProxy.INSTANCE.create(Optional.empty(), Optional.of(display), AdvancementRewards.EMPTY, Map.of("impossible", criterion), requirements, false);
+        Advancement advancement = (Advancement) AdvancementProxy.INSTANCE.create(
+                Optional.empty(),
+                Optional.of(display),
+                AdvancementRewards.EMPTY,
+                Map.of("impossible", criterion),
+                requirements,
+                false
+        );
         AdvancementProgress progress = new AdvancementProgress();
         progress.update(requirements);
         progress.grantProgress("impossible");
         // 客户端处理完成进度时会保存 Toast, 后续移除临时进度不会移除已排队的提示.
         return new ClientboundBundlePacket(List.of(
-                new ClientboundUpdateAdvancementsPacket(false, List.of(new AdvancementHolder(TOAST_ID, advancement)), Set.of(), Map.of(TOAST_ID, progress), true),
+                new ClientboundUpdateAdvancementsPacket(
+                        false,
+                        List.of(new AdvancementHolder(TOAST_ID, advancement)),
+                        Set.of(),
+                        Map.of(TOAST_ID, progress),
+                        true
+                ),
                 new ClientboundUpdateAdvancementsPacket(false, List.of(), Set.of(TOAST_ID), Map.of(), true)
         ));
     }

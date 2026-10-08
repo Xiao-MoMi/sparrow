@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.util.WorldUtils;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class WorldCommand extends BukkitCommandFeature {
+
     public WorldCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -63,34 +65,30 @@ public final class WorldCommand extends BukkitCommandFeature {
                 }
                 Location destination = WorldUtils.destination(player.getLocation(), target);
                 int height = (int) Math.ceil(player.getHeight());
-                this.plugin().scheduler().platform().run(() -> {
-                    int space = 0;
-                    while (destination.getY() < target.getMaxHeight()) {
-                        Block block = destination.getBlock();
-                        space = block.isPassable() && !block.isLiquid() ? space + 1 : 0;
-                        if (space >= height) {
-                            break;
-                        }
-                        destination.add(0, 1, 0);
+                int space = 0;
+                while (destination.getY() < target.getMaxHeight()) {
+                    Block block = destination.getBlock();
+                    space = block.isPassable() && !block.isLiquid() ? space + 1 : 0;
+                    if (space >= height) {
+                        break;
                     }
-                    if (space < height) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_WORLD_NO_SPACE, Component.text(target.getName()));
-                        return;
+                    destination.add(0, 1, 0);
+                }
+                if (space < height) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_WORLD_NO_SPACE, Component.text(target.getName()));
+                    return;
+                }
+                destination.subtract(0, height - 1, 0);
+                EntityUtils.teleport(player, destination).whenComplete((success, error) -> {
+                    if (error != null) {
+                        this.plugin().logger().warn("Failed to change world for " + player.getName(), error);
                     }
-                    destination.subtract(0, height - 1, 0);
-                    this.plugin().scheduler().platform().run(() -> {
-                        EntityUtils.teleport(player, destination).whenComplete((success, error) -> {
-                            if (error != null) {
-                                this.plugin().logger().warn("Failed to change world for " + player.getName(), error);
-                            }
-                            boolean self = player == context.sender();
-                            var message = error == null && success ? (self ? MessageConstants.COMMAND_WORLD_SUCCESS_SELF : MessageConstants.COMMAND_WORLD_SUCCESS)
-                                    : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
-                            this.handleFeedback(context, message,
-                                    Component.text(player.getName()), Component.text(target.getName()));
-                        });
-                    }, () -> {}, player);
-                }, target, destination.getBlockX() >> 4, destination.getBlockZ() >> 4);
+                    boolean self = player == context.sender();
+                    TranslatableComponent message = error == null && success
+                            ? (self ? MessageConstants.COMMAND_WORLD_SUCCESS_SELF : MessageConstants.COMMAND_WORLD_SUCCESS)
+                            : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
+                    this.handleFeedback(context, message, Component.text(player.getName()), Component.text(target.getName()));
+                });
             }, () -> {}, player);
         }
     }

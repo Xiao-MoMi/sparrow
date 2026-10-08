@@ -74,7 +74,10 @@ public abstract class SqlWarpStore implements WarpStore {
     @NotNull
     public CompletableFuture<List<Warp>> loadAll() {
         String sql = "SELECT * FROM " + this.warps + " ORDER BY name_key";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery(sql).map((result, context) -> this.readWarp(result)).list()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> handle.createQuery(sql).map((result, context) -> this.readWarp(result)).list()),
+                this.executor
+        );
     }
 
     @Override
@@ -82,25 +85,33 @@ public abstract class SqlWarpStore implements WarpStore {
     public CompletableFuture<Optional<Warp>> find(@NotNull UUID id) {
         String sql = "SELECT * FROM " + this.warps + " WHERE id = :id";
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "id", id)
-                .map((result, context) -> this.readWarp(result)).findOne()), this.executor);
+                .map((result, context) -> this.readWarp(result))
+                .findOne()), this.executor);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<Warp>> findByName(@NotNull String nameIgnoreCase) {
         String sql = "SELECT * FROM " + this.warps + " WHERE name_key = :name_key";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery(sql).bind("name_key", Warp.key(nameIgnoreCase))
-                .map((result, context) -> this.readWarp(result)).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery(sql)
+                .bind("name_key", Warp.key(nameIgnoreCase))
+                .map((result, context) -> this.readWarp(result))
+                .findOne()), this.executor);
     }
 
     @Override
     @NotNull
     public CompletableFuture<SaveResult> create(@NotNull Warp warp) {
-        String insert = "INSERT INTO " + this.warps + " (id, name_key, name, description, server, world, x, y, z, yaw, pitch, creator, created_at, updated_at)"
+        String insert = "INSERT INTO " + this.warps + " (id, name_key, name, description, server, world, x, y, z, yaw, pitch, creator,"
+                + " created_at, updated_at)"
                 + " VALUES (:id, :name_key, :name, :description, :server, :world, :x, :y, :z, :yaw, :pitch, :creator, :created_at, :updated_at)";
         return CompletableFuture.supplyAsync(() -> {
             try {
-                this.sql().useHandle(handle -> this.bindUuid(this.bindWarp(handle.createUpdate(insert), warp), "creator", warp.creator()).bind("created_at", warp.createdAt()).execute());
+                this.sql().useHandle(
+                        handle -> this.bindUuid(this.bindWarp(handle.createUpdate(insert), warp), "creator", warp.creator())
+                                .bind("created_at", warp.createdAt())
+                                .execute()
+                );
                 return new SaveResult(Status.SUCCESS, warp);
             } catch (UnableToExecuteStatementException exception) {
                 if (!(exception.getCause() instanceof SQLException cause) || !this.duplicateKey(cause)) {
@@ -117,14 +128,32 @@ public abstract class SqlWarpStore implements WarpStore {
         String update = "UPDATE " + this.warps + " SET " + COLUMNS + " WHERE id = :id";
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return this.sql().inTransaction(handle -> {
-                    Warp current = this.bindUuid(handle.createQuery("SELECT * FROM " + this.warps + " WHERE id = :id FOR UPDATE"), "id", warp.id())
-                            .map((result, context) -> this.readWarp(result)).findOne().orElse(null);
-                    if (current == null) return new SaveResult(Status.NOT_FOUND, null);
-                    this.bindWarp(handle.createUpdate(update), warp).execute();
-                    Warp saved = new Warp(current.id(), warp.name(), warp.description(), warp.server(), warp.location(), current.creator(), current.createdAt(), warp.updatedAt());
-                    return new SaveResult(Status.SUCCESS, saved);
-                });
+                return this.sql()
+                        .inTransaction(handle -> {
+                            Warp current = this.bindUuid(
+                                    handle.createQuery("SELECT * FROM " + this.warps + " WHERE id = :id FOR UPDATE"),
+                                    "id",
+                                    warp.id()
+                            )
+                                    .map((result, context) -> this.readWarp(result))
+                                    .findOne()
+                                    .orElse(null);
+                            if (current == null) {
+                                return new SaveResult(Status.NOT_FOUND, null);
+                            }
+                            this.bindWarp(handle.createUpdate(update), warp).execute();
+                            Warp saved = new Warp(
+                                    current.id(),
+                                    warp.name(),
+                                    warp.description(),
+                                    warp.server(),
+                                    warp.location(),
+                                    current.creator(),
+                                    current.createdAt(),
+                                    warp.updatedAt()
+                            );
+                            return new SaveResult(Status.SUCCESS, saved);
+                        });
             } catch (UnableToExecuteStatementException exception) {
                 if (!(exception.getCause() instanceof SQLException cause) || !this.duplicateKey(cause)) {
                     throw exception;
@@ -138,21 +167,30 @@ public abstract class SqlWarpStore implements WarpStore {
     @NotNull
     public CompletableFuture<Boolean> delete(@NotNull UUID id) {
         String sql = "DELETE FROM " + this.warps + " WHERE id = :id";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createUpdate(sql), "id", id).execute() > 0), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> this.bindUuid(handle.createUpdate(sql), "id", id).execute() > 0),
+                this.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Integer> deleteByWorld(@NotNull String server, @NotNull String world) {
         String sql = "DELETE FROM " + this.warps + " WHERE server = :server AND world = :world";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createUpdate(sql).bind("server", server).bind("world", world).execute()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> handle.createUpdate(sql).bind("server", server).bind("world", world).execute()),
+                this.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Integer> deleteByServer(@NotNull String server) {
         String sql = "DELETE FROM " + this.warps + " WHERE server = :server";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createUpdate(sql).bind("server", server).execute()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> handle.createUpdate(sql).bind("server", server).execute()),
+                this.executor
+        );
     }
 
     private <S extends SqlStatement<S>> S bindWarp(S statement, Warp warp) {
@@ -176,8 +214,14 @@ public abstract class SqlWarpStore implements WarpStore {
     }
 
     private Warp readWarp(ResultSet result) throws SQLException {
-        WorldLocation location = new WorldLocation(result.getString("world"), result.getDouble("x"), result.getDouble("y"), result.getDouble("z"),
-                result.getFloat("yaw"), result.getFloat("pitch"));
+        WorldLocation location = new WorldLocation(
+                result.getString("world"),
+                result.getDouble("x"),
+                result.getDouble("y"),
+                result.getDouble("z"),
+                result.getFloat("yaw"),
+                result.getFloat("pitch")
+        );
         return new Warp(
                 this.readUuid(result, "id"),
                 result.getString("name"),

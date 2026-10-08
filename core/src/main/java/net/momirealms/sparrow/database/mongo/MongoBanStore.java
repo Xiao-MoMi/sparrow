@@ -35,10 +35,12 @@ import java.util.regex.Pattern;
 final class MongoBanStore implements BanStore {
     private static final String SCHEMA_ID = "ban_schema";
     private static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
-            "bans", List.of(
+            "bans",
+            List.of(
                     new IndexReconciler.IndexDeclaration(new Document("player", 1).append("revoked_at", 1), false, "bans_player"),
                     new IndexReconciler.IndexDeclaration(new Document("ip_start", 1).append("ip_end", 1), false, "bans_ip"),
-                    new IndexReconciler.IndexDeclaration(new Document("created_at", -1).append("_id", -1), false, "bans_created"))
+                    new IndexReconciler.IndexDeclaration(new Document("created_at", -1).append("_id", -1), false, "bans_created")
+            )
     );
 
     private static final String BAN_PLAYER = "player";
@@ -75,7 +77,9 @@ final class MongoBanStore implements BanStore {
     // 第一次使用时在数据库线程上准备索引, 失败后下一次使用会重新尝试
     private MongoCollection<Document> bans() {
         MongoCollection<Document> prepared = this.bans;
-        if (prepared != null) return prepared;
+        if (prepared != null) {
+            return prepared;
+        }
         synchronized (this) {
             if (this.bans == null) {
                 MongoDatabase database = this.database.get();
@@ -89,12 +93,18 @@ final class MongoBanStore implements BanStore {
     @Override
     @NotNull
     public CompletableFuture<Optional<BanRecord>> findActiveBan(@NotNull UUID player, long ip, long now) {
-        Bson filter = Filters.and(active(now), Filters.or(Filters.eq(BAN_PLAYER, player), Filters.and(Filters.lte(BAN_IP_START, ip), Filters.gte(BAN_IP_END, ip))));
+        Bson filter = Filters.and(
+                active(now),
+                Filters.or(Filters.eq(BAN_PLAYER, player), Filters.and(Filters.lte(BAN_IP_START, ip), Filters.gte(BAN_IP_END, ip)))
+        );
         // 命中的封禁很少, 取回后按封禁该账号的记录、永久封禁、到期时间排序
         Comparator<BanRecord> priority = Comparator.comparingInt((BanRecord record) -> player.equals(record.player()) ? 0 : 1)
                 .thenComparingInt(record -> record.permanent() ? 0 : 1)
                 .thenComparing(Comparator.comparingLong(BanRecord::expiresAt).reversed());
-        return CompletableFuture.supplyAsync(() -> this.bans().find(filter).map(MongoBanStore::readBan).into(new ArrayList<>()).stream().min(priority), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.bans().find(filter).map(MongoBanStore::readBan).into(new ArrayList<>()).stream().min(priority),
+                this.executor
+        );
     }
 
     // 撤销与写入分两步执行, 不要求副本集. 中途失败时旧封禁已撤销而新封禁未写入
@@ -147,15 +157,20 @@ final class MongoBanStore implements BanStore {
     public CompletableFuture<List<BanRecord>> revokeBans(@NotNull BanTarget target, long now, @NotNull String revokedBy) {
         Bson match = switch (target) {
             case BanTarget.PlayerTarget(PlayerRef player) -> Filters.eq(BAN_PLAYER, player.uuid());
-            case BanTarget.IpTarget ip -> Filters.and(Filters.exists(BAN_PLAYER, false),
-                    Filters.eq(BAN_IP_START, ip.range().start()), Filters.eq(BAN_IP_END, ip.range().end()));
+            case BanTarget.IpTarget ip -> Filters.and(
+                    Filters.exists(BAN_PLAYER, false),
+                    Filters.eq(BAN_IP_START, ip.range().start()),
+                    Filters.eq(BAN_IP_END, ip.range().end())
+            );
             case BanTarget.IdTarget id -> Filters.eq("_id", id.id());
         };
         Bson update = Updates.combine(Updates.set(BAN_REVOKED_AT, now), Updates.set(BAN_REVOKED_BY, revokedBy));
         return CompletableFuture.supplyAsync(() -> {
             MongoCollection<Document> bans = this.bans();
             List<BanRecord> revoked = bans.find(Filters.and(active(now), match)).map(MongoBanStore::readBan).into(new ArrayList<>());
-            if (revoked.isEmpty()) return revoked;
+            if (revoked.isEmpty()) {
+                return revoked;
+            }
             int size = revoked.size();
             List<String> ids = new ArrayList<>(size);
             for (int i = 0; i < size; i++) {
@@ -177,8 +192,13 @@ final class MongoBanStore implements BanStore {
     @NotNull
     public CompletableFuture<List<BanRecord>> listBans(@NotNull BanQuery query, int offset, int limit) {
         Bson filter = filter(query);
-        return CompletableFuture.supplyAsync(() -> this.bans().find(filter).sort(Sorts.descending(BAN_CREATED_AT, "_id")).skip(offset).limit(limit)
-                .map(MongoBanStore::readBan).into(new ArrayList<>()), this.executor);
+        return CompletableFuture.supplyAsync(() -> this.bans()
+                .find(filter)
+                .sort(Sorts.descending(BAN_CREATED_AT, "_id"))
+                .skip(offset)
+                .limit(limit)
+                .map(MongoBanStore::readBan)
+                .into(new ArrayList<>()), this.executor);
     }
 
     // IP 目标匹配完整覆盖它的 IP 段, 包括账号加 IP 的封禁
@@ -211,8 +231,18 @@ final class MongoBanStore implements BanStore {
     private static BanRecord readBan(Document document) {
         Long start = document.getLong(BAN_IP_START);
         IpRange ip = start == null ? null : new IpRange(start, document.getLong(BAN_IP_END));
-        return new BanRecord(document.getString("_id"), document.get(BAN_PLAYER, UUID.class), document.getString(BAN_PLAYER_NAME), ip,
-                document.getString(BAN_REASON), document.getString(BAN_OPERATOR_NAME), document.getString(BAN_SERVER),
-                document.getLong(BAN_CREATED_AT), document.getLong(BAN_EXPIRES_AT), document.getLong(BAN_REVOKED_AT), document.getString(BAN_REVOKED_BY));
+        return new BanRecord(
+                document.getString("_id"),
+                document.get(BAN_PLAYER, UUID.class),
+                document.getString(BAN_PLAYER_NAME),
+                ip,
+                document.getString(BAN_REASON),
+                document.getString(BAN_OPERATOR_NAME),
+                document.getString(BAN_SERVER),
+                document.getLong(BAN_CREATED_AT),
+                document.getLong(BAN_EXPIRES_AT),
+                document.getLong(BAN_REVOKED_AT),
+                document.getString(BAN_REVOKED_BY)
+        );
     }
 }

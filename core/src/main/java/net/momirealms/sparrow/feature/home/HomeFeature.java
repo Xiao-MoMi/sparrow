@@ -29,7 +29,10 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     private final SparrowPlugin plugin;
     private volatile HomeService service;
     private final List<PlaceholderExpansion> placeholders = new ArrayList<>(3);
-    private final Cache<String, CompletableFuture<HomeSnapshot>> suggestions = Caffeine.newBuilder().maximumSize(128).expireAfterWrite(Duration.ofSeconds(5)).build();
+    private final Cache<String, CompletableFuture<HomeSnapshot>> suggestions = Caffeine.newBuilder()
+            .maximumSize(128)
+            .expireAfterWrite(Duration.ofSeconds(5))
+            .build();
 
     public HomeFeature(@NotNull SparrowPlugin plugin) {
         super(ID);
@@ -40,7 +43,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     public void loadConfig() {
         HomeSettings settings = this.plugin.configurationManager().featuresConfig().config().home();
         settings.validate();
-        this.config = settings;
+        super.config = settings;
     }
 
     @Override
@@ -66,10 +69,10 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         HomeChangedMessage.listener(service::accept);
         for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             this.plugin.scheduler().platform().run(() -> {
-                if (this.service == service) {
-                    this.onJoin(player);
-                }
-            }, () -> {}, player.platformPlayer());
+                        if (this.service == service) {
+                            this.onJoin(player);
+                        }
+                    }, () -> {}, player.platformPlayer());
         }
         if (this.plugin.compatibilityManager().hasPlaceholderAPI()) {
             PlaceholderExpansion[] placeholders = {new HomesCountPlaceholder(), new MaxHomesPlaceholder(), new HomesListPlaceholder()};
@@ -83,7 +86,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     }
 
     public int limit(@NotNull Player player) {
-        return this.plugin.compatibilityManager().permissionLimit(player, "sparrow.max-homes", this.config.maxHomes());
+        return this.plugin.compatibilityManager().permissionLimit(player, "sparrow.max-homes", super.config.maxHomes());
     }
 
     @NotNull
@@ -93,32 +96,47 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
 
     @NotNull
     public String usage(String command) {
-        return this.plugin.configurationManager().commandsConfig().configDefinition().command(command).getUsages().stream()
-                .filter(usage -> usage.startsWith("/")).findFirst().orElse("/" + command);
+        return this.plugin.configurationManager().commandsConfig().configDefinition().command(command).getUsages()
+                .stream()
+                .filter(usage -> usage.startsWith("/"))
+                .findFirst()
+                .orElse("/" + command);
     }
 
     @NotNull
     public CompletableFuture<List<Suggestion>> suggest(CommandSender sender, String input, boolean qualified, String permission) {
         HomeService service = this.service;
-        if (service == null) return CompletableFuture.completedFuture(List.of());
+        if (service == null) {
+            return CompletableFuture.completedFuture(List.of());
+        }
         int separator = qualified ? input.lastIndexOf('.') : -1;
         if (separator < 0) {
-            List<String> names = sender instanceof Player player ? service.complete(player.getUniqueId(), input, this.config.suggestionLimit()) : List.of();
+            List<String> names = sender instanceof Player player
+                    ? service.complete(player.getUniqueId(), input, super.config.suggestionLimit()) : List.of();
             return CompletableFuture.completedFuture(names.stream().map(Suggestion::suggestion).toList());
         }
         String owner = input.substring(0, separator);
         String prefix = input.substring(separator + 1);
         if (sender instanceof Player player && player.getName().equalsIgnoreCase(owner)) {
-            return CompletableFuture.completedFuture(service.complete(player.getUniqueId(), prefix, this.config.suggestionLimit()).stream()
-                    .map(name -> Suggestion.suggestion(owner + "." + name)).toList());
+            return CompletableFuture.completedFuture(service.complete(player.getUniqueId(), prefix, super.config.suggestionLimit())
+                    .stream()
+                    .map(name -> Suggestion.suggestion(owner + "." + name))
+                    .toList());
         }
-        if (!sender.hasPermission(permission + ".other")) return CompletableFuture.completedFuture(List.of());
+        if (!sender.hasPermission(permission + ".other")) {
+            return CompletableFuture.completedFuture(List.of());
+        }
         // 他人补全短暂保留查询结果, 让同步补全在下次按 Tab 时能取得异步结果.
-        CompletableFuture<HomeSnapshot> loading = this.suggestions.get(owner, name -> this.plugin.playerManager().resolvePlayer(name)
-                .thenCompose(found -> found.isPresent() ? service.snapshot(found.get().uuid()) : CompletableFuture.completedFuture(new HomeSnapshot(List.of()))));
-        CompletableFuture<List<Suggestion>> result = loading.thenApply(snapshot -> snapshot.complete(prefix, this.config.suggestionLimit())
+        CompletableFuture<HomeSnapshot> loading = this.suggestions.get(owner, name -> this.plugin.playerManager()
+                .resolvePlayer(name)
+                .thenCompose(
+                        found -> found.isPresent() ? service.snapshot(found.get().uuid())
+                                : CompletableFuture.completedFuture(new HomeSnapshot(List.of()))
+                ));
+        CompletableFuture<List<Suggestion>> result = loading.thenApply(snapshot -> snapshot.complete(prefix, super.config.suggestionLimit())
                 .stream()
-                .map(name -> Suggestion.suggestion(owner + "." + name)).toList());
+                .map(name -> Suggestion.suggestion(owner + "." + name))
+                .toList());
         return this.plugin.commandManager().asynchronousCompletion() ? result : CompletableFuture.completedFuture(result.getNow(List.of()));
     }
 

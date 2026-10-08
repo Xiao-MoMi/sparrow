@@ -41,11 +41,17 @@ public record FeaturePermission(@NotNull String featureId, @NotNull BooleanSuppl
      */
     @Nullable
     public static FeaturePermission findDisabled(@NotNull Permission permission) {
-        if (permission instanceof FeaturePermission feature) return feature.enabled.getAsBoolean() ? null : feature;
-        if (!(permission instanceof AndPermission) && !(permission instanceof OrPermission)) return null;
+        if (permission instanceof FeaturePermission feature) {
+            return feature.enabled.getAsBoolean() ? null : feature;
+        }
+        if (!(permission instanceof AndPermission) && !(permission instanceof OrPermission)) {
+            return null;
+        }
         for (Permission inner : permission.permissions()) {
             FeaturePermission found = findDisabled(inner);
-            if (found != null) return found;
+            if (found != null) {
+                return found;
+            }
         }
         return null;
     }

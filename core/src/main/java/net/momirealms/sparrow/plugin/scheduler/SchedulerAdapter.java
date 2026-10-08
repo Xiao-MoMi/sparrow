@@ -24,7 +24,7 @@ public interface SchedulerAdapter {
      * @param task 要执行的任务
      */
     default void executeAsync(Runnable task) {
-        async().execute(task);
+        this.async().execute(task);
     }
 
     /**

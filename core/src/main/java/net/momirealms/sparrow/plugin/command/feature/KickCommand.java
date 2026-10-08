@@ -43,7 +43,12 @@ public final class KickCommand extends BukkitCommandFeature {
         String reason = context.getOrDefault("reason", "");
         this.plugin().messageBrokerManager().broker().publishOneWay(new KickMessage(target.uuid(), reason, sender.getName()), target.server());
         boolean self = sender instanceof Player player && player.getUniqueId().equals(target.uuid());
-        this.handleFeedback(context, self ? MessageConstants.COMMAND_KICK_SUCCESS_SELF : MessageConstants.COMMAND_KICK_SUCCESS, Component.text(target.name()), Component.text(target.server()));
+        this.handleFeedback(
+                context,
+                self ? MessageConstants.COMMAND_KICK_SUCCESS_SELF : MessageConstants.COMMAND_KICK_SUCCESS,
+                Component.text(target.name()),
+                Component.text(target.server())
+        );
     }
 
     @Override

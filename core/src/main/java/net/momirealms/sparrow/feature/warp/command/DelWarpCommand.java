@@ -25,8 +25,11 @@ public final class DelWarpCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("name", StringParser.greedyFlagYieldingStringParser(),
-                        SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.remainingInput())))
+        manager.command(builder.required(
+                "name",
+                StringParser.greedyFlagYieldingStringParser(),
+                SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.remainingInput()))
+                )
                 .handler(this::execute));
     }
 
@@ -37,18 +40,20 @@ public final class DelWarpCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
             return;
         }
-        this.feature.service().delete(warp.id()).thenAccept(deleted -> {
-            // 同一时刻已被其他服务器删除
-            if (!deleted) {
-                this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(warp.name()));
-                return;
-            }
-            this.handleFeedback(context, MessageConstants.COMMAND_DEL_WARP_SUCCESS, Component.text(warp.name()));
-        }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to delete warp " + warp.name(), error);
-            this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(warp.name()));
-            return null;
-        });
+        this.feature.service().delete(warp.id())
+                .thenAccept(deleted -> {
+                    // 同一时刻已被其他服务器删除
+                    if (!deleted) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(warp.name()));
+                        return;
+                    }
+                    this.handleFeedback(context, MessageConstants.COMMAND_DEL_WARP_SUCCESS, Component.text(warp.name()));
+                })
+                .exceptionally(error -> {
+                    this.plugin().logger().warn("Failed to delete warp " + warp.name(), error);
+                    this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(warp.name()));
+                    return null;
+                });
     }
 
     @Override

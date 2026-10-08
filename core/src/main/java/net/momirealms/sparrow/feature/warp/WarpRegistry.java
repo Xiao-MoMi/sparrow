@@ -67,12 +67,18 @@ public final class WarpRegistry {
         String prefix = Warp.key(input);
         // 定位到第一个不小于前缀的名称键, 之后连续一段都以前缀开头
         int start = Arrays.binarySearch(index.keys, prefix);
-        if (start < 0) start = -start - 1;
+        if (start < 0) {
+            start = -start - 1;
+        }
         List<String> result = new ArrayList<>(Math.min(limit, 16));
         for (int i = start; i < index.keys.length && result.size() < limit; i++) {
-            if (!index.keys[i].startsWith(prefix)) break;
+            if (!index.keys[i].startsWith(prefix)) {
+                break;
+            }
             Warp warp = index.warps[i];
-            if (visible.test(warp)) result.add(warp.name());
+            if (visible.test(warp)) {
+                result.add(warp.name());
+            }
         }
         return result;
     }
@@ -92,14 +98,20 @@ public final class WarpRegistry {
     // 本服服务和 Redis 通知按到达顺序更新索引, 修改时间仅用于展示.
     synchronized void put(Warp warp) {
         Warp current = this.byId.get(warp.id());
-        if (current != null) this.byKey.remove(current.key(), current);
+        if (current != null) {
+            this.byKey.remove(current.key(), current);
+        }
         Warp occupant = this.byKey.put(warp.key(), warp);
         // 数据库保证名称唯一, 本地同名的另一条是还没收到改名或删除通知的旧数据
-        if (occupant != null && !occupant.id().equals(warp.id())) this.byId.remove(occupant.id(), occupant);
+        if (occupant != null && !occupant.id().equals(warp.id())) {
+            this.byId.remove(occupant.id(), occupant);
+        }
         this.byId.put(warp.id(), warp);
         // 同名的旧条目在插入时被替换
         Index index = this.index;
-        if (current != null) index = index.without(current.key());
+        if (current != null) {
+            index = index.without(current.key());
+        }
         this.index = index.with(warp);
     }
 
@@ -118,12 +130,16 @@ public final class WarpRegistry {
             Warp warp = warps.get(i);
             ids.add(warp.id());
             Warp previous = this.byId.put(warp.id(), warp);
-            if (previous != null && !previous.key().equals(warp.key())) this.byKey.remove(previous.key(), previous);
+            if (previous != null && !previous.key().equals(warp.key())) {
+                this.byKey.remove(previous.key(), previous);
+            }
             this.byKey.put(warp.key(), warp);
         }
         List<Warp> stale = new ArrayList<>();
         for (Warp warp : this.byId.values()) {
-            if (!ids.contains(warp.id())) stale.add(warp);
+            if (!ids.contains(warp.id())) {
+                stale.add(warp);
+            }
         }
         for (int i = 0; i < stale.size(); i++) {
             Warp warp = stale.get(i);
@@ -137,7 +153,7 @@ public final class WarpRegistry {
     private record Index(Warp[] warps, String[] keys) {
         private static final Index EMPTY = new Index(new Warp[0], new String[0]);
 
-        // 名称键先算好再排序, 比较时不再反复转小写
+        // 排序时复用预先计算的名称键
         private static Index of(Collection<Warp> values) {
             Warp[] warps = values.toArray(new Warp[0]);
             String[] keys = new String[warps.length];

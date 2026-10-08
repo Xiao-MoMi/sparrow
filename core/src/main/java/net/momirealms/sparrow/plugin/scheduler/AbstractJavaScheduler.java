@@ -64,7 +64,7 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
         try {
             if (!this.scheduler.awaitTermination(1, TimeUnit.MINUTES)) {
                 this.plugin.logger().error("Timed out waiting for the plugin scheduler to terminate");
-                reportRunningTasks(thread -> thread.getName().equals("plugin-scheduler"));
+                this.reportRunningTasks(thread -> thread.getName().equals("plugin-scheduler"));
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -77,7 +77,7 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
         try {
             if (!this.worker.awaitTermination(1, TimeUnit.MINUTES)) {
                 this.plugin.logger().error("Timed out waiting for the plugin worker thread pool to terminate");
-                reportRunningTasks(thread -> thread.getName().startsWith("plugin-worker-"));
+                this.reportRunningTasks(thread -> thread.getName().startsWith("plugin-worker-"));
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -87,7 +87,8 @@ public abstract class AbstractJavaScheduler implements SchedulerAdapter {
     private void reportRunningTasks(Predicate<Thread> predicate) {
         Thread.getAllStackTraces().forEach((thread, stack) -> {
             if (predicate.test(thread)) {
-                this.plugin.logger().warn("Thread " + thread.getName() + " is blocked, and may be the reason for the slow shutdown!\n" +
+                this.plugin.logger().warn(
+                        "Thread " + thread.getName() + " is blocked, and may be the reason for the slow shutdown!\n" +
                         Arrays.stream(stack).map(el -> "  " + el).collect(Collectors.joining("\n"))
                 );
             }

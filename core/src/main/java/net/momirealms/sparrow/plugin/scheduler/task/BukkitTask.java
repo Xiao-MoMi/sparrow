@@ -14,6 +14,6 @@ public final class BukkitTask implements SchedulerTask {
 
     @Override
     public boolean cancelled() {
-        return bukkitTask.isCancelled();
+        return this.bukkitTask.isCancelled();
     }
 }

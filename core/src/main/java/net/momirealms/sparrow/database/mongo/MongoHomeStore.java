@@ -30,10 +30,12 @@ import java.util.function.Supplier;
 final class MongoHomeStore implements HomeStore {
     private static final String SCHEMA_ID = "home_schema";
     private static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
-            "homes", List.of(
+            "homes",
+            List.of(
                     new IndexReconciler.IndexDeclaration(new Document("owner", 1).append("name_key", 1), true, "homes_owner_name"),
                     new IndexReconciler.IndexDeclaration(new Document("server", 1).append("world", 1), false, "homes_location"),
-                    new IndexReconciler.IndexDeclaration(new Document("world", 1), false, "homes_world"))
+                    new IndexReconciler.IndexDeclaration(new Document("world", 1), false, "homes_world")
+            )
     );
 
     private final Supplier<MongoDatabase> database;
@@ -57,7 +59,9 @@ final class MongoHomeStore implements HomeStore {
 
     private MongoCollection<Document> homes() {
         MongoCollection<Document> prepared = this.homes;
-        if (prepared != null) return prepared;
+        if (prepared != null) {
+            return prepared;
+        }
         synchronized (this) {
             if (this.homes == null) {
                 MongoDatabase database = this.database.get();
@@ -71,20 +75,35 @@ final class MongoHomeStore implements HomeStore {
     @Override
     @NotNull
     public CompletableFuture<List<Home>> loadByOwner(@NotNull UUID owner) {
-        return CompletableFuture.supplyAsync(() -> this.homes().find(Filters.eq("owner", owner)).sort(Sorts.ascending("name_key")).map(MongoHomeStore::readHome).into(new ArrayList<>()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.homes()
+                        .find(Filters.eq("owner", owner))
+                        .sort(Sorts.ascending("name_key"))
+                        .map(MongoHomeStore::readHome)
+                        .into(new ArrayList<>()),
+                this.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<Home>> find(@NotNull UUID id) {
-        return CompletableFuture.supplyAsync(() -> Optional.ofNullable(this.homes().find(Filters.eq("_id", id)).map(MongoHomeStore::readHome).first()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> Optional.ofNullable(this.homes().find(Filters.eq("_id", id)).map(MongoHomeStore::readHome).first()),
+                this.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<Home>> findByName(@NotNull UUID owner, @NotNull String nameIgnoreCase) {
-        return CompletableFuture.supplyAsync(() -> Optional.ofNullable(this.homes().find(Filters.and(Filters.eq("owner", owner), Filters.eq("name_key", Home.key(nameIgnoreCase))))
-                .map(MongoHomeStore::readHome).first()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> Optional.ofNullable(this.homes()
+                        .find(Filters.and(Filters.eq("owner", owner), Filters.eq("name_key", Home.key(nameIgnoreCase))))
+                        .map(MongoHomeStore::readHome)
+                        .first()),
+                this.executor
+        );
     }
 
     @Override
@@ -97,7 +116,10 @@ final class MongoHomeStore implements HomeStore {
     @NotNull
     public CompletableFuture<SaveResult> create(@NotNull Home home) {
         return CompletableFuture.supplyAsync(() -> {
-            Document document = mutableFields(home).append("_id", home.id()).append("owner", home.owner()).append("created_at", home.createdAt());
+            Document document = mutableFields(home)
+                    .append("_id", home.id())
+                    .append("owner", home.owner())
+                    .append("created_at", home.createdAt());
             MongoCollection<Document> homes = this.homes();
             try {
                 homes.insertOne(document);
@@ -117,8 +139,11 @@ final class MongoHomeStore implements HomeStore {
         return CompletableFuture.supplyAsync(() -> {
             MongoCollection<Document> homes = this.homes();
             try {
-                Document saved = homes.findOneAndUpdate(Filters.and(Filters.eq("owner", home.owner()), Filters.eq("_id", home.id())), new Document("$set", mutableFields(home)),
-                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+                Document saved = homes.findOneAndUpdate(
+                        Filters.and(Filters.eq("owner", home.owner()), Filters.eq("_id", home.id())),
+                        new Document("$set", mutableFields(home)),
+                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+                );
                 return saved == null ? new SaveResult(Status.NOT_FOUND, null) : new SaveResult(Status.SUCCESS, readHome(saved));
             } catch (MongoException exception) {
                 if (exception.getCode() != 11000) {
@@ -132,7 +157,12 @@ final class MongoHomeStore implements HomeStore {
     @Override
     @NotNull
     public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
-        return CompletableFuture.supplyAsync(() -> this.homes().deleteOne(Filters.and(Filters.eq("owner", owner), Filters.eq("_id", id))).getDeletedCount() > 0, this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.homes()
+                        .deleteOne(Filters.and(Filters.eq("owner", owner), Filters.eq("_id", id)))
+                        .getDeletedCount() > 0,
+                this.executor
+        );
     }
 
     @Override
@@ -166,9 +196,22 @@ final class MongoHomeStore implements HomeStore {
     }
 
     private static Home readHome(Document document) {
-        WorldLocation location = new WorldLocation(document.getString("world"), document.getDouble("x"), document.getDouble("y"), document.getDouble("z"),
-                document.getDouble("yaw").floatValue(), document.getDouble("pitch").floatValue());
-        return new Home(document.get("_id", UUID.class), document.get("owner", UUID.class), document.getString("name"), document.getString("server"),
-                location, document.getLong("created_at"), document.getLong("updated_at"));
+        WorldLocation location = new WorldLocation(
+                document.getString("world"),
+                document.getDouble("x"),
+                document.getDouble("y"),
+                document.getDouble("z"),
+                document.getDouble("yaw").floatValue(),
+                document.getDouble("pitch").floatValue()
+        );
+        return new Home(
+                document.get("_id", UUID.class),
+                document.get("owner", UUID.class),
+                document.getString("name"),
+                document.getString("server"),
+                location,
+                document.getLong("created_at"),
+                document.getLong("updated_at")
+        );
     }
 }

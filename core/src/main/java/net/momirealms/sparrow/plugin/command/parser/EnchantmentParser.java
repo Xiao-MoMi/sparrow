@@ -23,7 +23,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public final class EnchantmentParser<C> implements ArgumentParser.FutureArgumentParser<C, Enchantment>, MappedArgumentParser<C, NamespacedKey, Enchantment>, SuggestionProvider<C> {
+public final class EnchantmentParser<C> implements
+        ArgumentParser.FutureArgumentParser<C, Enchantment>,
+        MappedArgumentParser<C, NamespacedKey, Enchantment>,
+        SuggestionProvider<C> {
     private final ArgumentParser<C, NamespacedKey> baseParser = NamespacedKeyParser.<C>namespacedKeyParser().parser();
 
     @NotNull
@@ -58,12 +61,18 @@ public final class EnchantmentParser<C> implements ArgumentParser.FutureArgument
     private static final class SuggestionsHolder {
         // 首次补全时构建, 所有解析器实例共用这份只读候选和提示信息.
         private static final List<Suggestion> SUGGESTIONS = Registry.ENCHANTMENT.stream()
-                .<Suggestion>map(enchantment -> TooltipSuggestion.suggestion(enchantment.getKey().toString(), CraftEnchantment.bukkitToMinecraftHolder(enchantment).value().description()))
+                .<Suggestion>map(
+                        enchantment -> TooltipSuggestion.suggestion(
+                                enchantment.getKey().toString(),
+                                CraftEnchantment.bukkitToMinecraftHolder(enchantment).value().description()
+                        )
+                )
                 .sorted(Comparator.comparing(Suggestion::suggestion))
                 .toList();
     }
 
     private static final class ParseException extends ParserException {
+
         private ParseException(CommandContext<?> context, String value) {
             super(EnchantmentParser.class, context, Caption.of("argument.parse.failure.enchantment"), CaptionVariable.of("input", value));
         }

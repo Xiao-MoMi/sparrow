@@ -40,10 +40,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(
-            org.incendo.cloud.@NonNull CommandManager<CommandSender> manager,
-            @NotNull Command.Builder<CommandSender> builder
-    ) {
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
                 .handler(this::execute));
     }
@@ -177,7 +174,9 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
                 .disabled(banUnavailable);
         PanelButton teleport = panel.suggest(Component.translatable("command.player-info.teleport"), "tp-offline", data.name())
                 .style(PanelButton.Style.INFO)
-                .description(Component.translatable("command.player-info.teleport-hover").append(Component.newline()).append(logoutLocation))
+                .description(Component.translatable("command.player-info.teleport-hover")
+                        .append(Component.newline())
+                        .append(logoutLocation))
                 .playersOnly()
                 .disabled(data.lastLogoutLocation() == null || data.lastLogoutServer() == null
                         ? MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION.arguments(Component.text(data.name())) : null);

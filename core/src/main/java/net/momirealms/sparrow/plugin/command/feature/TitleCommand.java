@@ -22,6 +22,7 @@ import org.jspecify.annotations.NonNull;
 import java.util.Collection;
 
 public final class TitleCommand extends BukkitCommandFeature {
+
     public TitleCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -35,7 +36,6 @@ public final class TitleCommand extends BukkitCommandFeature {
                 .required("message", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .flag(manager.flagBuilder("legacy-color").withAliases("l"))
-                .flag(manager.flagBuilder("parse").withAliases("p"))
                 .handler(this::execute));
     }
 
@@ -50,7 +50,6 @@ public final class TitleCommand extends BukkitCommandFeature {
         String message = context.get("message");
         PluginConfig.TextOptions text = PluginConfig.text();
         boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
-        boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         String[] parts = message.split("\\\\n", -1);
         if (parts.length > 2) {
             this.handleFeedback(context, MessageConstants.COMMAND_TITLE_FORMAT);
@@ -61,12 +60,14 @@ public final class TitleCommand extends BukkitCommandFeature {
         int fadeOut = context.get("fadeOut");
         for (Player player : players) {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-            Component main = AdventureHelper.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[0]) : parts[0], legacy);
-            Component subtitle = parts.length == 2
-                    ? AdventureHelper.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, parts[1])
-                    : parts[1], legacy) : Component.empty();
+            Component main = AdventureHelper.miniMessage(parts[0], legacy, player);
+            Component subtitle = parts.length == 2 ? AdventureHelper.miniMessage(parts[1], legacy, player) : Component.empty();
             receiver.sendTitle(main, subtitle, fadeIn, stay, fadeOut);
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TITLE_SUCCESS_SELF : MessageConstants.COMMAND_TITLE_SUCCESS), Component.text(player.getName()));
+            this.handleFeedback(
+                    context,
+                    (player == context.sender() ? MessageConstants.COMMAND_TITLE_SUCCESS_SELF : MessageConstants.COMMAND_TITLE_SUCCESS),
+                    Component.text(player.getName())
+            );
         }
     }
 

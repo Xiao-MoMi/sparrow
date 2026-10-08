@@ -19,7 +19,7 @@ public final class BedFeature extends Feature<BedSettings> {
 
     @Override
     public void loadConfig() {
-        this.config = this.plugin.configurationManager().featuresConfig().config().bed();
+        super.config = this.plugin.configurationManager().featuresConfig().config().bed();
     }
 
     @Override

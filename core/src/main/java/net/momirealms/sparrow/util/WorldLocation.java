@@ -12,7 +12,14 @@ public record WorldLocation(@NotNull String world, double x, double y, double z,
 
     @NotNull
     public static WorldLocation from(@NotNull Location location) {
-        return new WorldLocation(location.getWorld().getName(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+        return new WorldLocation(
+                location.getWorld().getName(),
+                location.getX(),
+                location.getY(),
+                location.getZ(),
+                location.getYaw(),
+                location.getPitch()
+        );
     }
 
     @NotNull
@@ -45,8 +52,9 @@ public record WorldLocation(@NotNull String world, double x, double y, double z,
     @Nullable
     public Location resolve() {
         World loaded = Bukkit.getWorld(this.world);
-        if (loaded == null || !Double.isFinite(this.x) || !Double.isFinite(this.y) || !Double.isFinite(this.z)
-                || !Float.isFinite(this.yaw) || !Float.isFinite(this.pitch)) return null;
+        if (loaded == null || !Double.isFinite(this.x) || !Double.isFinite(this.y) || !Double.isFinite(this.z) || !Float.isFinite(this.yaw) || !Float.isFinite(this.pitch)) {
+            return null;
+        }
         return new Location(loaded, this.x, this.y, this.z, this.yaw, this.pitch);
     }
 

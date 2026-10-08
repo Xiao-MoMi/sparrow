@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class FeedCommand extends BukkitCommandFeature {
+
     public FeedCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -33,10 +34,14 @@ public final class FeedCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            player.setFoodLevel(20);
-            player.setSaturation(10.0f);
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_FEED_SUCCESS_SELF : MessageConstants.COMMAND_FEED_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    player.setFoodLevel(20);
+                    player.setSaturation(10.0f);
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_FEED_SUCCESS_SELF : MessageConstants.COMMAND_FEED_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override
@@ -44,4 +49,3 @@ public final class FeedCommand extends BukkitCommandFeature {
         return "feed";
     }
 }
-

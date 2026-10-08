@@ -21,22 +21,26 @@ public final class ReloadCommand extends BukkitCommandFeature {
         manager.command(builder
                 .flag(FlagKeys.SILENT_FLAG)
                 .handler(context -> this.plugin().scheduler().platform().execute(() -> {
-                    if (this.plugin().isReloading()) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_TOO_FAST);
-                        return;
-                    }
-                    this.plugin().reloadPlugin(this.plugin().scheduler().async(), r -> this.plugin().scheduler().platform().run(r)).thenAccept(reloadResult -> {
-                        if (!reloadResult.success()) {
-                            this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_FAILURE);
-                            return;
-                        }
-                        this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_SUCCESS,
-                                Component.text(reloadResult.asyncTime() + reloadResult.syncTime()),
-                                Component.text(reloadResult.asyncTime()),
-                                Component.text(reloadResult.syncTime())
-                        );
-                    });
-                })));
+                            if (this.plugin().isReloading()) {
+                                this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_TOO_FAST);
+                                return;
+                            }
+                            this.plugin()
+                                    .reloadPlugin(this.plugin().scheduler().async(), r -> this.plugin().scheduler().platform().run(r))
+                                    .thenAccept(reloadResult -> {
+                                        if (!reloadResult.success()) {
+                                            this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_FAILURE);
+                                            return;
+                                        }
+                                        this.handleFeedback(
+                                                context,
+                                                MessageConstants.COMMAND_RELOAD_CONFIG_SUCCESS,
+                                                Component.text(reloadResult.asyncTime() + reloadResult.syncTime()),
+                                                Component.text(reloadResult.asyncTime()),
+                                                Component.text(reloadResult.syncTime())
+                                        );
+                                    });
+                        })));
     }
 
     @Override

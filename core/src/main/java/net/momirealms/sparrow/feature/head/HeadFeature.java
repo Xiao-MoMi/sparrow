@@ -42,7 +42,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
     public void loadConfig() {
         HeadSettings settings = this.plugin.configurationManager().featuresConfig().config().head();
         settings.validate();
-        this.config = settings;
+        super.config = settings;
     }
 
     @Override
@@ -52,7 +52,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
 
     @Override
     protected synchronized void onEnable() {
-        this.session = new Session(this.config);
+        this.session = new Session(super.config);
     }
 
     @Override
@@ -60,16 +60,22 @@ public final class HeadFeature extends Feature<HeadSettings> {
         this.generation++;
         Session previous = this.session;
         this.session = null;
-        if (previous != null) previous.close();
+        if (previous != null) {
+            previous.close();
+        }
     }
 
     @Override
     protected void onUnload() {
         Session previous = this.session;
-        if (previous != null) previous.close();
+        if (previous != null) {
+            previous.close();
+        }
     }
 
-    public long generation() { return this.generation; }
+    public long generation() {
+        return this.generation;
+    }
 
     /** 异步查询名称; 无资料时为 null, force 跳过两层缓存并刷新成功结果. */
     @NotNull
@@ -85,15 +91,21 @@ public final class HeadFeature extends Feature<HeadSettings> {
 
     private CompletableFuture<HeadData> fetch(Query query, boolean force) {
         Session current = this.session;
-        if (current == null || !this.enabled()) return CompletableFuture.failedFuture(new CancellationException("Head feature is disabled"));
+        if (current == null || !this.enabled()) {
+            return CompletableFuture.failedFuture(new CancellationException("Head feature is disabled"));
+        }
         return current.fetch(query, force);
     }
 
     /** 在接收玩家线程分组掉落头颅; 请求已失效或玩家已退出时返回 false. */
     public synchronized boolean give(@NotNull Player player, @NotNull HeadData data, int amount, long expectedGeneration) {
-        if (!this.enabled() || this.generation != expectedGeneration) return false;
+        if (!this.enabled() || this.generation != expectedGeneration) {
+            return false;
+        }
         BukkitSparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
-        if (receiver == null || !player.isOnline()) return false;
+        if (receiver == null || !player.isOnline()) {
+            return false;
+        }
         int remaining = amount;
         while (remaining > 0) {
             int count = Math.min(64, remaining);
@@ -103,8 +115,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
         return true;
     }
 
-    // 在线玩家 Profile 在其所属线程读取, 查询线程等待这个快照.
-    private HeadData online(Query query) throws Exception {
+    private HeadData online(Query query) {
         BukkitSparrowPlayer target = null;
         if (query.uuid != null) {
             target = (BukkitSparrowPlayer) this.plugin.playerManager().getPlayer(query.uuid);
@@ -116,23 +127,10 @@ public final class HeadFeature extends Feature<HeadSettings> {
                 }
             }
         }
-        if (target == null) return null;
-        BukkitSparrowPlayer selected = target;
-        CompletableFuture<HeadData> result = new CompletableFuture<>();
-        this.plugin.scheduler().platform().run(() -> {
-            if (result.isDone()) return;
-            try {
-                result.complete(this.plugin.playerManager().getPlayer(selected.platformPlayer()) == selected
-                        ? HeadItems.fromProfile(selected.nmsPlayer().getGameProfile()) : null);
-            } catch (RuntimeException exception) {
-                result.completeExceptionally(exception);
-            }
-        }, () -> result.complete(null), selected.platformPlayer());
-        try {
-            return result.get();
-        } finally {
-            result.cancel(false);
+        if (target == null) {
+            return null;
         }
+        return HeadItems.fromProfile(target.nmsPlayer().getGameProfile());
     }
 
     private record Query(String key, String name, UUID uuid) {
@@ -150,22 +148,30 @@ public final class HeadFeature extends Feature<HeadSettings> {
 
         private Session(HeadSettings settings) {
             this.settings = settings;
-            this.cache = new HeadCache(settings, settings.cache().redis().enabled() ? HeadFeature.this.plugin.redisConnector().connection() : null, HeadFeature.this.plugin.logger());
-            this.http = HttpClient.newBuilder().connectTimeout(DurationUtils.parsePositive(settings.api().connectTimeout())).build();
+            this.cache = new HeadCache(settings, settings.cache().redis().enabled() ? HeadFeature.this.plugin.redisConnector().connection() : null);
+            this.http = HttpClient.newBuilder()
+                    .connectTimeout(DurationUtils.parsePositive(settings.api().connectTimeout()))
+                    .build();
             this.profiles = new ProfileClient(this.http, settings.api());
             this.executor = Executors.newThreadPerTaskExecutor(Thread.ofVirtual().name("sparrow-head-", 0).factory());
         }
 
         private synchronized CompletableFuture<HeadData> fetch(Query query, boolean force) {
-            if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Head feature is disabled"));
+            if (this.closed) {
+                return CompletableFuture.failedFuture(new CancellationException("Head feature is disabled"));
+            }
             Request existing = this.inFlight.get(query.key);
-            if (existing != null && (!force || existing.force)) return existing.result.copy();
+            if (existing != null && (!force || existing.force)) {
+                return existing.result.copy();
+            }
             Request request = new Request(query, force);
             this.inFlight.put(query.key, request);
             this.requests.add(request);
             long timeout = DurationUtils.parsePositive(this.settings.requestTimeout()).toMillis();
             request.result.orTimeout(timeout, TimeUnit.MILLISECONDS).whenComplete((value, error) -> {
-                if (error != null) request.task.cancel(true);
+                if (error != null) {
+                    request.task.cancel(true);
+                }
                 synchronized (this) {
                     this.inFlight.remove(query.key, request);
                     this.requests.remove(request);
@@ -184,10 +190,14 @@ public final class HeadFeature extends Feature<HeadSettings> {
             for (int i = 0; i < sources.size(); i++) {
                 if (sources.get(i).equals("online")) {
                     HeadData data = HeadFeature.this.online(query);
-                    if (data != null) return data;
+                    if (data != null) {
+                        return data;
+                    }
                 } else {
                     HeadData data = request.force ? null : this.cache.get(query.key);
-                    if (data != null) return data;
+                    if (data != null) {
+                        return data;
+                    }
                     data = query.uuid == null ? this.profiles.fetchByName(query.name) : this.profiles.fetchByUuid(query.uuid);
                     if (data != null) {
                         this.store(request, data, List.of("name:" + data.name().toLowerCase(Locale.ROOT), "uuid:" + data.uuid()));
@@ -202,7 +212,9 @@ public final class HeadFeature extends Feature<HeadSettings> {
             CompletableFuture<Void> write;
             synchronized (this) {
                 // 强制查询接管同一键后, 较早的普通请求只完成自己的调用方.
-                if (this.closed || request.result.isDone() || this.inFlight.get(request.query.key) != request) return;
+                if (this.closed || request.result.isDone() || this.inFlight.get(request.query.key) != request) {
+                    return;
+                }
                 write = this.cache.put(keys, data);
             }
             write.get();
@@ -211,7 +223,9 @@ public final class HeadFeature extends Feature<HeadSettings> {
         @Override
         public synchronized void close() {
             this.closed = true;
-            for (Request request : List.copyOf(this.requests)) request.result.cancel(false);
+            for (Request request : List.copyOf(this.requests)) {
+                request.result.cancel(false);
+            }
             this.cache.clear();
             this.http.shutdownNow();
             this.executor.shutdownNow();

@@ -33,10 +33,7 @@ public interface TranslationManager {
     Map<String, List<String>> LOCALE_2_COUNTRIES = ALL_LANG.stream()
             .map(lang -> lang.split("_"))
             .filter(split -> split.length >= 2)
-            .collect(Collectors.groupingBy(
-                    split -> split[0],
-                    Collectors.mapping(split -> split[1], Collectors.toUnmodifiableList())
-            ));
+            .collect(Collectors.groupingBy(split -> split[0], Collectors.mapping(split -> split[1], Collectors.toUnmodifiableList())));
 
     static TranslationManager instance() {
         return TranslationManagerImpl.instance;

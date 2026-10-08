@@ -35,10 +35,10 @@ public final class CompatibilityManager {
 
     public void onDelayedEnable() {
         if (this.isPluginEnabled("PlaceholderAPI")) {
-            runCatchingHook(() -> this.hasPlaceholderAPI = true, "PlaceholderAPI");
+            this.runCatchingHook(() -> this.hasPlaceholderAPI = true, "PlaceholderAPI");
         }
         if (this.isPluginEnabled("LuckPerms")) {
-            runCatchingHook(() -> this.luckPerms = new LuckPermsHook(), "LuckPerms");
+            this.runCatchingHook(() -> this.luckPerms = new LuckPermsHook(), "LuckPerms");
         }
     }
 
@@ -70,7 +70,9 @@ public final class CompatibilityManager {
     public boolean hasPermissionBeforeJoin(@NotNull UUID uniqueId, @NotNull String permission) {
         LuckPermsHook hook = this.luckPerms;
         TriState state = hook == null ? TriState.NOT_SET : hook.check(uniqueId, permission);
-        if (state != TriState.NOT_SET) return state == TriState.TRUE;
+        if (state != TriState.NOT_SET) {
+            return state == TriState.TRUE;
+        }
         return Bukkit.getOfflinePlayer(uniqueId).isOp();
     }
 
@@ -82,7 +84,9 @@ public final class CompatibilityManager {
      * @return 上限, 无上限时为 {@link #UNLIMITED}
      */
     public int permissionLimit(@NotNull Player player, @NotNull String node, int defaultValue) {
-        if (player.hasPermission(node + ".unlimited")) return UNLIMITED;
+        if (player.hasPermission(node + ".unlimited")) {
+            return UNLIMITED;
+        }
         int highest = this.permissionValue(player, node + ".", true);
         return highest < 0 ? defaultValue : highest;
     }
@@ -104,11 +108,15 @@ public final class CompatibilityManager {
         LuckPermsHook hook = this.luckPerms;
         if (hook != null) {
             for (Map.Entry<String, Boolean> entry : hook.permissionMap(player).entrySet()) {
-                if (entry.getValue()) result = pick(result, suffixValue(entry.getKey(), prefix), highest);
+                if (entry.getValue()) {
+                    result = pick(result, suffixValue(entry.getKey(), prefix), highest);
+                }
             }
         } else {
             for (PermissionAttachmentInfo info : player.getEffectivePermissions()) {
-                if (info.getValue()) result = pick(result, suffixValue(info.getPermission(), prefix), highest);
+                if (info.getValue()) {
+                    result = pick(result, suffixValue(info.getPermission(), prefix), highest);
+                }
             }
         }
         return result;
@@ -116,25 +124,34 @@ public final class CompatibilityManager {
 
     // -1 表示没有值, 不参与比较
     private static int pick(int current, int candidate, boolean highest) {
-        if (candidate < 0) return current;
-        if (current < 0) return candidate;
+        if (candidate < 0) {
+            return current;
+        }
+        if (current < 0) {
+            return candidate;
+        }
         return highest ? Math.max(current, candidate) : Math.min(current, candidate);
     }
 
     // 节点以 prefix 开头且其余部分是非负整数时返回该整数, 否则返回 -1
     private static int suffixValue(String permission, String prefix) {
         int length = permission.length();
-        if (length == prefix.length() || !permission.startsWith(prefix)) return -1;
+        if (length == prefix.length() || !permission.startsWith(prefix)) {
+            return -1;
+        }
         int value = 0;
         for (int i = prefix.length(); i < length; i++) {
             int digit = permission.charAt(i) - '0';
-            if (digit < 0 || digit > 9 || value > (Integer.MAX_VALUE - digit) / 10) return -1;
+            if (digit < 0 || digit > 9 || value > (Integer.MAX_VALUE - digit) / 10) {
+                return -1;
+            }
             value = value * 10 + digit;
         }
         return value;
     }
 
-    private @Nullable Plugin getPlugin(String name) {
+    @Nullable
+    private Plugin getPlugin(String name) {
         return Bukkit.getPluginManager().getPlugin(name);
     }
 
@@ -145,7 +162,7 @@ public final class CompatibilityManager {
     private void runCatchingHook(ThrowableRunnable runnable, String plugin) {
         try {
             runnable.run();
-            logHook(plugin);
+            this.logHook(plugin);
         } catch (Throwable e) {
             this.plugin.logger().warn(TranslationManager.console(LogConstants.COMPATIBILITY_HOOK_FAILED, plugin), e);
         }
@@ -153,6 +170,7 @@ public final class CompatibilityManager {
 
     @FunctionalInterface
     private interface ThrowableRunnable {
+
         void run() throws Throwable;
     }
 }

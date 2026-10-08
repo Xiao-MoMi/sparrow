@@ -70,7 +70,8 @@ public abstract class SqlHomeStore implements HomeStore {
     public CompletableFuture<List<Home>> loadByOwner(@NotNull UUID owner) {
         String sql = "SELECT * FROM " + this.homes + " WHERE owner = :owner ORDER BY name_key";
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner)
-                .map((result, context) -> this.readHome(result)).list()), this.executor);
+                .map((result, context) -> this.readHome(result))
+                .list()), this.executor);
     }
 
     @Override
@@ -78,22 +79,31 @@ public abstract class SqlHomeStore implements HomeStore {
     public CompletableFuture<Optional<Home>> find(@NotNull UUID id) {
         String sql = "SELECT * FROM " + this.homes + " WHERE id = :id";
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "id", id)
-                .map((result, context) -> this.readHome(result)).findOne()), this.executor);
+                .map((result, context) -> this.readHome(result))
+                .findOne()), this.executor);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<Home>> findByName(@NotNull UUID owner, @NotNull String nameIgnoreCase) {
         String sql = "SELECT * FROM " + this.homes + " WHERE owner = :owner AND name_key = :name_key";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner).bind("name_key", Home.key(nameIgnoreCase))
-                .map((result, context) -> this.readHome(result)).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner)
+                        .bind("name_key", Home.key(nameIgnoreCase))
+                        .map((result, context) -> this.readHome(result))
+                        .findOne()),
+                this.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Long> countByOwner(@NotNull UUID owner) {
         String sql = "SELECT COUNT(*) FROM " + this.homes + " WHERE owner = :owner";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner).mapTo(Long.class).one()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner).mapTo(Long.class).one()),
+                this.executor
+        );
     }
 
     @Override
@@ -121,14 +131,34 @@ public abstract class SqlHomeStore implements HomeStore {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 return this.sql().inTransaction(handle -> {
-                    // 锁定同一记录, 返回本次写入保留的创建时间.
-                    Home current = this.bindUuid(this.bindUuid(handle.createQuery("SELECT * FROM " + this.homes + " WHERE owner = :owner AND id = :id FOR UPDATE"), "owner", home.owner()), "id", home.id())
-                            .map((result, context) -> this.readHome(result)).findOne().orElse(null);
-                    if (current == null) return new SaveResult(Status.NOT_FOUND, null);
-                    this.bindHome(handle.createUpdate(update), home).execute();
-                    Home saved = new Home(current.id(), current.owner(), home.name(), home.server(), home.location(), current.createdAt(), home.updatedAt());
-                    return new SaveResult(Status.SUCCESS, saved);
-                });
+                            // 锁定同一记录, 返回本次写入保留的创建时间.
+                            Home current = this.bindUuid(
+                                    this.bindUuid(
+                                            handle.createQuery("SELECT * FROM " + this.homes + " WHERE owner = :owner AND id = :id FOR UPDATE"),
+                                            "owner",
+                                            home.owner()
+                                    ),
+                                    "id",
+                                    home.id()
+                            )
+                                    .map((result, context) -> this.readHome(result))
+                                    .findOne()
+                                    .orElse(null);
+                            if (current == null) {
+                                return new SaveResult(Status.NOT_FOUND, null);
+                            }
+                            this.bindHome(handle.createUpdate(update), home).execute();
+                            Home saved = new Home(
+                                    current.id(),
+                                    current.owner(),
+                                    home.name(),
+                                    home.server(),
+                                    home.location(),
+                                    current.createdAt(),
+                                    home.updatedAt()
+                            );
+                            return new SaveResult(Status.SUCCESS, saved);
+                        });
             } catch (UnableToExecuteStatementException exception) {
                 if (!(exception.getCause() instanceof SQLException cause) || !this.duplicateName(cause)) {
                     throw exception;
@@ -141,8 +171,13 @@ public abstract class SqlHomeStore implements HomeStore {
     @Override
     @NotNull
     public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle ->
-                this.bindUuid(this.bindUuid(handle.createUpdate("DELETE FROM " + this.homes + " WHERE owner = :owner AND id = :id"), "owner", owner), "id", id).execute() > 0), this.executor);
+        return CompletableFuture.supplyAsync(() -> this.sql()
+                .withHandle(handle ->
+                this.bindUuid(
+                        this.bindUuid(handle.createUpdate("DELETE FROM " + this.homes + " WHERE owner = :owner AND id = :id"), "owner", owner),
+                        "id",
+                        id
+                ).execute() > 0), this.executor);
     }
 
     @Override
@@ -195,9 +230,22 @@ public abstract class SqlHomeStore implements HomeStore {
     }
 
     private Home readHome(ResultSet result) throws SQLException {
-        WorldLocation location = new WorldLocation(result.getString("world"), result.getDouble("x"), result.getDouble("y"), result.getDouble("z"),
-                result.getFloat("yaw"), result.getFloat("pitch"));
-        return new Home(this.readUuid(result, "id"), this.readUuid(result, "owner"), result.getString("name"), result.getString("server"),
-                location, result.getLong("created_at"), result.getLong("updated_at"));
+        WorldLocation location = new WorldLocation(
+                result.getString("world"),
+                result.getDouble("x"),
+                result.getDouble("y"),
+                result.getDouble("z"),
+                result.getFloat("yaw"),
+                result.getFloat("pitch")
+        );
+        return new Home(
+                this.readUuid(result, "id"),
+                this.readUuid(result, "owner"),
+                result.getString("name"),
+                result.getString("server"),
+                location,
+                result.getLong("created_at"),
+                result.getLong("updated_at")
+        );
     }
 }

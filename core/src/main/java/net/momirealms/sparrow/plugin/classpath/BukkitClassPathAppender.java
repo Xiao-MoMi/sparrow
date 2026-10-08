@@ -21,7 +21,9 @@ public final class BukkitClassPathAppender implements ClassPathAppender {
     }
 
     private static URLClassLoader findURLClassLoader(ClassLoader classLoader) {
-        if (classLoader instanceof URLClassLoader urlClassLoader) return urlClassLoader;
+        if (classLoader instanceof URLClassLoader urlClassLoader) {
+            return urlClassLoader;
+        }
         ClassLoader parent = classLoader.getParent();
         return parent == null ? null : findURLClassLoader(parent);
     }

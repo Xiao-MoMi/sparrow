@@ -29,7 +29,14 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
     private TeleportRequest(FriendlyByteBuf buffer) {
         super(buffer);
         this.player = buffer.readUUID();
-        this.location = new WorldLocation(ByteBufHelper.readUtf8(buffer, 255), buffer.readDouble(), buffer.readDouble(), buffer.readDouble(), buffer.readFloat(), buffer.readFloat());
+        this.location = new WorldLocation(
+                ByteBufHelper.readUtf8(buffer, 255),
+                buffer.readDouble(),
+                buffer.readDouble(),
+                buffer.readDouble(),
+                buffer.readFloat(),
+                buffer.readFloat()
+        );
     }
 
     @Override

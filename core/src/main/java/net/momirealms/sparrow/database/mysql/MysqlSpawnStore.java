@@ -37,7 +37,7 @@ public final class MysqlSpawnStore extends SqlSpawnStore {
     @NotNull
     @Override
     protected String saveSql() {
-        return "INSERT INTO " + this.table + " (id, server, world, x, y, z, yaw, pitch) "
+        return "INSERT INTO " + super.table + " (id, server, world, x, y, z, yaw, pitch) "
                 + "VALUES (1, :server, :world, :x, :y, :z, :yaw, :pitch) ON DUPLICATE KEY UPDATE "
                 + "server = :server, world = :world, x = :x, y = :y, z = :z, yaw = :yaw, pitch = :pitch";
     }

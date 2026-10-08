@@ -48,30 +48,55 @@ public final class FeatureListCommand extends BukkitCommandFeature {
             Feature<?> feature = manager.feature(id);
             FeatureState state = feature.state().get();
             String unavailable = !feature.hotToggleable() || state == FeatureState.FAILED ? "restart_required"
-                    : this.plugin().isReloading() ? "busy" : null;
-            Component actions = this.action(sender, "enable", "feature_enable", id,
-                            unavailable != null ? unavailable : feature.enabled() ? "already_enabled" : null)
-                    .append(Component.space()).append(this.action(sender, "disable", "feature_disable", id,
-                            unavailable != null ? unavailable : !feature.enabled() ? "already_disabled" : null))
-                    .append(Component.space()).append(this.action(sender, "status", "feature_status", id, null));
-            Component row = this.tr("row", Component.text(id),
-                    Component.translatable("feature.state." + state.name().toLowerCase(Locale.ROOT)), actions);
+                    : (this.plugin().isReloading() ? "busy" : null);
+            Component actions = this.action(
+                    sender,
+                    "enable",
+                    "feature_enable",
+                    id,
+                    unavailable != null ? unavailable : (feature.enabled() ? "already_enabled" : null)
+            )
+                    .append(Component.space())
+                    .append(this.action(
+                            sender,
+                            "disable",
+                            "feature_disable",
+                            id,
+                            unavailable != null ? unavailable : (!feature.enabled() ? "already_disabled" : null)
+                    ))
+                    .append(Component.space())
+                    .append(this.action(sender, "status", "feature_status", id, null));
+            Component row = this.tr(
+                    "row",
+                    Component.text(id),
+                    Component.translatable("feature.state." + state.name().toLowerCase(Locale.ROOT)),
+                    actions
+            );
             panel = panel.append(Component.newline()).append(row);
         }
         if (total == 0) {
             panel = panel.append(Component.newline()).append(this.tr("empty"));
         }
-        panel = panel.append(Component.newline()).append(this.tr("navigation",
+        panel = panel.append(Component.newline()).append(this.tr(
+                "navigation",
                 this.action(sender, "previous", "feature_list", Integer.toString(page - 1), page == 1 ? "first_page" : null),
-                Component.text(page), Component.text(pages),
+                Component.text(page),
+                Component.text(pages),
                 this.action(sender, "next", "feature_list", Integer.toString(page + 1), page == pages ? "last_page" : null),
-                this.action(sender, "refresh", "feature_list", Integer.toString(page), null)));
+                this.action(sender, "refresh", "feature_list", Integer.toString(page), null)
+        ));
         this.handleFeedback(sender, Component.translatable("command.features.message"), panel);
     }
 
     @NotNull
-    private Component action(@NotNull CommandSender sender, @NotNull String label, @NotNull String commandId, @NotNull String arguments, @Nullable String unavailable) {
-        CommandFeature commandFeature = this.commandManager.feature(commandId);
+    private Component action(
+            @NotNull CommandSender sender,
+            @NotNull String label,
+            @NotNull String commandId,
+            @NotNull String arguments,
+            @Nullable String unavailable
+    ) {
+        CommandFeature commandFeature = super.commandManager.feature(commandId);
         CommandConfig config = commandFeature == null ? null : commandFeature.commandConfig();
         Component caption = this.tr("label." + label);
         String usage = null;
@@ -89,7 +114,7 @@ public final class FeatureListCommand extends BukkitCommandFeature {
         String permission = config == null ? null : config.getPermission();
         boolean permitted = permission == null || permission.isEmpty() || sender.hasPermission(permission);
         if (unavailable != null || usage == null || !permitted) {
-            Component reason = this.tr(!permitted ? "no_permission" : unavailable != null ? unavailable : "unavailable");
+            Component reason = this.tr(!permitted ? "no_permission" : (unavailable != null ? unavailable : "unavailable"));
             return sender instanceof Player ? this.tr("disabled", caption).hoverEvent(reason) : this.tr("console.disabled", caption, reason);
         }
         // 使用已注册命令的用法和权限, 自定义入口也能通过面板操作.

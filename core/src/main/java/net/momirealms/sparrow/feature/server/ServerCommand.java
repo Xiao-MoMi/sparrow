@@ -28,10 +28,13 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     public ServerCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
-        this.parser = new ServerParser<>(commandManager, plugin.javaPlugin(), server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server));
+        this.parser = new ServerParser<>(
+                commandManager,
+                plugin.javaPlugin(),
+                server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server)
+        );
     }
 
-    // 命令持有服务器查询的接收监听, 发送通道由 PlayerManager 管理.
     @Override
     public void registerRelatedFunctions() {
         JavaPlugin javaPlugin = this.plugin().javaPlugin();
@@ -82,7 +85,12 @@ public final class ServerCommand extends BukkitCommandFeature {
         }
         for (Player player : players) {
             this.connect(player, server);
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_SERVER_SUCCESS_SELF : MessageConstants.COMMAND_SERVER_SUCCESS), Component.text(player.getName()), Component.text(server));
+            this.handleFeedback(
+                    context,
+                    (player == context.sender() ? MessageConstants.COMMAND_SERVER_SUCCESS_SELF : MessageConstants.COMMAND_SERVER_SUCCESS),
+                    Component.text(player.getName()),
+                    Component.text(server)
+            );
         }
     }
 

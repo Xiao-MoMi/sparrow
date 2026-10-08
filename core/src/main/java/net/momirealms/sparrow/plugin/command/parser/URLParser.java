@@ -16,6 +16,7 @@ import java.net.URL;
 import java.util.concurrent.CompletableFuture;
 
 public final class URLParser<C> implements ArgumentParser.FutureArgumentParser<C, URL> {
+
     @NotNull
     public static <C> ParserDescriptor<C, URL> urlParser() {
         return ParserDescriptor.of(new URLParser<>(), URL.class);
@@ -33,6 +34,7 @@ public final class URLParser<C> implements ArgumentParser.FutureArgumentParser<C
     }
 
     private static final class ParseException extends ParserException {
+
         private ParseException(CommandContext<?> context, String value) {
             super(URLParser.class, context, Caption.of("argument.parse.failure.url"), CaptionVariable.of("input", value));
         }

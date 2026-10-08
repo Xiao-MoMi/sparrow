@@ -54,7 +54,7 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
 
     @Override
     public void loadConfig() {
-        this.config = this.plugin.configurationManager().featuresConfig().config().ban();
+        super.config = this.plugin.configurationManager().featuresConfig().config().ban();
     }
 
     @Override
@@ -105,19 +105,20 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
             return;
         }
         boolean account = event.getUniqueId().equals(ban.player());
-        Component screen = this.plugin.translationManager().render(
-                BanTexts.kickScreen(
-                        account,
-                        event.getName(),
-                        ban.id(),
-                        ban.reason(),
-                        ban.operatorName(),
-                        ban.createdAt(),
-                        ban.expiresAt(),
-                        now
-                ),
-                null
-        );
+        Component screen = this.plugin.translationManager()
+                .render(
+                        BanTexts.kickScreen(
+                                account,
+                                event.getName(),
+                                ban.id(),
+                                ban.reason(),
+                                ban.operatorName(),
+                                ban.createdAt(),
+                                ban.expiresAt(),
+                                now
+                        ),
+                        null
+                );
         // 先拒绝登录
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, AdventureHelper.componentToLegacy(screen));
         // 本服拒绝登录会被代理转到下一个服务器, 所以先让代理断开整条连接, 等待期间代理没有处理再由本服拒绝.
@@ -206,24 +207,28 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
                 0,
                 null
         );
-        return this.store().saveBan(record, force).thenApply(result -> {
-            if (result.status() == BanResult.Status.REPLACEMENT_REJECTED) {
-                return result;
-            }
-            this.publish(new BanMessage(
-                            true,
-                            record.id(),
-                            record.display(),
-                            uuid,
-                            ip,
-                            reason,
-                            operatorName,
-                            record.createdAt(),
-                            expiresAt,
-                            silent
-            ));
-            return result;
-        });
+        return this.store()
+                .saveBan(record, force)
+                .thenApply(result -> {
+                    if (result.status() == BanResult.Status.REPLACEMENT_REJECTED) {
+                        return result;
+                    }
+                    this.publish(
+                            new BanMessage(
+                                    true,
+                                    record.id(),
+                                    record.display(),
+                                    uuid,
+                                    ip,
+                                    reason,
+                                    operatorName,
+                                    record.createdAt(),
+                                    expiresAt,
+                                    silent
+                            )
+                    );
+                    return result;
+                });
     }
 
     /**
@@ -235,12 +240,14 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
      */
     @NotNull
     public CompletableFuture<List<BanRecord>> unban(@NotNull BanTarget target, @NotNull String operatorName, boolean silent) {
-        return this.store().revokeBans(target, System.currentTimeMillis(), operatorName).thenApply(revoked -> {
-            if (!revoked.isEmpty()) {
-                this.publish(new BanMessage(false, "", target.display(), null, null, "", operatorName, 0, 0, silent));
-            }
-            return revoked;
-        });
+        return this.store()
+                .revokeBans(target, System.currentTimeMillis(), operatorName)
+                .thenApply(revoked -> {
+                    if (!revoked.isEmpty()) {
+                        this.publish(new BanMessage(false, "", target.display(), null, null, "", operatorName, 0, 0, silent));
+                    }
+                    return revoked;
+                });
     }
 
     // 需要通知时发给全部服务器. 静默时只有封禁需要踢人, 纯玩家封禁只发给玩家所在的服务器.
@@ -312,7 +319,7 @@ public final class BanFeature extends Feature<BanSettings> implements Listener {
     // 同一语言的通知只渲染一次
     private void notifyStaff(BanMessage message, long now) {
         Map<Locale, Component> rendered = new HashMap<>(4);
-        Sound sound = this.config.getNotifySound(message.banned());
+        Sound sound = super.config.getNotifySound(message.banned());
         for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             if (player.hasPermission(NOTIFY_PERMISSION)) {
                 player.sendMessage(rendered.computeIfAbsent(

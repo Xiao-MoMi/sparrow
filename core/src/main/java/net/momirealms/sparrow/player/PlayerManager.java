@@ -10,8 +10,8 @@ import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterRoster;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.command.parser.ServerParser;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.player.teleport.TeleportManager;
 import net.momirealms.sparrow.player.teleport.TeleportService;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
@@ -45,8 +45,10 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final ClusterRoster cluster;
     private final TeleportManager teleports;
     private final TeleportService teleportService;
-    private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>(); // 配置阶段起登记, 连接关闭或退出时移除
-    private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();     // Join 时创建, 退出时移除
+    // 配置阶段起登记, 连接关闭或退出时移除
+    private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>();
+    // Join 时创建, 退出时移除
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();
     private final List<PlayerListener> listeners = new CopyOnWriteArrayList<>();
 
     public PlayerManager(@NotNull SparrowPlugin plugin) {
@@ -106,15 +108,18 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         String name = player.getName();
         InetSocketAddress address = player.getAddress();
         long ip = address == null ? IpRange.NONE : IpRange.address(address.getAddress());
-        this.plugin.dataStorage().saveLogin(player.getUniqueId(), name, ip, System.currentTimeMillis()).whenComplete((ignored, failure) -> {
-            if (failure != null) {
-                this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
-            }
-        });
+        this.plugin.dataStorage().saveLogin(player.getUniqueId(), name, ip, System.currentTimeMillis())
+                .whenComplete((ignored, failure) -> {
+                    if (failure != null) {
+                        this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
+                    }
+                });
         // 本插件的进服处理全部完成后再通知
         BukkitSparrowPlayer joined = this.getPlayer(player);
         if (joined != null) {
-            for (PlayerListener listener : this.listeners) listener.onJoin(joined);
+            for (PlayerListener listener : this.listeners) {
+                listener.onJoin(joined);
+            }
         }
     }
 
@@ -123,12 +128,20 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         Player player = event.getPlayer();
         BukkitSparrowPlayer leaving = this.getPlayer(player);
         if (leaving != null) {
-            for (PlayerListener listener : this.listeners) listener.onQuit(leaving);
+            for (PlayerListener listener : this.listeners) {
+                listener.onQuit(leaving);
+            }
         }
         this.teleportService.onQuit(player.getUniqueId());
         String name = player.getName();
         this.plugin.dataStorage()
-                .saveLogout(player.getUniqueId(), name, System.currentTimeMillis(), ServerConfig.serverId(), WorldLocation.from(player.getLocation()))
+                .saveLogout(
+                        player.getUniqueId(),
+                        name,
+                        System.currentTimeMillis(),
+                        ServerConfig.serverId(),
+                        WorldLocation.from(player.getLocation())
+                )
                 .whenComplete((ignored, failure) -> {
                     if (failure != null) {
                         this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
@@ -175,82 +188,45 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         return (ChannelHandler) ServerCommonPacketListenerImplProxy.INSTANCE.getConnection(listener);
     }
 
-    /**
-     * 按 UUID 查找已加入本服的玩家.
-     *
-     * @param uniqueId 玩家 UUID
-     * @return 已加入且尚未退出的玩家, 不存在时为 null
-     */
     @Nullable
     public SparrowPlayer getPlayer(@NotNull UUID uniqueId) {
         return this.players.get(uniqueId);
     }
 
-    /**
-     * 查找绑定到指定 Bukkit 实例的玩家, 旧连接的实例无法匹配重连后的对象.
-     *
-     * @param player 待查询的 Bukkit 玩家实例
-     * @return 与该实例绑定的玩家, 尚未加入、已退出或实例不匹配时为 null
-     */
     @Nullable
     public BukkitSparrowPlayer getPlayer(@NotNull Player player) {
         BukkitSparrowPlayer sparrowPlayer = this.players.get(player.getUniqueId());
         return sparrowPlayer != null && sparrowPlayer.platformPlayer() == player ? sparrowPlayer : null;
     }
 
-    /**
-     * 返回已加入本服玩家的只读列表快照. 列表成员固定, 其中的玩家仍可能随后退出.
-     *
-     * @return 无固定顺序的玩家列表
-     */
     @NotNull
     public Collection<SparrowPlayer> getOnlinePlayers() {
         return List.copyOf(this.players.values());
     }
 
-    /**
-     * 按 Channel 查找连接, 包含已进入配置阶段但尚未 Join 的玩家.
-     *
-     * @param channel 本次连接使用的通道
-     * @return 该通道的连接, 尚未登记或已移除时为 null
-     */
     @Nullable
     public PlayerConnection getConnection(@NotNull Channel channel) {
         return this.connections.get(channel);
     }
 
-    /**
-     * 返回集群在线名单, 用于查找其他服务器上的玩家.
-     *
-     * @return 本插件实例的集群名单
-     */
     @NotNull
     public ClusterRoster cluster() {
         return this.cluster;
     }
 
-    /**
-     * 传送管理器
-     *
-     * @return 传送管理器
-     */
     @NotNull
     public TeleportManager teleports() {
         return this.teleports;
     }
 
-    /**
-     * 带冷却与预热的传送服务
-     *
-     * @return 传送服务
-     */
     @NotNull
     public TeleportService teleportService() {
         return this.teleportService;
     }
 
     /**
-     * 按名字解析玩家, 离线玩家也能查到. 集群在线时名字忽略大小写, 离线时按数据库记录精确匹配.
+     * 按名字解析玩家, 离线玩家也能查到.
+     * 在线时名字忽略大小写, 离线时按数据库记录精确匹配.
      *
      * @param name 玩家名
      * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成

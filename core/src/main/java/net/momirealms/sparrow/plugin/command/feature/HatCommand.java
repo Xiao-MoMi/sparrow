@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class HatCommand extends BukkitCommandFeature {
+
     public HatCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -39,31 +40,44 @@ public final class HatCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-            ServerPlayer handle = receiver.nmsPlayer();
-            ItemStack hand = receiver.getItemInMainHand();
-            if (hand.isEmpty()) {
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_HAT_ITEMLESS_SELF : MessageConstants.COMMAND_HAT_ITEMLESS), Component.text(player.getName()));
-                return;
-            }
-            // 和原版一样, 非创造模式下摘不下带绑定诅咒的头盔
-            ItemStack helmet = handle.getItemBySlot(EquipmentSlot.HEAD);
-            if (!helmet.isEmpty() && !handle.isCreative() && EnchantmentHelper.has(helmet, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_HAT_BOUND_SELF : MessageConstants.COMMAND_HAT_BOUND), Component.text(player.getName()));
-                return;
-            }
-            // 头上只戴一个, 其余留在主手
-            handle.setItemSlot(EquipmentSlot.HEAD, hand.split(1));
-            // 换下的头盔优先回到空出来的主手, 否则放回背包, 背包满了掉在脚下
-            if (!helmet.isEmpty()) {
-                if (hand.isEmpty()) {
-                    handle.getInventory().setSelectedItem(helmet);
-                } else {
-                    handle.getInventory().placeItemBackInInventory(helmet);
-                }
-            }
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_HAT_SUCCESS_SELF : MessageConstants.COMMAND_HAT_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+                    ServerPlayer handle = receiver.nmsPlayer();
+                    ItemStack hand = receiver.getItemInMainHand();
+                    if (hand.isEmpty()) {
+                        this.handleFeedback(
+                                context,
+                                (player == context.sender() ? MessageConstants.COMMAND_HAT_ITEMLESS_SELF : MessageConstants.COMMAND_HAT_ITEMLESS),
+                                Component.text(player.getName())
+                        );
+                        return;
+                    }
+                    // 和原版一样, 非创造模式下摘不下带绑定诅咒的头盔
+                    ItemStack helmet = handle.getItemBySlot(EquipmentSlot.HEAD);
+                    if (!helmet.isEmpty() && !handle.isCreative()
+                            && EnchantmentHelper.has(helmet, EnchantmentEffectComponents.PREVENT_ARMOR_CHANGE)) {
+                        this.handleFeedback(
+                                context,
+                                (player == context.sender() ? MessageConstants.COMMAND_HAT_BOUND_SELF : MessageConstants.COMMAND_HAT_BOUND),
+                                Component.text(player.getName())
+                        );
+                        return;
+                    }
+                    // 头上只戴一个, 其余留在主手
+                    handle.setItemSlot(EquipmentSlot.HEAD, hand.split(1));
+                    // 换下的头盔优先回到空出来的主手, 否则放回背包, 背包满了掉在脚下
+                    if (!helmet.isEmpty()) {
+                        if (hand.isEmpty()) {
+                            handle.getInventory().setSelectedItem(helmet);
+                        } else {
+                            handle.getInventory().placeItemBackInInventory(helmet);
+                        }
+                    }
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_HAT_SUCCESS_SELF : MessageConstants.COMMAND_HAT_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override

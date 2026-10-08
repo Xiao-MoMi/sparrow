@@ -40,7 +40,9 @@ public final class ClusterRoster {
     private static final String ROSTER_PREFIX = "sparrow:online-players:"; // Hash 结构, UUID 字节 -> 玩家名
     private static final long REFRESH_MILLIS = 30000;
     private static final long ROSTER_TTL_MILLIS = REFRESH_MILLIS * 3;      // 本服停止校准后名单自行过期
-    private static final String REWRITE_SCRIPT = "redis.call('DEL', KEYS[1]) if #ARGV > 1 then redis.call('HSET', KEYS[1], unpack(ARGV, 2)) end redis.call('PEXPIRE', KEYS[1], ARGV[1]) return 1";
+    private static final String REWRITE_SCRIPT =
+            "redis.call('DEL', KEYS[1]) if #ARGV > 1 then redis.call('HSET', KEYS[1], unpack(ARGV, 2)) end"
+            + " redis.call('PEXPIRE', KEYS[1], ARGV[1]) return 1";
 
     private final SparrowPlugin plugin;
     private final PlayerManager players;
@@ -129,25 +131,28 @@ public final class ClusterRoster {
     // 只读取心跳仍存活的服务器, 崩溃服务器残留的名单在过期前也会被忽略.
     private CompletableFuture<Map<String, Map<UUID, ClusterPlayer>>> readRosters() {
         RedisAsyncCommands<byte[], byte[]> commands = this.plugin.redisConnector().connection().async();
-        return this.plugin.serverHeartBeats().onlineServers().thenCompose(servers -> {
-            // 各服名单并发读取, 全部返回后再组装
-            Map<String, CompletableFuture<Map<byte[], byte[]>>> pending = new HashMap<>();
-            for (String server : servers) {
-                pending.put(server, commands.hgetall(rosterKey(server)).toCompletableFuture());
-            }
-            return CompletableFuture.allOf(pending.values().toArray(CompletableFuture[]::new)).thenApply(ignored -> {
-                Map<String, Map<UUID, ClusterPlayer>> rosters = new HashMap<>();
-                pending.forEach((server, fields) -> {
-                    Map<UUID, ClusterPlayer> roster = new HashMap<>();
-                    fields.join().forEach((uuid, name) -> {
-                        UUID playerId = UUIDUtils.fromBytes(uuid);
-                        roster.put(playerId, new ClusterPlayer(playerId, new String(name, StandardCharsets.UTF_8), server));
+        return this.plugin.serverHeartBeats().onlineServers()
+                .thenCompose(servers -> {
+                    // 各服名单并发读取, 全部返回后再组装
+                    Map<String, CompletableFuture<Map<byte[], byte[]>>> pending = new HashMap<>();
+                    for (String server : servers) {
+                        pending.put(server, commands.hgetall(rosterKey(server)).toCompletableFuture());
+                    }
+                    return CompletableFuture.allOf(pending.values().toArray(CompletableFuture[]::new)).thenApply(ignored -> {
+                        Map<String, Map<UUID, ClusterPlayer>> rosters = new HashMap<>();
+                        pending.forEach((server, fields) -> {
+                            Map<UUID, ClusterPlayer> roster = new HashMap<>();
+                            fields.join().forEach((uuid, name) -> {
+                                UUID playerId = UUIDUtils.fromBytes(uuid);
+                                roster.put(playerId, new ClusterPlayer(playerId, new String(name, StandardCharsets.UTF_8), server));
+                            });
+                            if (!roster.isEmpty()) {
+                                rosters.put(server, roster);
+                            }
+                        });
+                        return rosters;
                     });
-                    if (!roster.isEmpty()) rosters.put(server, roster);
                 });
-                return rosters;
-            });
-        });
     }
 
     private synchronized void accept(PlayerPresenceMessage message) {
@@ -159,10 +164,14 @@ public final class ClusterRoster {
         if (message.joined()) {
             ClusterPlayer player = new ClusterPlayer(message.uuid(), message.name(), message.serverId());
             // 本服广播回环和重复通知不重建视图
-            if (player.equals(roster.put(player.uuid(), player))) return;
+            if (player.equals(roster.put(player.uuid(), player))) {
+                return;
+            }
         } else {
             // 跨服时旧服的离线通知只移除旧服记录
-            if (roster.remove(message.uuid()) == null) return;
+            if (roster.remove(message.uuid()) == null) {
+                return;
+            }
             if (roster.isEmpty()) {
                 this.servers.remove(message.serverId());
             }
@@ -239,7 +248,12 @@ public final class ClusterRoster {
         return (ROSTER_PREFIX + serverId).getBytes(StandardCharsets.UTF_8);
     }
 
-    private record OnlineView(List<ClusterPlayer> players, Map<String, ClusterPlayer> byName, Map<UUID, ClusterPlayer> byUuid, List<Suggestion> suggestions) {
+    private record OnlineView(
+            List<ClusterPlayer> players,
+            Map<String, ClusterPlayer> byName,
+            Map<UUID, ClusterPlayer> byUuid,
+            List<Suggestion> suggestions
+    ) {
         private static final OnlineView EMPTY = new OnlineView(List.of(), Map.of(), Map.of(), List.of());
 
         // 在排序名单中定位前缀范围, 返回共享 Suggestion 对象的只读子列表.
@@ -272,7 +286,10 @@ public final class ClusterRoster {
 
         // 排序在名单变化时完成, 补全直接复用同一份顺序和 Suggestion 对象
         private static OnlineView of(Map<UUID, ClusterPlayer> byUuid) {
-            List<ClusterPlayer> players = byUuid.values().stream().sorted(Comparator.comparing(ClusterPlayer::name, String.CASE_INSENSITIVE_ORDER)).toList();
+            List<ClusterPlayer> players = byUuid.values()
+                    .stream()
+                    .sorted(Comparator.comparing(ClusterPlayer::name, String.CASE_INSENSITIVE_ORDER))
+                    .toList();
             Map<String, ClusterPlayer> byName = new HashMap<>();
             List<Suggestion> suggestions = new ArrayList<>(players.size());
             int size = players.size();

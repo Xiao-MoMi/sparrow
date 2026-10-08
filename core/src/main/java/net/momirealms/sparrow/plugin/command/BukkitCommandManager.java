@@ -88,15 +88,17 @@ public final class BukkitCommandManager extends AbstractCommandManager {
     }
 
     public BukkitCommandManager(SparrowPlugin plugin) {
-        this(plugin, new LegacyPaperCommandManager<>(
-                plugin.javaPlugin(),
-                ExecutionCoordinator.simpleCoordinator(),
-                SenderMapper.identity()
-        ));
+        this(plugin, new LegacyPaperCommandManager<>(plugin.javaPlugin(), ExecutionCoordinator.simpleCoordinator(), SenderMapper.identity()));
     }
 
     private BukkitCommandManager(SparrowPlugin plugin, LegacyPaperCommandManager<CommandSender> manager) {
-        super(plugin, manager, manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) || manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION));
+        super(
+                plugin,
+                manager,
+                manager.hasCapability(CloudBukkitCapabilities.NATIVE_BRIGADIER) || manager.hasCapability(
+                        CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION
+                )
+        );
         this.plugin = plugin;
         // 不属于任何模块的命令, 模块自带的命令由 FeatureManager 注册
         this.defaultFeatures = List.of(
@@ -159,7 +161,10 @@ public final class BukkitCommandManager extends AbstractCommandManager {
             manager.registerBrigadier();
             manager.brigadierManager().setNativeNumberSuggestions(true);
             // 读到空格为止且不限字符的原版参数.
-            manager.brigadierManager().registerMapping(new TypeToken<TokenParser<CommandSender>>() {}, builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile()));
+            manager.brigadierManager().registerMapping(
+                    new TypeToken<TokenParser<CommandSender>>() {},
+                    builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile())
+            );
         } else if (manager.hasCapability(CloudBukkitCapabilities.ASYNCHRONOUS_COMPLETION)) {
             manager.registerAsynchronousCompletions();
         }

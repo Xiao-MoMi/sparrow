@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class CartographyTableCommand extends BukkitCommandFeature {
+
     public CartographyTableCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -35,9 +36,14 @@ public final class CartographyTableCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            player.openInventory(MenuType.CARTOGRAPHY_TABLE.create(player, InventoryType.CARTOGRAPHY.getDefaultTitle()));
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS_SELF : MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    player.openInventory(MenuType.CARTOGRAPHY_TABLE.create(player, InventoryType.CARTOGRAPHY.getDefaultTitle()));
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS_SELF
+                                    : MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override
@@ -45,4 +51,3 @@ public final class CartographyTableCommand extends BukkitCommandFeature {
         return "cartography-table";
     }
 }
-

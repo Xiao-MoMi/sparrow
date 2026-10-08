@@ -36,23 +36,25 @@ public abstract class AbstractCommandFeature implements CommandFeature {
 
     @Override
     public void handleFeedback(CommandContext<?> context, TranslatableComponent key, Component... args) {
-        if (context.flags().hasFlag("silent")) return;
-        commandManager.handleCommandFeedback((CommandSender) context.sender(), key, args);
+        if (context.flags().hasFlag("silent")) {
+            return;
+        }
+        this.commandManager.handleCommandFeedback((CommandSender) context.sender(), key, args);
     }
 
     @Override
     public void handleFeedback(CommandSender sender, TranslatableComponent key, Component... args) {
-        commandManager.handleCommandFeedback(sender, key, args);
+        this.commandManager.handleCommandFeedback(sender, key, args);
     }
 
     @Override
     public CommandManager commandManager() {
-        return commandManager;
+        return this.commandManager;
     }
 
     @Override
     public CommandConfig commandConfig() {
-        return commandConfig;
+        return this.commandConfig;
     }
 
     public void setCommandConfig(CommandConfig commandConfig) {
@@ -61,6 +63,6 @@ public abstract class AbstractCommandFeature implements CommandFeature {
 
     @Override
     public Plugin plugin() {
-        return plugin;
+        return this.plugin;
     }
 }

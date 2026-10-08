@@ -43,7 +43,7 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public ByteBuf source() {
-        return source;
+        return this.source;
     }
 
     public Instant readInstant() {
@@ -119,15 +119,15 @@ public class FriendlyByteBuf extends ByteBuf {
         int i = this.readVarInt();
         List<String> list = new ArrayList<>(i);
         for (int j = 0; j < i; ++j) {
-            list.add(readUtf());
+            list.add(this.readUtf());
         }
         return list;
     }
 
     public void writeStringList(List<String> list) {
-        writeVarInt(list.size());
+        this.writeVarInt(list.size());
         for (String s : list) {
-            writeUtf(s);
+            this.writeUtf(s);
         }
     }
 
@@ -419,8 +419,8 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     public <T> void writeHolder(Either<Integer, T> holder, Writer<T> writer) {
-        holder.ifLeft(i -> writeVarInt(i + 1)).ifRight(t -> {
-            writeVarInt(0);
+        holder.ifLeft(i -> this.writeVarInt(i + 1)).ifRight(t -> {
+            this.writeVarInt(0);
             writer.accept(this, t);
         });
     }
@@ -1411,7 +1411,8 @@ public class FriendlyByteBuf extends ByteBuf {
     }
 
     @Override
-    public @NotNull String toString(int i, int j, Charset charset) {
+    @NotNull
+    public String toString(int i, int j, Charset charset) {
         return this.source.toString(i, j, charset);
     }
 
@@ -1422,8 +1423,12 @@ public class FriendlyByteBuf extends ByteBuf {
 
     @Override
     public boolean equals(Object object) {
-        if (this == object) return true;
-        if (!(object instanceof FriendlyByteBuf friendlyByteBuf)) return false;
+        if (this == object) {
+            return true;
+        }
+        if (!(object instanceof FriendlyByteBuf friendlyByteBuf)) {
+            return false;
+        }
         return this.source.equals(friendlyByteBuf.source);
     }
 

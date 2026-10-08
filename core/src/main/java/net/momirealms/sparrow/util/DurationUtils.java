@@ -29,7 +29,9 @@ public final class DurationUtils {
         BigDecimal millis = BigDecimal.ZERO;
         int end = 0;
         while (matcher.find()) {
-            if (matcher.start() != end) throw new IllegalArgumentException("Invalid duration: " + value);
+            if (matcher.start() != end) {
+                throw new IllegalArgumentException("Invalid duration: " + value);
+            }
             long multiplier = switch (matcher.group(2)) {
                 case "y" -> 31_536_000_000L;
                 case "mo" -> 2_592_000_000L;
@@ -44,7 +46,9 @@ public final class DurationUtils {
             end = matcher.end();
         }
         long result = millis.setScale(0, RoundingMode.HALF_UP).longValueExact();
-        if (end != value.length() || result <= 0) throw new IllegalArgumentException("Invalid positive duration: " + value);
+        if (end != value.length() || result <= 0) {
+            throw new IllegalArgumentException("Invalid positive duration: " + value);
+        }
         return Duration.ofMillis(result);
     }
 
@@ -52,7 +56,9 @@ public final class DurationUtils {
     @NotNull
     public static String format(long millis) {
         long seconds = Math.max(0, millis / 1000);
-        if (seconds == 0) return "0s";
+        if (seconds == 0) {
+            return "0s";
+        }
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < FORMAT_SECONDS.length; i++) {
             long amount = seconds / FORMAT_SECONDS[i];

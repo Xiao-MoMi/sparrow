@@ -31,8 +31,11 @@ public final class HomeListCommand extends AbstractHomeCommand {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.optional("page", IntegerParser.integerParser(1)).handler(this::execute));
-        manager.command(builder.literal("other").required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
-                .optional("page", IntegerParser.integerParser(1)).permission(this.otherPermission(builder)).handler(this::execute));
+        manager.command(builder.literal("other")
+                .required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+                .optional("page", IntegerParser.integerParser(1))
+                .permission(this.otherPermission(builder))
+                .handler(this::execute));
     }
 
     private boolean available(CommandSender sender, boolean other) {
@@ -44,10 +47,18 @@ public final class HomeListCommand extends AbstractHomeCommand {
 
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
-        this.owner(sender, context.getOrDefault("player", null)).thenCompose(owner -> {
-            if (owner.isEmpty()) return CompletableFuture.completedFuture(null);
-            return this.feature.service().snapshot(owner.get().uuid()).thenAccept(snapshot -> this.show(sender, owner.get(), snapshot, context.getOrDefault("page", 1)));
-        }).exceptionally(error -> { this.failed(sender, error); return null; });
+        this.owner(sender, context.getOrDefault("player", null))
+                .thenCompose(owner -> {
+                    if (owner.isEmpty()) {
+                        return CompletableFuture.completedFuture(null);
+                    }
+                    return super.feature.service()
+                            .snapshot(owner.get().uuid())
+                            .thenAccept(snapshot -> this.show(sender, owner.get(), snapshot, context.getOrDefault("page", 1)));
+                })
+                .exceptionally(error -> {
+                    this.failed(sender, error); return null;
+                });
     }
 
     private void show(CommandSender sender, PlayerRef owner, HomeSnapshot snapshot, int requestedPage) {
@@ -58,7 +69,7 @@ public final class HomeListCommand extends AbstractHomeCommand {
         }
         Component limit = Component.translatable("command.home-list.limit-unknown");
         if (self) {
-            int maximum = this.feature.limit((Player) sender);
+            int maximum = super.feature.limit((Player) sender);
             limit = maximum == CompatibilityManager.UNLIMITED ? Component.translatable("command.home-list.unlimited") : Component.text(maximum);
         }
         int pages = Math.max(1, (snapshot.size() + PAGE_SIZE - 1) / PAGE_SIZE);
@@ -77,10 +88,15 @@ public final class HomeListCommand extends AbstractHomeCommand {
             PanelButton travel = panel.suggest(Component.text(home.name()), "home", target).playersOnly();
             PanelButton edit = panel.suggest(CommandPanel.label("edit"), "edit-home", target);
             if (!self) {
-                travel.permission(this.feature.permission("home") + ".other");
-                edit.permission(this.feature.permission("edit-home") + ".other");
+                travel.permission(super.feature.permission("home") + ".other");
+                edit.permission(super.feature.permission("edit-home") + ".other");
             }
-            Component entry = Component.translatable("command.home-list.entry", travel.build(), Component.text(home.server()), Component.text(home.location().world()));
+            Component entry = Component.translatable(
+                    "command.home-list.entry",
+                    travel.build(),
+                    Component.text(home.server()),
+                    Component.text(home.location().world())
+            );
             panel.line(edit.available() ? entry.append(Component.space()).append(edit.build()) : entry);
         }
         panel.navigation(this.getFeatureID(), page, number -> self ? String.valueOf(number) : "other " + owner.name() + " " + number, true).send();

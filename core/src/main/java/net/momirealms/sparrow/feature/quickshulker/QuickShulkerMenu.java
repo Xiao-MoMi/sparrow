@@ -65,8 +65,11 @@ public final class QuickShulkerMenu {
                 .build(viewer);
 
         // 冻结原潜影盒所在的快捷栏槽位或副手.
-        if (sourceSlot == Inventory.SLOT_OFFHAND) this.window.offhandFrozen(true);
-        else this.window.frozenAt(this.window.windowSlotAtHotbar(sourceSlot), true);
+        if (sourceSlot == Inventory.SLOT_OFFHAND) {
+            this.window.offhandFrozen(true);
+        } else {
+            this.window.frozenAt(this.window.windowSlotAtHotbar(sourceSlot), true);
+        }
 
         // 功能停用时关闭窗口, 订阅随窗口的打开和关闭挂载与释放.
         this.window.bind(state, window -> {
@@ -86,8 +89,11 @@ public final class QuickShulkerMenu {
         // 每次事务完成后立即写回, 关闭窗口时无需额外保存.
         this.contents.subscribePostUpdate(event -> {
             if (this.validateSource()) {
-                if (VersionHelper.isOrAbove26_1) writeTemplates(shulker, event.slotChanges());
-                else writeContents(this.shulker, event.slotChanges());
+                if (VersionHelper.isOrAbove26_1) {
+                    writeTemplates(this.shulker, event.slotChanges());
+                } else {
+                    writeContents(this.shulker, event.slotChanges());
+                }
                 this.playerInventory.setChanged();
             }
         });
@@ -164,7 +170,8 @@ public final class QuickShulkerMenu {
         while (size > 0 && items[size - 1].isEmpty()) {
             size--;
         }
-        ItemContainerContents updated = size == 0 ? ItemContainerContents.EMPTY
+        ItemContainerContents updated = size == 0
+                ? ItemContainerContents.EMPTY
                 : (ItemContainerContents) ItemContainerContentsProxy.INSTANCE.create$0(Arrays.asList(size == items.length ? items : Arrays.copyOf(items, size)));
         shulker.set(DataComponents.CONTAINER, updated);
     }

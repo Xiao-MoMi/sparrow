@@ -13,6 +13,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class SuicideCommand extends BukkitCommandFeature {
+
     public SuicideCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -26,9 +27,9 @@ public final class SuicideCommand extends BukkitCommandFeature {
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
         this.plugin().scheduler().platform().run(() -> {
-            player.setHealth(0.0);
-            this.handleFeedback(context, MessageConstants.COMMAND_SUICIDE_SUCCESS_SELF, Component.text(player.getName()));
-        }, () -> {}, player);
+                    player.setHealth(0.0);
+                    this.handleFeedback(context, MessageConstants.COMMAND_SUICIDE_SUCCESS_SELF, Component.text(player.getName()));
+                }, () -> {}, player);
     }
 
     @Override

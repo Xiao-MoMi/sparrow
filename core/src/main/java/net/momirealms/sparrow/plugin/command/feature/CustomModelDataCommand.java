@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class CustomModelDataCommand extends BukkitCommandFeature {
+
     public CustomModelDataCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -34,7 +35,7 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
         Number value = context.getOrDefault("value", null);
-        this.plugin().scheduler().platform().run(() -> {
+        Runnable action = () -> {
             ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_MODEL_DATA_ITEMLESS);
@@ -58,7 +59,12 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
             }
             item.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.copyOf(floats), data.flags(), data.strings(), data.colors()));
             this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_MODEL_DATA_SUCCESS, Component.text(floats.getFirst().toString()));
-        }, () -> {}, player);
+        };
+        if (value == null) {
+            action.run();
+        } else {
+            this.plugin().scheduler().platform().run(action, () -> {}, player);
+        }
     }
 
     @Override

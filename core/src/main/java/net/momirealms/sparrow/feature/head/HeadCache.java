@@ -4,7 +4,6 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.StatefulRedisConnection;
-import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.DurationUtils;
 import net.momirealms.sparrow.util.GsonHelper;
 import org.jetbrains.annotations.Nullable;
@@ -24,47 +23,57 @@ import java.util.concurrent.TimeoutException;
 final class HeadCache {
     private final Cache<String, Entry> memory;
     private final StatefulRedisConnection<byte[], byte[]> redis;
-    private final PluginLogger logger;
     private final long memoryTtl;
     private final long redisTtl;
     private final long timeoutMillis;
     private final String profilePrefix;
 
-    HeadCache(HeadSettings settings, @Nullable StatefulRedisConnection<byte[], byte[]> redis, PluginLogger logger) {
+    HeadCache(HeadSettings settings, @Nullable StatefulRedisConnection<byte[], byte[]> redis) {
         HeadSettings.MemoryOptions memory = settings.cache().memory();
         HeadSettings.RedisOptions shared = settings.cache().redis();
         this.memoryTtl = memory.enabled() ? DurationUtils.parsePositive(memory.ttl()).toMillis() : 0;
         this.redisTtl = shared.enabled() ? DurationUtils.parsePositive(shared.ttl()).toMillis() : 0;
-        this.memory = Caffeine.newBuilder().maximumSize(memory.enabled() ? memory.maxSize() : 0)
-                .expireAfterWrite(Duration.ofMillis(Math.max(1, this.memoryTtl))).build();
+        this.memory = Caffeine.newBuilder()
+                .maximumSize(memory.enabled() ? memory.maxSize() : 0)
+                .expireAfterWrite(Duration.ofMillis(Math.max(1, this.memoryTtl)))
+                .build();
         this.redis = redis;
-        this.logger = logger;
         this.timeoutMillis = DurationUtils.parsePositive(settings.api().requestTimeout()).toMillis();
-        this.profilePrefix = "sparrow:head:v1:" + digest(settings.api().nameUrl() + "\n" + settings.api().profileUrl() + "\n" + GsonHelper.get().toJson(settings.api().fallbackUrls()) + "\n" + GsonHelper.get().toJson(new TreeMap<>(settings.api().headers()))) + ":";
+        this.profilePrefix = "sparrow:head:v1:" + digest(
+                settings.api().nameUrl() + "\n" + settings.api().profileUrl() + "\n"
+                        + GsonHelper.get().toJson(settings.api().fallbackUrls()) + "\n" + GsonHelper.get().toJson(
+                                new TreeMap<>(settings.api().headers())
+                        )
+        ) + ":";
     }
 
     @Nullable
-    HeadData get(String key) throws InterruptedException {
+    HeadData get(String key) throws InterruptedException, ExecutionException, TimeoutException {
         long now = System.currentTimeMillis();
         Entry local = this.memory.getIfPresent(key);
-        if (local != null && now < local.expiresAt && now - local.fetchedAt < this.memoryTtl) return local.data;
-        if (this.redis == null) return null;
-        try {
-            byte[] bytes = this.redis.async().get(this.key(key)).get(this.timeoutMillis, TimeUnit.MILLISECONDS);
-            if (bytes == null) return null;
-            Entry entry = GsonHelper.get().fromJson(new String(bytes, StandardCharsets.UTF_8), Entry.class);
-            if (entry == null || entry.data == null || entry.data.uuid() == null || entry.data.name() == null || entry.data.texture() == null) {
-                throw new IllegalArgumentException("Invalid head cache entry");
-            }
-            now = System.currentTimeMillis();
-            if (now >= entry.expiresAt || now - entry.fetchedAt >= this.redisTtl) return null;
-            entry = new Entry(entry.data, entry.fetchedAt, Math.min(entry.expiresAt, entry.fetchedAt + this.redisTtl));
-            if (now - entry.fetchedAt < this.memoryTtl) this.memory.put(key, entry);
-            return entry.data;
-        } catch (ExecutionException | TimeoutException | RuntimeException exception) {
-            this.logger.warn("Could not read the head Redis cache; querying the head service", exception);
+        if (local != null && now < local.expiresAt && now - local.fetchedAt < this.memoryTtl) {
+            return local.data;
+        }
+        if (this.redis == null) {
             return null;
         }
+        byte[] bytes = this.redis.async().get(this.key(key)).get(this.timeoutMillis, TimeUnit.MILLISECONDS);
+        if (bytes == null) {
+            return null;
+        }
+        Entry entry = GsonHelper.get().fromJson(new String(bytes, StandardCharsets.UTF_8), Entry.class);
+        if (entry == null || entry.data == null || entry.data.uuid() == null || entry.data.name() == null || entry.data.texture() == null) {
+            throw new IllegalArgumentException("Invalid head cache entry");
+        }
+        now = System.currentTimeMillis();
+        if (now >= entry.expiresAt || now - entry.fetchedAt >= this.redisTtl) {
+            return null;
+        }
+        entry = new Entry(entry.data, entry.fetchedAt, Math.min(entry.expiresAt, entry.fetchedAt + this.redisTtl));
+        if (now - entry.fetchedAt < this.memoryTtl) {
+            this.memory.put(key, entry);
+        }
+        return entry.data;
     }
 
     // 在模块检查请求有效性之后提交写入, 返回的 Future 只等待 Redis 应答.
@@ -75,18 +84,15 @@ final class HeadCache {
         CompletableFuture<?>[] writes = new CompletableFuture<?>[keys.size()];
         for (int i = 0; i < keys.size(); i++) {
             String key = keys.get(i);
-            if (this.memoryTtl > 0) this.memory.put(key, entry);
-            try {
-                writes[i] = this.redis == null ? CompletableFuture.completedFuture(null)
-                        : this.redis.async().set(this.key(key), value, SetArgs.Builder.px(this.redisTtl)).toCompletableFuture();
-            } catch (RuntimeException exception) {
-                writes[i] = CompletableFuture.failedFuture(exception);
+            if (this.memoryTtl > 0) {
+                this.memory.put(key, entry);
             }
+            writes[i] = this.redis == null ? CompletableFuture.completedFuture(null)
+                    : this.redis.async()
+                            .set(this.key(key), value, SetArgs.Builder.px(this.redisTtl))
+                            .toCompletableFuture();
         }
-        return CompletableFuture.allOf(writes).orTimeout(this.timeoutMillis, TimeUnit.MILLISECONDS).exceptionally(exception -> {
-            this.logger.warn("Could not write the head Redis cache; the fetched head is still available", exception);
-            return null;
-        });
+        return CompletableFuture.allOf(writes).orTimeout(this.timeoutMillis, TimeUnit.MILLISECONDS);
     }
 
     private byte[] key(String query) {

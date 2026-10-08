@@ -31,7 +31,11 @@ public final class FeatureEnableCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder
-                .required("feature", StringParser.stringParser(), (context, input) -> CompletableFuture.completedFuture(this.suggestions().stream().map(Suggestion::suggestion).toList()))
+                .required(
+                        "feature",
+                        StringParser.stringParser(),
+                        (context, input) -> CompletableFuture.completedFuture(this.suggestions().stream().map(Suggestion::suggestion).toList())
+                )
                 .handler(context -> this.plugin().scheduler().platform().execute(() -> this.execute(context))));
     }
 
@@ -77,8 +81,12 @@ public final class FeatureEnableCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_FAILURE, Component.text(id));
             return;
         }
-        this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_SUCCESS,
-                Component.text(id), Component.translatable("feature.state." + state.name().toLowerCase(Locale.ROOT)));
+        this.handleFeedback(
+                context,
+                MessageConstants.COMMAND_FEATURE_SUCCESS,
+                Component.text(id),
+                Component.translatable("feature.state." + state.name().toLowerCase(Locale.ROOT))
+        );
     }
 
     @Override

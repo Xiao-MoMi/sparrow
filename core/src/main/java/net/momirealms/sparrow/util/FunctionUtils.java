@@ -5,6 +5,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class FunctionUtils {
+
     private FunctionUtils() {}
 
     public static <T> T apply(T t, Consumer<T> function) {

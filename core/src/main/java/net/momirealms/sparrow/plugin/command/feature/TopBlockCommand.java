@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class TopBlockCommand extends BukkitCommandFeature {
+
     public TopBlockCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -52,26 +53,40 @@ public final class TopBlockCommand extends BukkitCommandFeature {
         }
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
-                Location location = entity.getLocation();
-                World world = location.getWorld();
-                Block block = world.getHighestBlockAt(location.getBlockX(), location.getBlockZ());
-                int y = block.isPassable() ? block.getY() : block.getY() + 1;
-                if (y < world.getMinHeight() || y + Math.ceil(entity.getHeight()) > world.getMaxHeight()
-                        || !world.getBlockAt(location.getBlockX(), y, location.getBlockZ()).isPassable()
-                        || !world.getBlockAt(location.getBlockX(), y + 1, location.getBlockZ()).isPassable()
-                        || block.isEmpty()) {
-                    this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE_SELF : MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE), Component.text(entity.getName()));
-                    return;
-                }
-                location.setY(y);
-                String name = entity.getName();
-                EntityUtils.teleport(entity, location).whenComplete((success, error) -> {
-                    if (error != null) {
-                        this.plugin().logger().warn("Failed to teleport " + name + " to the highest block", error);
-                    }
-                    this.handleFeedback(context, error == null && success ? (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS_SELF : MessageConstants.COMMAND_TOP_BLOCK_SUCCESS) : (entity == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE), Component.text(name));
-                });
-            }, () -> {}, entity);
+                        Location location = entity.getLocation();
+                        World world = location.getWorld();
+                        Block block = world.getHighestBlockAt(location.getBlockX(), location.getBlockZ());
+                        int y = block.isPassable() ? block.getY() : block.getY() + 1;
+                        if (y < world.getMinHeight() || y + Math.ceil(entity.getHeight()) > world.getMaxHeight()
+                                || !world.getBlockAt(location.getBlockX(), y, location.getBlockZ()).isPassable()
+                                || !world.getBlockAt(location.getBlockX(), y + 1, location.getBlockZ()).isPassable()
+                                || block.isEmpty()) {
+                            this.handleFeedback(
+                                    context,
+                                    (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE_SELF
+                                            : MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE),
+                                    Component.text(entity.getName())
+                            );
+                            return;
+                        }
+                        location.setY(y);
+                        String name = entity.getName();
+                        EntityUtils.teleport(entity, location)
+                                .whenComplete((success, error) -> {
+                                    if (error != null) {
+                                        this.plugin().logger().warn("Failed to teleport " + name + " to the highest block", error);
+                                    }
+                                    this.handleFeedback(
+                                            context,
+                                            error == null && success
+                                                    ? (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS_SELF
+                                                            : MessageConstants.COMMAND_TOP_BLOCK_SUCCESS)
+                                                                    : (entity == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF
+                                                                            : MessageConstants.COMMAND_TELEPORT_FAILURE),
+                                            Component.text(name)
+                                    );
+                                });
+                    }, () -> {}, entity);
         }
     }
 

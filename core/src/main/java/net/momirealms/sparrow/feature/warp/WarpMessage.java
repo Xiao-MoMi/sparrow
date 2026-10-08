@@ -126,8 +126,14 @@ public final class WarpMessage extends OneWayMessage<FriendlyByteBuf> {
         String name = ByteBufHelper.readUtf8(buffer, Warp.MAX_NAME_LENGTH);
         String description = ByteBufHelper.readUtf8(buffer, Warp.MAX_DESCRIPTION_LENGTH);
         String server = ByteBufHelper.readUtf8(buffer, 255);
-        WorldLocation location = new WorldLocation(ByteBufHelper.readUtf8(buffer, 255), buffer.readDouble(), buffer.readDouble(), buffer.readDouble(),
-                buffer.readFloat(), buffer.readFloat());
+        WorldLocation location = new WorldLocation(
+                ByteBufHelper.readUtf8(buffer, 255),
+                buffer.readDouble(),
+                buffer.readDouble(),
+                buffer.readDouble(),
+                buffer.readFloat(),
+                buffer.readFloat()
+        );
         UUID creator = buffer.readBoolean() ? buffer.readUUID() : null;
         return new Warp(id, name, description, server, location, creator, buffer.readLong(), buffer.readLong());
     }

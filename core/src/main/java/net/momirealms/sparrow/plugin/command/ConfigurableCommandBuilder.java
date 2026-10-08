@@ -35,7 +35,7 @@ public interface ConfigurableCommandBuilder {
 
         @Override
         public Command.Builder<CommandSender> build() {
-            return commandBuilder;
+            return this.commandBuilder;
         }
     }
 }

@@ -46,12 +46,14 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
             this.handleFeedback(sender, MessageConstants.COMMAND_HOME_NO_PERMISSION);
             return CompletableFuture.completedFuture(Optional.empty());
         }
-        return this.plugin().playerManager().resolvePlayer(name).thenApply(found -> {
-            if (found.isEmpty()) {
-                this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
-            }
-            return found;
-        });
+        return this.plugin().playerManager()
+                .resolvePlayer(name)
+                .thenApply(found -> {
+                    if (found.isEmpty()) {
+                        this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
+                    }
+                    return found;
+                });
     }
 
     protected void failed(CommandSender sender, Throwable error) {

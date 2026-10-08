@@ -26,9 +26,13 @@ public final class ModelDataParser<C> implements ArgumentParser<C, Number> {
         String value = input.readString();
         if (NUMBER.matcher(value).matches()) {
             try {
-                if (value.indexOf('.') < 0) return ArgumentParseResult.success(Integer.valueOf(value));
+                if (value.indexOf('.') < 0) {
+                    return ArgumentParseResult.success(Integer.valueOf(value));
+                }
                 float number = Float.parseFloat(value);
-                if (Float.isFinite(number)) return ArgumentParseResult.success(number);
+                if (Float.isFinite(number)) {
+                    return ArgumentParseResult.success(number);
+                }
             } catch (NumberFormatException ignored) {
                 return ArgumentParseResult.failure(new ModelDataParseException(value, context));
             }
@@ -37,6 +41,7 @@ public final class ModelDataParser<C> implements ArgumentParser<C, Number> {
     }
 
     public static final class ModelDataParseException extends ParserException {
+
         public ModelDataParseException(String input, CommandContext<?> context) {
             super(ModelDataParser.class, context, Caption.of("argument.parse.failure.modeldata"), CaptionVariable.of("input", input));
         }

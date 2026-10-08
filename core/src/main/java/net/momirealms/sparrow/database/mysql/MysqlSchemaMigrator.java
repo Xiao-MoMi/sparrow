@@ -73,8 +73,15 @@ public final class MysqlSchemaMigrator {
                 handle.addCleanable(() -> connection.setNetworkTimeout(Runnable::run, originalTimeout));
                 connection.setNetworkTimeout(Runnable::run, originalTimeout == 0 ? 0 : Math.max(originalTimeout, NETWORK_TIMEOUT_MILLIS));
                 // 命名锁跨 DDL 的隐式提交保持有效; 摘要让数据库名与前缀组成的锁名落在 64 字符上限内.
-                String lock = handle.createQuery("SELECT SHA2(CONCAT('sparrow-schema:', DATABASE(), ':', :prefix), 256)").bind("prefix", prefix).mapTo(String.class).one();
-                Integer acquired = handle.createQuery("SELECT GET_LOCK(:name, :seconds)").bind("name", lock).bind("seconds", LOCK_WAIT_SECONDS).mapTo(Integer.class).one();
+                String lock = handle.createQuery("SELECT SHA2(CONCAT('sparrow-schema:', DATABASE(), ':', :prefix), 256)")
+                        .bind("prefix", prefix)
+                        .mapTo(String.class)
+                        .one();
+                Integer acquired = handle.createQuery("SELECT GET_LOCK(:name, :seconds)")
+                        .bind("name", lock)
+                        .bind("seconds", LOCK_WAIT_SECONDS)
+                        .mapTo(Integer.class)
+                        .one();
                 if (!Integer.valueOf(1).equals(acquired)) {
                     throw new IllegalStateException("Could not acquire the MySQL schema migration lock within " + LOCK_WAIT_SECONDS + " seconds");
                 }
@@ -93,9 +100,19 @@ public final class MysqlSchemaMigrator {
     private void migrateLocked(Handle handle, String prefix) {
         // meta 是迁移管线的基础, 在业务表创建前就需要保存初始化目标.
         String meta = "`" + prefix + "meta`";
-        handle.execute("CREATE TABLE IF NOT EXISTS " + meta + " (`id` VARCHAR(32) NOT NULL PRIMARY KEY, `value` BIGINT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin");
-        long stored = handle.createQuery("SELECT `value` FROM " + meta + " WHERE `id` = :id").bind("id", this.component).mapTo(Long.class).findOne().orElse(0L);
-        Long pending = handle.createQuery("SELECT `value` FROM " + meta + " WHERE `id` = :id").bind("id", this.pendingId()).mapTo(Long.class).findOne().orElse(null);
+        handle.execute(
+                "CREATE TABLE IF NOT EXISTS " + meta + " (`id` VARCHAR(32) NOT NULL PRIMARY KEY, `value` BIGINT NOT NULL) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin"
+        );
+        long stored = handle.createQuery("SELECT `value` FROM " + meta + " WHERE `id` = :id")
+                .bind("id", this.component)
+                .mapTo(Long.class)
+                .findOne()
+                .orElse(0L);
+        Long pending = handle.createQuery("SELECT `value` FROM " + meta + " WHERE `id` = :id")
+                .bind("id", this.pendingId())
+                .mapTo(Long.class)
+                .findOne()
+                .orElse(null);
         // 较新的已完成版本或进行中版本都要求相应的迁移代码参与恢复.
         if (stored < 0 || stored > this.currentVersion) {
             throw new IllegalStateException("Unsupported MySQL schema version " + stored + ", supported up to " + this.currentVersion);
@@ -103,16 +120,25 @@ public final class MysqlSchemaMigrator {
         if (stored == 0) {
             // 初始化中断时, 必须由相同目标版本的完整建表定义恢复.
             if (pending != null && pending != this.currentVersion) {
-                throw new IllegalStateException("Unfinished MySQL schema initialization targets version " + pending + ", current version is " + this.currentVersion + "; finish initialization with the matching plugin version");
+                throw new IllegalStateException(
+                        "Unfinished MySQL schema initialization targets version " + pending + ", current version is " + this.currentVersion
+                                + "; finish initialization with the matching plugin version"
+                );
             }
             if (pending == null) {
-                long existing = handle.createQuery("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN (<tables>)")
-                        .bindList("tables", this.tables.stream().map(table -> prefix + table).toList()).mapTo(Long.class).one();
+                long existing = handle.createQuery(
+                        "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN (<tables>)"
+                )
+                        .bindList("tables", this.tables.stream().map(table -> prefix + table).toList())
+                        .mapTo(Long.class)
+                        .one();
                 if (existing != 0) {
                     throw new IllegalStateException("MySQL business tables exist without a schema version");
                 }
             }
-            this.logger.info(TranslationManager.console(LogConstants.STORAGE_MYSQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion)));
+            this.logger.info(
+                    TranslationManager.console(LogConstants.STORAGE_MYSQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion))
+            );
             this.markPending(handle, meta, this.currentVersion);
             this.initializer.accept(handle, prefix);
             this.complete(handle, meta, this.currentVersion);
@@ -121,12 +147,21 @@ public final class MysqlSchemaMigrator {
         if (pending != null && (pending != stored + 1 || pending > this.currentVersion)) {
             throw new IllegalStateException("Unsupported pending MySQL schema migration " + pending + " after version " + stored);
         }
-        if (stored == this.currentVersion) return;
+        if (stored == this.currentVersion) {
+            return;
+        }
         // 目标版本 2 位于下标 0, 从已完成版本的下一步开始执行.
         for (int i = (int) stored - 1; i < this.migrations.size(); i++) {
             MysqlSchemaMigration migration = this.migrations.get(i);
             int target = migration.targetVersion();
-            this.logger.info(TranslationManager.console(LogConstants.STORAGE_MYSQL_SCHEMA_MIGRATING, prefix, String.valueOf(target - 1), String.valueOf(target)));
+            this.logger.info(
+                    TranslationManager.console(
+                            LogConstants.STORAGE_MYSQL_SCHEMA_MIGRATING,
+                            prefix,
+                            String.valueOf(target - 1),
+                            String.valueOf(target)
+                    )
+            );
             this.markPending(handle, meta, target);
             migration.migrate(handle, prefix);
             this.complete(handle, meta, target);
@@ -139,16 +174,22 @@ public final class MysqlSchemaMigrator {
 
     // 在执行 DDL 前持久化目标版本, 供失败重启时识别未完成的布局.
     private void markPending(Handle handle, String meta, int target) {
-        handle.createUpdate("INSERT INTO " + meta + " (`id`, `value`) VALUES (:id, :version) ON DUPLICATE KEY UPDATE `value` = :version").bind("id", this.pendingId())
-                .bind("version", target).execute();
+        handle.createUpdate("INSERT INTO " + meta + " (`id`, `value`) VALUES (:id, :version) ON DUPLICATE KEY UPDATE `value` = :version")
+                .bind("id", this.pendingId())
+                .bind("version", target)
+                .execute();
     }
 
     // DDL 已完成, 用一个 DML 事务同时公布版本并清除进行中标记.
     private void complete(Handle handle, String meta, int target) {
         handle.useTransaction(transaction -> {
-            transaction.createUpdate("INSERT INTO " + meta + " (`id`, `value`) VALUES (:id, :version) ON DUPLICATE KEY UPDATE `value` = :version").bind("id", this.component)
-                    .bind("version", target).execute();
-            transaction.createUpdate("DELETE FROM " + meta + " WHERE `id` = :id").bind("id", this.pendingId()).execute();
+            transaction.createUpdate("INSERT INTO " + meta + " (`id`, `value`) VALUES (:id, :version) ON DUPLICATE KEY UPDATE `value` = :version")
+                    .bind("id", this.component)
+                    .bind("version", target)
+                    .execute();
+            transaction.createUpdate("DELETE FROM " + meta + " WHERE `id` = :id")
+                    .bind("id", this.pendingId())
+                    .execute();
         });
     }
 }

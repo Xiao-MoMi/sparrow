@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public final class EntityUtils {
+
     private EntityUtils() {
     }
 

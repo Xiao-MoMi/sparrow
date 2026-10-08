@@ -37,12 +37,12 @@ public final class BukkitExecutor extends AbstractBukkitExecutor {
 
     @Override
     public void run(Runnable r, Location location) {
-        execute(r);
+        this.execute(r);
     }
 
     @Override
     public void run(Runnable r, World world, int x, int z) {
-        execute(r);
+        this.execute(r);
     }
 
     @Override
@@ -75,7 +75,7 @@ public final class BukkitExecutor extends AbstractBukkitExecutor {
 
     @Override
     public SchedulerTask runLater(Runnable r, long delay, World world, int x, int z) {
-        return runLater0(r, delay);
+        return this.runLater0(r, delay);
     }
 
     @Override
@@ -95,7 +95,7 @@ public final class BukkitExecutor extends AbstractBukkitExecutor {
 
     @Override
     public SchedulerTask runLater(Runnable r, long delay, Location location) {
-        return runLater0(r, delay);
+        return this.runLater0(r, delay);
     }
 
     @NotNull

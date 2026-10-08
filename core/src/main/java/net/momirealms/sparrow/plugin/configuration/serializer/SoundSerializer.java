@@ -30,14 +30,14 @@ public final class SoundSerializer {
                 .apply(this::create)
                 .withAlternative(
                         NodeSerializers.sequence(Sound.class)
-                                .group(
-                                        keySerializer.required(0).forGetter(Sound::name),
-                                        NodeSerializers.FLOAT.optional(1, 1.0f).forGetter(Sound::volume),
-                                        NodeSerializers.FLOAT.optional(2, 1.0f).forGetter(Sound::pitch),
-                                        sourceSerializer.optional(3, Sound.Source.MASTER).forGetter(Sound::source),
-                                        NodeSerializers.LONG.optional(4).forGetter(this::getSeed)
-                                )
-                                .apply(this::create)
+                        .group(
+                                keySerializer.required(0).forGetter(Sound::name),
+                                NodeSerializers.FLOAT.optional(1, 1.0f).forGetter(Sound::volume),
+                                NodeSerializers.FLOAT.optional(2, 1.0f).forGetter(Sound::pitch),
+                                sourceSerializer.optional(3, Sound.Source.MASTER).forGetter(Sound::source),
+                                NodeSerializers.LONG.optional(4).forGetter(this::getSeed)
+                        )
+                        .apply(this::create)
                 )
                 .withAlternative(NodeSerializers.STRING, this::fromCsv)
                 .withAlternative(NodeSerializers.STRING, this::fromKey);
@@ -50,8 +50,13 @@ public final class SoundSerializer {
 
     @NotNull
     private Sound create(@NotNull Key key, float volume, float pitch, @NotNull Sound.Source source, @NotNull Optional<Long> seed) {
-        return Sound.sound().type(key).volume(volume).pitch(pitch).source(source)
-                .seed(seed.map(OptionalLong::of).orElseGet(OptionalLong::empty)).build();
+        return Sound.sound()
+                .type(key)
+                .volume(volume)
+                .pitch(pitch)
+                .source(source)
+                .seed(seed.map(OptionalLong::of).orElseGet(OptionalLong::empty))
+                .build();
     }
 
     @NotNull

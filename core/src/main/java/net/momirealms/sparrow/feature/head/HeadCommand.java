@@ -36,8 +36,11 @@ public final class HeadCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        Command.Builder<CommandSender> command = builder.handler(context -> this.plugin().scheduler().executeAsync(() -> this.execute(context)));
-        Command.Builder<CommandSender> source = command.required("source", StringParser.stringParser(), (context, input) ->
+        Command.Builder<CommandSender> command = builder.handler(this::execute);
+        Command.Builder<CommandSender> source = command.required(
+                "source",
+                StringParser.stringParser(),
+                (context, input) ->
                 CompletableFuture.completedFuture(this.plugin().playerManager().cluster().suggest(input.peekString()))
         );
         Command.Builder<CommandSender> amount = source.required("amount", IntegerParser.integerParser(1, 6400));
@@ -59,9 +62,13 @@ public final class HeadCommand extends BukkitCommandFeature {
             return;
         }
         MultiplePlayerSelector selector = context.getOrDefault("player", null);
-        List<Player> targets = selector != null ? List.copyOf(selector.values()) : context.sender() instanceof Player player ? List.of(player) : List.of();
+        List<Player> targets = selector != null ? List.copyOf(selector.values())
+                : (context.sender() instanceof Player player ? List.of(player) : List.of());
         if (targets.isEmpty()) {
-            this.handleFeedback(context.sender(), selector != null ? MessageConstants.COMMAND_TARGETS_EMPTY : MessageConstants.COMMAND_PLAYER_REQUIRED);
+            this.handleFeedback(
+                    context.sender(),
+                    selector != null ? MessageConstants.COMMAND_TARGETS_EMPTY : MessageConstants.COMMAND_PLAYER_REQUIRED
+            );
             return;
         }
         BukkitSparrowPlayer sender = context.sender() instanceof Player player ? plugin.playerManager().getPlayer(player) : null;
@@ -79,8 +86,10 @@ public final class HeadCommand extends BukkitCommandFeature {
             this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_INVALID, Component.text(source));
             return;
         }
-        future.whenCompleteAsync((data, error) -> {
-            if (context.sender() instanceof Player player && (sender == null || plugin.playerManager().getPlayer(player) != sender)) return;
+        future.whenComplete((data, error) -> {
+            if (context.sender() instanceof Player player && (sender == null || plugin.playerManager().getPlayer(player) != sender)) {
+                return;
+            }
             if (error != null) {
                 Throwable cause = error;
                 while ((cause instanceof CompletionException || cause instanceof ExecutionException) && cause.getCause() != null) {
@@ -105,20 +114,31 @@ public final class HeadCommand extends BukkitCommandFeature {
             for (int i = 0; i < targets.size(); i++) {
                 Player target = targets.get(i);
                 plugin.scheduler().platform().run(() -> {
-                    if (feature.give(target, data, amount, generation)) {
-                        this.handleFeedback(context, (target == context.sender() ? MessageConstants.COMMAND_HEAD_SUCCESS_SELF : MessageConstants.COMMAND_HEAD_SUCCESS), Component.text(amount), Component.text(source), Component.text(target.getName()));
-                    } else {
-                        this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
-                    }
-                }, () -> {}, target);
+                            if (feature.give(target, data, amount, generation)) {
+                                this.handleFeedback(
+                                        context,
+                                        (target == context.sender() ? MessageConstants.COMMAND_HEAD_SUCCESS_SELF
+                                                : MessageConstants.COMMAND_HEAD_SUCCESS),
+                                        Component.text(amount),
+                                        Component.text(source),
+                                        Component.text(target.getName())
+                                );
+                            } else {
+                                this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
+                            }
+                        }, () -> {}, target);
             }
-        }, plugin.scheduler().async());
+        });
     }
 
     @NotNull
     private static TranslatableComponent failure(@NotNull Throwable error) {
-        if (error instanceof TimeoutException || error instanceof HttpTimeoutException) return MessageConstants.COMMAND_HEAD_TIMEOUT;
-        if (error instanceof CancellationException) return MessageConstants.COMMAND_HEAD_CANCELLED;
+        if (error instanceof TimeoutException || error instanceof HttpTimeoutException) {
+            return MessageConstants.COMMAND_HEAD_TIMEOUT;
+        }
+        if (error instanceof CancellationException) {
+            return MessageConstants.COMMAND_HEAD_CANCELLED;
+        }
         if (error instanceof HeadFetchException fetch) {
             return switch (fetch.reason()) {
                 case THROTTLED -> MessageConstants.COMMAND_HEAD_THROTTLED;
@@ -131,5 +151,7 @@ public final class HeadCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public String getFeatureID() { return "head"; }
+    public String getFeatureID() {
+        return "head";
+    }
 }

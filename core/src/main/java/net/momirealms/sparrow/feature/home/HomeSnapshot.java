@@ -15,7 +15,9 @@ public final class HomeSnapshot {
     public HomeSnapshot(@NotNull List<Home> homes) {
         this.homes = homes.stream().sorted(Comparator.comparing(Home::key)).toList();
         Map<String, Home> byName = new HashMap<>();
-        for (Home home : this.homes) byName.put(home.key(), home);
+        for (Home home : this.homes) {
+            byName.put(home.key(), home);
+        }
         this.byName = Map.copyOf(byName);
     }
 
@@ -36,6 +38,10 @@ public final class HomeSnapshot {
     @NotNull
     public List<String> complete(@NotNull String input, int limit) {
         String prefix = Home.key(input);
-        return this.homes.stream().filter(home -> home.key().startsWith(prefix)).limit(limit).map(Home::name).toList();
+        return this.homes.stream()
+                .filter(home -> home.key().startsWith(prefix))
+                .limit(limit)
+                .map(Home::name)
+                .toList();
     }
 }

@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 public class Dependency {
     private static final String MAVEN_FORMAT = "%s/%s/%s/%s.jar";
+
     private final String groupId;
     private final String artifactId;
     private final String classifier;
@@ -83,7 +84,7 @@ public class Dependency {
      * @return 本地路径字符串
      */
     public String toLocalPath() {
-        return rewriteEscaping(this.groupId).replace(".", "/") + "/" + this.artifactId + "/" + version();
+        return rewriteEscaping(this.groupId).replace(".", "/") + "/" + this.artifactId + "/" + this.version();
     }
 
     /**
@@ -92,11 +93,12 @@ public class Dependency {
      * @return Maven 路径字符串
      */
     public String mavenPath() {
-        return String.format(MAVEN_FORMAT,
+        return String.format(
+                MAVEN_FORMAT,
                 rewriteEscaping(this.groupId).replace(".", "/"),
                 rewriteEscaping(this.artifactId),
-                version(),
-                rewriteEscaping(this.artifactId) + "-" + version() + (classifier.isEmpty() ? "" : "-" + classifier)
+                this.version(),
+                rewriteEscaping(this.artifactId) + "-" + this.version() + (this.classifier.isEmpty() ? "" : "-" + this.classifier)
         );
     }
 
@@ -121,7 +123,7 @@ public class Dependency {
         String extra = suffix == null || suffix.isEmpty()
                 ? ""
                 : "-" + suffix;
-        return name + "-" + this.version() + (classifier.isEmpty() ? "" : "-" + classifier)  + extra + ".jar";
+        return name + "-" + this.version() + (this.classifier.isEmpty() ? "" : "-" + this.classifier)  + extra + ".jar";
     }
 
     public boolean hasJarInJarPath() {
@@ -143,9 +145,9 @@ public class Dependency {
     @Override
     public String toString() {
         return "Dependency{" +
-                "groupId='" + groupId + '\'' +
-                "artifactId='" + artifactId + '\'' +
-                "classifier='" + classifier + '\'' +
+                "groupId='" + this.groupId + '\'' +
+                "artifactId='" + this.artifactId + '\'' +
+                "classifier='" + this.classifier + '\'' +
                 '}';
     }
 
@@ -240,7 +242,6 @@ public class Dependency {
          * 构建依赖项实例.
          *
          * @return 构建好的依赖项
-         * @throws NullPointerException 如果 groupId 或 artifactId 为 null
          */
         public Dependency build() {
             Objects.requireNonNull(this.groupId, "groupId is null");
@@ -261,23 +262,24 @@ public class Dependency {
      * 依赖获取来源
      */
     public sealed interface Source {
+
         Supplier<String> dataSupplier();
 
         record Maven(Supplier<String> versionSupplier) implements Source {
             @Override
             public Supplier<String> dataSupplier() {
-                return versionSupplier;
+                return this.versionSupplier;
             }
 
             public String version() {
-                return versionSupplier.get();
+                return this.versionSupplier.get();
             }
         }
 
         record JarInJar(Supplier<String> pathSupplier) implements Source {
             @Override
             public Supplier<String> dataSupplier() {
-                return pathSupplier;
+                return this.pathSupplier;
             }
 
             public String jarInJarPath() {

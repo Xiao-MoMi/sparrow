@@ -59,7 +59,12 @@ public final class ServerHeartBeats {
         }
         // 占到身份后立即登记, 加载完成时本服已出现在在线列表中
         this.plugin.redisConnector().connection().sync().eval(HEARTBEAT_SCRIPT, ScriptOutputType.INTEGER, this.heartbeatKeys(), this.heartbeatArguments());
-        this.heartbeatTask = this.plugin.scheduler().asyncRepeating(this::heartbeat, HEARTBEAT_INTERVAL_MILLIS, HEARTBEAT_INTERVAL_MILLIS, TimeUnit.MILLISECONDS);
+        this.heartbeatTask = this.plugin.scheduler().asyncRepeating(
+                this::heartbeat,
+                HEARTBEAT_INTERVAL_MILLIS,
+                HEARTBEAT_INTERVAL_MILLIS,
+                TimeUnit.MILLISECONDS
+        );
     }
 
     /**
@@ -166,7 +171,14 @@ public final class ServerHeartBeats {
         if (task == null) return;
         task.cancel();
         // 只注销仍属于本次启动的身份, 已被接管的身份保持原样.
-        this.plugin.redisConnector().connection().async().eval(DELETE_SCRIPT, ScriptOutputType.INTEGER, this.heartbeatKeys(), this.token.getBytes(StandardCharsets.UTF_8), this.serverId.getBytes(StandardCharsets.UTF_8));
+        this.plugin.redisConnector().connection().async()
+                .eval(
+                        DELETE_SCRIPT,
+                        ScriptOutputType.INTEGER,
+                        this.heartbeatKeys(),
+                        this.token.getBytes(StandardCharsets.UTF_8),
+                        this.serverId.getBytes(StandardCharsets.UTF_8)
+                );
     }
 
 

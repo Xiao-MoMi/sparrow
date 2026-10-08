@@ -58,10 +58,14 @@ public record BanRecord(@NotNull String id,
      */
     @Nullable
     public static String parseId(@NotNull String input) {
-        if (input.length() != ID_LENGTH + 1 || input.charAt(0) != ID_PREFIX) return null;
+        if (input.length() != ID_LENGTH + 1 || input.charAt(0) != ID_PREFIX) {
+            return null;
+        }
         String id = input.substring(1).toUpperCase(Locale.ROOT);
         for (int i = 0; i < ID_LENGTH; i++) {
-            if (Arrays.binarySearch(ID_ALPHABET, id.charAt(i)) < 0) return null;
+            if (Arrays.binarySearch(ID_ALPHABET, id.charAt(i)) < 0) {
+                return null;
+            }
         }
         return id;
     }
@@ -77,8 +81,12 @@ public record BanRecord(@NotNull String id,
     // 玩家名, IP, 或 "玩家名 + IP"
     @NotNull
     public String display() {
-        if (this.ip == null) return String.valueOf(this.playerName);
-        if (this.player == null) return this.ip.toString();
+        if (this.ip == null) {
+            return String.valueOf(this.playerName);
+        }
+        if (this.player == null) {
+            return this.ip.toString();
+        }
         return this.playerName + " + " + this.ip;
     }
 }

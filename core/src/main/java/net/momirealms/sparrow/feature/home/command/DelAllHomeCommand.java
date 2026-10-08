@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class DelAllHomeCommand extends AbstractHomeCommand {
+
     public DelAllHomeCommand(HomeFeature feature) {
         super(feature);
     }
@@ -24,9 +25,14 @@ public final class DelAllHomeCommand extends AbstractHomeCommand {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(ConsoleCommandSender.class)
-                .flag(manager.flagBuilder("player").withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster())).build())
+                .flag(
+                        manager.flagBuilder("player")
+                        .withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+                        .build()
+                )
                 .flag(manager.flagBuilder("server").withComponent(StringParser.quotedStringParser()).build())
-                .flag(manager.flagBuilder("world").withComponent(StringParser.quotedStringParser()).build()).handler(this::execute));
+                .flag(manager.flagBuilder("world").withComponent(StringParser.quotedStringParser()).build())
+                .handler(this::execute));
     }
 
     private void execute(CommandContext<ConsoleCommandSender> context) {
@@ -37,15 +43,20 @@ public final class DelAllHomeCommand extends AbstractHomeCommand {
             this.handleFeedback(context, MessageConstants.COMMAND_DEL_ALL_HOME_FILTER_REQUIRED);
             return;
         }
-        CompletableFuture<Optional<PlayerRef>> resolving = player == null ? CompletableFuture.completedFuture(Optional.empty()) : this.plugin().playerManager().resolvePlayer(player);
+        CompletableFuture<Optional<PlayerRef>> resolving = player == null ? CompletableFuture.completedFuture(Optional.empty())
+                : this.plugin().playerManager().resolvePlayer(player);
         resolving.thenCompose(owner -> {
             if (player != null && owner.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(player));
                 return CompletableFuture.completedFuture(null);
             }
             HomeStore.Filter filter = new HomeStore.Filter(owner.map(PlayerRef::uuid).orElse(null), server, world);
-            return this.feature.service().deleteAll(filter).thenAccept(count -> this.handleFeedback(context, MessageConstants.COMMAND_DEL_ALL_HOME_SUCCESS, Component.text(count)));
-        }).exceptionally(error -> { this.failed(context.sender(), error); return null; });
+            return super.feature.service()
+                    .deleteAll(filter)
+                    .thenAccept(count -> this.handleFeedback(context, MessageConstants.COMMAND_DEL_ALL_HOME_SUCCESS, Component.text(count)));
+        }).exceptionally(error -> {
+            this.failed(context.sender(), error); return null;
+        });
     }
 
     @Override

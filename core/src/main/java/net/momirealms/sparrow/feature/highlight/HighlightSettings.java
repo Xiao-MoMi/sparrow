@@ -29,19 +29,33 @@ public final class HighlightSettings implements FeatureSettings {
     private int selectionTimeout = 30;
 
     @Override
-    public boolean enabled() { return this.enabled; }
+    public boolean enabled() {
+        return this.enabled;
+    }
 
     @Override
-    public void enabled(boolean enabled) { this.enabled = enabled; }
+    public void enabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 
     @NotNull
-    public String defaultColor() { return this.defaultColor; }
+    public String defaultColor() {
+        return this.defaultColor;
+    }
 
-    public int defaultDuration() { return this.defaultDuration; }
+    public int defaultDuration() {
+        return this.defaultDuration;
+    }
 
-    public int maxBlocks() { return this.maxBlocks; }
+    public int maxBlocks() {
+        return this.maxBlocks;
+    }
 
-    public boolean solidOnly() { return this.solidOnly; }
+    public boolean solidOnly() {
+        return this.solidOnly;
+    }
 
-    public int selectionTimeout() { return this.selectionTimeout; }
+    public int selectionTimeout() {
+        return this.selectionTimeout;
+    }
 }

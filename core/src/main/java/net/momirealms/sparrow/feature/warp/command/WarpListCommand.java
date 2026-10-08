@@ -43,7 +43,9 @@ public final class WarpListCommand extends BukkitCommandFeature {
         int size = all.size();
         for (int i = 0; i < size; i++) {
             Warp warp = all.get(i);
-            if (this.feature.visible(sender, warp)) visible.add(warp);
+            if (this.feature.visible(sender, warp)) {
+                visible.add(warp);
+            }
         }
         int pages = Math.max(1, (visible.size() + PAGE_SIZE - 1) / PAGE_SIZE);
         int index = Math.min(context.<Integer>getOrDefault("page", 1), pages) - 1;

@@ -25,7 +25,7 @@ public enum DependencyRepository {
             return connection;
         }
     },
-    
+
     // Google 镜像仓库.
     GOOGLE("maven", "https://maven-central.storage-download.googleapis.com/maven2/") {
         @Override
@@ -36,7 +36,7 @@ public enum DependencyRepository {
             return connection;
         }
     },
-    
+
     // 阿里云 镜像仓库.
     ALIYUN("maven", "https://maven.aliyun.com/repository/public/");
 
@@ -52,20 +52,12 @@ public enum DependencyRepository {
         this.id = id;
     }
 
-    /**
-     * 获取仓库的标识符.
-     *
-     * @return 仓库的标识符字符串.
-     */
+
     public String id() {
-        return id;
+        return this.id;
     }
 
-    /**
-     * 获取该仓库的基础 URL 地址.
-     *
-     * @return 仓库的基础 URL.
-     */
+
     public String getUrl() {
         return this.url;
     }
@@ -78,7 +70,9 @@ public enum DependencyRepository {
      */
     public static List<DependencyRepository> getByID(String id) {
         ArrayList<DependencyRepository> repositories = new ArrayList<>();
-        for (DependencyRepository repository : values()) {
+        DependencyRepository[] repositoryValues = values();
+        for (int repositoryIndex = 0, repositoryCount = repositoryValues.length; repositoryIndex < repositoryCount; repositoryIndex++) {
+            DependencyRepository repository = repositoryValues[repositoryIndex];
             if (id.equals(repository.id)) {
                 repositories.add(repository);
             }
@@ -112,7 +106,7 @@ public enum DependencyRepository {
      */
     public byte[] download(Dependency dependency) throws DependencyDownloadException {
         try {
-            URLConnection connection = openConnection(dependency);
+            URLConnection connection = this.openConnection(dependency);
             try (InputStream in = connection.getInputStream()) {
                 byte[] bytes = in.readAllBytes();
                 if (bytes.length == 0) {
@@ -135,7 +129,7 @@ public enum DependencyRepository {
     public void download(Dependency dependency, Path file) throws DependencyDownloadException {
         try {
             Files.createDirectories(file.getParent());
-            Files.write(file, download(dependency));
+            Files.write(file, this.download(dependency));
         } catch (IOException e) {
             throw new DependencyDownloadException(e);
         }

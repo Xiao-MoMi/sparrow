@@ -7,12 +7,14 @@ public enum Tristate {
     FALSE(false),
     UNDEFINED(false);
 
-    public static @NotNull Tristate of(boolean val) {
+    @NotNull
+    public static Tristate of(boolean val) {
         return val ? TRUE : FALSE;
     }
 
-    public static @NotNull Tristate of(Boolean val) {
-        return val == null ? UNDEFINED : val ? TRUE : FALSE;
+    @NotNull
+    public static Tristate of(Boolean val) {
+        return val == null ? UNDEFINED : (val ? TRUE : FALSE);
     }
 
     private final boolean booleanValue;

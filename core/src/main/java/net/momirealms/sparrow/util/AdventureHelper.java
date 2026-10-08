@@ -15,7 +15,9 @@ import net.momirealms.sparrow.message.MiniMessage;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
 import net.momirealms.sparrow.reflection.clazz.SparrowClass;
 import net.momirealms.sparrow.reflection.field.matcher.FieldMatcher;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.function.Function;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 
 public final class AdventureHelper {
     public static final String EMPTY_COMPONENT = componentToJson(Component.empty());
+
     private final MiniMessage miniMessage;
     private final MiniMessage miniMessageStrict;
     private final MiniMessage miniMessageCustom;
@@ -34,7 +37,10 @@ public final class AdventureHelper {
     private static final TextReplacementConfig REPLACE_LF = TextReplacementConfig.builder().matchLiteral("\n").replacement(Component.newline()).build();
 
     static {
-        SparrowClass.of(SparrowClass.findNoRemap("net.kyori.adventure.text.TextComponentImpl")).getDeclaredSparrowField(FieldMatcher.named("WARN_WHEN_LEGACY_FORMATTING_DETECTED")).mh().set(null, false);
+        SparrowClass.of(SparrowClass.findNoRemap("net.kyori.adventure.text.TextComponentImpl"))
+                .getDeclaredSparrowField(FieldMatcher.named("WARN_WHEN_LEGACY_FORMATTING_DETECTED"))
+                .mh()
+                .set(null, false);
     }
 
     /**
@@ -71,6 +77,11 @@ public final class AdventureHelper {
     @NotNull
     public static Component miniMessage(@NotNull String text, boolean legacy) {
         return miniMessage().deserialize(legacy ? legacyToMiniMessage(text) : text);
+    }
+
+    @NotNull
+    public static Component miniMessage(@NotNull String text, boolean legacy, @Nullable Player player) {
+        return miniMessage().deserialize(legacy ? legacyToMiniMessage(text) : text, MessageContext.of(player));
     }
 
     public static MiniMessage strictMiniMessage() {
@@ -401,7 +412,8 @@ public final class AdventureHelper {
         return text.replaceText(builder ->
                 builder.match(Pattern.compile(patternString))
                         .replacement((result, b) -> {
-                            String target = Optional.ofNullable(replacements.get(result.group())).orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'"));
+                            String target = Optional.ofNullable(replacements.get(result.group()))
+                                    .orElseThrow(() -> new IllegalStateException("Could not find tag '" + result.group() + "'"));
                             return Component.text(target);
                         })
         );

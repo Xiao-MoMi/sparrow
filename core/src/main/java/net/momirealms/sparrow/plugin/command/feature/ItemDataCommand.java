@@ -38,31 +38,33 @@ public final class ItemDataCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
-        this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
-            if (item.isEmpty()) {
-                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_ITEMLESS);
-                return;
-            }
-            DataResult<Map<String, Object>> result = ItemUtils.readableData(item, ((CraftServer) player.getServer()).getServer().registryAccess(), context.flags().hasFlag("full"));
-            if (result.error().isPresent()) {
-                this.plugin().logger().warn("Failed to read item data: " + result.error().get().message());
-                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_FAILURE);
-                return;
-            }
-            Map<String, Object> data = result.getOrThrow();
-            List<Component> lines = DataTreeRenderer.render(data, true);
-            Component output;
-            if (!context.flags().hasFlag("chat") && lines.size() > MAX_CHAT_LINES) {
-                Component hover = Component.join(JoinConfiguration.newlines(), DataTreeRenderer.render(data, false));
-                output = MessageConstants.COMMAND_ITEM_DATA_SUMMARY
-                        .arguments(Component.text(lines.size()))
-                        .hoverEvent(hover);
-            } else {
-                output = Component.join(JoinConfiguration.newlines(), lines);
-            }
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_SUCCESS, output);
-        }, () -> {}, player);
+        ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
+        if (item.isEmpty()) {
+            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_ITEMLESS);
+            return;
+        }
+        DataResult<Map<String, Object>> result = ItemUtils.readableData(
+                item,
+                ((CraftServer) player.getServer()).getServer().registryAccess(),
+                context.flags().hasFlag("full")
+        );
+        if (result.error().isPresent()) {
+            this.plugin().logger().warn("Failed to read item data: " + result.error().get().message());
+            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_FAILURE);
+            return;
+        }
+        Map<String, Object> data = result.getOrThrow();
+        List<Component> lines = DataTreeRenderer.render(data, true);
+        Component output;
+        if (!context.flags().hasFlag("chat") && lines.size() > MAX_CHAT_LINES) {
+            Component hover = Component.join(JoinConfiguration.newlines(), DataTreeRenderer.render(data, false));
+            output = MessageConstants.COMMAND_ITEM_DATA_SUMMARY
+                    .arguments(Component.text(lines.size()))
+                    .hoverEvent(hover);
+        } else {
+            output = Component.join(JoinConfiguration.newlines(), lines);
+        }
+        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_SUCCESS, output);
     }
 
     @Override

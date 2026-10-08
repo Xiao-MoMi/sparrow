@@ -145,26 +145,26 @@ public class SparrowPlugin implements Plugin {
     @Override
     public void onPluginEnable() {
         if (this.successfullyEnabled) {
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(TranslationManager.console(LogConstants.PLUGIN_RESTART_AT_RUNTIME));
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_RESTART_AT_RUNTIME));
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
             Bukkit.getPluginManager().disablePlugin(this.javaPlugin);
             return;
         }
         this.successfullyEnabled = true;
         if (!this.successfullyLoaded) {
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(TranslationManager.console(LogConstants.PLUGIN_ENABLE_FAILED));
-            logger().error(TranslationManager.console(LogConstants.PLUGIN_SHUTDOWN_AFTER_FAILURE));
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_ENABLE_FAILED));
+            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_SHUTDOWN_AFTER_FAILURE));
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
             Bukkit.getServer().shutdown();
             return;
         }
@@ -204,13 +204,13 @@ public class SparrowPlugin implements Plugin {
         if (this.dataStorage != null) this.dataStorage.close();
         if (this.dependencyManager != null) this.dependencyManager.close();
         if (ServerUtils.isRunning()) {
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(TranslationManager.console(LogConstants.PLUGIN_DISABLE_AT_RUNTIME));
-            logger().error(" ");
-            logger().error(" ");
-            logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_DISABLE_AT_RUNTIME));
+            this.logger().error(" ");
+            this.logger().error(" ");
+            this.logger().error(" ");
             Bukkit.getServer().shutdown();
         }
     }
@@ -247,24 +247,32 @@ public class SparrowPlugin implements Plugin {
             this.featureManager.onReloadStart();
             long disableTime = System.currentTimeMillis() - disableStartTime;
             return CompletableFuture
-                    .supplyAsync(() -> {
-                        // 执行异步重载任务
-                        long startTime = System.currentTimeMillis();
-                        this.configurationManager.reload();
-                        this.translationManager.reload();
-                        this.featureManager.onReloadAsync();
-                        return System.currentTimeMillis() - startTime;
-                    }, asyncExecutor
-                    ).thenApplyAsync(asyncTime -> {
-                        // 执行同步重载任务
-                        long syncStartTime = System.currentTimeMillis();
-                        this.featureManager.onReloadFinish();
-                        long syncTime = disableTime + System.currentTimeMillis() - syncStartTime;
-                        return ReloadResult.success(asyncTime, syncTime, 0);
-                    }, syncExecutor
-                    ).handle((result, error) -> {
+                    .supplyAsync(
+                            () -> {
+                                // 执行异步重载任务
+                                long startTime = System.currentTimeMillis();
+                                this.configurationManager.reload();
+                                this.translationManager.reload();
+                                this.featureManager.onReloadAsync();
+                                return System.currentTimeMillis() - startTime;
+                            },
+                            asyncExecutor
+                    )
+                    .thenApplyAsync(
+                            asyncTime -> {
+                                // 执行同步重载任务
+                                long syncStartTime = System.currentTimeMillis();
+                                this.featureManager.onReloadFinish();
+                                long syncTime = disableTime + System.currentTimeMillis() - syncStartTime;
+                                return ReloadResult.success(asyncTime, syncTime, 0);
+                            },
+                            syncExecutor
+                    )
+                    .handle((result, error) -> {
                         this.reloading.set(false);
-                        if (error == null) return result;
+                        if (error == null) {
+                            return result;
+                        }
                         Throwable cause = error instanceof CompletionException ? error.getCause() : error;
                         this.logger().warn(TranslationManager.console(LogConstants.PLUGIN_RELOAD_FAILED), cause);
                         return ReloadResult.failure();
@@ -396,10 +404,11 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public InputStream resourceStream(String filePath) {
-        return getResource(CharacterUtils.replaceBackslashWithSlash(filePath));
+        return this.getResource(CharacterUtils.replaceBackslashWithSlash(filePath));
     }
 
-    private @Nullable InputStream getResource(String filename) {
+    @Nullable
+    private InputStream getResource(String filename) {
         if (filename == null) {
             throw new IllegalArgumentException("filename cannot be null");
         }
@@ -429,7 +438,7 @@ public class SparrowPlugin implements Plugin {
     @SuppressWarnings("deprecation")
     @Override
     public String pluginVersion() {
-        return javaPlugin().getDescription().getVersion();
+        return this.javaPlugin().getDescription().getVersion();
     }
 
     public JavaPlugin javaPlugin() {
@@ -443,17 +452,19 @@ public class SparrowPlugin implements Plugin {
             throw new IllegalArgumentException("ResourcePath cannot be null or empty");
         }
 
-        File outFile = new File(dataFolderFile(), resourcePath);
-        if (outFile.exists())
+        File outFile = new File(this.dataFolderFile(), resourcePath);
+        if (outFile.exists()) {
             return;
+        }
 
         resourcePath = resourcePath.replace('\\', '/');
-        InputStream in = resourceStream(resourcePath);
-        if (in == null)
+        InputStream in = this.resourceStream(resourcePath);
+        if (in == null) {
             return;
+        }
 
         int lastIndex = resourcePath.lastIndexOf('/');
-        File outDir = new File(dataFolderFile(), resourcePath.substring(0, Math.max(lastIndex, 0)));
+        File outDir = new File(this.dataFolderFile(), resourcePath.substring(0, Math.max(lastIndex, 0)));
 
         if (!outDir.exists()) {
             outDir.mkdirs();

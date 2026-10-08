@@ -55,7 +55,12 @@ public final class UnbanCommand extends BukkitCommandFeature {
                 if (revoked.isEmpty()) {
                     this.handleFeedback(sender, MessageConstants.COMMAND_UNBAN_NONE, Component.text(target.display()));
                 } else {
-                    this.handleFeedback(context, MessageConstants.COMMAND_UNBAN_SUCCESS, Component.text(target.display()), Component.text(revoked.size()));
+                    this.handleFeedback(
+                            context,
+                            MessageConstants.COMMAND_UNBAN_SUCCESS,
+                            Component.text(target.display()),
+                            Component.text(revoked.size())
+                    );
                 }
             });
         }).exceptionally(error -> {

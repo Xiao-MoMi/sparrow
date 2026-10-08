@@ -30,7 +30,7 @@ public final class QuickShulkerFeature extends Feature<QuickShulkerSettings> imp
 
     @Override
     public void loadConfig() {
-        this.config = this.featuresConfig.config().quickShulker();
+        super.config = this.featuresConfig.config().quickShulker();
     }
 
     @Override

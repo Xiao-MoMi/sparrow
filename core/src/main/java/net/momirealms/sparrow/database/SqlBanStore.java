@@ -80,7 +80,10 @@ public abstract class SqlBanStore implements BanStore {
         String sql = "SELECT * FROM " + this.bans + " WHERE " + ACTIVE + " AND (player = :player OR (ip_start <= :ip AND ip_end >= :ip))"
                 + " ORDER BY CASE WHEN player = :player THEN 0 ELSE 1 END, CASE WHEN expires_at = 0 THEN 0 ELSE 1 END, expires_at DESC LIMIT 1";
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "player", player)
-                .bind("ip", ip).bind("now", now).map((result, context) -> this.readBan(result)).findOne()), this.executor);
+                .bind("ip", ip)
+                .bind("now", now)
+                .map((result, context) -> this.readBan(result))
+                .findOne()), this.executor);
     }
 
     @NotNull
@@ -140,24 +143,33 @@ public abstract class SqlBanStore implements BanStore {
         };
         String select = "SELECT * FROM " + this.bans + " WHERE " + ACTIVE + " AND " + match;
         String revoke = "UPDATE " + this.bans + " SET revoked_at = :now, revoked_by = :by WHERE id IN (<ids>)";
-        return CompletableFuture.supplyAsync(() -> this.sql().inTransaction(handle -> {
-            List<BanRecord> revoked = this.bindTarget(handle.createQuery(select), target).bind("now", now).map((result, context) -> this.readBan(result)).list();
-            if (revoked.isEmpty()) return revoked;
-            int size = revoked.size();
-            List<String> ids = new ArrayList<>(size);
-            for (int i = 0; i < size; i++) {
-                ids.add(revoked.get(i).id());
-            }
-            handle.createUpdate(revoke).bindList("ids", ids).bind("now", now).bind("by", revokedBy).execute();
-            return revoked;
-        }), this.executor);
+        return CompletableFuture.supplyAsync(() ->
+                this.sql().inTransaction(handle -> {
+                    List<BanRecord> revoked = this.bindTarget(handle.createQuery(select), target)
+                            .bind("now", now)
+                            .map((result, context) -> this.readBan(result))
+                            .list();
+                    if (revoked.isEmpty()) {
+                        return revoked;
+                    }
+                    int size = revoked.size();
+                    List<String> ids = new ArrayList<>(size);
+                    for (int i = 0; i < size; i++) {
+                        ids.add(revoked.get(i).id());
+                    }
+                    handle.createUpdate(revoke).bindList("ids", ids).bind("now", now).bind("by", revokedBy).execute();
+                    return revoked;
+                }), this.executor);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Long> countBans(@NotNull BanQuery query) {
         String sql = "SELECT COUNT(*) FROM " + this.bans + where(query);
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindQuery(handle.createQuery(sql), query).mapTo(Long.class).one()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> this.bindQuery(handle.createQuery(sql), query).mapTo(Long.class).one()),
+                this.executor
+        );
     }
 
     @Override
@@ -165,7 +177,10 @@ public abstract class SqlBanStore implements BanStore {
     public CompletableFuture<List<BanRecord>> listBans(@NotNull BanQuery query, int offset, int limit) {
         String sql = "SELECT * FROM " + this.bans + where(query) + " ORDER BY created_at DESC, id DESC LIMIT :limit OFFSET :offset";
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindQuery(handle.createQuery(sql), query)
-                .bind("limit", limit).bind("offset", offset).map((result, context) -> this.readBan(result)).list()), this.executor);
+                .bind("limit", limit)
+                .bind("offset", offset)
+                .map((result, context) -> this.readBan(result))
+                .list()), this.executor);
     }
 
     // IP 目标匹配完整覆盖它的 IP 段, 包括账号加 IP 的封禁
@@ -238,8 +253,18 @@ public abstract class SqlBanStore implements BanStore {
     private BanRecord readBan(ResultSet result) throws SQLException {
         long start = result.getLong("ip_start");
         IpRange ip = result.wasNull() ? null : new IpRange(start, result.getLong("ip_end"));
-        return new BanRecord(result.getString("id"), this.readUuid(result, "player"), result.getString("player_name"), ip,
-                result.getString("reason"), result.getString("operator_name"), result.getString("server"),
-                result.getLong("created_at"), result.getLong("expires_at"), result.getLong("revoked_at"), result.getString("revoked_by"));
+        return new BanRecord(
+                result.getString("id"),
+                this.readUuid(result, "player"),
+                result.getString("player_name"),
+                ip,
+                result.getString("reason"),
+                result.getString("operator_name"),
+                result.getString("server"),
+                result.getLong("created_at"),
+                result.getLong("expires_at"),
+                result.getLong("revoked_at"),
+                result.getString("revoked_by")
+        );
     }
 }

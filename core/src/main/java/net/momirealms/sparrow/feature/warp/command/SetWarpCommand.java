@@ -30,8 +30,11 @@ public final class SetWarpCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
-                .required("name", StringParser.greedyFlagYieldingStringParser(),
-                        SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.remainingInput())))
+                .required(
+                        "name",
+                        StringParser.greedyFlagYieldingStringParser(),
+                        SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.remainingInput()))
+                )
                 .handler(this::execute));
     }
 
@@ -42,20 +45,32 @@ public final class SetWarpCommand extends BukkitCommandFeature {
     }
 
     private void save(CommandContext<Player> context, String name, WorldLocation location) {
-        this.feature.service().set(name, ServerConfig.serverId(), location, context.sender().getUniqueId()).thenAccept(result -> {
-            switch (result.status()) {
-                case CREATED -> this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_CREATED, Component.text(result.warp().name()));
-                case UPDATED -> this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_MOVED, Component.text(result.warp().name()));
-                case DUPLICATE_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_EXISTS, Component.text(name));
-                case NOT_FOUND -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
-                case INVALID_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_INVALID_NAME, Component.text(name), Component.text(Warp.MAX_NAME_LENGTH));
-                case DESCRIPTION_TOO_LONG -> throw new AssertionError();
-            }
-        }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to save warp " + name, error);
-            this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(name));
-            return null;
-        });
+        this.feature.service()
+                .set(name, ServerConfig.serverId(), location, context.sender().getUniqueId())
+                .thenAccept(result -> {
+                    switch (result.status()) {
+                        case CREATED -> this.handleFeedback(
+                                context,
+                                MessageConstants.COMMAND_SET_WARP_CREATED,
+                                Component.text(result.warp().name())
+                        );
+                        case UPDATED -> this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_MOVED, Component.text(result.warp().name()));
+                        case DUPLICATE_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_EXISTS, Component.text(name));
+                        case NOT_FOUND -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
+                        case INVALID_NAME -> this.handleFeedback(
+                                context,
+                                MessageConstants.COMMAND_WARP_INVALID_NAME,
+                                Component.text(name),
+                                Component.text(Warp.MAX_NAME_LENGTH)
+                        );
+                        case DESCRIPTION_TOO_LONG -> throw new AssertionError();
+                    }
+                })
+                .exceptionally(error -> {
+                    this.plugin().logger().warn("Failed to save warp " + name, error);
+                    this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(name));
+                    return null;
+                });
     }
 
     @Override

@@ -24,20 +24,25 @@ public final class SetSpawnCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(
-            org.incendo.cloud.@NonNull CommandManager<CommandSender> manager,
-            @NotNull Command.Builder<CommandSender> builder
-    ) {
-        Command.Builder<Player> cmd = builder.senderType(Player.class).handler(context -> {
-            Spawn spawn = new Spawn(ServerConfig.serverId(), WorldLocation.from(context.sender().getLocation()));
-            this.feature.service().set(spawn)
-                    .thenAccept(ignored -> this.handleFeedback(context, MessageConstants.COMMAND_SET_SPAWN_SUCCESS, Component.text(spawn.server())))
-                    .exceptionally(error -> {
-                        this.plugin().logger().warn("Failed to set spawn", error);
-                        this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_STORAGE_FAILED);
-                        return null;
-                    });
-        });
+    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
+        Command.Builder<Player> cmd = builder.senderType(Player.class)
+                .handler(context -> {
+                    Spawn spawn = new Spawn(ServerConfig.serverId(), WorldLocation.from(context.sender().getLocation()));
+                    this.feature.service()
+                            .set(spawn)
+                            .thenAccept(
+                                    ignored -> this.handleFeedback(
+                                            context,
+                                            MessageConstants.COMMAND_SET_SPAWN_SUCCESS,
+                                            Component.text(spawn.server())
+                                    )
+                            )
+                            .exceptionally(error -> {
+                                this.plugin().logger().warn("Failed to set spawn", error);
+                                this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_STORAGE_FAILED);
+                                return null;
+                            });
+                });
         manager.command(cmd);
     }
 

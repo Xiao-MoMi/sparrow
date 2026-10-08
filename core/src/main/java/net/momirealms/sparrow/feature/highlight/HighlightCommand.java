@@ -82,9 +82,17 @@ public final class HighlightCommand extends BukkitCommandFeature {
             return;
         }
         HighlightSettings settings = feature.config();
-        NamedTextColor color = context.flags().getValue("highlight-color", NamedTextColor.NAMES.value(settings.defaultColor().toLowerCase(Locale.ROOT)));
+        NamedTextColor color = context.flags().getValue(
+                "highlight-color",
+                NamedTextColor.NAMES.value(settings.defaultColor().toLowerCase(Locale.ROOT))
+        );
         int duration = context.flags().getValue("highlight-duration", settings.defaultDuration());
-        HighlightFeature.Options options = new HighlightFeature.Options(viewers, color, duration, settings.solidOnly() || context.flags().hasFlag("solid-only"));
+        HighlightFeature.Options options = new HighlightFeature.Options(
+                viewers,
+                color,
+                duration,
+                settings.solidOnly() || context.flags().hasFlag("solid-only")
+        );
         HighlightFeature.Feedback feedback = (key, arguments) -> this.handleFeedback(context, key, arguments);
         if (first == null) {
             feature.select(sender, options, feedback);

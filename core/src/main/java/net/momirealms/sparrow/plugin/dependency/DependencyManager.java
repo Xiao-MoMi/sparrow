@@ -102,7 +102,7 @@ public class DependencyManager  {
             // 对于未加载的依赖项, 将加载任务提交到异步线程池.
             this.loadingExecutor.execute(() -> {
                 try {
-                    loadDependency(dependency);
+                    this.loadDependency(dependency);
                 } catch (Throwable e) {
                     this.plugin.logger().warn("Unable to load dependency " + dependency.artifactId(), e);
                 } finally {
@@ -127,17 +127,21 @@ public class DependencyManager  {
      */
     private void loadDependency(Dependency dependency) throws Exception {
         // 再次检查缓存, 防止并发加载同一个依赖项.
-        if (this.loaded.containsKey(dependency)) return;
+        if (this.loaded.containsKey(dependency)) {
+            return;
+        }
 
         // 调用 downloadDependency 获取或下载依赖项的原始 jar 文件.
-        Path downloadDependency = downloadDependency(dependency);
+        Path downloadDependency = this.downloadDependency(dependency);
 
         // 调用 remapDependency 对原始 jar 文件进行类名重定位, 然后存入 loaded 缓存中.
-        Path file = remapDependency(dependency, downloadDependency);
+        Path file = this.remapDependency(dependency, downloadDependency);
         this.loaded.put(dependency, file);
 
         // 如果该依赖项被标记为自动加载 (autoLoad), 则根据 shared 属性将其追加到共享或私有类路径中.
-        if (!dependency.autoLoad()) return;
+        if (!dependency.autoLoad()) {
+            return;
+        }
         if (dependency.visibility() == Dependency.Visibility.PUBLIC) {
             if (this.sharedClassPathAppender != null) {
                 this.sharedClassPathAppender.addJarToClasspath(file);
@@ -175,8 +179,10 @@ public class DependencyManager  {
                         .forEach(dir -> {
                             try {
                                 FileUtils.deleteDirectory(dir);
-                                if (dependency.hasJarInJarPath()) return; // 禁止 jarinjar 依赖打印垃圾日志
-                                plugin.logger().info("Cleaned up outdated dependency " + dir);
+                                if (dependency.hasJarInJarPath()) {
+                                    return; // 禁止 jarinjar 依赖打印垃圾日志
+                                }
+                                this.plugin.logger().info("Cleaned up outdated dependency " + dir);
                             } catch (IOException e) {
                                 throw new RuntimeException(e);
                             }
@@ -236,15 +242,17 @@ public class DependencyManager  {
         }
 
         // 缓存文件名包含规则指纹, 包名或目标路径变化后重新重定位.
-        Path remappedFile = this.cacheDirectory.resolve(dependency.toLocalPath()).resolve(dependency.fileName("remapped-" + Integer.toHexString(rules.hashCode())));
+        Path remappedFile = this.cacheDirectory.resolve(dependency.toLocalPath()).resolve(
+                dependency.fileName("remapped-" + Integer.toHexString(rules.hashCode()))
+        );
         if (Files.exists(remappedFile)) {
             return remappedFile;
         }
 
         // 重映射依赖文件.
-        plugin.logger().info("Remapping " + dependency.fileName(null));
-        relocationHandler.remap(normalFile, remappedFile, rules);
-        plugin.logger().info("Successfully remapped " + dependency.fileName(null));
+        this.plugin.logger().info("Remapping " + dependency.fileName(null));
+        this.relocationHandler.remap(normalFile, remappedFile, rules);
+        this.plugin.logger().info("Successfully remapped " + dependency.fileName(null));
         return remappedFile;
     }
 
@@ -292,7 +300,7 @@ public class DependencyManager  {
         }
 
         if (firstEx != null) {
-            plugin.logger().error(firstEx.getMessage(), firstEx);
+            this.plugin.logger().error(firstEx.getMessage(), firstEx);
         }
     }
 }

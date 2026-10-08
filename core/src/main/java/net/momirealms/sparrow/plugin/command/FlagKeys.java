@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.command;
 import org.incendo.cloud.parser.flag.CommandFlag;
 
 public final class FlagKeys {
+
     private FlagKeys() {}
 
     // 静默模式

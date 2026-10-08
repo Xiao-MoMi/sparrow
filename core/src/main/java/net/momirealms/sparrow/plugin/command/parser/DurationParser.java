@@ -44,6 +44,7 @@ public final class DurationParser<C> implements ArgumentParser<C, Duration>, Sug
     }
 
     public static final class DurationParseException extends ParserException {
+
         public DurationParseException(String input, CommandContext<?> context) {
             super(DurationParser.class, context, Caption.of("argument.parse.failure.duration"), CaptionVariable.of("input", input));
         }

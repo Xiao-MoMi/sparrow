@@ -19,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class MoreCommand extends BukkitCommandFeature {
+
     public MoreCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -39,35 +40,54 @@ public final class MoreCommand extends BukkitCommandFeature {
         }
         int amount = context.getOrDefault("amount", 0);
         this.plugin().scheduler().platform().run(() -> {
-            SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-            ItemStack item = receiver.getItemInMainHand();
-            if (item.isEmpty()) {
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF : MessageConstants.COMMAND_MORE_NO_CHANGE), Component.text(player.getName()));
-                return;
-            }
-            int maxStack = item.getItem().components().getOrDefault(DataComponents.MAX_STACK_SIZE, 64);
-            if (amount == 0) {
-                int added = maxStack - item.getCount();
-                if (added <= 0) {
-                    this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF : MessageConstants.COMMAND_MORE_NO_CHANGE), Component.text(player.getName()));
-                    return;
-                }
-                item.setCount(maxStack);
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_SUCCESS_SELF : MessageConstants.COMMAND_MORE_SUCCESS), Component.text(player.getName()), Component.text(added));
-                return;
-            }
-            if (amount > maxStack * 100) {
-                this.handleFeedback(context, MessageConstants.COMMAND_MORE_TOO_MANY, Component.text(maxStack * 100));
-                return;
-            }
-            int remaining = amount;
-            while (remaining > 0) {
-                int count = Math.min(maxStack, remaining);
-                receiver.dropItem(CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copyWithCount(count)));
-                remaining -= count;
-            }
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_MORE_SUCCESS_SELF : MessageConstants.COMMAND_MORE_SUCCESS), Component.text(player.getName()), Component.text(amount));
-        }, () -> {}, player);
+                    SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+                    ItemStack item = receiver.getItemInMainHand();
+                    if (item.isEmpty()) {
+                        this.handleFeedback(
+                                context,
+                                (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF : MessageConstants.COMMAND_MORE_NO_CHANGE),
+                                Component.text(player.getName())
+                        );
+                        return;
+                    }
+                    int maxStack = item.getItem().components().getOrDefault(DataComponents.MAX_STACK_SIZE, 64);
+                    if (amount == 0) {
+                        int added = maxStack - item.getCount();
+                        if (added <= 0) {
+                            this.handleFeedback(
+                                    context,
+                                    (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF
+                                            : MessageConstants.COMMAND_MORE_NO_CHANGE),
+                                    Component.text(player.getName())
+                            );
+                            return;
+                        }
+                        item.setCount(maxStack);
+                        this.handleFeedback(
+                                context,
+                                (player == context.sender() ? MessageConstants.COMMAND_MORE_SUCCESS_SELF : MessageConstants.COMMAND_MORE_SUCCESS),
+                                Component.text(player.getName()),
+                                Component.text(added)
+                        );
+                        return;
+                    }
+                    if (amount > maxStack * 100) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_MORE_TOO_MANY, Component.text(maxStack * 100));
+                        return;
+                    }
+                    int remaining = amount;
+                    while (remaining > 0) {
+                        int count = Math.min(maxStack, remaining);
+                        receiver.dropItem(CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copyWithCount(count)));
+                        remaining -= count;
+                    }
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_MORE_SUCCESS_SELF : MessageConstants.COMMAND_MORE_SUCCESS),
+                            Component.text(player.getName()),
+                            Component.text(amount)
+                    );
+                }, () -> {}, player);
     }
 
     @Override

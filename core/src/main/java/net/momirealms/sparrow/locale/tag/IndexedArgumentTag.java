@@ -21,7 +21,9 @@ public final class IndexedArgumentTag extends StaticTagResolver {
     @Override
     @NotNull
     public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
-        final int index = arguments.popOr("No argument number provided").asInt().orElseThrow(() -> ctx.newException("Invalid argument number", arguments));
+        final int index = arguments.popOr("No argument number provided")
+                .asInt()
+                .orElseThrow(() -> ctx.newException("Invalid argument number", arguments));
         if (index < 0 || index >= this.args.size()) {
             throw ctx.newException("Invalid argument number", arguments);
         }

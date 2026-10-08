@@ -40,7 +40,9 @@ public final class HomeService implements AutoCloseable {
         synchronized (this) {
             if (this.closed) return;
             previous = this.online.get(player.uniqueId());
-            if (previous != null && previous.player == player) return;
+            if (previous != null && previous.player == player) {
+                return;
+            }
             state = new OwnerState(player);
             this.online.put(player.uniqueId(), state);
         }
@@ -54,7 +56,9 @@ public final class HomeService implements AutoCloseable {
         OwnerState state;
         synchronized (this) {
             state = this.online.get(player.uniqueId());
-            if (state == null || state.player != player) return;
+            if (state == null || state.player != player) {
+                return;
+            }
             this.online.remove(player.uniqueId());
         }
         state.close();
@@ -63,7 +67,9 @@ public final class HomeService implements AutoCloseable {
     // 在线玩家复用完整快照; 离线查询只返回本次结果, 不留下常驻缓存.
     @NotNull
     public CompletableFuture<HomeSnapshot> snapshot(@NotNull UUID owner) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         OwnerState state = this.online.get(owner);
         return state == null ? this.store.loadByOwner(owner).thenApply(HomeSnapshot::new) : state.read();
     }
@@ -77,7 +83,9 @@ public final class HomeService implements AutoCloseable {
 
     @NotNull
     public CompletableFuture<Optional<Home>> find(@NotNull UUID owner, @NotNull String name) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         return this.store.findByName(owner, name);
     }
 
@@ -92,7 +100,13 @@ public final class HomeService implements AutoCloseable {
 
     // 同一所有者的新增串行执行, 数量以写入前的数据库记录为准.
     @NotNull
-    public CompletableFuture<Result> set(@NotNull UUID owner, @NotNull String name, @NotNull String server, @NotNull WorldLocation location, int limit) {
+    public CompletableFuture<Result> set(
+            @NotNull UUID owner,
+            @NotNull String name,
+            @NotNull String server,
+            @NotNull WorldLocation location,
+            int limit
+    ) {
         CompletableFuture<Void> gate = new CompletableFuture<>();
         CompletableFuture<Void> previous;
         synchronized (this) {
@@ -111,7 +125,9 @@ public final class HomeService implements AutoCloseable {
     }
 
     private CompletableFuture<Result> setNow(UUID owner, String name, String server, WorldLocation location, int limit) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         HomeSettings settings = SparrowPlugin.instance().configurationManager().featuresConfig().config().home();
         if (!settings.validName(name)) {
             return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
@@ -121,7 +137,9 @@ public final class HomeService implements AutoCloseable {
                 return CompletableFuture.completedFuture(new Result(Status.DUPLICATE_NAME, null));
             }
             return this.store.countByOwner(owner).thenCompose(count -> {
-                if (limit != CompatibilityManager.UNLIMITED && count >= limit) return CompletableFuture.completedFuture(new Result(Status.LIMIT_REACHED, null));
+                if (limit != CompatibilityManager.UNLIMITED && count >= limit) {
+                    return CompletableFuture.completedFuture(new Result(Status.LIMIT_REACHED, null));
+                }
                 long now = System.currentTimeMillis();
                 return this.create(new Home(UUIDUtils.createV7(), owner, name, server, location, now, now))
                         .thenApply(saved -> this.result(saved, Status.CREATED));
@@ -133,17 +151,29 @@ public final class HomeService implements AutoCloseable {
     @NotNull
     public CompletableFuture<Result> rename(@NotNull UUID owner, @NotNull UUID id, @NotNull String name) {
         HomeSettings settings = SparrowPlugin.instance().configurationManager().featuresConfig().config().home();
-        if (!settings.validName(name)) return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
-        return this.edit(owner, id, home -> new Home(home.id(), home.owner(), name, home.server(), home.location(), home.createdAt(), System.currentTimeMillis()));
+        if (!settings.validName(name)) {
+            return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
+        }
+        return this.edit(
+                owner,
+                id,
+                home -> new Home(home.id(), home.owner(), name, home.server(), home.location(), home.createdAt(), System.currentTimeMillis())
+        );
     }
 
     @NotNull
     public CompletableFuture<Result> relocate(@NotNull UUID owner, @NotNull UUID id, @NotNull String server, @NotNull WorldLocation location) {
-        return this.edit(owner, id, home -> new Home(home.id(), home.owner(), home.name(), server, location, home.createdAt(), System.currentTimeMillis()));
+        return this.edit(
+                owner,
+                id,
+                home -> new Home(home.id(), home.owner(), home.name(), server, location, home.createdAt(), System.currentTimeMillis())
+        );
     }
 
     private CompletableFuture<Result> edit(UUID owner, UUID id, UnaryOperator<Home> operation) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         return this.store.find(id).thenCompose(found -> {
             if (found.isEmpty() || !found.get().owner().equals(owner)) {
                 return CompletableFuture.completedFuture(new Result(Status.NOT_FOUND, null));
@@ -162,8 +192,11 @@ public final class HomeService implements AutoCloseable {
 
     @NotNull
     public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull String name) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        return this.store.findByName(owner, name).thenCompose(found ->
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
+        return this.store.findByName(owner, name).thenCompose(
+                found ->
                 found.isEmpty()
                 ? CompletableFuture.completedFuture(false)
                 : this.delete(owner, found.get().id())
@@ -172,13 +205,17 @@ public final class HomeService implements AutoCloseable {
 
     @NotNull
     public CompletableFuture<HomeStore.SaveResult> create(@NotNull Home home) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         return this.store.create(home).thenApply(this::saved);
     }
 
     @NotNull
     public CompletableFuture<HomeStore.SaveResult> update(@NotNull Home home) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         return this.store.update(home).thenApply(this::saved);
     }
 
@@ -191,7 +228,9 @@ public final class HomeService implements AutoCloseable {
 
     @NotNull
     public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         return this.store.delete(owner, id).thenApply(deleted -> {
             if (deleted) {
                 this.committed(HomeChangedMessage.invalidateOwner(this.serverId, owner));
@@ -202,9 +241,16 @@ public final class HomeService implements AutoCloseable {
 
     @NotNull
     public CompletableFuture<Long> deleteAll(@NotNull HomeStore.Filter filter) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        if (this.closed) {
+            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        }
         return this.store.deleteAll(filter).thenApply(deleted -> {
-            this.committed(filter.owner() == null ? HomeChangedMessage.invalidateAll(this.serverId) : HomeChangedMessage.invalidateOwner(this.serverId, filter.owner()));
+            this.committed(
+                    filter.owner() == null ? HomeChangedMessage.invalidateAll(this.serverId) : HomeChangedMessage.invalidateOwner(
+                            this.serverId,
+                            filter.owner()
+                    )
+            );
             return deleted;
         });
     }
@@ -215,13 +261,17 @@ public final class HomeService implements AutoCloseable {
     }
 
     public void accept(@NotNull HomeChangedMessage message) {
-        if (this.serverId.equals(message.origin())) return;
+        if (this.serverId.equals(message.origin())) {
+            return;
+        }
         this.invalidate(message.owner());
     }
 
     private void invalidate(@Nullable UUID owner) {
         if (owner == null) {
-            for (OwnerState state : this.online.values()) state.invalidate();
+            for (OwnerState state : this.online.values()) {
+                state.invalidate();
+            }
             return;
         }
         OwnerState state = this.online.get(owner);
@@ -238,7 +288,9 @@ public final class HomeService implements AutoCloseable {
             states = List.copyOf(this.online.values());
             this.online.clear();
         }
-        for (OwnerState state : states) state.close();
+        for (OwnerState state : states) {
+            state.close();
+        }
     }
 
     public enum Status {

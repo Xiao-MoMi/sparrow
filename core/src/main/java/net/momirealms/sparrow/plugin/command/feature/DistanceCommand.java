@@ -26,7 +26,11 @@ public final class DistanceCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
-                .flag(manager.flagBuilder("max-distance").withAliases("m").withComponent(IntegerParser.integerParser(0, 512)).build())
+                .flag(manager.flagBuilder("max-distance")
+                        .withAliases("m")
+                        .withComponent(IntegerParser.integerParser(0, 512))
+                        .build()
+                )
                 .flag(manager.flagBuilder("disable-marker").build())
                 .handler(this::execute));
     }
@@ -34,25 +38,26 @@ public final class DistanceCommand extends BukkitCommandFeature {
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
         int maxDistance = context.flags().getValue("max-distance", 256);
-        this.plugin().scheduler().platform().run(() -> {
-            Block block = player.getTargetBlockExact(maxDistance);
-            if (block == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_DISTANCE_FAILED, Component.text(maxDistance));
-                return;
-            }
-            if (!context.flags().hasFlag("disable-marker")) {
-                this.plugin().playerManager().getPlayer(player).sendDebugMarker(block.getX(), block.getY(), block.getZ());
-            }
-            Location source = player.getLocation();
-            double dx = block.getX() + 0.5 - source.getX();
-            double dy = block.getY() + 0.5 - source.getY();
-            double dz = block.getZ() + 0.5 - source.getZ();
-            double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            double manhattan = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
-            this.handleFeedback(context, MessageConstants.COMMAND_DISTANCE_SUCCESS,
-                    Component.text(String.format(Locale.ROOT, "%.2f", distance)),
-                    Component.text(String.format(Locale.ROOT, "%.2f", manhattan)));
-        }, () -> {}, player);
+        Block block = player.getTargetBlockExact(maxDistance);
+        if (block == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_DISTANCE_FAILED, Component.text(maxDistance));
+            return;
+        }
+        if (!context.flags().hasFlag("disable-marker")) {
+            this.plugin().playerManager().getPlayer(player).sendDebugMarker(block.getX(), block.getY(), block.getZ());
+        }
+        Location source = player.getLocation();
+        double dx = block.getX() + 0.5 - source.getX();
+        double dy = block.getY() + 0.5 - source.getY();
+        double dz = block.getZ() + 0.5 - source.getZ();
+        double distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        double manhattan = Math.abs(dx) + Math.abs(dy) + Math.abs(dz);
+        this.handleFeedback(
+                context,
+                MessageConstants.COMMAND_DISTANCE_SUCCESS,
+                Component.text(String.format(Locale.ROOT, "%.2f", distance)),
+                Component.text(String.format(Locale.ROOT, "%.2f", manhattan))
+        );
     }
 
     @Override

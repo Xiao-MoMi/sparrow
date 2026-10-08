@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class AnvilCommand extends BukkitCommandFeature {
+
     public AnvilCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -35,9 +36,13 @@ public final class AnvilCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            player.openInventory(MenuType.ANVIL.create(player, InventoryType.ANVIL.getDefaultTitle()));
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_ANVIL_SUCCESS_SELF : MessageConstants.COMMAND_ANVIL_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    player.openInventory(MenuType.ANVIL.create(player, InventoryType.ANVIL.getDefaultTitle()));
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_ANVIL_SUCCESS_SELF : MessageConstants.COMMAND_ANVIL_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override
@@ -45,4 +50,3 @@ public final class AnvilCommand extends BukkitCommandFeature {
         return "anvil";
     }
 }
-

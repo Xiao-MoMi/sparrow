@@ -31,14 +31,22 @@ public record TextPage<T>(int index, int size, long total, @NotNull List<T> cont
      * @return 读取任务
      */
     @NotNull
-    public static <T> CompletableFuture<TextPage<T>> load(@NotNull Supplier<CompletableFuture<Long>> count,
-                                                        @NotNull BiFunction<Integer, Integer, CompletableFuture<List<T>>> list,
-                                                        int index, int size) {
+    public static <T> CompletableFuture<TextPage<T>> load(
+            @NotNull Supplier<CompletableFuture<Long>> count,
+            @NotNull BiFunction<Integer, Integer, CompletableFuture<List<T>>> list,
+            int index,
+            int size
+    ) {
         return load(count, list, index, size, true);
     }
 
-    private static <T> CompletableFuture<TextPage<T>> load(Supplier<CompletableFuture<Long>> count, BiFunction<Integer, Integer, CompletableFuture<List<T>>> list,
-                                                         int index, int size, boolean retryEmpty) {
+    private static <T> CompletableFuture<TextPage<T>> load(
+            Supplier<CompletableFuture<Long>> count,
+            BiFunction<Integer, Integer, CompletableFuture<List<T>>> list,
+            int index,
+            int size,
+            boolean retryEmpty
+    ) {
         return count.get().thenCompose(total -> {
             if (total == 0) return CompletableFuture.completedFuture(new TextPage<T>(0, size, 0, List.of()));
             int actualIndex = Math.clamp(index, 0, count(total, size) - 1);

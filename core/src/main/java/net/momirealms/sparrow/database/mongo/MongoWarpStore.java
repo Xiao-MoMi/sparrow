@@ -30,9 +30,11 @@ import java.util.function.Supplier;
 final class MongoWarpStore implements WarpStore {
     private static final String SCHEMA_ID = "warp_schema";
     private static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
-            "warps", List.of(
+            "warps",
+            List.of(
                     new IndexReconciler.IndexDeclaration(new Document("name_key", 1), true, "warps_name"),
-                    new IndexReconciler.IndexDeclaration(new Document("server", 1).append("world", 1), false, "warps_location"))
+                    new IndexReconciler.IndexDeclaration(new Document("server", 1).append("world", 1), false, "warps_location")
+            )
     );
 
     private static final String WARP_NAME_KEY = "name_key";
@@ -71,7 +73,9 @@ final class MongoWarpStore implements WarpStore {
     // 第一次使用时在数据库线程上准备索引, 失败后下一次使用会重新尝试
     private MongoCollection<Document> warps() {
         MongoCollection<Document> prepared = this.warps;
-        if (prepared != null) return prepared;
+        if (prepared != null) {
+            return prepared;
+        }
         synchronized (this) {
             if (this.warps == null) {
                 MongoDatabase database = this.database.get();
@@ -85,19 +89,37 @@ final class MongoWarpStore implements WarpStore {
     @Override
     @NotNull
     public CompletableFuture<List<Warp>> loadAll() {
-        return CompletableFuture.supplyAsync(() -> this.warps().find().sort(Sorts.ascending(WARP_NAME_KEY)).map(MongoWarpStore::readWarp).into(new ArrayList<>()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.warps()
+                        .find()
+                        .sort(Sorts.ascending(WARP_NAME_KEY))
+                        .map(MongoWarpStore::readWarp)
+                        .into(new ArrayList<>()),
+                this.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<Warp>> find(@NotNull UUID id) {
-        return CompletableFuture.supplyAsync(() -> Optional.ofNullable(this.warps().find(Filters.eq("_id", id)).map(MongoWarpStore::readWarp).first()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> Optional.ofNullable(this.warps().find(Filters.eq("_id", id)).map(MongoWarpStore::readWarp).first()),
+                this.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<Warp>> findByName(@NotNull String nameIgnoreCase) {
-        return CompletableFuture.supplyAsync(() -> Optional.ofNullable(this.warps().find(Filters.eq(WARP_NAME_KEY, Warp.key(nameIgnoreCase))).map(MongoWarpStore::readWarp).first()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> Optional.ofNullable(
+                        this.warps()
+                                .find(Filters.eq(WARP_NAME_KEY, Warp.key(nameIgnoreCase)))
+                                .map(MongoWarpStore::readWarp)
+                                .first()
+                ),
+                this.executor
+        );
     }
 
     @Override
@@ -126,8 +148,11 @@ final class MongoWarpStore implements WarpStore {
     public CompletableFuture<SaveResult> update(@NotNull Warp warp) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                Document saved = this.warps().findOneAndUpdate(Filters.eq("_id", warp.id()), new Document("$set", mutableFields(warp)),
-                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER));
+                Document saved = this.warps().findOneAndUpdate(
+                        Filters.eq("_id", warp.id()),
+                        new Document("$set", mutableFields(warp)),
+                        new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
+                );
                 return saved == null ? new SaveResult(Status.NOT_FOUND, null) : new SaveResult(Status.SUCCESS, readWarp(saved));
             } catch (MongoException exception) {
                 if (exception.getCode() != 11000) {
@@ -162,7 +187,12 @@ final class MongoWarpStore implements WarpStore {
     @Override
     @NotNull
     public CompletableFuture<Integer> deleteByWorld(@NotNull String server, @NotNull String world) {
-        return CompletableFuture.supplyAsync(() -> (int) this.warps().deleteMany(Filters.and(Filters.eq(WARP_SERVER, server), Filters.eq(WARP_WORLD, world))).getDeletedCount(), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> (int) this.warps()
+                        .deleteMany(Filters.and(Filters.eq(WARP_SERVER, server), Filters.eq(WARP_WORLD, world)))
+                        .getDeletedCount(),
+                this.executor
+        );
     }
 
     @Override
@@ -172,9 +202,23 @@ final class MongoWarpStore implements WarpStore {
     }
 
     private static Warp readWarp(Document document) {
-        WorldLocation location = new WorldLocation(document.getString(WARP_WORLD), document.getDouble(WARP_X), document.getDouble(WARP_Y), document.getDouble(WARP_Z),
-                document.getDouble(WARP_YAW).floatValue(), document.getDouble(WARP_PITCH).floatValue());
-        return new Warp(document.get("_id", UUID.class), document.getString(WARP_NAME), document.getString(WARP_DESCRIPTION), document.getString(WARP_SERVER),
-                location, document.get(WARP_CREATOR, UUID.class), document.getLong(WARP_CREATED_AT), document.getLong(WARP_UPDATED_AT));
+        WorldLocation location = new WorldLocation(
+                document.getString(WARP_WORLD),
+                document.getDouble(WARP_X),
+                document.getDouble(WARP_Y),
+                document.getDouble(WARP_Z),
+                document.getDouble(WARP_YAW).floatValue(),
+                document.getDouble(WARP_PITCH).floatValue()
+        );
+        return new Warp(
+                document.get("_id", UUID.class),
+                document.getString(WARP_NAME),
+                document.getString(WARP_DESCRIPTION),
+                document.getString(WARP_SERVER),
+                location,
+                document.get(WARP_CREATOR, UUID.class),
+                document.getLong(WARP_CREATED_AT),
+                document.getLong(WARP_UPDATED_AT)
+        );
     }
 }

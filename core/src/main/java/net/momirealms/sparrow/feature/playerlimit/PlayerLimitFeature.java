@@ -32,7 +32,7 @@ public final class PlayerLimitFeature extends Feature<PlayerLimitSettings> {
     public void loadConfig() {
         PlayerLimitSettings settings = this.plugin.configurationManager().featuresConfig().config().playerLimit();
         settings.validate();
-        this.config = settings;
+        super.config = settings;
     }
 
     // Paper 1.21.7 起监听 PlayerLoginEvent 会禁用重新配置 API, 因此 Paper 上使用满员检查事件
@@ -77,7 +77,7 @@ public final class PlayerLimitFeature extends Feature<PlayerLimitSettings> {
     }
 
     private void apply() {
-        int configured = this.config.maxPlayers();
+        int configured = super.config.maxPlayers();
         Bukkit.setMaxPlayers(configured < 0 ? this.defaultMaxPlayers : configured);
     }
 }

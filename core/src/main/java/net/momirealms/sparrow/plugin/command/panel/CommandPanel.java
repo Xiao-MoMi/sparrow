@@ -87,17 +87,42 @@ public final class CommandPanel {
     }
 
     @NotNull
-    public CommandPanel navigation(@NotNull String featureId, @NotNull TextPage<?> page, @NotNull IntFunction<String> pageArguments, boolean suggest) {
-        Component previous = new PanelButton(this.manager, this.sender, label("previous"), featureId, page.hasPrevious() ? pageArguments.apply(page.index()) : "", suggest)
+    public CommandPanel navigation(@NotNull String featureId, @NotNull TextPage<
+            ?> page, @NotNull IntFunction<String> pageArguments, boolean suggest) {
+        Component previous = new PanelButton(
+                this.manager,
+                this.sender,
+                label("previous"),
+                featureId,
+                page.hasPrevious() ? pageArguments.apply(page.index()) : "",
+                suggest
+        )
                 .style(PanelButton.Style.POSITIVE)
                 .disabled(page.hasPrevious() ? null : Component.translatable("command.panel.first_page"))
                 .build();
-        Component next = new PanelButton(this.manager, this.sender, label("next"), featureId, page.hasNext() ? pageArguments.apply(page.index() + 2) : "", suggest)
+        Component next = new PanelButton(
+                this.manager,
+                this.sender,
+                label("next"),
+                featureId,
+                page.hasNext() ? pageArguments.apply(page.index() + 2) : "",
+                suggest
+        )
                 .style(PanelButton.Style.POSITIVE)
                 .disabled(page.hasNext() ? null : Component.translatable("command.panel.last_page"))
                 .build();
-        Component refresh = new PanelButton(this.manager, this.sender, label("refresh"), featureId, pageArguments.apply(page.index() + 1), suggest).build();
-        return this.line(Component.translatable("command.panel.navigation", previous, Component.text(page.index() + 1), Component.text(page.count()), next, refresh));
+        Component refresh = new PanelButton(this.manager, this.sender, label("refresh"), featureId, pageArguments.apply(page.index()
+                + 1), suggest).build();
+        return this.line(
+                Component.translatable(
+                        "command.panel.navigation",
+                        previous,
+                        Component.text(page.index() + 1),
+                        Component.text(page.count()),
+                        next,
+                        refresh
+                )
+        );
     }
 
     @NotNull

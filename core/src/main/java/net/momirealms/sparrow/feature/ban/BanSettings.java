@@ -25,7 +25,8 @@ public final class BanSettings implements FeatureSettings {
                     "原因完全匹配预设名称时展开为对应文本, 其他内容作为自定义原因. 设置为 {} 可关闭预设."
             }
     )
-    private @NotNull Map<String, String> reasonPresets = Map.of("cheating", "Cheating", "grief", "Griefing");
+    @NotNull
+    private Map<String, String> reasonPresets = Map.of("cheating", "Cheating", "grief", "Griefing");
 
     @Comment({
             "Ban notification sound. Accepts a mapping, [key, volume, pitch, source, seed], a comma-separated string or a sound key.",
@@ -38,11 +39,13 @@ public final class BanSettings implements FeatureSettings {
                     "省略音量、音高时为 1, 声源为 MASTER, 种子可省略. 空字符串或音量为 0 时不播放."
             }
     )
-    private @NotNull Sound notifyBanSound = Sound.sound(Key.key("entity.lightning_bolt.thunder"), Sound.Source.MASTER, 0.25f, 1.0f);
+    @NotNull
+    private Sound notifyBanSound = Sound.sound(Key.key("entity.lightning_bolt.thunder"), Sound.Source.MASTER, 0.25f, 1.0f);
 
     @Comment("Unban notification sound. Accepts the same forms as notify-ban-sound.")
     @Comment(lang = "zh", value = "解封通知音效, 支持与 notify-ban-sound 相同的写法.")
-    private @NotNull Sound notifyUnbanSound = Sound.sound(Key.key("entity.experience_orb.pickup"), Sound.Source.MASTER, 0.25f, 1.0f);
+    @NotNull
+    private Sound notifyUnbanSound = Sound.sound(Key.key("entity.experience_orb.pickup"), Sound.Source.MASTER, 0.25f, 1.0f);
 
     @Override
     public boolean enabled() {

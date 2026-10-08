@@ -37,7 +37,7 @@ public final class PostgresSpawnStore extends SqlSpawnStore {
     @NotNull
     @Override
     protected String saveSql() {
-        return "INSERT INTO " + this.table + " (id, server, world, x, y, z, yaw, pitch) "
+        return "INSERT INTO " + super.table + " (id, server, world, x, y, z, yaw, pitch) "
                 + "VALUES (1, :server, :world, :x, :y, :z, :yaw, :pitch) ON CONFLICT (id) DO UPDATE SET "
                 + "server = EXCLUDED.server, world = EXCLUDED.world, x = EXCLUDED.x, y = EXCLUDED.y, z = EXCLUDED.z, "
                 + "yaw = EXCLUDED.yaw, pitch = EXCLUDED.pitch";

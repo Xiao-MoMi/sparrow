@@ -30,7 +30,7 @@ public interface PluginLogger {
      * @param s    日志消息内容.
      */
     default void warn(File file, String s) {
-        warn("Error in file: " + file.getAbsolutePath() + " - " + s);
+        this.warn("Error in file: " + file.getAbsolutePath() + " - " + s);
     }
 
     /**
@@ -40,7 +40,7 @@ public interface PluginLogger {
      * @param s    日志消息内容.
      */
     default void warn(Path file, String s) {
-        warn("Error in file: " + file.toAbsolutePath() + " - " + s);
+        this.warn("Error in file: " + file.toAbsolutePath() + " - " + s);
     }
 
     /**
@@ -51,7 +51,7 @@ public interface PluginLogger {
      * @param t    关联的异常对象.
      */
     default void warn(Path file, String s, Throwable t) {
-        warn("Error in file: " + file.toAbsolutePath() + " - " + s, t);
+        this.warn("Error in file: " + file.toAbsolutePath() + " - " + s, t);
     }
 
     /**

@@ -55,9 +55,16 @@ final class IndexReconciler {
     }
 
     // 每次启动都以当前声明为准, 旧版本留下或手工添加的索引会在这里清掉
-    private static void reconcileIndexes(PluginLogger logger, MongoDatabase database, MongoCollection<Document> collection, List<IndexDeclaration> declarations) {
+    private static void reconcileIndexes(
+            PluginLogger logger,
+            MongoDatabase database,
+            MongoCollection<Document> collection,
+            List<IndexDeclaration> declarations
+    ) {
         // 创建索引和业务查询均继承集合的默认排序规则, 比较时使用相同的有效规则.
-        Document collectionInfo = database.listCollections().filter(new Document("name", collection.getNamespace().getCollectionName())).first();
+        Document collectionInfo = database.listCollections()
+                .filter(new Document("name", collection.getNamespace().getCollectionName()))
+                .first();
         Document collation = collectionInfo == null ? null : collectionInfo.get("options", new Document()).get("collation", Document.class);
         List<Document> existing = new ArrayList<>();
         collection.listIndexes().into(existing);
@@ -98,7 +105,9 @@ final class IndexReconciler {
     private static boolean matches(Document index, IndexDeclaration declaration, Document collation) {
         if (Boolean.TRUE.equals(index.getBoolean("sparse")) || Boolean.TRUE.equals(index.getBoolean("hidden"))
                 || index.containsKey("partialFilterExpression") || index.containsKey("expireAfterSeconds")
-                || !Objects.equals(index.get("collation", Document.class), collation)) return false;
+                || !Objects.equals(index.get("collation", Document.class), collation)) {
+            return false;
+        }
         Document actualKeys = index.get("key", Document.class);
         boolean actualUnique = Boolean.TRUE.equals(index.getBoolean("unique"));
         if (declaration.unique() != actualUnique || actualKeys == null || actualKeys.size() != declaration.keys().size()) return false;

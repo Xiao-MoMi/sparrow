@@ -22,7 +22,9 @@ public final class OptionalWordParser<C> implements ArgumentParser<C, Optional<S
     @NotNull
     public ArgumentParseResult<Optional<String>> parse(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
         // 省略参数时保留 flag 输入, 交给后续的 Cloud flag 解析器处理.
-        if (input.peekString().startsWith("-")) return ArgumentParseResult.success(Optional.empty());
+        if (input.peekString().startsWith("-")) {
+            return ArgumentParseResult.success(Optional.empty());
+        }
         return ArgumentParseResult.success(Optional.of(input.readString()));
     }
 }

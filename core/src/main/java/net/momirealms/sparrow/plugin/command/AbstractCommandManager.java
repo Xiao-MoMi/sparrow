@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.plugin.command;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
@@ -25,11 +26,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public abstract class AbstractCommandManager implements CommandManager {
-    private final Map<String, CommandFeature> features = new ConcurrentHashMap<>(); // 已注册的命令, 插件启用时写入, 之后可能在异步线程读取
+    // 已注册的命令, 插件启用时写入, 之后可能在异步线程读取
+    private final ConcurrentChainedObject2ObjectHashTable<String, CommandFeature> features = new ConcurrentChainedObject2ObjectHashTable<>();
     protected final org.incendo.cloud.CommandManager<CommandSender> commandManager;
     protected final Plugin plugin;
     private final boolean asynchronousCompletion;
@@ -42,7 +42,7 @@ public abstract class AbstractCommandManager implements CommandManager {
         this.plugin = plugin;
         this.asynchronousCompletion = asynchronousCompletion;
         this.inject(); // 修改默认异常处理器.
-        this.feedbackConsumer = defaultFeedbackConsumer();
+        this.feedbackConsumer = this.defaultFeedbackConsumer();
         this.captionFormatter = new CloudCaptionFormatter();
     }
 
@@ -76,41 +76,86 @@ public abstract class AbstractCommandManager implements CommandManager {
      * @throws RuntimeException 当底层 Cloud 命令管理器拒绝注册 provider 或异常处理器时可能抛出
      */
     private void inject() {
-        getCommandManager().captionRegistry().registerProvider(new CloudCaptionProvider<>());
-        injectExceptionHandler(InvalidSyntaxException.class, MinecraftExceptionHandler.createDefaultInvalidSyntaxHandler(), StandardCaptionKeys.EXCEPTION_INVALID_SYNTAX);
-        injectExceptionHandler(InvalidCommandSenderException.class, MinecraftExceptionHandler.createDefaultInvalidSenderHandler(), StandardCaptionKeys.EXCEPTION_INVALID_SENDER);
-        injectExceptionHandler(NoPermissionException.class, MinecraftExceptionHandler.createDefaultNoPermissionHandler(), StandardCaptionKeys.EXCEPTION_NO_PERMISSION);
-        injectExceptionHandler(ArgumentParseException.class, MinecraftExceptionHandler.createDefaultArgumentParsingHandler(), StandardCaptionKeys.EXCEPTION_INVALID_ARGUMENT);
-        injectExceptionHandler(CommandExecutionException.class, MinecraftExceptionHandler.createDefaultCommandExecutionHandler(), StandardCaptionKeys.EXCEPTION_UNEXPECTED);
-        // 后注册的处理器先执行. 模块未启用导致的无权限改为提示模块未启用, 其余交回默认处理器
-        getCommandManager().exceptionController().registerHandler(NoPermissionException.class, ctx -> {
-            FeaturePermission disabled = FeaturePermission.findDisabled(ctx.exception().permissionResult().permission());
-            if (disabled == null) throw ctx.exception();
-            this.handleCommandFeedback(ctx.context().sender(), MessageConstants.COMMAND_FEATURE_DISABLED, Component.text(disabled.featureId()));
-        });
+        this.getCommandManager().captionRegistry().registerProvider(new CloudCaptionProvider<>());
+        this.injectExceptionHandler(
+                InvalidSyntaxException.class,
+                MinecraftExceptionHandler.createDefaultInvalidSyntaxHandler(),
+                StandardCaptionKeys.EXCEPTION_INVALID_SYNTAX
+        );
+        this.injectExceptionHandler(
+                InvalidCommandSenderException.class,
+                MinecraftExceptionHandler.createDefaultInvalidSenderHandler(),
+                StandardCaptionKeys.EXCEPTION_INVALID_SENDER
+        );
+        this.injectExceptionHandler(
+                NoPermissionException.class,
+                MinecraftExceptionHandler.createDefaultNoPermissionHandler(),
+                StandardCaptionKeys.EXCEPTION_NO_PERMISSION
+        );
+        this.injectExceptionHandler(
+                ArgumentParseException.class,
+                MinecraftExceptionHandler.createDefaultArgumentParsingHandler(),
+                StandardCaptionKeys.EXCEPTION_INVALID_ARGUMENT
+        );
+        this.injectExceptionHandler(
+                CommandExecutionException.class,
+                MinecraftExceptionHandler.createDefaultCommandExecutionHandler(),
+                StandardCaptionKeys.EXCEPTION_UNEXPECTED
+        );
+        // 后注册的处理器先执行. 模块未启用时提示模块状态, 其余权限错误交回默认处理器
+        this.getCommandManager()
+                .exceptionController()
+                .registerHandler(NoPermissionException.class, ctx -> {
+                    FeaturePermission disabled = FeaturePermission.findDisabled(ctx.exception().permissionResult().permission());
+                    if (disabled == null) {
+                        throw ctx.exception();
+                    }
+                    this.handleCommandFeedback(
+                            ctx.context().sender(),
+                            MessageConstants.COMMAND_FEATURE_DISABLED,
+                            Component.text(disabled.featureId())
+                    );
+                });
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
-    private void injectExceptionHandler(Class<? extends Throwable> type, MinecraftExceptionHandler.MessageFactory<CommandSender, ? extends Throwable> factory, Caption key) {
-        getCommandManager().exceptionController().registerHandler(type, ctx -> {
-            final @Nullable ComponentLike message = factory.message(captionFormatter, (ExceptionContext) ctx);
-            if (message != null) {
-                handleCommandFeedback(ctx.context().sender(), key.key(), decorator.decorate(captionFormatter, ctx, message.asComponent()).asComponent());
-            }
-        });
+    private void injectExceptionHandler(
+            Class<? extends Throwable> type,
+            MinecraftExceptionHandler.MessageFactory<CommandSender, ? extends Throwable> factory,
+            Caption key
+    ) {
+        this.getCommandManager()
+                .exceptionController()
+                .registerHandler(type, ctx -> {
+                    final @Nullable ComponentLike message = factory.message(this.captionFormatter, (ExceptionContext) ctx);
+                    if (message != null) {
+                        this.handleCommandFeedback(
+                                ctx.context().sender(),
+                                key.key(),
+                                this.decorator.decorate(this.captionFormatter, ctx, message.asComponent()).asComponent()
+                        );
+                    }
+                });
     }
 
     @Override
     public Collection<Command.Builder<CommandSender>> buildCommandBuilders(CommandConfig config) {
         ArrayList<Command.Builder<CommandSender>> list = new ArrayList<>();
-        for (String usage : config.getUsages()) {
-            if (!usage.startsWith("/")) continue;
+        List<String> usageValues = config.getUsages();
+        for (int usageIndex = 0, usageCount = usageValues.size(); usageIndex < usageCount; usageIndex++) {
+            String usage = usageValues.get(usageIndex);
+            if (!usage.startsWith("/")) {
+                continue;
+            }
             String command = usage.substring(1).trim();
             String[] split = command.split(" ");
-            Command.Builder<CommandSender> builder = new ConfigurableCommandBuilder.BasicConfigurableCommandBuilder(getCommandManager(), split[0])
+            Command.Builder<CommandSender> builder = new ConfigurableCommandBuilder.BasicConfigurableCommandBuilder(
+                    this.getCommandManager(),
+                    split[0]
+            )
                         .nodes(ArrayUtils.subArray(split, 1))
-                        .permission(config.getPermission())
-                        .build();
+                    .permission(config.getPermission())
+                    .build();
             list.add(builder);
         }
         return list;
@@ -154,7 +199,7 @@ public abstract class AbstractCommandManager implements CommandManager {
 
     @Override
     public org.incendo.cloud.CommandManager<CommandSender> getCommandManager() {
-        return commandManager;
+        return this.commandManager;
     }
 
     @Override

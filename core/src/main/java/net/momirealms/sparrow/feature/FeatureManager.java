@@ -135,12 +135,15 @@ public final class FeatureManager {
             return CompletableFuture.runAsync(() -> {
                 this.requireOpen();
                 feature.loadConfig();
-            }, this.asyncExecutor).thenApplyAsync(ignored -> {
-                this.requireOpen();
-                feature.start();
-                this.refreshCommands();
-                return feature.state().get();
-            }, this.platformExecutor);
+            }, this.asyncExecutor).thenApplyAsync(
+                    ignored -> {
+                        this.requireOpen();
+                        feature.start();
+                        this.refreshCommands();
+                        return feature.state().get();
+                    },
+                    this.platformExecutor
+            );
         }
         this.refreshCommands();
         return CompletableFuture.completedFuture(feature.state().get());
@@ -148,7 +151,9 @@ public final class FeatureManager {
 
     // 模块开关变化后重发命令树, 玩家看到的模块命令随之显示或隐藏
     public void refreshCommands() {
-        for (Player player : Bukkit.getOnlinePlayers()) player.updateCommands();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.updateCommands();
+        }
     }
 
     private void requireOpen() {

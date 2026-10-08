@@ -27,11 +27,12 @@ public final class DataTreeRenderer {
         boolean first = true;
         for (Map.Entry<?, ?> entry : map.entrySet()) {
             Object value = entry.getValue();
-            String type = value instanceof Map<?, ?> ? "Map" : value instanceof List<?> ? "List" : value.getClass().getSimpleName();
+            String type = value instanceof Map<?, ?> ? "Map" : (value instanceof List<?> ? "List" : value.getClass().getSimpleName());
             Component key = Component.text(visible(entry.getKey().toString()), NamedTextColor.GOLD)
                     .hoverEvent(Component.text(type, NamedTextColor.YELLOW));
             Component prefix = Component.text(listItem && first ? "  ".repeat(depth - 1) + "- " : "  ".repeat(depth), TEXT_COLOR)
-                    .append(key).append(Component.text(":", TEXT_COLOR));
+                    .append(key)
+                    .append(Component.text(":", TEXT_COLOR));
             appendValue(value, prefix, lines, depth, copyable);
             first = false;
         }

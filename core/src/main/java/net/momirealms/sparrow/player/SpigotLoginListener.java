@@ -24,7 +24,9 @@ final class SpigotLoginListener implements Listener {
     @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerLogin(@NotNull PlayerLoginEvent event) {
-        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) return;
+        if (event.getResult() != PlayerLoginEvent.Result.ALLOWED) {
+            return;
+        }
         Player player = event.getPlayer();
         Object handle = CraftPlayerProxy.INSTANCE.getHandle(player);
         Object listener = ServerPlayerProxy.INSTANCE.getTransferCookieConnection(handle);
@@ -35,6 +37,8 @@ final class SpigotLoginListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(@NotNull PlayerSpawnLocationEvent event) {
         Location location = this.manager.teleports().consumeSpawn(event.getPlayer().getUniqueId());
-        if (location != null) event.setSpawnLocation(location);
+        if (location != null) {
+            event.setSpawnLocation(location);
+        }
     }
 }

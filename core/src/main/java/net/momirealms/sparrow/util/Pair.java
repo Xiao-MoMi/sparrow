@@ -29,7 +29,7 @@ public record Pair<L, R>(L left, R right) {
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
         Pair<?, ?> pair = (Pair<?, ?>) object;
-        return Objects.equals(left, pair.left) && Objects.equals(right, pair.right);
+        return Objects.equals(this.left, pair.left) && Objects.equals(this.right, pair.right);
     }
 
     @Override

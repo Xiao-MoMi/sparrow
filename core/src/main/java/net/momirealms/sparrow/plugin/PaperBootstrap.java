@@ -44,8 +44,9 @@ public final class PaperBootstrap implements PluginBootstrap {
         );
     }
 
+    @NotNull
     @Override
-    public @NotNull JavaPlugin createPlugin(@NotNull PluginProviderContext context) {
+    public JavaPlugin createPlugin(@NotNull PluginProviderContext context) {
         return new PaperJavaPlugin(this);
     }
 }

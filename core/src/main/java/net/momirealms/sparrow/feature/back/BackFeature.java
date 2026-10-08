@@ -43,7 +43,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
     public void loadConfig() {
         BackSettings settings = this.plugin.configurationManager().featuresConfig().config().back();
         this.causes = parseCauses(settings.teleportCauses());
-        this.config = settings;
+        super.config = settings;
     }
 
     @Override
@@ -74,19 +74,27 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTeleport(@NotNull PlayerTeleportEvent event) {
-        if (!this.enabled() || !this.causes.contains(event.getCause())) return;
+        if (!this.enabled() || !this.causes.contains(event.getCause())) {
+            return;
+        }
         // 还没完成进服处理, 或者还在进服保护期内, 这时的传送多半是其他插件把玩家送到出生点
         SparrowPlayer player = this.plugin.playerManager().getPlayer(event.getPlayer());
-        if (player == null || System.currentTimeMillis() - player.connection().connectedAt() < this.config.joinGraceSeconds() * 1000L) return;
+        if (player == null || System.currentTimeMillis() - player.connection().connectedAt() < super.config.joinGraceSeconds() * 1000L) {
+            return;
+        }
         Location from = event.getFrom();
         Location to = event.getTo();
-        if (from.getWorld() == to.getWorld() && from.distanceSquared(to) < MIN_DISTANCE_SQUARED) return;
+        if (from.getWorld() == to.getWorld() && from.distanceSquared(to) < MIN_DISTANCE_SQUARED) {
+            return;
+        }
         this.points.put(player.uniqueId(), WorldLocation.from(from));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(@NotNull PlayerDeathEvent event) {
-        if (!this.enabled() || !this.config.recordDeath()) return;
+        if (!this.enabled() || !super.config.recordDeath()) {
+            return;
+        }
         this.points.put(event.getEntity().getUniqueId(), WorldLocation.from(event.getEntity().getLocation()));
     }
 
@@ -100,10 +108,14 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
      * 重新登录的玩家下线时间远早于连上本服的时间, 不算切服.
      */
     public boolean switchedFrom(@NotNull SparrowPlayer player, @NotNull PlayerData data) {
-        if (data.lastLogoutLocation() == null || data.lastLogoutServer() == null) return false;
-        if (ServerConfig.serverId().equals(data.lastLogoutServer())) return false;
+        if (data.lastLogoutLocation() == null || data.lastLogoutServer() == null) {
+            return false;
+        }
+        if (ServerConfig.serverId().equals(data.lastLogoutServer())) {
+            return false;
+        }
         // 代理先让玩家进入新服务器再断开旧服务器, 下线时间可能略晚于连上本服的时间
-        return Math.abs(data.lastLogout() - player.connection().connectedAt()) <= this.config.serverSwitchWindowSeconds() * 1000L;
+        return Math.abs(data.lastLogout() - player.connection().connectedAt()) <= super.config.serverSwitchWindowSeconds() * 1000L;
     }
 
     // 配置写错时在启用前报告

@@ -11,11 +11,11 @@ public final class AsyncTask implements SchedulerTask {
 
     @Override
     public void cancel() {
-        future.cancel(false);
+        this.future.cancel(false);
     }
 
     @Override
     public boolean cancelled() {
-        return future.isCancelled();
+        return this.future.isCancelled();
     }
 }

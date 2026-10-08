@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.feature.maintenance;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
@@ -16,9 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 /**
@@ -31,7 +30,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
 
     private final SparrowPlugin plugin;
     private final UUID bossBarId = UUID.randomUUID();
-    private final Set<UUID> bossBarViewers = ConcurrentHashMap.newKeySet(); // 已发送 BossBar 的玩家
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, Boolean> bossBarViewers = new ConcurrentChainedObject2ObjectHashTable<>();
     private volatile boolean active; // 登录线程异步读取
 
     public MaintenanceFeature(@NotNull SparrowPlugin plugin) {
@@ -43,7 +42,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     public void loadConfig() {
         MaintenanceSettings settings = this.plugin.configurationManager().featuresConfig().config().maintenance();
         settings.validate();
-        this.config = settings;
+        super.config = settings;
     }
 
     @Override
@@ -59,8 +58,10 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
 
     @Override
     protected void onEnable() {
-        this.active = this.config.active();
-        if (this.active) this.applyToOnlinePlayers();
+        this.active = super.config.active();
+        if (this.active) {
+            this.applyToOnlinePlayers();
+        }
     }
 
     // 停用模块时撤下 BossBar, 维护状态仍保留在配置中.
@@ -68,7 +69,9 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     @Override
     protected void onDisable() {
         this.active = false;
-        if (this.plugin.javaPlugin().isEnabled()) this.applyToOnlinePlayers();
+        if (this.plugin.javaPlugin().isEnabled()) {
+            this.applyToOnlinePlayers();
+        }
     }
 
     @Override
@@ -80,8 +83,12 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     @EventHandler(priority = EventPriority.HIGHEST)
     @SuppressWarnings("deprecation")
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
-        if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
-        if (this.plugin.compatibilityManager().hasPermissionBeforeJoin(event.getUniqueId(), BYPASS_PERMISSION)) return;
+        if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
+            return;
+        }
+        if (this.plugin.compatibilityManager().hasPermissionBeforeJoin(event.getUniqueId(), BYPASS_PERMISSION)) {
+            return;
+        }
         event.disallow(
                 AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
                 AdventureHelper.componentToLegacy(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, null))
@@ -91,7 +98,9 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     // 登录检查之后才开启维护的玩家在这里补查
     @Override
     public void onJoin(@NotNull SparrowPlayer player) {
-        if (this.active) this.apply(player);
+        if (this.active) {
+            this.apply(player);
+        }
     }
 
     @Override
@@ -117,7 +126,9 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     // 在各玩家所属线程上更新
     private void applyToOnlinePlayers() {
         for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
-            this.plugin.scheduler().platform().run(() -> this.apply(player), () -> {}, player.nmsPlayer().getBukkitEntity());
+            this.plugin.scheduler()
+                    .platform()
+                    .run(() -> this.apply(player), () -> {}, player.nmsPlayer().getBukkitEntity());
         }
     }
 
@@ -125,7 +136,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     private void apply(SparrowPlayer player) {
         // 未开启
         if (!this.active) {
-            if (this.bossBarViewers.remove(player.uniqueId())) {
+            if (this.bossBarViewers.remove(player.uniqueId()) != null) {
                 player.hideBossBar(this.bossBarId);
             }
         }
@@ -141,8 +152,10 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
 
     // 标题按玩家语言渲染
     private void showBossBar(SparrowPlayer player) {
-        MaintenanceSettings.BossBarOptions options = this.config.bossBar();
-        if (!options.enabled() || !this.bossBarViewers.add(player.uniqueId())) return;
+        MaintenanceSettings.BossBarOptions options = super.config.bossBar();
+        if (!options.enabled() || this.bossBarViewers.putIfAbsent(player.uniqueId(), Boolean.TRUE) != null) {
+            return;
+        }
         Component title = player.render(MessageConstants.MAINTENANCE_BOSS_BAR);
         player.showBossBar(this.bossBarId, title, 1.0f, options.color(), options.overlay());
     }

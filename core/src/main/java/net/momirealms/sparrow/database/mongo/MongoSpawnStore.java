@@ -87,9 +87,6 @@ final class MongoSpawnStore implements SpawnStore {
     @NotNull
     @Override
     public CompletableFuture<Boolean> delete() {
-        return CompletableFuture.supplyAsync(
-                () -> this.getCollection().deleteOne(Filters.eq("_id", "spawn")).getDeletedCount() > 0,
-                this.executor
-        );
+        return CompletableFuture.supplyAsync(() -> this.getCollection().deleteOne(Filters.eq("_id", "spawn")).getDeletedCount() > 0, this.executor);
     }
 }

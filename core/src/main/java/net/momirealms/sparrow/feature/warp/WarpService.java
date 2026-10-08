@@ -32,37 +32,84 @@ public final class WarpService {
     // 覆盖或新建一个 Warp.
     @NotNull
     public CompletableFuture<Result> set(@NotNull String name, @NotNull String server, @NotNull WorldLocation location, @Nullable UUID creator) {
-        if (!this.validName(name)) return this.result(Status.INVALID_NAME);
+        if (!this.validName(name)) {
+            return this.result(Status.INVALID_NAME);
+        }
         return this.store.findByName(name).thenCompose(existing -> {
             long now = this.clock.getAsLong();
             if (existing.isEmpty()) {
                 Warp warp = new Warp(UUIDUtils.createV7(), name, "", server, location, creator, now, now);
                 return this.save(this.store.create(warp), Status.CREATED);
             }
-            if (!this.feature.config().overwriteExisting()) return this.result(Status.DUPLICATE_NAME);
+            if (!this.feature.config().overwriteExisting()) {
+                return this.result(Status.DUPLICATE_NAME);
+            }
             Warp warp = existing.get();
-            return this.save(this.store.update(new Warp(warp.id(), name, warp.description(), server, location, warp.creator(), warp.createdAt(), now)), Status.UPDATED);
+            return this.save(
+                    this.store.update(new Warp(warp.id(), name, warp.description(), server, location, warp.creator(), warp.createdAt(), now)),
+                    Status.UPDATED
+            );
         });
     }
 
     // 按 Warp UUID 改名.
     @NotNull
     public CompletableFuture<Result> rename(@NotNull UUID id, @NotNull String name) {
-        if (!this.validName(name)) return this.result(Status.INVALID_NAME);
-        return this.edit(id, warp -> new Warp(warp.id(), name, warp.description(), warp.server(), warp.location(), warp.creator(), warp.createdAt(), this.clock.getAsLong()));
+        if (!this.validName(name)) {
+            return this.result(Status.INVALID_NAME);
+        }
+        return this.edit(
+                id,
+                warp -> new Warp(
+                        warp.id(),
+                        name,
+                        warp.description(),
+                        warp.server(),
+                        warp.location(),
+                        warp.creator(),
+                        warp.createdAt(),
+                        this.clock.getAsLong()
+                )
+        );
     }
 
     // 修改描述, 空字符串用于清空描述.
     @NotNull
     public CompletableFuture<Result> setDescription(@NotNull UUID id, @NotNull String description) {
-        if (description.length() > Warp.MAX_DESCRIPTION_LENGTH) return this.result(Status.DESCRIPTION_TOO_LONG);
-        return this.edit(id, warp -> new Warp(warp.id(), warp.name(), description, warp.server(), warp.location(), warp.creator(), warp.createdAt(), this.clock.getAsLong()));
+        if (description.length() > Warp.MAX_DESCRIPTION_LENGTH) {
+            return this.result(Status.DESCRIPTION_TOO_LONG);
+        }
+        return this.edit(
+                id,
+                warp -> new Warp(
+                        warp.id(),
+                        warp.name(),
+                        description,
+                        warp.server(),
+                        warp.location(),
+                        warp.creator(),
+                        warp.createdAt(),
+                        this.clock.getAsLong()
+                )
+        );
     }
 
     // 修改服务器与位置.
     @NotNull
     public CompletableFuture<Result> relocate(@NotNull UUID id, @NotNull String server, @NotNull WorldLocation location) {
-        return this.edit(id, warp -> new Warp(warp.id(), warp.name(), warp.description(), server, location, warp.creator(), warp.createdAt(), this.clock.getAsLong()));
+        return this.edit(
+                id,
+                warp -> new Warp(
+                        warp.id(),
+                        warp.name(),
+                        warp.description(),
+                        server,
+                        location,
+                        warp.creator(),
+                        warp.createdAt(),
+                        this.clock.getAsLong()
+                )
+        );
     }
 
     private boolean validName(String name) {

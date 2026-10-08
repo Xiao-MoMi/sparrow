@@ -60,7 +60,10 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
             UUID uuid = UUIDUtils.parse(input);
             CompletableFuture<Optional<PlayerData>> loading = uuid != null
                     ? this.plugin().dataStorage().loadPlayer(uuid)
-                    : this.plugin().playerManager().resolvePlayer(input).thenCompose(found -> found.isEmpty()
+                    : this.plugin()
+                            .playerManager()
+                            .resolvePlayer(input)
+                            .thenCompose(found -> found.isEmpty()
                             ? CompletableFuture.completedFuture(Optional.empty())
                             : this.plugin().dataStorage().loadPlayer(found.get().uuid()));
             resolved = loading.thenApply(data -> data.map(PlayerData::lastLoginIp).map(IpRange::parse));
@@ -71,7 +74,12 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
                 return CompletableFuture.completedFuture(null);
             }
             IpRange range = found.get();
-            return TextPage.load(() -> this.plugin().dataStorage().countPlayersOnIp(range), (offset, limit) -> this.plugin().dataStorage().listPlayersOnIp(range, offset, limit), page - 1, PAGE_SIZE)
+            return TextPage.load(
+                    () -> this.plugin().dataStorage().countPlayersOnIp(range),
+                    (offset, limit) -> this.plugin().dataStorage().listPlayersOnIp(range, offset, limit),
+                    page - 1,
+                    PAGE_SIZE
+            )
                     .thenAccept(result -> this.render(sender, input, range, result));
         }).exceptionally(error -> {
             this.plugin().logger().warn("Failed to list players on IP " + input, error);
@@ -101,7 +109,9 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
         Component name = Component.text(data.name());
         Component status = online != null
                 ? MessageConstants.COMMAND_IP_HISTORY_ONLINE.arguments(Component.text(online.server()))
-                : MessageConstants.COMMAND_IP_HISTORY_OFFLINE.arguments(Component.text(data.lastLogoutServer() == null ? "-" : data.lastLogoutServer()));
+                : MessageConstants.COMMAND_IP_HISTORY_OFFLINE.arguments(
+                        Component.text(data.lastLogoutServer() == null ? "-" : data.lastLogoutServer())
+                );
         String ip = data.lastLoginIp() == null ? "-" : data.lastLoginIp();
         Component time = Component.text(player ? DateTimeUtils.shortTime(data.lastLogin()) : DateTimeUtils.fullTime(data.lastLogin()));
         // 玩家看到固定宽度的圆点, 绿色在线, 灰色离线, 文字说明放进悬浮

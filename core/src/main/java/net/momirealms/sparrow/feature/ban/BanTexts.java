@@ -61,7 +61,9 @@ public final class BanTexts {
     @NotNull
     public static Component id(@NotNull String id) {
         String text = BanRecord.ID_PREFIX + id;
-        return Component.text(text).clickEvent(ClickEvent.copyToClipboard(text)).hoverEvent(MessageConstants.BAN_ID_COPY);
+        return Component.text(text)
+                .clickEvent(ClickEvent.copyToClipboard(text))
+                .hoverEvent(MessageConstants.BAN_ID_COPY);
     }
 
     @NotNull

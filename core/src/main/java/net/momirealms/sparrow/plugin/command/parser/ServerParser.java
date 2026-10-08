@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public final class ServerParser<C> implements ArgumentParser.FutureArgumentParser<C, String>, SuggestionProvider<C>, PluginMessageListener {
-    public static final String CHANNEL = "BungeeCord"; // Velocity 默认也接受此通道
+    public static final String CHANNEL = "BungeeCord";
 
     private final JavaPlugin plugin;
     private final Predicate<String> filter;
@@ -36,7 +36,6 @@ public final class ServerParser<C> implements ArgumentParser.FutureArgumentParse
 
     /**
      * @param commandManager 提供平台是否允许等待异步补全的标记
-     * @param plugin 发送查询所用的插件
      * @param filter 只有通过筛选的服务器会出现在补全中
      */
     public ServerParser(@NotNull CommandManager commandManager, @NotNull JavaPlugin plugin, @NotNull Predicate<String> filter) {
@@ -72,7 +71,8 @@ public final class ServerParser<C> implements ArgumentParser.FutureArgumentParse
 
     private List<Suggestion> suggestions(List<String> servers, @Nullable String current) {
         List<Suggestion> result = new ArrayList<>();
-        for (String server : servers) {
+        for (int serverIndex = 0, serverCount = servers.size(); serverIndex < serverCount; serverIndex++) {
+            String server = servers.get(serverIndex);
             if (!server.equals(current) && this.filter.test(server)) {
                 result.add(Suggestion.suggestion(server));
             }
@@ -83,13 +83,19 @@ public final class ServerParser<C> implements ArgumentParser.FutureArgumentParse
     // 其他插件经同一通道发出的查询也会收到应答, 同样用于更新缓存
     @Override
     public void onPluginMessageReceived(@NotNull String channel, @NotNull Player player, byte @NotNull [] message) {
-        if (!channel.equals(CHANNEL)) return;
+        if (!channel.equals(CHANNEL)) {
+            return;
+        }
         ByteArrayDataInput in = ByteStreams.newDataInput(message);
         switch (in.readUTF()) {
             case "GetServers" -> {
                 List<String> servers = new ArrayList<>();
-                for (String server : in.readUTF().split(", ")) {
-                    if (!server.isEmpty()) servers.add(server);
+                String[] serverValues = in.readUTF().split(", ");
+                for (int serverIndex = 0, serverCount = serverValues.length; serverIndex < serverCount; serverIndex++) {
+                    String server = serverValues[serverIndex];
+                    if (!server.isEmpty()) {
+                        servers.add(server);
+                    }
                 }
                 servers.sort(String.CASE_INSENSITIVE_ORDER);
                 this.servers = List.copyOf(servers);

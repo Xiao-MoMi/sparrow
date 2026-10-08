@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class SmithingTableCommand extends BukkitCommandFeature {
+
     public SmithingTableCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -35,9 +36,14 @@ public final class SmithingTableCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            player.openInventory(MenuType.SMITHING.create(player, InventoryType.SMITHING.getDefaultTitle()));
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_SMITHING_TABLE_SUCCESS_SELF : MessageConstants.COMMAND_SMITHING_TABLE_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    player.openInventory(MenuType.SMITHING.create(player, InventoryType.SMITHING.getDefaultTitle()));
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_SMITHING_TABLE_SUCCESS_SELF
+                                    : MessageConstants.COMMAND_SMITHING_TABLE_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override
@@ -45,4 +51,3 @@ public final class SmithingTableCommand extends BukkitCommandFeature {
         return "smithing-table";
     }
 }
-

@@ -18,8 +18,12 @@ final class PaperPlayerLimitListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onFullCheck(@NotNull PlayerServerFullCheckEvent event) {
-        if (event.isAllowed() || !this.feature.enabled()) return;
+        if (event.isAllowed() || !this.feature.enabled()) {
+            return;
+        }
         UUID uniqueId = event.getPlayerProfile().getId();
-        if (uniqueId != null && this.feature.bypassBeforeJoin(uniqueId)) event.allow(true);
+        if (uniqueId != null && this.feature.bypassBeforeJoin(uniqueId)) {
+            event.allow(true);
+        }
     }
 }

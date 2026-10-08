@@ -139,7 +139,8 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
         ThreadLocalRandom random = ThreadLocalRandom.current();
         double spread = random.nextDouble(0.02);
         double angle = random.nextDouble(Math.PI * 2);
-        Vector velocity = location.getDirection().multiply(0.3)
+        Vector velocity = location.getDirection()
+                .multiply(0.3)
                 .setY(-Math.sin(Math.toRadians(location.getPitch())) * 0.3 + 0.1 + (random.nextDouble() - random.nextDouble()) * 0.1);
         velocity.add(new Vector(Math.cos(angle) * spread, 0, Math.sin(angle) * spread));
         item.setVelocity(velocity);
@@ -166,7 +167,13 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
     }
 
     @Override
-    public void showBossBar(@NotNull UUID id, @NotNull Component title, float progress, @NotNull BossEvent.BossBarColor color, @NotNull BossEvent.BossBarOverlay overlay) {
+    public void showBossBar(
+            @NotNull UUID id,
+            @NotNull Component title,
+            float progress,
+            @NotNull BossEvent.BossBarColor color,
+            @NotNull BossEvent.BossBarOverlay overlay
+    ) {
         PacketBossEvent event = new PacketBossEvent(id, CraftChatMessage.fromJSON(AdventureHelper.componentToJson(title)), color, overlay);
         event.setProgress(progress);
         this.connection.sendPacket(ClientboundBossEventPacket.createAddPacket(event));
@@ -214,7 +221,9 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
 
     @Override
     public void playSound(@NotNull Sound sound) {
-        Holder<SoundEvent> event = Holder.direct(SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value())));
+        Holder<SoundEvent> event = Holder.direct(
+                SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value()))
+        );
         long seed = sound.seed().orElseGet(() -> ThreadLocalRandom.current().nextLong());
         this.connection.sendPacket(new ClientboundSoundEntityPacket(event, source(sound.source()), this.nmsPlayer, sound.volume(), sound.pitch(), seed));
     }
@@ -258,6 +267,7 @@ public final class BukkitSparrowPlayer implements SparrowPlayer {
 
     // 各版本 ServerBossEvent 构造器不同, 继承签名稳定的 BossEvent 仅用于构造封包
     private static final class PacketBossEvent extends BossEvent {
+
         private PacketBossEvent(@NotNull UUID id) {
             this(id, net.minecraft.network.chat.Component.empty(), BossBarColor.WHITE, BossBarOverlay.PROGRESS);
         }

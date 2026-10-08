@@ -36,7 +36,7 @@ public final class PatrolFeature extends Feature<PatrolSettings> implements Play
 
     @Override
     public void loadConfig() {
-        this.config = this.plugin.configurationManager().featuresConfig().config().patrol();
+        super.config = this.plugin.configurationManager().featuresConfig().config().patrol();
     }
 
     // 队列从安装起持续维护, 停用只由命令入口拒绝新巡查

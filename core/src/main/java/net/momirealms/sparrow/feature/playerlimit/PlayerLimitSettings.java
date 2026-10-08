@@ -32,6 +32,8 @@ public final class PlayerLimitSettings implements FeatureSettings {
 
     // 配置错误在启用前报告.
     void validate() {
-        if (this.maxPlayers < -1) throw new IllegalArgumentException("player-limit.max-players must be -1 or at least 0");
+        if (this.maxPlayers < -1) {
+            throw new IllegalArgumentException("player-limit.max-players must be -1 or at least 0");
+        }
     }
 }

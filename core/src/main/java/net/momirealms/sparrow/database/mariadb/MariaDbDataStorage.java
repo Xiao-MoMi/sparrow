@@ -15,13 +15,14 @@ import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
 public final class MariaDbDataStorage extends MysqlDataStorage {
+
     public MariaDbDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
     }
 
     @Override
     public void initialize() {
-        PluginConfig.SqlOptions sqlOptions = this.options.mariadb();
+        PluginConfig.SqlOptions sqlOptions = super.options.mariadb();
         HikariDataSource connected = new HikariDataSource();
         try {
             connected.setPoolName("sparrow-mariadb");
@@ -37,15 +38,15 @@ public final class MariaDbDataStorage extends MysqlDataStorage {
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
             Jdbi jdbi = Jdbi.create(connected);
             new MysqlSchemaMigrator(
-                    this.logger,
+                    super.logger,
                     MysqlSchema.DATA_COMPONENT,
                     MysqlSchema.DATA_TABLES,
                     DependencyVersions.DATA_SCHEMA_VERSION,
                     MysqlSchema::initializeData,
                     MIGRATIONS
             ).migrate(jdbi, this.namePrefix());
-            this.pool = connected;
-            this.jdbi = jdbi;
+            super.pool = connected;
+            super.jdbi = jdbi;
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;

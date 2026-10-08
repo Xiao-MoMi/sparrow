@@ -9,12 +9,16 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public final class MiscUtils {
+
     private MiscUtils() {
     }
 
     public static final float DEG_TO_RAD = ((float) Math.PI / 180F);
 
-    private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8, 31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9};
+    private static final int[] MULTIPLY_DE_BRUIJN_BIT_POSITION = new int[]{
+            0, 1, 28, 2, 29, 14, 24, 3, 30, 22, 20, 15, 25, 17, 4, 8,
+            31, 27, 13, 23, 21, 19, 16, 7, 26, 12, 18, 6, 11, 5, 10, 9
+    };
     private static final float[] SIN = init(new float[65536], (sineTable) -> {
         for (int i = 0; i < sineTable.length; ++i) {
             sineTable[i] = (float) Math.sin((double) i * Math.PI * 2.0 / 65536.0);
@@ -115,14 +119,21 @@ public final class MiscUtils {
         return o -> a.test(o) && b.test(o) && c.test(o) && d.test(o);
     }
 
-    public static <T> Predicate<T> allOf(Predicate<? super T> a, Predicate<? super T> b, Predicate<? super T> c, Predicate<? super T> d, Predicate<? super T> e) {
+    public static <T> Predicate<T> allOf(
+            Predicate<? super T> a,
+            Predicate<? super T> b,
+            Predicate<? super T> c,
+            Predicate<? super T> d,
+            Predicate<? super T> e
+    ) {
         return o -> a.test(o) && b.test(o) && c.test(o) && d.test(o) && e.test(o);
     }
 
     @SafeVarargs
     public static <T> Predicate<T> allOf(Predicate<? super T>... predicates) {
         return o -> {
-            for (Predicate<? super T> predicate : predicates) {
+            for (int predicateIndex = 0, predicateCount = predicates.length; predicateIndex < predicateCount; predicateIndex++) {
+                Predicate<? super T> predicate = predicates[predicateIndex];
                 if (!predicate.test(o)) {
                     return false;
                 }
@@ -137,7 +148,11 @@ public final class MiscUtils {
             case 1 -> allOf((Predicate<? super T>) predicates.get(0));
             case 2 -> allOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1));
             case 3 ->
-                    allOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1), (Predicate<? super T>) predicates.get(2));
+                    allOf(
+                            (Predicate<? super T>) predicates.get(0),
+                            (Predicate<? super T>) predicates.get(1),
+                            (Predicate<? super T>) predicates.get(2)
+                    );
             case 4 -> allOf(
                     (Predicate<? super T>) predicates.get(0),
                     (Predicate<? super T>) predicates.get(1),
@@ -180,14 +195,21 @@ public final class MiscUtils {
         return o -> a.test(o) || b.test(o) || c.test(o) || d.test(o);
     }
 
-    public static <T> Predicate<T> anyOf(Predicate<? super T> a, Predicate<? super T> b, Predicate<? super T> c, Predicate<? super T> d, Predicate<? super T> e) {
+    public static <T> Predicate<T> anyOf(
+            Predicate<? super T> a,
+            Predicate<? super T> b,
+            Predicate<? super T> c,
+            Predicate<? super T> d,
+            Predicate<? super T> e
+    ) {
         return o -> a.test(o) || b.test(o) || c.test(o) || d.test(o) || e.test(o);
     }
 
     @SafeVarargs
     public static <T> Predicate<T> anyOf(Predicate<? super T>... predicates) {
         return o -> {
-            for (Predicate<? super T> predicate : predicates) {
+            for (int predicateIndex = 0, predicateCount = predicates.length; predicateIndex < predicateCount; predicateIndex++) {
+                Predicate<? super T> predicate = predicates[predicateIndex];
                 if (predicate.test(o)) {
                     return true;
                 }
@@ -202,7 +224,11 @@ public final class MiscUtils {
             case 1 -> anyOf((Predicate<? super T>) predicates.get(0));
             case 2 -> anyOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1));
             case 3 ->
-                    anyOf((Predicate<? super T>) predicates.get(0), (Predicate<? super T>) predicates.get(1), (Predicate<? super T>) predicates.get(2));
+                    anyOf(
+                            (Predicate<? super T>) predicates.get(0),
+                            (Predicate<? super T>) predicates.get(1),
+                            (Predicate<? super T>) predicates.get(2)
+                    );
             case 4 -> anyOf(
                     (Predicate<? super T>) predicates.get(0),
                     (Predicate<? super T>) predicates.get(1),
@@ -371,14 +397,6 @@ public final class MiscUtils {
             return List.of((T) o);
         }
         return List.of();
-    }
-
-    public static <T> T requireNonNullIf(T o, boolean condition) {
-        if (condition) {
-            return Objects.requireNonNull(o);
-        } else {
-            return o;
-        }
     }
 
     public static boolean matchRegex(String id, Set<String> ids, boolean regexMatch) {

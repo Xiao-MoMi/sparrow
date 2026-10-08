@@ -38,7 +38,7 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
     @Override
     public void run(Runnable r, World world, int x, int z) {
         if (world == null) {
-            execute(r);
+            this.execute(r);
         } else {
             Bukkit.getRegionScheduler().execute(this.plugin.javaPlugin(), world, x, z, r);
         }
@@ -46,7 +46,7 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
 
     @Override
     public void runDelayed(Runnable r, World world, int x, int z) {
-        run(r, world, x, z);
+        this.run(r, world, x, z);
     }
 
     @Override
@@ -66,7 +66,9 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
             if (delay <= 0) {
                 return new FoliaTask(Bukkit.getRegionScheduler().run(this.plugin.javaPlugin(), world, x, z, scheduledTask -> r.run()));
             } else {
-                return new FoliaTask(Bukkit.getRegionScheduler().runDelayed(this.plugin.javaPlugin(), world, x, z, scheduledTask -> r.run(), delay));
+                return new FoliaTask(
+                        Bukkit.getRegionScheduler().runDelayed(this.plugin.javaPlugin(), world, x, z, scheduledTask -> r.run(), delay)
+                );
             }
         }
     }
@@ -84,9 +86,13 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
     @Override
     public SchedulerTask runRepeating(Runnable r, long delay, long period, World world, int x, int z) {
         if (world == null) {
-            return new FoliaTask(Bukkit.getGlobalRegionScheduler().runAtFixedRate(this.plugin.javaPlugin(), scheduledTask -> r.run(), delay, period));
+            return new FoliaTask(
+                    Bukkit.getGlobalRegionScheduler().runAtFixedRate(this.plugin.javaPlugin(), scheduledTask -> r.run(), delay, period)
+            );
         } else {
-            return new FoliaTask(Bukkit.getRegionScheduler().runAtFixedRate(this.plugin.javaPlugin(), world, x, z, scheduledTask -> r.run(), delay, period));
+            return new FoliaTask(
+                    Bukkit.getRegionScheduler().runAtFixedRate(this.plugin.javaPlugin(), world, x, z, scheduledTask -> r.run(), delay, period)
+            );
         }
     }
 
@@ -103,11 +109,26 @@ public final class FoliaExecutor extends AbstractBukkitExecutor {
 
     @Override
     public SchedulerTask runAsyncLater(Runnable r, long delayTicks) {
-        return new FoliaTask(Bukkit.getAsyncScheduler().runDelayed(this.plugin.javaPlugin(), t -> r.run(), delayTicks * 50, java.util.concurrent.TimeUnit.MILLISECONDS));
+        return new FoliaTask(
+                Bukkit.getAsyncScheduler().runDelayed(
+                        this.plugin.javaPlugin(),
+                        t -> r.run(),
+                        delayTicks * 50,
+                        java.util.concurrent.TimeUnit.MILLISECONDS
+                )
+        );
     }
 
     @Override
     public SchedulerTask runAsyncRepeating(Runnable r, long delayTicks, long periodTicks) {
-        return new FoliaTask(Bukkit.getAsyncScheduler().runAtFixedRate(this.plugin.javaPlugin(), t -> r.run(), delayTicks * 50, periodTicks * 50, java.util.concurrent.TimeUnit.MILLISECONDS));
+        return new FoliaTask(
+                Bukkit.getAsyncScheduler().runAtFixedRate(
+                        this.plugin.javaPlugin(),
+                        t -> r.run(),
+                        delayTicks * 50,
+                        periodTicks * 50,
+                        java.util.concurrent.TimeUnit.MILLISECONDS
+                )
+        );
     }
 }

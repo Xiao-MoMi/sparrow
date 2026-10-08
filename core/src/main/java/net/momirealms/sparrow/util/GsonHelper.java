@@ -131,10 +131,7 @@ public final class GsonHelper {
             if (merged.has(key)) {
                 JsonElement existingValue = merged.get(key);
                 if (existingValue.isJsonObject() && value.isJsonObject()) {
-                    JsonObject mergedChild = deepMerge(
-                            existingValue.getAsJsonObject(),
-                            value.getAsJsonObject()
-                    );
+                    JsonObject mergedChild = deepMerge(existingValue.getAsJsonObject(), value.getAsJsonObject());
                     merged.add(key, mergedChild);
                 } else {
                     merged.add(key, value);
@@ -155,10 +152,7 @@ public final class GsonHelper {
      */
     public static JsonObject parseJsonToJsonObject(String json) {
         try {
-            return get().fromJson(
-                    json,
-                    JsonObject.class
-            );
+            return get().fromJson(json, JsonObject.class);
         } catch (JsonSyntaxException e) {
             throw new RuntimeException("Invalid JSON response: " + json, e);
         }
@@ -173,10 +167,7 @@ public final class GsonHelper {
      */
     public static Map<String, Object> parseJsonToMap(String json) {
         try {
-            return GsonHelper.get().fromJson(
-                    json,
-                    new TypeToken<Map<String, Object>>() {}.getType()
-            );
+            return GsonHelper.get().fromJson(json, new TypeToken<Map<String, Object>>() {}.getType());
         } catch (JsonSyntaxException e) {
             throw new RuntimeException("Invalid JSON response: " + json, e);
         }
@@ -189,10 +180,7 @@ public final class GsonHelper {
      * @return 解析得到的 Map 对象
      */
     public static Map<String, Object> parseJsonToMap(Reader json) {
-        return GsonHelper.get().fromJson(
-                json,
-                new TypeToken<Map<String, Object>>() {}.getType()
-        );
+        return GsonHelper.get().fromJson(json, new TypeToken<Map<String, Object>>() {}.getType());
     }
 
     /**
@@ -203,7 +191,9 @@ public final class GsonHelper {
      * @return 提取到的 float 值或默认值
      */
     public static float getAsFloat(JsonElement json, float defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsFloat();
         } catch (Exception e) {
@@ -219,7 +209,9 @@ public final class GsonHelper {
      * @return 提取到的 double 值或默认值
      */
     public static double getAsDouble(JsonElement json, double defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsDouble();
         } catch (Exception e) {
@@ -235,7 +227,9 @@ public final class GsonHelper {
      * @return 提取到的 int 值或默认值
      */
     public static int getAsInt(JsonElement json, int defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsInt();
         } catch (Exception e) {
@@ -251,7 +245,9 @@ public final class GsonHelper {
      * @return 提取到的 long 值或默认值
      */
     public static long getAsLong(JsonElement json, long defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsLong();
         } catch (Exception e) {
@@ -267,7 +263,9 @@ public final class GsonHelper {
      * @return 提取到的 short 值或默认值
      */
     public static short getAsShort(JsonElement json, short defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsShort();
         } catch (Exception e) {
@@ -283,7 +281,9 @@ public final class GsonHelper {
      * @return 提取到的 byte 值或默认值
      */
     public static byte getAsByte(JsonElement json, byte defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsByte();
         } catch (Exception e) {
@@ -299,7 +299,9 @@ public final class GsonHelper {
      * @return 提取到的 boolean 值或默认值
      */
     public static boolean getAsBoolean(JsonElement json, boolean defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsBoolean();
         } catch (Exception e) {
@@ -315,7 +317,9 @@ public final class GsonHelper {
      * @return 提取到的 String 值或默认值
      */
     public static String getAsString(JsonElement json, String defaultValue) {
-        if (json == null || json.isJsonNull()) return defaultValue;
+        if (json == null || json.isJsonNull()) {
+            return defaultValue;
+        }
         try {
             return json.getAsString();
         } catch (Exception e) {

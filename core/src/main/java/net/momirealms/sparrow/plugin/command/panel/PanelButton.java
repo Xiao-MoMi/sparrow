@@ -125,7 +125,9 @@ public final class PanelButton {
         int size = usages.size();
         for (int i = 0; i < size; i++) {
             String candidate = usages.get(i);
-            if (candidate.startsWith("/")) return candidate.trim();
+            if (candidate.startsWith("/")) {
+                return candidate.trim();
+            }
         }
         return null;
     }
@@ -133,14 +135,18 @@ public final class PanelButton {
     @Nullable
     private Component disabledReason(@Nullable CommandConfig config, @Nullable String usage) {
         String basePermission = config == null ? null : config.getPermission();
-        if (basePermission != null && !basePermission.isEmpty() && !this.sender.hasPermission(basePermission))
+        if (basePermission != null && !basePermission.isEmpty() && !this.sender.hasPermission(basePermission)) {
             return Component.translatable("command.panel.no_permission");
-        if (this.permission != null && !this.permission.isEmpty() && !this.sender.hasPermission(this.permission))
+        }
+        if (this.permission != null && !this.permission.isEmpty() && !this.sender.hasPermission(this.permission)) {
             return Component.translatable("command.panel.no_permission");
-        if (this.disabled != null)
+        }
+        if (this.disabled != null) {
             return this.disabled;
-        if (this.playersOnly && !(this.sender instanceof Player))
+        }
+        if (this.playersOnly && !(this.sender instanceof Player)) {
             return Component.translatable("command.panel.player_required");
+        }
         return usage == null ? Component.translatable("command.panel.unavailable") : null;
     }
 

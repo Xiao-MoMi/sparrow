@@ -2,7 +2,6 @@ package net.momirealms.sparrow.player.teleport;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.github.benmanes.caffeine.cache.Ticker;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.momirealms.sparrow.locale.MessageConstants;
@@ -28,12 +27,8 @@ public final class TeleportManager {
     private final Cache<UUID, Arrival> arrivals;
 
     public TeleportManager(@NotNull SparrowPlugin plugin) {
-        this(plugin, Ticker.systemTicker());
-    }
-
-    TeleportManager(@NotNull SparrowPlugin plugin, @NotNull Ticker ticker) {
         this.plugin = plugin;
-        this.arrivals = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).ticker(ticker).build();
+        this.arrivals = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
     }
 
     public void onEnable() {
@@ -50,26 +45,37 @@ public final class TeleportManager {
     public CompletableFuture<TransferResult> transfer(@NotNull Player player, @NotNull String server, @NotNull WorldLocation location) {
         if (ServerConfig.serverId().equals(server)) {
             Location destination = location.resolve();
-            if (destination == null) return CompletableFuture.completedFuture(TransferResult.INVALID);
+            if (destination == null) {
+                return CompletableFuture.completedFuture(TransferResult.INVALID);
+            }
             CompletableFuture<Boolean> teleport = VersionHelper.hasPaperPatch
                     ? player.teleportAsync(destination, TeleportCause.PLUGIN)
                     : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
             return teleport.thenApply(success -> success ? TransferResult.SUCCESS : TransferResult.FAILED);
         }
         return this.plugin.serverHeartBeats().isOnline(server).thenCompose(online -> {
-            if (!online) return CompletableFuture.completedFuture(TransferResult.SERVER_OFFLINE);
-            return this.plugin.messageBrokerManager().broker().publishTwoWay(new TeleportRequest(player.getUniqueId(), location), server)
-                    .orTimeout(5, TimeUnit.SECONDS).thenApply(response -> {
-                        if (!response.accepted()) return TransferResult.INVALID;
-                        if (!player.isOnline()) return TransferResult.FAILED;
-                        // 对方已预留出生位置, 经由玩家自己的连接请求代理切服
-                        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                        out.writeUTF("Connect");
-                        out.writeUTF(server);
-                        player.sendPluginMessage(this.plugin.javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
-                        return TransferResult.CONNECTING;
-                    });
-        });
+                    if (!online) {
+                        return CompletableFuture.completedFuture(TransferResult.SERVER_OFFLINE);
+                    }
+                    return this.plugin.messageBrokerManager()
+                            .broker()
+                            .publishTwoWay(new TeleportRequest(player.getUniqueId(), location), server)
+                            .orTimeout(5, TimeUnit.SECONDS)
+                            .thenApply(response -> {
+                                if (!response.accepted()) {
+                                    return TransferResult.INVALID;
+                                }
+                                if (!player.isOnline()) {
+                                    return TransferResult.FAILED;
+                                }
+                                // 对方已预留出生位置, 经由玩家自己的连接请求代理切服
+                                ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                                out.writeUTF("Connect");
+                                out.writeUTF(server);
+                                player.sendPluginMessage(this.plugin.javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
+                                return TransferResult.CONNECTING;
+                            });
+                });
     }
 
     public boolean prepare(@NotNull UUID player, @NotNull WorldLocation location) {

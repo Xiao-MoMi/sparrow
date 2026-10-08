@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class KnockbackCommand extends BukkitCommandFeature {
+
     public KnockbackCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -42,10 +43,17 @@ public final class KnockbackCommand extends BukkitCommandFeature {
         double y = context.get("y");
         double z = context.get("z");
         this.plugin().scheduler().platform().run(() -> {
-            // 和原版受击击退一样叠加到服务端记录的速度上, 客户端收到后以结果替换当前速度
-            player.setVelocity(player.getVelocity().add(new Vector(x, y, z)));
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_KNOCKBACK_SUCCESS_SELF : MessageConstants.COMMAND_KNOCKBACK_SUCCESS), Component.text(player.getName()), Component.text(x), Component.text(y), Component.text(z));
-        }, () -> {}, player);
+                    // 和原版受击击退一样叠加到服务端记录的速度上, 客户端收到后以结果替换当前速度
+                    player.setVelocity(player.getVelocity().add(new Vector(x, y, z)));
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_KNOCKBACK_SUCCESS_SELF : MessageConstants.COMMAND_KNOCKBACK_SUCCESS),
+                            Component.text(player.getName()),
+                            Component.text(x),
+                            Component.text(y),
+                            Component.text(z)
+                    );
+                }, () -> {}, player);
     }
 
     @Override

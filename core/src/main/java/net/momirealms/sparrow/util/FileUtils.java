@@ -11,6 +11,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 public final class FileUtils {
+
     private FileUtils() {}
 
     /**

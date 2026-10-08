@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -29,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class LookCommand extends BukkitCommandFeature {
+
     public LookCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -68,63 +70,73 @@ public final class LookCommand extends BukkitCommandFeature {
             return;
         }
         if (target != null) {
-            this.plugin().scheduler().platform().run(() -> {
-                Location destination = target instanceof LivingEntity living ? living.getEyeLocation() : target.getLocation();
-                this.schedule(context, entities, destination, null);
-            }, () -> this.handleFeedback(context, MessageConstants.COMMAND_LOOK_TARGET_MISSING), target);
+            Location destination = target instanceof LivingEntity living ? living.getEyeLocation() : target.getLocation();
+            this.schedule(context, entities, destination, null);
         } else {
             this.schedule(context, entities, location, face);
         }
     }
 
-    private void schedule(CommandContext<CommandSender> context, Collection<Entity> entities, @Nullable Location destination, @Nullable BlockFace face) {
+    private void schedule(
+            CommandContext<CommandSender> context,
+            Collection<Entity> entities,
+            @Nullable Location destination,
+            @Nullable BlockFace face
+    ) {
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
-                Location rotation = entity.getLocation();
-                if (destination != null) {
-                    if (!rotation.getWorld().equals(destination.getWorld())) {
-                        this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD_SELF : MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD), Component.text(entity.getName()));
-                        return;
-                    }
-                    double eyeHeight = entity instanceof LivingEntity living ? living.getEyeHeight() : 0;
-                    Vector direction = destination.toVector().subtract(rotation.toVector().add(new Vector(0, eyeHeight, 0)));
-                    if (direction.lengthSquared() != 0) {
-                        rotation.setDirection(direction);
-                    }
-                } else if (face == BlockFace.UP || face == BlockFace.DOWN) {
-                    rotation.setPitch(face == BlockFace.UP ? -90 : 90);
-                } else {
-                    rotation.setYaw(switch (face) {
-                        case NORTH -> -180;
-                        case NORTH_NORTH_EAST -> -157.5f;
-                        case NORTH_EAST -> -135;
-                        case EAST_NORTH_EAST -> -112.5f;
-                        case EAST -> -90;
-                        case EAST_SOUTH_EAST -> -67.5f;
-                        case SOUTH_EAST -> -45;
-                        case SOUTH_SOUTH_EAST -> -22.5f;
-                        case SOUTH -> 0;
-                        case SOUTH_SOUTH_WEST -> 22.5f;
-                        case SOUTH_WEST -> 45;
-                        case WEST_SOUTH_WEST -> 67.5f;
-                        case WEST -> 90;
-                        case WEST_NORTH_WEST -> 112.5f;
-                        case NORTH_WEST -> 135;
-                        case NORTH_NORTH_WEST -> 157.5f;
-                        default -> rotation.getYaw();
-                    });
-                }
-                String name = entity.getName();
-                EntityUtils.rotate(entity, rotation).whenComplete((success, error) -> {
-                    if (error != null) {
-                        this.plugin().logger().warn("Failed to rotate " + name, error);
-                    }
-                    boolean self = entity == context.sender();
-                    var message = error == null && success ? (self ? MessageConstants.COMMAND_LOOK_SUCCESS_SELF : MessageConstants.COMMAND_LOOK_SUCCESS)
-                            : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
-                    this.handleFeedback(context, message, Component.text(name));
-                });
-            }, () -> {}, entity);
+                        Location rotation = entity.getLocation();
+                        if (destination != null) {
+                            if (!rotation.getWorld().equals(destination.getWorld())) {
+                                this.handleFeedback(
+                                        context,
+                                        (entity == context.sender() ? MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD_SELF
+                                                : MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD),
+                                        Component.text(entity.getName())
+                                );
+                                return;
+                            }
+                            double eyeHeight = entity instanceof LivingEntity living ? living.getEyeHeight() : 0;
+                            Vector direction = destination.toVector().subtract(rotation.toVector().add(new Vector(0, eyeHeight, 0)));
+                            if (direction.lengthSquared() != 0) {
+                                rotation.setDirection(direction);
+                            }
+                        } else if (face == BlockFace.UP || face == BlockFace.DOWN) {
+                            rotation.setPitch(face == BlockFace.UP ? -90 : 90);
+                        } else {
+                            rotation.setYaw(switch (face) {
+                                case NORTH -> -180;
+                                case NORTH_NORTH_EAST -> -157.5f;
+                                case NORTH_EAST -> -135;
+                                case EAST_NORTH_EAST -> -112.5f;
+                                case EAST -> -90;
+                                case EAST_SOUTH_EAST -> -67.5f;
+                                case SOUTH_EAST -> -45;
+                                case SOUTH_SOUTH_EAST -> -22.5f;
+                                case SOUTH -> 0;
+                                case SOUTH_SOUTH_WEST -> 22.5f;
+                                case SOUTH_WEST -> 45;
+                                case WEST_SOUTH_WEST -> 67.5f;
+                                case WEST -> 90;
+                                case WEST_NORTH_WEST -> 112.5f;
+                                case NORTH_WEST -> 135;
+                                case NORTH_NORTH_WEST -> 157.5f;
+                                default -> rotation.getYaw();
+                            });
+                        }
+                        String name = entity.getName();
+                        EntityUtils.rotate(entity, rotation)
+                                .whenComplete((success, error) -> {
+                                    if (error != null) {
+                                        this.plugin().logger().warn("Failed to rotate " + name, error);
+                                    }
+                                    boolean self = entity == context.sender();
+                                    TranslatableComponent message = error == null && success
+                                            ? (self ? MessageConstants.COMMAND_LOOK_SUCCESS_SELF : MessageConstants.COMMAND_LOOK_SUCCESS)
+                                            : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
+                                    this.handleFeedback(context, message, Component.text(name));
+                                });
+                    }, () -> {}, entity);
         }
     }
 

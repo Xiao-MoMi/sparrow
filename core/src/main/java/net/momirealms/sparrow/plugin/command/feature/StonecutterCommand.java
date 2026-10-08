@@ -16,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class StonecutterCommand extends BukkitCommandFeature {
+
     public StonecutterCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -35,9 +36,14 @@ public final class StonecutterCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            player.openInventory(MenuType.STONECUTTER.create(player, InventoryType.STONECUTTER.getDefaultTitle()));
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_STONECUTTER_SUCCESS_SELF : MessageConstants.COMMAND_STONECUTTER_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    player.openInventory(MenuType.STONECUTTER.create(player, InventoryType.STONECUTTER.getDefaultTitle()));
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_STONECUTTER_SUCCESS_SELF
+                                    : MessageConstants.COMMAND_STONECUTTER_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override
@@ -45,4 +51,3 @@ public final class StonecutterCommand extends BukkitCommandFeature {
         return "stonecutter";
     }
 }
-

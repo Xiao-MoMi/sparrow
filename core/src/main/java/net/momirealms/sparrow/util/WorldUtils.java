@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public final class WorldUtils {
+
     private WorldUtils() {
     }
 
@@ -19,7 +20,9 @@ public final class WorldUtils {
         int start = worlds.indexOf(current);
         for (int offset = 1; offset <= size; offset++) {
             World world = worlds.get((start + offset) % size);
-            if (!world.equals(current)) return world;
+            if (!world.equals(current)) {
+                return world;
+            }
         }
         return null;
     }

@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class ExtinguishCommand extends BukkitCommandFeature {
+
     public ExtinguishCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -48,9 +49,14 @@ public final class ExtinguishCommand extends BukkitCommandFeature {
         }
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
-                entity.setFireTicks(0);
-                this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_EXTINGUISH_SUCCESS_SELF : MessageConstants.COMMAND_EXTINGUISH_SUCCESS), Component.text(entity.getName()));
-            }, () -> {}, entity);
+                        entity.setFireTicks(0);
+                        this.handleFeedback(
+                                context,
+                                (entity == context.sender() ? MessageConstants.COMMAND_EXTINGUISH_SUCCESS_SELF
+                                        : MessageConstants.COMMAND_EXTINGUISH_SUCCESS),
+                                Component.text(entity.getName())
+                        );
+                    }, () -> {}, entity);
         }
     }
 

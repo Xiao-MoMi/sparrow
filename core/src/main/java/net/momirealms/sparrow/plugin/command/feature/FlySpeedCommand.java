@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class FlySpeedCommand extends BukkitCommandFeature {
+
     public FlySpeedCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -37,9 +38,15 @@ public final class FlySpeedCommand extends BukkitCommandFeature {
         }
         float speed = context.get("speed");
         this.plugin().scheduler().platform().run(() -> {
-            player.setFlySpeed(speed);
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_FLY_SPEED_SUCCESS_SELF : MessageConstants.COMMAND_FLY_SPEED_SUCCESS), Component.text(player.getName()), Component.text(speed));
-        }, () -> {}, player);
+                    player.setFlySpeed(speed);
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_FLY_SPEED_SUCCESS_SELF
+                                    : MessageConstants.COMMAND_FLY_SPEED_SUCCESS),
+                            Component.text(player.getName()),
+                            Component.text(speed)
+                    );
+                }, () -> {}, player);
     }
 
     @Override

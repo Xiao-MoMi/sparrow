@@ -30,18 +30,23 @@ public final class PlayerUuidCommand extends BukkitCommandFeature {
         CommandSender sender = context.sender();
         String name = context.get("player");
         this.plugin().playerManager().resolvePlayer(name).thenAccept(found -> {
-            if (found.isEmpty()) {
-                this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
-                return;
-            }
-            String uuid = found.get().uuid().toString();
-            this.handleFeedback(sender, MessageConstants.COMMAND_PLAYER_UUID_SUCCESS, Component.text(found.get().name()),
-                    Component.text(uuid).hoverEvent(Component.text(uuid)).clickEvent(ClickEvent.copyToClipboard(uuid)));
-        }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to query the UUID of " + name, error);
-            this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
-            return null;
-        });
+                    if (found.isEmpty()) {
+                        this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
+                        return;
+                    }
+                    String uuid = found.get().uuid().toString();
+                    this.handleFeedback(
+                            sender,
+                            MessageConstants.COMMAND_PLAYER_UUID_SUCCESS,
+                            Component.text(found.get().name()),
+                            Component.text(uuid).hoverEvent(Component.text(uuid)).clickEvent(ClickEvent.copyToClipboard(uuid))
+                    );
+                })
+                .exceptionally(error -> {
+                    this.plugin().logger().warn("Failed to query the UUID of " + name, error);
+                    this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
+                    return null;
+                });
     }
 
     @Override

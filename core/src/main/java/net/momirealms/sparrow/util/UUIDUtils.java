@@ -10,7 +10,9 @@ import java.util.regex.Pattern;
 
 public final class UUIDUtils {
     private static final SecureRandom RANDOM = new SecureRandom();
-    private static final Pattern PATTERN = Pattern.compile("[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
+    private static final Pattern PATTERN = Pattern.compile(
+            "[0-9a-fA-F]{32}|[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+    );
 
     private UUIDUtils() {
     }
@@ -26,7 +28,9 @@ public final class UUIDUtils {
     @NotNull
     public static UUID fromString(@NotNull String value) {
         UUID uuid = parse(value);
-        if (uuid == null) throw new IllegalArgumentException("Invalid UUID: " + value);
+        if (uuid == null) {
+            throw new IllegalArgumentException("Invalid UUID: " + value);
+        }
         return uuid;
     }
 
@@ -40,7 +44,10 @@ public final class UUIDUtils {
 
     public static byte @NotNull [] toBytes(@NotNull UUID uuid) {
         // ByteBuffer 默认使用大端序, 高 64 位在前、低 64 位在后.
-        return ByteBuffer.allocate(16).putLong(uuid.getMostSignificantBits()).putLong(uuid.getLeastSignificantBits()).array();
+        return ByteBuffer.allocate(16)
+                .putLong(uuid.getMostSignificantBits())
+                .putLong(uuid.getLeastSignificantBits())
+                .array();
     }
 
     @NotNull

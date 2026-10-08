@@ -27,7 +27,7 @@ public final class SpawnFeature extends Feature<SpawnSettings> {
 
     @Override
     public void loadConfig() {
-        this.config = this.plugin.configurationManager().featuresConfig().config().spawn();
+        super.config = this.plugin.configurationManager().featuresConfig().config().spawn();
     }
 
     @Override

@@ -24,15 +24,15 @@ public class CommandConfig {
     }
 
     public boolean isEnable() {
-        return enable;
+        return this.enable;
     }
 
     public List<String> getUsages() {
-        return usages;
+        return this.usages;
     }
 
     public String getPermission() {
-        return permission;
+        return this.permission;
     }
 
     public static class Builder {
@@ -43,22 +43,22 @@ public class CommandConfig {
         }
 
         public Builder usages(List<String> usages) {
-            config.usages = usages;
+            this.config.usages = usages;
             return this;
         }
 
         public Builder permission(String permission) {
-            config.permission = permission;
+            this.config.permission = permission;
             return this;
         }
 
         public Builder enable(boolean enable) {
-            config.enable = enable;
+            this.config.enable = enable;
             return this;
         }
 
         public CommandConfig build() {
-            return config;
+            return this.config;
         }
     }
 }

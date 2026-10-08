@@ -14,6 +14,7 @@ import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.IpRange;
 import org.jdbi.v3.core.Jdbi;
+import org.jdbi.v3.core.statement.Update;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -48,7 +49,7 @@ public final class PostgresDataStorage extends DataStorage {
 
     @Override
     public void initialize() {
-        PluginConfig.SqlOptions sqlOptions = this.options.postgresql();
+        PluginConfig.SqlOptions sqlOptions = super.options.postgresql();
         HikariDataSource connected = new HikariDataSource();
         try {
             connected.setPoolName("sparrow-postgresql");
@@ -111,7 +112,7 @@ public final class PostgresDataStorage extends DataStorage {
                 throw new IllegalArgumentException("Unsupported user name: '" + name + "'");
             }
             this.sql().useHandle(handle -> {
-                var query = handle.createUpdate(upsert).bind("player", player).bind("name", name).bind("time", timestamp);
+                Update query = handle.createUpdate(upsert).bind("player", player).bind("name", name).bind("time", timestamp);
                 if (logout) {
                     query.bind("server", server).bind("location", location.toJson());
                 }
@@ -120,21 +121,34 @@ public final class PostgresDataStorage extends DataStorage {
                 }
                 query.execute();
             });
-        }, this.executor);
+        }, super.executor);
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<PlayerData>> loadPlayer(@NotNull UUID player) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE player = :player")
-                .bind("player", player).map((result, context) -> readPlayer(result)).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data + " WHERE player = :player")
+                        .bind("player", player)
+                        .map((result, context) -> readPlayer(result))
+                        .findOne()),
+                super.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Long> countPlayersOnIp(@NotNull IpRange range) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT COUNT(*) FROM " + this.data + " WHERE last_login_ip BETWEEN :start AND :end")
-                .bind("start", range.start()).bind("end", range.end()).mapTo(Long.class).one()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> handle.createQuery(
+                        "SELECT COUNT(*) FROM " + this.data + " WHERE last_login_ip BETWEEN :start AND :end"
+                )
+                        .bind("start", range.start())
+                        .bind("end", range.end())
+                        .mapTo(Long.class)
+                        .one()),
+                super.executor
+        );
     }
 
     @Override
@@ -142,8 +156,12 @@ public final class PostgresDataStorage extends DataStorage {
     public CompletableFuture<List<PlayerData>> listPlayersOnIp(@NotNull IpRange range, int offset, int limit) {
         return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT * FROM " + this.data
                         + " WHERE last_login_ip BETWEEN :start AND :end ORDER BY last_login DESC, player DESC LIMIT :limit OFFSET :offset")
-                .bind("start", range.start()).bind("end", range.end()).bind("limit", limit).bind("offset", offset)
-                .map((result, context) -> readPlayer(result)).list()), this.executor);
+                .bind("start", range.start())
+                .bind("end", range.end())
+                .bind("limit", limit)
+                .bind("offset", offset)
+                .map((result, context) -> readPlayer(result))
+                .list()), super.executor);
     }
 
     private static PlayerData readPlayer(ResultSet result) throws SQLException {
@@ -151,23 +169,45 @@ public final class PostgresDataStorage extends DataStorage {
         WorldLocation location = json == null ? null : WorldLocation.fromJson(json);
         long ip = result.getLong("last_login_ip");
         String lastIp = result.wasNull() ? null : IpRange.format(ip);
-        return new PlayerData(result.getObject("player", UUID.class), result.getString("name"), result.getLong("last_login"), result.getLong("last_logout"),
-                result.getString("last_logout_server"), location, lastIp, result.getLong("updated_at"));
+        return new PlayerData(
+                result.getObject("player", UUID.class),
+                result.getString("name"),
+                result.getLong("last_login"),
+                result.getLong("last_logout"),
+                result.getString("last_logout_server"),
+                location,
+                lastIp,
+                result.getLong("updated_at")
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name) {
-        if (!this.storable(name)) return CompletableFuture.completedFuture(Optional.empty());
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT player FROM " + this.data + " WHERE name = :name ORDER BY updated_at DESC, player DESC LIMIT 1")
-                .bind("name", name).map((result, context) -> result.getObject("player", UUID.class)).findOne()), this.executor);
+        if (!this.storable(name)) {
+            return CompletableFuture.completedFuture(Optional.empty());
+        }
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> handle.createQuery(
+                        "SELECT player FROM " + this.data + " WHERE name = :name ORDER BY updated_at DESC, player DESC LIMIT 1"
+                )
+                        .bind("name", name)
+                        .map((result, context) -> result.getObject("player", UUID.class))
+                        .findOne()),
+                super.executor
+        );
     }
 
     @Override
     @NotNull
     public CompletableFuture<Optional<String>> lookupName(@NotNull UUID player) {
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE player = :player")
-                .bind("player", player).mapTo(String.class).findOne()), this.executor);
+        return CompletableFuture.supplyAsync(
+                () -> this.sql().withHandle(handle -> handle.createQuery("SELECT name FROM " + this.data + " WHERE player = :player")
+                        .bind("player", player)
+                        .mapTo(String.class)
+                        .findOne()),
+                super.executor
+        );
     }
 
     @Override

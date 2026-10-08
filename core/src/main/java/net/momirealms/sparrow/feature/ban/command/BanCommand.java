@@ -64,31 +64,35 @@ public final class BanCommand extends BukkitCommandFeature {
         boolean withIp = context.flags().hasFlag("ip");
         boolean silent = context.flags().hasFlag("silent");
         boolean force = context.flags().hasFlag("force");
-        this.feature.resolvePlayer(input).thenCompose(found -> {
-            if (found.isEmpty()) {
-                this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));
-                return CompletableFuture.completedFuture(null);
-            }
-            PlayerRef target = found.get();
-            if (!withIp) {
-                return this.feature.ban(target, null, reason, expiresAt, sender.getName(), silent, force)
-                        .thenAccept(result -> this.sendResult(context, result));
-            }
-            // 在线玩家进服时已经写入当前 IP, 数据库中的记录就是最近一次登录的 IP
-            return this.plugin().dataStorage().loadPlayer(target.uuid()).thenCompose(data -> {
-                String ip = data.map(PlayerData::lastLoginIp).orElse(null);
-                if (ip == null) {
-                    this.handleFeedback(sender, MessageConstants.COMMAND_NO_ADDRESS, Component.text(target.name()));
-                    return CompletableFuture.completedFuture(null);
-                }
-                return this.feature.ban(target, IpRange.parse(ip), reason, expiresAt, sender.getName(), silent, force)
-                        .thenAccept(result -> this.sendResult(context, result));
-            });
-        }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to ban " + input, error);
-            this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
-            return null;
-        });
+        this.feature.resolvePlayer(input)
+                .thenCompose(found -> {
+                    if (found.isEmpty()) {
+                        this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));
+                        return CompletableFuture.completedFuture(null);
+                    }
+                    PlayerRef target = found.get();
+                    if (!withIp) {
+                        return this.feature.ban(target, null, reason, expiresAt, sender.getName(), silent, force)
+                                .thenAccept(result -> this.sendResult(context, result));
+                    }
+                    // 在线玩家进服时已经写入当前 IP, 数据库中的记录就是最近一次登录的 IP
+                    return this.plugin().dataStorage()
+                            .loadPlayer(target.uuid())
+                            .thenCompose(data -> {
+                                String ip = data.map(PlayerData::lastLoginIp).orElse(null);
+                                if (ip == null) {
+                                    this.handleFeedback(sender, MessageConstants.COMMAND_NO_ADDRESS, Component.text(target.name()));
+                                    return CompletableFuture.completedFuture(null);
+                                }
+                                return this.feature.ban(target, IpRange.parse(ip), reason, expiresAt, sender.getName(), silent, force)
+                                        .thenAccept(result -> this.sendResult(context, result));
+                            });
+                })
+                .exceptionally(error -> {
+                    this.plugin().logger().warn("Failed to ban " + input, error);
+                    this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
+                    return null;
+                });
     }
 
     // 覆盖被拒绝时照常提示错误, 成功反馈遵守 -s

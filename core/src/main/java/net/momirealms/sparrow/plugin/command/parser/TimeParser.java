@@ -68,6 +68,7 @@ public final class TimeParser<C> implements ArgumentParser.FutureArgumentParser<
     }
 
     public static final class TimeParseException extends ParserException {
+
         public TimeParseException(String input, CommandContext<?> context) {
             super(TimeParser.class, context, Caption.of("argument.parse.failure.time"), CaptionVariable.of("input", input));
         }

@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature.warp.command;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.feature.warp.Warp;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
@@ -34,8 +35,17 @@ public final class WarpCommand extends BukkitCommandFeature {
     // 名称读到空格为止, 中文名称不受 Brigadier 单词规则限制
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        Command.Builder<CommandSender> named = builder.required("name", TokenParser.tokenParser(), SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.peekString())));
-        String other = this.plugin().configurationManager().commandsConfig().configDefinition().command(this.getFeatureID()).getPermission() + ".other";
+        Command.Builder<CommandSender> named = builder.required(
+                "name",
+                TokenParser.tokenParser(),
+                SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.peekString()))
+        );
+        String other = this.plugin()
+                .configurationManager()
+                .commandsConfig()
+                .configDefinition()
+                .command(this.getFeatureID())
+                .getPermission() + ".other";
         manager.command(named.required("player", PlayerParser.playerParser())
                 .permission(Permission.allOf(builder.commandPermission(), Permission.of(other)))
                 .handler(this::execute));
@@ -57,28 +67,45 @@ public final class WarpCommand extends BukkitCommandFeature {
         }
         boolean self = target == context.sender();
         TeleportOptions options = this.feature.config().teleportOptions().resolve(target, self);
-        this.plugin().playerManager().teleportService().teleport(target, warp.server(), warp.location(), options).thenAccept(result -> {
-            var message = switch (result) {
-                case SUCCESS -> self ? MessageConstants.COMMAND_WARP_SUCCESS_SELF : MessageConstants.COMMAND_WARP_SUCCESS;
-                case CONNECTING -> self ? MessageConstants.COMMAND_WARP_CONNECTING_SELF : MessageConstants.COMMAND_WARP_CONNECTING;
-                case SERVER_OFFLINE -> MessageConstants.COMMAND_WARP_SERVER_OFFLINE;
-                case INVALID -> MessageConstants.COMMAND_WARP_INVALID;
-                case FAILED -> self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
-                // 冷却与取消的原因已经提示给玩家本人
-                case COOLDOWN, CANCELLED -> null;
-            };
-            if (message == null) return;
-            this.handleFeedback(context, message, Component.text(target.getName()), Component.text(warp.name()), Component.text(warp.server()));
-        }).exceptionally(error -> {
-            Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-            if (cause instanceof TimeoutException) {
-                this.handleFeedback(context, MessageConstants.COMMAND_WARP_TIMEOUT);
-            } else {
-                this.plugin().logger().warn("Failed to send " + target.getName() + " to warp " + warp.name(), cause);
-                this.handleFeedback(context, self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(target.getName()));
-            }
-            return null;
-        });
+        this.plugin().playerManager().teleportService()
+                .teleport(target, warp.server(), warp.location(), options)
+                .thenAccept(result -> {
+                    TranslatableComponent message = switch (result) {
+                        case SUCCESS -> self ? MessageConstants.COMMAND_WARP_SUCCESS_SELF : MessageConstants.COMMAND_WARP_SUCCESS;
+                        case CONNECTING -> self ? MessageConstants.COMMAND_WARP_CONNECTING_SELF : MessageConstants.COMMAND_WARP_CONNECTING;
+                        case SERVER_OFFLINE -> MessageConstants.COMMAND_WARP_SERVER_OFFLINE;
+                        case INVALID -> MessageConstants.COMMAND_WARP_INVALID;
+                        case FAILED -> self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
+                        // 冷却与取消的原因已经提示给玩家本人
+                        case COOLDOWN, CANCELLED -> null;
+                    };
+                    if (message == null) {
+                        return;
+                    }
+                    this.handleFeedback(
+                            context,
+                            message,
+                            Component.text(target.getName()),
+                            Component.text(warp.name()),
+                            Component.text(warp.server())
+                    );
+                })
+                .exceptionally(error -> {
+                    Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+                    if (cause instanceof TimeoutException) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_WARP_TIMEOUT);
+                    } else {
+                        this.plugin()
+                                .logger()
+                                .warn("Failed to send " + target.getName() + " to warp " + warp.name(), cause);
+                        this.handleFeedback(
+                                context,
+                                self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE,
+                                Component.text(target.getName())
+                        );
+                    }
+                    return null;
+                });
     }
 
     @Override

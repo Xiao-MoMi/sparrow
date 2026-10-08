@@ -62,7 +62,9 @@ public final class PostgresSchemaMigrator {
                     // 锁按当前数据库内的 schema 和表前缀区分, 获取前限制等待时间.
                     transaction.execute("SET LOCAL lock_timeout = '300s'");
                     transaction.createQuery("SELECT pg_advisory_xact_lock(1936749164, hashtext(current_schema() || ':' || :prefix))")
-                            .bind("prefix", prefix).mapTo(String.class).one();
+                            .bind("prefix", prefix)
+                            .mapTo(String.class)
+                            .one();
                     this.migrateLocked(transaction, prefix);
                 });
             });
@@ -74,17 +76,27 @@ public final class PostgresSchemaMigrator {
     private void migrateLocked(Handle handle, String prefix) {
         String meta = "\"" + prefix + "meta\"";
         handle.execute("CREATE TABLE IF NOT EXISTS " + meta + " (id VARCHAR(32) COLLATE \"C\" PRIMARY KEY, value BIGINT NOT NULL)");
-        long stored = handle.createQuery("SELECT value FROM " + meta + " WHERE id = :id").bind("id", this.component).mapTo(Long.class).findOne().orElse(0L);
+        long stored = handle.createQuery("SELECT value FROM " + meta + " WHERE id = :id")
+                .bind("id", this.component)
+                .mapTo(Long.class)
+                .findOne()
+                .orElse(0L);
         if (stored < 0 || stored > this.currentVersion) {
             throw new IllegalStateException("Unsupported PostgreSQL schema version " + stored + ", supported up to " + this.currentVersion);
         }
         if (stored == 0) {
-            long existing = handle.createQuery("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema() AND table_name IN (<tables>)")
-                    .bindList("tables", this.tables.stream().map(table -> prefix + table).toList()).mapTo(Long.class).one();
+            long existing = handle.createQuery(
+                    "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = current_schema() AND table_name IN (<tables>)"
+            )
+                    .bindList("tables", this.tables.stream().map(table -> prefix + table).toList())
+                    .mapTo(Long.class)
+                    .one();
             if (existing != 0) {
                 throw new IllegalStateException("PostgreSQL business tables exist without a schema version");
             }
-            this.logger.info(TranslationManager.console(LogConstants.STORAGE_POSTGRESQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion)));
+            this.logger.info(
+                    TranslationManager.console(LogConstants.STORAGE_POSTGRESQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion))
+            );
             this.initializer.accept(handle, prefix);
             this.complete(handle, meta, this.currentVersion);
             return;
@@ -92,14 +104,23 @@ public final class PostgresSchemaMigrator {
         for (int i = (int) stored - 1; i < this.migrations.size(); i++) {
             PostgresSchemaMigration migration = this.migrations.get(i);
             int target = migration.targetVersion();
-            this.logger.info(TranslationManager.console(LogConstants.STORAGE_POSTGRESQL_SCHEMA_MIGRATING, prefix, String.valueOf(target - 1), String.valueOf(target)));
+            this.logger.info(
+                    TranslationManager.console(
+                            LogConstants.STORAGE_POSTGRESQL_SCHEMA_MIGRATING,
+                            prefix,
+                            String.valueOf(target - 1),
+                            String.valueOf(target)
+                    )
+            );
             migration.migrate(handle, prefix);
             this.complete(handle, meta, target);
         }
     }
 
     private void complete(Handle handle, String meta, int target) {
-        handle.createUpdate("INSERT INTO " + meta + " (id, value) VALUES (:id, :version) ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value").bind("id", this.component)
-                .bind("version", target).execute();
+        handle.createUpdate("INSERT INTO " + meta + " (id, value) VALUES (:id, :version) ON CONFLICT (id) DO UPDATE SET value = EXCLUDED.value")
+                .bind("id", this.component)
+                .bind("version", target)
+                .execute();
     }
 }

@@ -28,7 +28,10 @@ public final class MaintenanceCommand extends BukkitCommandFeature {
         MaintenanceFeature feature = this.plugin().featureManager().feature(MaintenanceFeature.ID, MaintenanceFeature.class);
         Boolean active = context.getOrDefault("active", null);
         if (active == null) {
-            this.handleFeedback(context, feature.active() ? MessageConstants.COMMAND_MAINTENANCE_ACTIVE : MessageConstants.COMMAND_MAINTENANCE_INACTIVE);
+            this.handleFeedback(
+                    context,
+                    feature.active() ? MessageConstants.COMMAND_MAINTENANCE_ACTIVE : MessageConstants.COMMAND_MAINTENANCE_INACTIVE
+            );
             return;
         }
         feature.active(active);

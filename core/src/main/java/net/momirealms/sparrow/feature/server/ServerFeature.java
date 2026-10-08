@@ -20,7 +20,7 @@ public final class ServerFeature extends Feature<ServerSettings> {
 
     @Override
     public void loadConfig() {
-        this.config = this.plugin.configurationManager().featuresConfig().config().server();
+        super.config = this.plugin.configurationManager().featuresConfig().config().server();
     }
 
     @Override

@@ -20,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class ColorCommand extends BukkitCommandFeature {
+
     public ColorCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -43,14 +44,25 @@ public final class ColorCommand extends BukkitCommandFeature {
         TextColor color = context.get("color");
         Component slotName = Component.text("hand");
         this.plugin().scheduler().platform().run(() -> {
-            ItemStack item = this.plugin().playerManager().getPlayer(player).nmsPlayer().getItemBySlot(EquipmentSlot.MAINHAND);
-            if (item.isEmpty()) {
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_COLOR_ITEMLESS_SELF : MessageConstants.COMMAND_COLOR_ITEMLESS), Component.text(player.getName()), slotName);
-                return;
-            }
-            item.set(DataComponents.DYED_COLOR, new DyedItemColor(color.value()));
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_COLOR_SUCCESS_SELF : MessageConstants.COMMAND_COLOR_SUCCESS), Component.text(player.getName()), Component.text(color.asHexString(), color), slotName);
-        }, () -> {}, player);
+                    ItemStack item = this.plugin().playerManager().getPlayer(player).nmsPlayer().getItemBySlot(EquipmentSlot.MAINHAND);
+                    if (item.isEmpty()) {
+                        this.handleFeedback(
+                                context,
+                                (player == context.sender() ? MessageConstants.COMMAND_COLOR_ITEMLESS_SELF : MessageConstants.COMMAND_COLOR_ITEMLESS),
+                                Component.text(player.getName()),
+                                slotName
+                        );
+                        return;
+                    }
+                    item.set(DataComponents.DYED_COLOR, new DyedItemColor(color.value()));
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_COLOR_SUCCESS_SELF : MessageConstants.COMMAND_COLOR_SUCCESS),
+                            Component.text(player.getName()),
+                            Component.text(color.asHexString(), color),
+                            slotName
+                    );
+                }, () -> {}, player);
     }
 
     @Override

@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class WorkbenchCommand extends BukkitCommandFeature {
+
     public WorkbenchCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -33,9 +34,14 @@ public final class WorkbenchCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            player.openWorkbench(null, true);
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_WORKBENCH_SUCCESS_SELF : MessageConstants.COMMAND_WORKBENCH_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    player.openWorkbench(null, true);
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_WORKBENCH_SUCCESS_SELF
+                                    : MessageConstants.COMMAND_WORKBENCH_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override
@@ -43,4 +49,3 @@ public final class WorkbenchCommand extends BukkitCommandFeature {
         return "workbench";
     }
 }
-

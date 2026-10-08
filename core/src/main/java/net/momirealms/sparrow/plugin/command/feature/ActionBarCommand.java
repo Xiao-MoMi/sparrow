@@ -21,6 +21,7 @@ import org.jspecify.annotations.NonNull;
 import java.util.Collection;
 
 public final class ActionBarCommand extends BukkitCommandFeature {
+
     public ActionBarCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -31,7 +32,6 @@ public final class ActionBarCommand extends BukkitCommandFeature {
                 .required("message", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .flag(manager.flagBuilder("legacy-color").withAliases("l"))
-                .flag(manager.flagBuilder("parse").withAliases("p"))
                 .handler(this::execute));
     }
 
@@ -46,12 +46,15 @@ public final class ActionBarCommand extends BukkitCommandFeature {
         String message = context.get("message");
         PluginConfig.TextOptions text = PluginConfig.text();
         boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
-        boolean placeholders = text.parsePlaceholder() || context.flags().hasFlag("parse");
         for (Player player : players) {
             SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-            Component component = AdventureHelper.miniMessage(placeholders ? this.plugin().compatibilityManager().parsePlaceholders(player, message) : message, legacy);
+            Component component = AdventureHelper.miniMessage(message, legacy, player);
             receiver.sendActionBar(component);
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_ACTIONBAR_SUCCESS_SELF : MessageConstants.COMMAND_ACTIONBAR_SUCCESS), Component.text(player.getName()));
+            this.handleFeedback(
+                    context,
+                    (player == context.sender() ? MessageConstants.COMMAND_ACTIONBAR_SUCCESS_SELF : MessageConstants.COMMAND_ACTIONBAR_SUCCESS),
+                    Component.text(player.getName())
+            );
         }
     }
 

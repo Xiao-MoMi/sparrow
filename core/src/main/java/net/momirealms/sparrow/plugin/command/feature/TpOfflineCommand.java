@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -53,8 +54,10 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
             return;
         }
         String name = context.get("player");
-        this.plugin().dataStorage().lookupUser(name)
-                .thenCompose(found -> found.map(this.plugin().dataStorage()::loadPlayer).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())))
+        this.plugin().dataStorage().lookupUser(name).thenCompose(
+                        found -> found.map(this.plugin().dataStorage()::loadPlayer)
+                                .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()))
+                )
                 .thenCompose(found -> {
                     if (found.isEmpty()) {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_UNKNOWN, Component.text(name));
@@ -65,25 +68,46 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION, Component.text(name));
                         return CompletableFuture.completedFuture(null);
                     }
-                    List<CompletableFuture<Void>> transfers = targets.stream().map(player -> this.plugin().playerManager().teleports().transfer(player, data.lastLogoutServer(), data.lastLogoutLocation()).thenAccept(result -> {
-                        var message = switch (result) {
-                            case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS);
-                            case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_CONNECTING_SELF : MessageConstants.COMMAND_TP_OFFLINE_CONNECTING);
-                            case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
-                            case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
-                            case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
-                        };
-                        this.handleFeedback(context, message, Component.text(player.getName()), Component.text(name), Component.text(data.lastLogoutServer()));
-                    })).toList();
+                    List<CompletableFuture<Void>> transfers = targets.stream()
+                            .map(player -> this.plugin()
+                            .playerManager()
+                            .teleports()
+                            .transfer(player, data.lastLogoutServer(), data.lastLogoutLocation())
+                            .thenAccept(result -> {
+                                TranslatableComponent message = switch (result) {
+                                    case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF
+                                            : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS);
+                                    case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_CONNECTING_SELF
+                                            : MessageConstants.COMMAND_TP_OFFLINE_CONNECTING);
+                                    case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
+                                    case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
+                                    case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF
+                                            : MessageConstants.COMMAND_TELEPORT_FAILURE;
+                                };
+                                this.handleFeedback(
+                                        context,
+                                        message,
+                                        Component.text(player.getName()),
+                                        Component.text(name),
+                                        Component.text(data.lastLogoutServer())
+                                );
+                            }))
+                            .toList();
                     return CompletableFuture.allOf(transfers.toArray(CompletableFuture[]::new));
-                }).exceptionally(error -> {
+                })
+                .exceptionally(error -> {
                     Throwable cause = error instanceof CompletionException ? error.getCause() : error;
                     if (cause instanceof TimeoutException) {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_TIMEOUT);
                     } else {
                         this.plugin().logger().warn("Failed to teleport to the saved location of " + name, cause);
                         for (Player player : targets) {
-                            this.handleFeedback(context, player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE, Component.text(player.getName()));
+                            this.handleFeedback(
+                                    context,
+                                    player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF
+                                            : MessageConstants.COMMAND_TELEPORT_FAILURE,
+                                    Component.text(player.getName())
+                            );
                         }
                     }
                     return null;

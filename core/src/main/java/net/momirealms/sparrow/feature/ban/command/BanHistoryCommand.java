@@ -47,8 +47,16 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         // 只写筛选选项时对象留空, flag 交给后面的解析器
-        manager.command(builder.optional("target", OptionalWordParser.optionalWordParser(), (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().cluster().suggest(input.peekString())))
-                .flag(manager.flagBuilder("operator").withAliases("o").withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster())))
+        manager.command(builder.optional(
+                "target",
+                OptionalWordParser.optionalWordParser(),
+                (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().cluster().suggest(input.peekString()))
+                )
+                .flag(
+                        manager.flagBuilder("operator")
+                        .withAliases("o")
+                        .withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+                )
                 .flag(manager.flagBuilder("within").withAliases("w").withComponent(DurationParser.durationParser()))
                 .flag(manager.flagBuilder("active").withAliases("a"))
                 .flag(manager.flagBuilder("page").withAliases("p").withComponent(IntegerParser.integerParser(1)))
@@ -58,7 +66,11 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
         String input = context.<Optional<String>>getOrDefault("target", Optional.empty()).orElse(null);
-        Filters filters = new Filters(context.flags().getValue("operator", null), context.flags().getValue("within", null), context.flags().hasFlag("active"));
+        Filters filters = new Filters(
+                context.flags().getValue("operator", null),
+                context.flags().getValue("within", null),
+                context.flags().hasFlag("active")
+        );
         int page = context.flags().getValue("page", 1);
         CompletableFuture<Optional<BanTarget>> resolved;
         if (input == null) {
@@ -80,7 +92,12 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
             long now = System.currentTimeMillis();
             long since = filters.within() == null ? 0 : now - filters.within().toMillis();
             BanQuery query = new BanQuery(target, filters.operator(), since, filters.active(), now);
-            return TextPage.load(() -> this.feature.store().countBans(query), (offset, limit) -> this.feature.store().listBans(query, offset, limit), page - 1, PAGE_SIZE)
+            return TextPage.load(
+                    () -> this.feature.store().countBans(query),
+                    (offset, limit) -> this.feature.store().listBans(query, offset, limit),
+                    page - 1,
+                    PAGE_SIZE
+            )
                     .thenAccept(result -> this.render(sender, input, target, filters, result, now));
         }).exceptionally(error -> {
             this.plugin().logger().warn("Failed to list bans of " + input, error);
@@ -89,7 +106,14 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
         });
     }
 
-    private void render(CommandSender sender, @Nullable String input, @Nullable BanTarget target, Filters filters, TextPage<BanRecord> page, long now) {
+    private void render(
+            CommandSender sender,
+            @Nullable String input,
+            @Nullable BanTarget target,
+            Filters filters,
+            TextPage<BanRecord> page,
+            long now
+    ) {
         boolean player = sender instanceof Player;
         CommandPanel panel = new CommandPanel(this.commandManager(), sender).header(this.title(target, filters), page);
         List<BanRecord> records = page.content();
@@ -149,7 +173,8 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
             String copy = record.player() != null ? record.player().toString() : String.valueOf(record.ip());
             target = target.hoverEvent(this.targetDetails(record)).clickEvent(ClickEvent.copyToClipboard(copy));
         }
-        Component unban = panel.suggest(CommandPanel.label("unban"), "unban", BanRecord.ID_PREFIX + record.id()).style(PanelButton.Style.DANGER)
+        Component unban = panel.suggest(CommandPanel.label("unban"), "unban", BanRecord.ID_PREFIX + record.id())
+                .style(PanelButton.Style.DANGER)
                 .disabled(record.active(now) ? null : Component.translatable("command.panel.inactive"))
                 .build();
         return MessageConstants.COMMAND_BAN_HISTORY_ROW
@@ -178,18 +203,24 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
     private Component targetDetails(BanRecord record) {
         Component account = record.player() == null ? Component.empty() : Component.text(record.playerName() + " (" + record.player() + ")");
         Component ip = record.ip() == null ? Component.empty() : Component.text(record.ip().toString());
-        if (record.player() != null && record.ip() != null) return account.append(Component.newline()).append(ip);
+        if (record.player() != null && record.ip() != null) {
+            return account.append(Component.newline()).append(ip);
+        }
         return record.player() != null ? account : ip;
     }
 
     // 影响按钮位置的可变文本宽度, 单位为聊天字体像素
     private static int rowWidth(BanRecord record) {
         return CharacterUtils.chatWidth(BanRecord.ID_PREFIX + record.id()) + CharacterUtils.chatWidth(DateTimeUtils.shortTime(record.createdAt()))
-                + CharacterUtils.chatWidth(CharacterUtils.truncate(record.display(), TARGET_LENGTH)) + CharacterUtils.chatWidth(CharacterUtils.truncate(record.operatorName(), OPERATOR_LENGTH));
+                + CharacterUtils.chatWidth(CharacterUtils.truncate(record.display(), TARGET_LENGTH)) + CharacterUtils.chatWidth(
+                        CharacterUtils.truncate(record.operatorName(), OPERATOR_LENGTH)
+                );
     }
 
     private static NamedTextColor statusColor(BanRecord record, long now) {
-        if (record.revokedAt() != 0) return NamedTextColor.YELLOW;
+        if (record.revokedAt() != 0) {
+            return NamedTextColor.YELLOW;
+        }
         return record.active(now) ? NamedTextColor.RED : NamedTextColor.GRAY;
     }
 

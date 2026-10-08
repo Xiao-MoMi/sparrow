@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class HealCommand extends BukkitCommandFeature {
+
     public HealCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -34,15 +35,23 @@ public final class HealCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            if (player.isDead()) {
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_PLAYER_DEAD_SELF : MessageConstants.COMMAND_PLAYER_DEAD), Component.text(player.getName()));
-                return;
-            }
-            player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
-            player.setFoodLevel(20);
-            player.setSaturation(10.0f);
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_HEAL_SUCCESS_SELF : MessageConstants.COMMAND_HEAL_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    if (player.isDead()) {
+                        this.handleFeedback(
+                                context,
+                                (player == context.sender() ? MessageConstants.COMMAND_PLAYER_DEAD_SELF : MessageConstants.COMMAND_PLAYER_DEAD),
+                                Component.text(player.getName())
+                        );
+                        return;
+                    }
+                    player.setHealth(player.getAttribute(Attribute.MAX_HEALTH).getValue());
+                    player.setFoodLevel(20);
+                    player.setSaturation(10.0f);
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_HEAL_SUCCESS_SELF : MessageConstants.COMMAND_HEAL_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override
@@ -50,4 +59,3 @@ public final class HealCommand extends BukkitCommandFeature {
         return "heal";
     }
 }
-

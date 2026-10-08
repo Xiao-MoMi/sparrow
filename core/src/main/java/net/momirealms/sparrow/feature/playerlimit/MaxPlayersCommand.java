@@ -34,7 +34,11 @@ public final class MaxPlayersCommand extends BukkitCommandFeature {
             return;
         }
         feature.maxPlayers(amount);
-        this.handleFeedback(context, amount < 0 ? MessageConstants.COMMAND_MAX_PLAYERS_RESET : MessageConstants.COMMAND_MAX_PLAYERS_SUCCESS, Component.text(feature.maxPlayers()));
+        this.handleFeedback(
+                context,
+                amount < 0 ? MessageConstants.COMMAND_MAX_PLAYERS_RESET : MessageConstants.COMMAND_MAX_PLAYERS_SUCCESS,
+                Component.text(feature.maxPlayers())
+        );
     }
 
     @Override

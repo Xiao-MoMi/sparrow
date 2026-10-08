@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature.back;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.player.teleport.TeleportOptions;
@@ -22,6 +23,7 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeoutException;
 
 public final class BackCommand extends BukkitCommandFeature {
+
     public BackCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -49,13 +51,19 @@ public final class BackCommand extends BukkitCommandFeature {
         } else {
             // 本服没有记录时才查询上一个服务器的下线位置, 玩家还没完成进服处理时无法判断是否刚切服
             SparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
-            transfer = this.plugin().dataStorage().loadPlayer(player.getUniqueId()).thenCompose(found -> {
-                if (sparrow == null || found.isEmpty() || !back.switchedFrom(sparrow, found.get())) {
-                    this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_BACK_NONE_SELF : MessageConstants.COMMAND_BACK_NONE), Component.text(player.getName()));
-                    return CompletableFuture.completedFuture(null);
-                }
-                return this.send(context, player, found.get().lastLogoutServer(), found.get().lastLogoutLocation(), options);
-            });
+            transfer = this.plugin().dataStorage()
+                    .loadPlayer(player.getUniqueId())
+                    .thenCompose(found -> {
+                        if (sparrow == null || found.isEmpty() || !back.switchedFrom(sparrow, found.get())) {
+                            this.handleFeedback(
+                                    context,
+                                    (player == context.sender() ? MessageConstants.COMMAND_BACK_NONE_SELF : MessageConstants.COMMAND_BACK_NONE),
+                                    Component.text(player.getName())
+                            );
+                            return CompletableFuture.completedFuture(null);
+                        }
+                        return this.send(context, player, found.get().lastLogoutServer(), found.get().lastLogoutLocation(), options);
+                    });
         }
         transfer.exceptionally(error -> {
             Throwable cause = error instanceof CompletionException ? error.getCause() : error;
@@ -63,25 +71,38 @@ public final class BackCommand extends BukkitCommandFeature {
                 this.handleFeedback(context, MessageConstants.COMMAND_BACK_TIMEOUT);
             } else {
                 this.plugin().logger().warn("Failed to send " + player.getName() + " back", cause);
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE), Component.text(player.getName()));
+                this.handleFeedback(
+                        context,
+                        (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE),
+                        Component.text(player.getName())
+                );
             }
             return null;
         });
     }
 
-    private CompletableFuture<Void> send(CommandContext<CommandSender> context, Player player, String server, WorldLocation location, TeleportOptions options) {
-        return this.plugin().playerManager().teleportService().teleport(player, server, location, options).thenAccept(result -> {
-            var message = switch (result) {
-                case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_BACK_SUCCESS_SELF : MessageConstants.COMMAND_BACK_SUCCESS);
-                case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_BACK_CONNECTING_SELF : MessageConstants.COMMAND_BACK_CONNECTING);
-                case SERVER_OFFLINE -> MessageConstants.COMMAND_BACK_SERVER_OFFLINE;
-                case INVALID -> MessageConstants.COMMAND_BACK_INVALID;
-                case FAILED -> (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
-                case COOLDOWN, CANCELLED -> null;
-            };
-            if (message == null) return;
-            this.handleFeedback(context, message, Component.text(player.getName()), Component.text(server));
-        });
+    private CompletableFuture<Void> send(
+            CommandContext<CommandSender> context,
+            Player player,
+            String server,
+            WorldLocation location,
+            TeleportOptions options
+    ) {
+        return this.plugin().playerManager().teleportService()
+                .teleport(player, server, location, options)
+                .thenAccept(result -> {
+                    TranslatableComponent message = switch (result) {
+                        case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_BACK_SUCCESS_SELF : MessageConstants.COMMAND_BACK_SUCCESS);
+                        case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_BACK_CONNECTING_SELF : MessageConstants.COMMAND_BACK_CONNECTING);
+                        case SERVER_OFFLINE -> MessageConstants.COMMAND_BACK_SERVER_OFFLINE;
+                        case INVALID -> MessageConstants.COMMAND_BACK_INVALID;
+                        case FAILED -> (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
+                        case COOLDOWN, CANCELLED -> null;
+                    };
+                    if (message != null) {
+                        this.handleFeedback(context, message, Component.text(player.getName()), Component.text(server));
+                    }
+                });
     }
 
     @Override

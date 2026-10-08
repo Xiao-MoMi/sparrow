@@ -12,6 +12,7 @@ public final class DisconnectLogFilter extends AbstractFilter {
     private static final String TARGET_LOGGER = "net.minecraft.server.network.ServerConfigurationPacketListenerImpl";
     private static final String TARGET_MESSAGE_PATTERN = "{} lost connection: {}";
     private static DisconnectLogFilter instance;
+
     private boolean enable = false;
 
     public DisconnectLogFilter() {
@@ -45,7 +46,7 @@ public final class DisconnectLogFilter extends AbstractFilter {
     @Override
     public Result filter(LogEvent event) {
         // 如果过滤器未启用, 直接返回 NEUTRAL (不干预).
-        if (!enable) {
+        if (!this.enable) {
             return Result.NEUTRAL;
         }
         // 如果日志事件的记录器名称不是目标记录器, 返回 NEUTRAL.

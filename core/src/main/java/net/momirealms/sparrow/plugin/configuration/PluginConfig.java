@@ -173,25 +173,28 @@ public final class PluginConfig {
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class MysqlOptions extends SqlOptions {
+
         public MysqlOptions() {
-            this.url = "jdbc:mysql://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
-            this.username = "root";
+            super.url = "jdbc:mysql://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
+            super.username = "root";
         }
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class MariaDbOptions extends SqlOptions {
+
         public MariaDbOptions() {
-            this.url = "jdbc:mariadb://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
-            this.username = "root";
+            super.url = "jdbc:mariadb://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
+            super.username = "root";
         }
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class PostgresOptions extends SqlOptions {
+
         public PostgresOptions() {
-            this.url = "jdbc:postgresql://localhost:5432/minecraft?connectTimeout=5&socketTimeout=10";
-            this.username = "postgres";
+            super.url = "jdbc:postgresql://localhost:5432/minecraft?connectTimeout=5&socketTimeout=10";
+            super.username = "postgres";
         }
     }
 
@@ -231,17 +234,9 @@ public final class PluginConfig {
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class TextOptions {
-        @Comment("Parse PlaceholderAPI by default. --parse/-p also enables parsing for an individual command.")
-        @Comment(lang = "zh", value = "默认解析 PlaceholderAPI 占位符. 命令中的 --parse/-p 也可单独启用解析.")
-        boolean parsePlaceholder = true;
-
         @Comment("Parse legacy color codes by default. --legacy-color/-l also enables parsing for an individual command.")
         @Comment(lang = "zh", value = "默认解析传统颜色代码. 命令中的 --legacy-color/-l 也可单独启用解析.")
         boolean parseLegacyColor = false;
-
-        public boolean parsePlaceholder() {
-            return this.parsePlaceholder;
-        }
 
         public boolean parseLegacyColor() {
             return this.parseLegacyColor;

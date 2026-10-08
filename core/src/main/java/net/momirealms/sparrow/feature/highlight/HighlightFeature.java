@@ -7,6 +7,7 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerConnection;
+import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
@@ -20,7 +21,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public final class HighlightFeature extends Feature<HighlightSettings> implements Listener {
+public final class HighlightFeature extends Feature<HighlightSettings> implements Listener, PlayerListener {
     public static final String ID = "highlight";
 
     private final SparrowPlugin plugin;
@@ -58,12 +58,13 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
                 || settings.maxBlocks() <= 0 || settings.selectionTimeout() <= 0) {
             throw new IllegalArgumentException("Invalid highlight color, duration, max-blocks or selection-timeout");
         }
-        this.config = settings;
+        super.config = settings;
     }
 
     @Override
     protected void onLoad() {
         this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        this.plugin.playerManager().registerListener(this);
     }
 
     @Override
@@ -93,6 +94,7 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
 
     @Override
     protected void onUnload() {
+        this.plugin.playerManager().unregisterListener(this);
         HandlerList.unregisterAll(this);
     }
 
@@ -108,9 +110,13 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
 
     @EventHandler
     public synchronized void onInteract(@NotNull PlayerInteractEvent event) {
-        if (!this.enabled() || event.getHand() != EquipmentSlot.HAND) return;
+        if (!this.enabled() || event.getHand() != EquipmentSlot.HAND) {
+            return;
+        }
         Selection selection = this.selections.get(event.getPlayer().getUniqueId());
-        if (selection == null) return;
+        if (selection == null) {
+            return;
+        }
         Location point;
         switch (event.getAction()) {
             case LEFT_CLICK_AIR, LEFT_CLICK_BLOCK -> point = event.getPlayer().getLocation();
@@ -120,7 +126,12 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
         event.setCancelled(true);
         if (selection.first == null) {
             selection.first = point;
-            selection.feedback.send(MessageConstants.COMMAND_HIGHLIGHT_FIRST, Component.text(point.getBlockX()), Component.text(point.getBlockY()), Component.text(point.getBlockZ()));
+            selection.feedback.send(
+                    MessageConstants.COMMAND_HIGHLIGHT_FIRST,
+                    Component.text(point.getBlockX()),
+                    Component.text(point.getBlockY()),
+                    Component.text(point.getBlockZ())
+            );
         } else {
             this.selections.remove(event.getPlayer().getUniqueId());
             this.show(selection.first, point, selection.options, selection.feedback);
@@ -129,7 +140,9 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
 
     /** 校验选区后读取各区块, 完成时给仍在选区世界内的目标玩家发送轮廓. */
     public synchronized void show(@NotNull Location first, @NotNull Location second, @NotNull Options options, @NotNull Feedback feedback) {
-        if (!this.enabled()) return;
+        if (!this.enabled()) {
+            return;
+        }
         World world = first.getWorld();
         if (world == null || world != second.getWorld()) {
             feedback.send(MessageConstants.COMMAND_HIGHLIGHT_WORLD);
@@ -141,9 +154,9 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
         }
         HighlightRegion region;
         try {
-            region = HighlightRegion.between(first, second, this.config.maxBlocks());
+            region = HighlightRegion.between(first, second, super.config.maxBlocks());
         } catch (IllegalArgumentException exception) {
-            feedback.send(MessageConstants.COMMAND_HIGHLIGHT_TOO_LARGE, Component.text(this.config.maxBlocks()));
+            feedback.send(MessageConstants.COMMAND_HIGHLIGHT_TOO_LARGE, Component.text(super.config.maxBlocks()));
             return;
         }
         if (region.minY() < world.getMinHeight() || (long) region.minY() + region.sizeY() > world.getMaxHeight()) {
@@ -152,58 +165,52 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
         }
         long expectedGeneration = this.generation;
         boolean[] solid = options.solidOnly ? new boolean[region.volume()] : null;
-        List<CompletableFuture<Void>> reads = new ArrayList<>();
         if (solid != null) {
-            int maxX = region.minX() + region.sizeX() - 1;
-            int maxZ = region.minZ() + region.sizeZ() - 1;
-            // 每个任务只读取自己区块中的方块. 邻接判断在全部读取完成后使用数组进行.
-            for (int chunkX = region.minX() >> 4; chunkX <= maxX >> 4; chunkX++) {
-                for (int chunkZ = region.minZ() >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
-                    int cx = chunkX;
-                    int cz = chunkZ;
-                    reads.add(CompletableFuture.runAsync(() -> {
-                        if (!this.current(expectedGeneration)) return;
-                        int endX = Math.min(maxX, (cx << 4) + 15) - region.minX();
-                        int endZ = Math.min(maxZ, (cz << 4) + 15) - region.minZ();
-                        for (int x = Math.max(region.minX(), cx << 4) - region.minX(); x <= endX; x++) {
-                            for (int z = Math.max(region.minZ(), cz << 4) - region.minZ(); z <= endZ; z++) {
-                                for (int y = 0; y < region.sizeY(); y++) {
-                                    solid[region.index(x, y, z)] = !world.getBlockAt(region.minX() + x, region.minY() + y, region.minZ() + z).isPassable();
-                                }
-                            }
-                        }
-                    }, task -> this.plugin.scheduler().platform().run(task, world, cx, cz)));
+            for (int x = 0; x < region.sizeX(); x++) {
+                for (int z = 0; z < region.sizeZ(); z++) {
+                    for (int y = 0; y < region.sizeY(); y++) {
+                        solid[region.index(x, y, z)] = !world.getBlockAt(region.minX() + x, region.minY() + y, region.minZ() + z).isPassable();
+                    }
                 }
             }
         }
-        CompletableFuture.allOf(reads.toArray(CompletableFuture[]::new))
-                .thenRunAsync(() -> {
-                    if (!this.current(expectedGeneration)) return;
-                    HighlightBlocks blocks = new HighlightBlocks(region, solid, options.color);
-                    for (int i = 0; i < options.viewers.size(); i++) {
-                        Player viewer = options.viewers.get(i);
-                        synchronized (this) {
-                            if (!this.current(expectedGeneration)) return;
-                            SparrowPlayer player = this.plugin.playerManager().getPlayer(viewer);
-                            if (player == null || viewer.getWorld() != world) {
-                                continue;
-                            }
-                            blocks.show(player.connection());
-                            if (options.duration == 0) {
-                                blocks.destroy(player.connection());
-                            } else {
-                                this.displays.add(new Display(player.connection(), blocks.removalPacket(), System.nanoTime() + TimeUnit.SECONDS.toNanos(options.duration)));
-                            }
-                            feedback.send(MessageConstants.COMMAND_HIGHLIGHT_SUCCESS, Component.text(viewer.getName()));
-                        }
+        CompletableFuture.runAsync(() -> {
+            if (!this.current(expectedGeneration)) {
+                return;
+            }
+            HighlightBlocks blocks = new HighlightBlocks(region, solid, options.color);
+            for (int i = 0; i < options.viewers.size(); i++) {
+                Player viewer = options.viewers.get(i);
+                synchronized (this) {
+                    if (!this.current(expectedGeneration)) {
+                        return;
                     }
-                }, this.plugin.scheduler().async()).exceptionally(error -> {
-                    this.plugin.logger().warn("Failed to create highlight", error);
-                    if (this.current(expectedGeneration)) {
-                        feedback.send(MessageConstants.COMMAND_HIGHLIGHT_FAILURE);
+                    SparrowPlayer player = this.plugin.playerManager().getPlayer(viewer);
+                    if (player == null || viewer.getWorld() != world) {
+                        continue;
                     }
-                    return null;
-                });
+                    blocks.show(player.connection());
+                    if (options.duration == 0) {
+                        blocks.destroy(player.connection());
+                    } else {
+                        this.displays.add(
+                                new Display(
+                                        player.connection(),
+                                        blocks.removalPacket(),
+                                        System.nanoTime() + TimeUnit.SECONDS.toNanos(options.duration)
+                                )
+                        );
+                    }
+                    feedback.send(MessageConstants.COMMAND_HIGHLIGHT_SUCCESS, Component.text(viewer.getName()));
+                }
+            }
+        }, this.plugin.scheduler().async()).exceptionally(error -> {
+            this.plugin.logger().warn("Failed to create highlight", error);
+            if (this.current(expectedGeneration)) {
+                feedback.send(MessageConstants.COMMAND_HIGHLIGHT_FAILURE);
+            }
+            return null;
+        });
     }
 
     private synchronized boolean current(long generation) {
@@ -230,9 +237,9 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
         }
     }
 
-    @EventHandler
-    public void onQuit(@NotNull PlayerQuitEvent event) {
-        this.clear(event.getPlayer(), false);
+    @Override
+    public void onQuit(@NotNull SparrowPlayer player) {
+        this.clear(player.platformPlayer(), false);
     }
 
     @EventHandler
@@ -268,6 +275,7 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
 
     @FunctionalInterface
     public interface Feedback {
+
         void send(TranslatableComponent key, Component... arguments);
     }
 

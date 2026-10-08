@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 public final class BurnCommand extends BukkitCommandFeature {
+
     public BurnCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -51,9 +52,14 @@ public final class BurnCommand extends BukkitCommandFeature {
         int ticks = context.get("time");
         for (Entity entity : entities) {
             this.plugin().scheduler().platform().run(() -> {
-                entity.setFireTicks(ticks);
-                this.handleFeedback(context, (entity == context.sender() ? MessageConstants.COMMAND_BURN_SUCCESS_SELF : MessageConstants.COMMAND_BURN_SUCCESS), Component.text(entity.getName()), Component.text(ticks));
-            }, () -> {}, entity);
+                        entity.setFireTicks(ticks);
+                        this.handleFeedback(
+                                context,
+                                (entity == context.sender() ? MessageConstants.COMMAND_BURN_SUCCESS_SELF : MessageConstants.COMMAND_BURN_SUCCESS),
+                                Component.text(entity.getName()),
+                                Component.text(ticks)
+                        );
+                    }, () -> {}, entity);
         }
     }
 

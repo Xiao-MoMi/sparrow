@@ -43,17 +43,30 @@ public final class HeadSettings implements FeatureSettings {
         DurationUtils.parsePositive(this.requestTimeout);
         DurationUtils.parsePositive(this.api.connectTimeout);
         DurationUtils.parsePositive(this.api.requestTimeout);
-        if (this.cache.memory.enabled) DurationUtils.parsePositive(this.cache.memory.ttl);
-        if (this.cache.redis.enabled) DurationUtils.parsePositive(this.cache.redis.ttl);
-        if (this.cache.memory.maxSize <= 0) throw new IllegalArgumentException("head.cache.memory.max-size must be positive");
+        if (this.cache.memory.enabled) {
+            DurationUtils.parsePositive(this.cache.memory.ttl);
+        }
+        if (this.cache.redis.enabled) {
+            DurationUtils.parsePositive(this.cache.redis.ttl);
+        }
+        if (this.cache.memory.maxSize <= 0) {
+            throw new IllegalArgumentException("head.cache.memory.max-size must be positive");
+        }
         if (!this.api.nameUrl.contains("{name}") || !(this.api.profileUrl.contains("{uuid}") || this.api.profileUrl.contains("{uuid-dashed}"))) {
             throw new IllegalArgumentException("Head API URLs require {name} and {uuid} or {uuid-dashed}");
         }
         ProfileClient.endpoint(this.api.nameUrl.replace("{name}", "Player"));
-        ProfileClient.endpoint(this.api.profileUrl.replace("{uuid}", "00000000000000000000000000000000").replace("{uuid-dashed}", "00000000-0000-0000-0000-000000000000"));
+        ProfileClient.endpoint(
+                this.api.profileUrl.replace("{uuid}", "00000000000000000000000000000000").replace(
+                        "{uuid-dashed}",
+                        "00000000-0000-0000-0000-000000000000"
+                )
+        );
         for (int i = 0; i < this.api.fallbackUrls.size(); i++) {
             String url = this.api.fallbackUrls.get(i);
-            if (!url.contains("{player}")) throw new IllegalArgumentException("head.api.fallback-urls require {player}");
+            if (!url.contains("{player}")) {
+                throw new IllegalArgumentException("head.api.fallback-urls require {player}");
+            }
             ProfileClient.endpoint(url.replace("{player}", "Player"));
         }
     }
@@ -130,5 +143,4 @@ public final class HeadSettings implements FeatureSettings {
         public String connectTimeout() { return this.connectTimeout; }
         public String requestTimeout() { return this.requestTimeout; }
     }
-
 }

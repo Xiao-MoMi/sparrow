@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class ItemUtils {
+
     private ItemUtils() {}
 
     @NotNull
@@ -20,7 +21,9 @@ public final class ItemUtils {
         DynamicOps<Object> ops = registries.createSerializationContext(JavaOps.INSTANCE);
         return ItemStack.CODEC.encodeStart(ops, item).flatMap(encoded -> {
             Map<String, Object> data = new LinkedHashMap<>((Map<String, Object>) encoded);
-            if (!full) return DataResult.success(data);
+            if (!full) {
+                return DataResult.success(data);
+            }
             return DataComponentMap.CODEC.encodeStart(ops, item.getComponents()).map(components -> {
                 data.put("components", components);
                 return data;

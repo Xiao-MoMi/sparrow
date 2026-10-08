@@ -77,26 +77,33 @@ public final class SpawnCommand extends BukkitCommandFeature {
         }
         Player player = context.sender();
         TeleportOptions options = this.feature.config().teleportOptions().resolve(player, true);
-        this.plugin().playerManager().teleportService().teleport(player, spawn.server(), spawn.location(), options).thenAccept(result -> {
-            switch (result) {
-                case SUCCESS -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_SUCCESS);
-                case CONNECTING -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_CONNECTING, Component.text(spawn.server()));
-                case SERVER_OFFLINE -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_SERVER_OFFLINE, Component.text(spawn.server()));
-                case INVALID -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_INVALID);
-                case FAILED -> this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-                case COOLDOWN, CANCELLED -> {
-                }
-            }
-        }).exceptionally(error -> {
-            Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-            if (cause instanceof TimeoutException) {
-                this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_TIMEOUT);
-            } else {
-                this.plugin().logger().warn("Failed to send " + player.getName() + " to spawn", error);
-                this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-            }
-            return null;
-        });
+        this.plugin().playerManager().teleportService()
+                .teleport(player, spawn.server(), spawn.location(), options)
+                .thenAccept(result -> {
+                    switch (result) {
+                        case SUCCESS -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_SUCCESS);
+                        case CONNECTING -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_CONNECTING, Component.text(spawn.server()));
+                        case SERVER_OFFLINE -> this.handleFeedback(
+                                context,
+                                MessageConstants.COMMAND_SPAWN_SERVER_OFFLINE,
+                                Component.text(spawn.server())
+                        );
+                        case INVALID -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_INVALID);
+                        case FAILED -> this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
+                        case COOLDOWN, CANCELLED -> {
+                        }
+                    }
+                })
+                .exceptionally(error -> {
+                    Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+                    if (cause instanceof TimeoutException) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_TIMEOUT);
+                    } else {
+                        this.plugin().logger().warn("Failed to send " + player.getName() + " to spawn", error);
+                        this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
+                    }
+                    return null;
+                });
     }
 
     @NotNull

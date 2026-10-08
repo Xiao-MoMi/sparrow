@@ -37,7 +37,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 /** 向选定玩家发送大小为 2 的隐形发光史莱姆, 显示方块轮廓. */
 final class HighlightBlocks {
     private static final int BATCH_SIZE = 1024;
-    private static final AtomicInteger ENTITY_IDS = new AtomicInteger(ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE / 4, Integer.MAX_VALUE / 2));
+    private static final AtomicInteger ENTITY_IDS = new AtomicInteger(
+            ThreadLocalRandom.current().nextInt(Integer.MAX_VALUE / 4, Integer.MAX_VALUE / 2)
+    );
     private static final AtomicInteger TEAM_IDS = new AtomicInteger();
     // 元数据索引随实体继承层次变化, 从当前版本声明字段的类读取索引及序列化器.
     @SuppressWarnings("unchecked")
@@ -69,7 +71,21 @@ final class HighlightBlocks {
                     UUID uuid = UUID.randomUUID();
                     ids[count++] = id;
                     team.getPlayers().add(uuid.toString());
-                    packets.add(new ClientboundAddEntityPacket(id, uuid, region.minX() + x + 0.5, region.minY() + y, region.minZ() + z + 0.5, 0, 0, entityType, 0, Vec3.ZERO, 0));
+                    packets.add(
+                            new ClientboundAddEntityPacket(
+                                    id,
+                                    uuid,
+                                    region.minX() + x + 0.5,
+                                    region.minY() + y,
+                                    region.minZ() + z + 0.5,
+                                    0,
+                                    0,
+                                    entityType,
+                                    0,
+                                    Vec3.ZERO,
+                                    0
+                            )
+                    );
                     packets.add(new ClientboundSetEntityDataPacket(id, DATA));
                     if (count == BATCH_SIZE) {
                         this.finishBatch(team, packets, ids, count, removals);
@@ -96,7 +112,13 @@ final class HighlightBlocks {
         return team;
     }
 
-    private void finishBatch(PlayerTeam team, List<Packet<? super ClientGamePacketListener>> packets, int[] ids, int count, List<Packet<? super ClientGamePacketListener>> removals) {
+    private void finishBatch(
+            PlayerTeam team,
+            List<Packet<? super ClientGamePacketListener>> packets,
+            int[] ids,
+            int count,
+            List<Packet<? super ClientGamePacketListener>> removals
+    ) {
         // 每批先生成实体并设置大小和发光, 最后加入颜色队伍, 共至多 2049 个子包.
         packets.add(ClientboundSetPlayerTeamPacket.createAddOrModifyPacket(team, true));
         this.spawn.add(new ClientboundBundlePacket(List.copyOf(packets)));

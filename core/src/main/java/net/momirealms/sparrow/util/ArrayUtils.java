@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 
 public final class ArrayUtils {
+
     private ArrayUtils() {}
 
     public static <T> T[] subArray(T[] array, int index) {
@@ -32,10 +33,7 @@ public final class ArrayUtils {
         if (array2 == null) {
             return Arrays.copyOf(array1, array1.length);
         }
-        T[] mergedArray = (T[]) Array.newInstance(
-                array1.getClass().getComponentType(),
-                array1.length + array2.length
-        );
+        T[] mergedArray = (T[]) Array.newInstance(array1.getClass().getComponentType(), array1.length + array2.length);
         System.arraycopy(array1, 0, mergedArray, 0, array1.length);
         System.arraycopy(array2, 0, mergedArray, array1.length, array2.length);
         return mergedArray;
@@ -52,10 +50,7 @@ public final class ArrayUtils {
         if (array2 == null) {
             return array1;
         }
-        T[] mergedArray = (T[]) Array.newInstance(
-                array1.getClass().getComponentType(),
-                array1.length + array2.length
-        );
+        T[] mergedArray = (T[]) Array.newInstance(array1.getClass().getComponentType(), array1.length + array2.length);
         System.arraycopy(array1, 0, mergedArray, 0, array1.length);
         System.arraycopy(array2, 0, mergedArray, array1.length, array2.length);
         return mergedArray;

@@ -16,6 +16,7 @@ public final class PaperPluginClassPathAppender implements ClassPathAppender {
     public static final Field field$PaperPluginClassLoader$libraryLoader = Optional.ofNullable(clazz$PaperPluginClassLoader)
             .map(it -> ReflectionUtils.getDeclaredField(it, URLClassLoader.class, 0))
             .orElse(null);
+
     private final URLClassLoaderAccess libraryClassLoaderAccess;
 
     public PaperPluginClassPathAppender(ClassLoader classLoader) {

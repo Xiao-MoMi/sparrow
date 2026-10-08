@@ -4,6 +4,7 @@ import java.net.URL;
 import java.net.URLClassLoader;
 
 public class IsolatedClassLoader extends URLClassLoader {
+
     static {
         ClassLoader.registerAsParallelCapable();
     }

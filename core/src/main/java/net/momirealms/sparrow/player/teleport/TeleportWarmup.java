@@ -49,13 +49,7 @@ final class TeleportWarmup {
             return;
         }
         this.countdown();
-        this.task = this.service.plugin().scheduler().platform().runRepeating(
-                this::tick,
-                () -> this.cancel(null),
-                1,
-                1,
-                this.player.platformPlayer()
-        );
+        this.task = this.service.plugin().scheduler().platform().runRepeating(this::tick, () -> this.cancel(null), 1, 1, this.player.platformPlayer());
         // 关服时可能在任务创建前就从其他线程取消了
         if (this.result.isDone()) {
             this.task.cancel();
@@ -149,13 +143,7 @@ final class TeleportWarmup {
             // 走完时在倒计时的位置显示正在传送;
             switch (this.display) {
                 case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_PROCESSING);
-                case TITLE -> this.player.sendTitle(
-                        Component.empty(),
-                        this.player.render(MessageConstants.TELEPORT_PROCESSING),
-                        0,
-                        20,
-                        5
-                );
+                case TITLE -> this.player.sendTitle(Component.empty(), this.player.render(MessageConstants.TELEPORT_PROCESSING), 0, 20, 5);
                 case BOSS_BAR, CHAT, NONE -> {
                 }
             }

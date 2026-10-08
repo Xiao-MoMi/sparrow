@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.locale;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.kyori.adventure.text.Component;
@@ -25,13 +26,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public final class TranslationManagerImpl implements TranslationManager {
     private static final Locale DEFAULT_LOCALE = Locale.ENGLISH;
     static TranslationManager instance;
+
     private final Plugin plugin;
-    private final Set<Locale> installed = ConcurrentHashMap.newKeySet();
+    private final ConcurrentChainedObject2ObjectHashTable<Locale, Boolean> installed = new ConcurrentChainedObject2ObjectHashTable<>();
     private final Path translationsDirectory;
     private final String langVersion;
     private final Set<String> supportedLanguages;
@@ -45,21 +46,20 @@ public final class TranslationManagerImpl implements TranslationManager {
         @Override
         @NotNull
         protected Component renderTranslatable(@NotNull TranslatableComponent component, @Nullable Locale locale) {
-            if (!TranslationManagerImpl.this.serverLangData.containsKey(component.key())) return super.renderTranslatable(component, locale);
+            if (!TranslationManagerImpl.this.serverLangData.containsKey(component.key())) {
+                return super.renderTranslatable(component, locale);
+            }
             Component rendered = TranslationManagerImpl.this.renderTranslation(component, locale).mergeStyle(component);
             return this.render(rendered, locale);
         }
     };
 
     public TranslationManagerImpl(Plugin plugin) {
-        if (instance != null) {
-            throw new IllegalStateException();
-        }
         instance = this;
         this.plugin = plugin;
         this.translationsDirectory = this.plugin.dataFolderPath().resolve("translations");
         this.langVersion = DependencyVersions.LANG_VERSION;
-        this.supportedLanguages = getSupportedLanguages();
+        this.supportedLanguages = this.getSupportedLanguages();
         try {
             YamlDocument langDocument = this.plugin.configurationManager().sparrowYaml().loadFromResource("translations/en.yml");
             Map<String, String> data = loadLangData(langDocument);
@@ -151,7 +151,7 @@ public final class TranslationManagerImpl implements TranslationManager {
             Locale locale = entry.getKey();
             // 只处理没有国家或地区的 locale.
             if (locale.getCountry().isEmpty()) {
-                registerAll(locale, entry.getValue().translations);
+                this.registerAll(locale, entry.getValue().translations);
             }
         }
 
@@ -160,12 +160,12 @@ public final class TranslationManagerImpl implements TranslationManager {
             Locale locale = entry.getKey();
             // 跳过已在第一阶段处理过的无国家 locale.
             if (!locale.getCountry().isEmpty()) {
-                registerAll(locale, entry.getValue().translations);
+                this.registerAll(locale, entry.getValue().translations);
 
                 // 如有需要, 也为完整 locale 补一个仅语言代码的兼容版本.
                 Locale localeWithoutCountry = Locale.of(locale.getLanguage());
-                if (!this.installed.contains(localeWithoutCountry) && !localeWithoutCountry.equals(DEFAULT_LOCALE)) {
-                    registerAll(localeWithoutCountry, entry.getValue().translations);
+                if (!this.installed.containsKey(localeWithoutCountry) && !localeWithoutCountry.equals(DEFAULT_LOCALE)) {
+                    this.registerAll(localeWithoutCountry, entry.getValue().translations);
                 }
             }
         }
@@ -183,7 +183,7 @@ public final class TranslationManagerImpl implements TranslationManager {
             this.serverLangData.computeIfAbsent(translation.getKey(), k -> new ServerLangData(this.translationFallback.get(translation.getKey())))
                     .addTranslation(locale, translation.getValue());
         }
-        this.installed.add(locale);
+        this.installed.put(locale, Boolean.TRUE);
     }
 
     /**
@@ -194,7 +194,9 @@ public final class TranslationManagerImpl implements TranslationManager {
      */
     private Set<String> getSupportedLanguages() {
         InputStream stream = this.plugin.resourceStream("translations/_index.json");
-        if (stream == null) return Set.of();
+        if (stream == null) {
+            return Set.of();
+        }
         try (InputStreamReader reader = new InputStreamReader(stream, StandardCharsets.UTF_8)) {
             JsonObject json = GsonHelper.get().fromJson(reader, JsonObject.class);
             Set<String> supportedLanguages = new HashSet<>();
@@ -221,14 +223,17 @@ public final class TranslationManagerImpl implements TranslationManager {
         try {
             Files.walkFileTree(directory, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, new SimpleFileVisitor<>() {
                 @Override
-                public @NotNull FileVisitResult visitFile(@NotNull Path path, @NotNull BasicFileAttributes attrs) {
+                @NotNull
+                public FileVisitResult visitFile(@NotNull Path path, @NotNull BasicFileAttributes attrs) {
                     String fileName = path.getFileName().toString();
                     if (Files.isRegularFile(path) && fileName.endsWith(".yml")) {
                         // 检查文件名是否规范
                         String localeName = fileName.substring(0, fileName.length() - ".yml".length());
                         Locale locale = TranslationManager.parseLocale(localeName);
                         if (locale == null) {
-                            TranslationManagerImpl.this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_INVALID_FILE, path.toString()));
+                            TranslationManagerImpl.this.plugin.logger().warn(
+                                    TranslationManager.console(LogConstants.TRANSLATION_INVALID_FILE, path.toString())
+                            );
                             return FileVisitResult.CONTINUE;
                         }
                         // 比对上次缓存文件和本次即将读取文件, 如果一致则跳过.
@@ -242,13 +247,18 @@ public final class TranslationManagerImpl implements TranslationManager {
                         else {
                             try (InputStream inputStream = Files.newInputStream(path)) {
                                 // 读取
-                                YamlDocument locLangDocument = plugin.configurationManager().sparrowYaml().load(inputStream);
+                                YamlDocument locLangDocument = TranslationManagerImpl.this.plugin.configurationManager()
+                                        .sparrowYaml()
+                                        .load(inputStream);
                                 Map<String, String> langData = loadLangData(locLangDocument);
-                                if (langData.isEmpty()) return FileVisitResult.CONTINUE;
+                                if (langData.isEmpty()) {
+                                    return FileVisitResult.CONTINUE;
+                                }
                                 // 更新
                                 String langVersion = locLangDocument.getOrDefault("", String.class, Route.from("__version__"));
-                                if (!TranslationManagerImpl.this.langVersion.equals(langVersion) && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
-                                    langData = updateLangFile(langData, path);
+                                if (!TranslationManagerImpl.this.langVersion.equals(langVersion)
+                                        && TranslationManagerImpl.this.supportedLanguages.contains(localeName)) {
+                                    langData = TranslationManagerImpl.this.updateLangFile(langData, path);
                                     BasicFileAttributes updatedAttrs = Files.readAttributes(path, BasicFileAttributes.class);
                                     lastModifiedTime = updatedAttrs.lastModifiedTime().toMillis();
                                     size = updatedAttrs.size();
@@ -257,7 +267,8 @@ public final class TranslationManagerImpl implements TranslationManager {
                                 cachedFile = new CachedTranslation(langData, lastModifiedTime, size);
                                 TranslationManagerImpl.this.cachedTranslations.put(locale, cachedFile);
                             } catch (IOException e) {
-                                TranslationManagerImpl.this.plugin.logger().error(TranslationManager.console(LogConstants.TRANSLATION_READ_FAILED, path.toString()), e);
+                                TranslationManagerImpl.this.plugin.logger()
+                                        .error(TranslationManager.console(LogConstants.TRANSLATION_READ_FAILED, path.toString()), e);
                                 return FileVisitResult.CONTINUE;
                             }
                         }
@@ -296,7 +307,9 @@ public final class TranslationManagerImpl implements TranslationManager {
             newFileContents.putAll(this.translationFallback);
             newFileContents.putAll(newMap);
 
-            for (String key : new ArrayList<>(newFileContents.keySet())) {
+            List<String> keyValues = new ArrayList<>(newFileContents.keySet());
+            for (int keyIndex = 0, keyCount = keyValues.size(); keyIndex < keyCount; keyIndex++) {
+                String key = keyValues.get(keyIndex);
                 if (previous.containsKey(key)) {
                     newFileContents.put(key, previous.get(key));
                 }
@@ -328,18 +341,24 @@ public final class TranslationManagerImpl implements TranslationManager {
         }
 
         Locale localLocale = Locale.getDefault();
-        if (this.installed.contains(localLocale)) {
+        if (this.installed.containsKey(localLocale)) {
             this.selectedLocale = localLocale;
             return;
         }
 
         Locale langLocale = Locale.of(localLocale.getLanguage());
-        if (this.installed.contains(langLocale)) {
+        if (this.installed.containsKey(langLocale)) {
             this.selectedLocale = langLocale;
             return;
         }
 
-        this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_LOCALE_MISSING, localLocale.toString().toLowerCase(Locale.ENGLISH), DEFAULT_LOCALE.toString().toLowerCase(Locale.ENGLISH)));
+        this.plugin.logger().warn(
+                TranslationManager.console(
+                        LogConstants.TRANSLATION_LOCALE_MISSING,
+                        localLocale.toString().toLowerCase(Locale.ENGLISH),
+                        DEFAULT_LOCALE.toString().toLowerCase(Locale.ENGLISH)
+                )
+        );
         this.selectedLocale = DEFAULT_LOCALE;
     }
 
@@ -350,7 +369,9 @@ public final class TranslationManagerImpl implements TranslationManager {
         LinkedHashMap<String, String> data = new LinkedHashMap<>();
         langDocument.value().forEach((key, node) -> {
             String langKey = key.toString();
-            if (langKey.equals("__version__") || langKey.equals("lang-version")) return;
+            if (langKey.equals("__version__") || langKey.equals("lang-version")) {
+                return;
+            }
             if (node.isSequence()) {
                 StringJoiner stringJoiner = new StringJoiner("<reset><newline>");
                 SequenceNode sequenceNode = (SequenceNode) node;

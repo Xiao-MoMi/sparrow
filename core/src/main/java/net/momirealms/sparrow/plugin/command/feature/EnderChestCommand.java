@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class EnderChestCommand extends BukkitCommandFeature {
+
     public EnderChestCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -34,12 +35,22 @@ public final class EnderChestCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            if (player.openInventory(player.getEnderChest()) == null) {
-                this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_FAILED_SELF : MessageConstants.COMMAND_ENDER_CHEST_FAILED), Component.text(player.getName()));
-                return;
-            }
-            this.handleFeedback(context, (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_SUCCESS_SELF : MessageConstants.COMMAND_ENDER_CHEST_SUCCESS), Component.text(player.getName()));
-        }, () -> {}, player);
+                    if (player.openInventory(player.getEnderChest()) == null) {
+                        this.handleFeedback(
+                                context,
+                                (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_FAILED_SELF
+                                        : MessageConstants.COMMAND_ENDER_CHEST_FAILED),
+                                Component.text(player.getName())
+                        );
+                        return;
+                    }
+                    this.handleFeedback(
+                            context,
+                            (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_SUCCESS_SELF
+                                    : MessageConstants.COMMAND_ENDER_CHEST_SUCCESS),
+                            Component.text(player.getName())
+                    );
+                }, () -> {}, player);
     }
 
     @Override

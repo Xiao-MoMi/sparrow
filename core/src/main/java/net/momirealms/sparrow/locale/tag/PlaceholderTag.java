@@ -26,7 +26,9 @@ public final class PlaceholderTag extends StaticTagResolver {
     @Nullable
     public Tag resolve(@NotNull String name, @NotNull ArgumentQueue arguments, @NotNull Context ctx) throws ParsingException {
         CompatibilityManager compatibility = SparrowPlugin.instance().compatibilityManager();
-        if (!compatibility.hasPlaceholderAPI()) return null;
+        if (!compatibility.hasPlaceholderAPI()) {
+            return null;
+        }
         // 占位符名本身也可以带标签, 例如 <papi:'server_online_<arg:world>'>
         String raw = arguments.popOr("No placeholder provided").value();
         if (raw.indexOf('<') >= 0) {

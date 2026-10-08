@@ -38,18 +38,23 @@ public final class PlayerNameCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().playerManager().resolvePlayer(uuid).thenAccept(found -> {
-            if (found.isEmpty()) {
-                this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(uuid.toString()));
-                return;
-            }
-            String name = found.get().name();
-            this.handleFeedback(sender, MessageConstants.COMMAND_PLAYER_NAME_SUCCESS, Component.text(uuid.toString()),
-                    Component.text(name).hoverEvent(Component.text(name)).clickEvent(ClickEvent.copyToClipboard(name)));
-        }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to query the name of " + uuid, error);
-            this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
-            return null;
-        });
+                    if (found.isEmpty()) {
+                        this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(uuid.toString()));
+                        return;
+                    }
+                    String name = found.get().name();
+                    this.handleFeedback(
+                            sender,
+                            MessageConstants.COMMAND_PLAYER_NAME_SUCCESS,
+                            Component.text(uuid.toString()),
+                            Component.text(name).hoverEvent(Component.text(name)).clickEvent(ClickEvent.copyToClipboard(name))
+                    );
+                })
+                .exceptionally(error -> {
+                    this.plugin().logger().warn("Failed to query the name of " + uuid, error);
+                    this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
+                    return null;
+                });
     }
 
     @Override

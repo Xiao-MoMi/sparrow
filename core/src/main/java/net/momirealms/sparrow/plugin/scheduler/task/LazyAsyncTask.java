@@ -3,7 +3,6 @@ package net.momirealms.sparrow.plugin.scheduler.task;
 import java.util.concurrent.ScheduledFuture;
 
 public final class LazyAsyncTask implements SchedulerTask {
-
     public ScheduledFuture<?> future;
 
     @Override

@@ -37,7 +37,7 @@ public final class WarpFeature extends Feature<WarpSettings> {
         } catch (PatternSyntaxException exception) {
             throw new IllegalArgumentException("warp.name-pattern is not a valid regular expression: " + settings.namePattern(), exception);
         }
-        this.config = settings;
+        super.config = settings;
     }
 
     @Override
@@ -82,12 +82,12 @@ public final class WarpFeature extends Feature<WarpSettings> {
      * 开启权限限制时, 只有拥有对应权限的执行者能看到和使用该 warp.
      */
     public boolean visible(@NotNull CommandSender sender, @NotNull Warp warp) {
-        return !this.config.permissionRestrict() || sender.hasPermission(PERMISSION_PREFIX + warp.key());
+        return !super.config.permissionRestrict() || sender.hasPermission(PERMISSION_PREFIX + warp.key());
     }
 
     // 补全只读内存, 按前缀最多返回 suggestion-limit 个
     @NotNull
     public List<String> suggest(@NotNull CommandSender sender, @NotNull String input) {
-        return this.registry.complete(input, warp -> this.visible(sender, warp), this.config.suggestionLimit());
+        return this.registry.complete(input, warp -> this.visible(sender, warp), super.config.suggestionLimit());
     }
 }

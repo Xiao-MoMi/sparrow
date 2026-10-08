@@ -42,6 +42,7 @@ public final class NamedTextColorParser<C> implements ArgumentParser.FutureArgum
     }
 
     private static final class ParseException extends ParserException {
+
         private ParseException(CommandContext<?> context, String value) {
             super(NamedTextColorParser.class, context, Caption.of("argument.parse.failure.namedtextcolor"), CaptionVariable.of("input", value));
         }

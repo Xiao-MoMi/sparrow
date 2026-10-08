@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 public final class FlyCommand extends BukkitCommandFeature {
+
     public FlyCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
@@ -35,19 +37,20 @@ public final class FlyCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-            boolean enabled = context.getOrDefault("enabled", !player.getAllowFlight());
-            if (enabled) {
-                player.setAllowFlight(true);
-                player.setFlying(true);
-            } else {
-                player.setFlying(false);
-                player.setAllowFlight(false);
-            }
-            boolean self = player == context.sender();
-            var message = enabled ? (self ? MessageConstants.COMMAND_FLY_ENABLED_SELF : MessageConstants.COMMAND_FLY_ENABLED)
-                    : (self ? MessageConstants.COMMAND_FLY_DISABLED_SELF : MessageConstants.COMMAND_FLY_DISABLED);
-            this.handleFeedback(context, message, Component.text(player.getName()));
-        }, () -> {}, player);
+                    boolean enabled = context.getOrDefault("enabled", !player.getAllowFlight());
+                    if (enabled) {
+                        player.setAllowFlight(true);
+                        player.setFlying(true);
+                    } else {
+                        player.setFlying(false);
+                        player.setAllowFlight(false);
+                    }
+                    boolean self = player == context.sender();
+                    TranslatableComponent message = enabled
+                            ? (self ? MessageConstants.COMMAND_FLY_ENABLED_SELF : MessageConstants.COMMAND_FLY_ENABLED)
+                            : (self ? MessageConstants.COMMAND_FLY_DISABLED_SELF : MessageConstants.COMMAND_FLY_DISABLED);
+                    this.handleFeedback(context, message, Component.text(player.getName()));
+                }, () -> {}, player);
     }
 
     @Override

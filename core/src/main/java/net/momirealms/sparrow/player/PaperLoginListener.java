@@ -33,12 +33,18 @@ final class PaperLoginListener implements Listener {
 
     private void registerConnection(@NotNull PlayerConfigurationConnection connection) {
         PlayerProfile profile = connection.getProfile();
-        this.manager.registerConnection((ChannelHandler) ReadablePlayerCookieConnectionProxy.INSTANCE.getConnection(connection), profile.getId(), profile.getName());
+        this.manager.registerConnection(
+                (ChannelHandler) ReadablePlayerCookieConnectionProxy.INSTANCE.getConnection(connection),
+                profile.getId(),
+                profile.getName()
+        );
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(@NotNull AsyncPlayerSpawnLocationEvent event) {
         Location location = this.manager.teleports().consumeSpawn(event.getConnection().getProfile().getId());
-        if (location != null) event.setSpawnLocation(location);
+        if (location != null) {
+            event.setSpawnLocation(location);
+        }
     }
 }
