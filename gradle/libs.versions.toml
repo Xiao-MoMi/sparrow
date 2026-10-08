@@ -2,10 +2,10 @@
 # Project
 project-version = "26.9-SNAPSHOT-2"
 config-version = "2"
-commands-config-version = "7"
-features-config-version = "7"
+commands-config-version = "8"
+features-config-version = "8"
 server-config-version = "1"
-lang-version = "30"
+lang-version = "31"
 proxy-config-version = "1"
 
 # Database
@@ -17,6 +17,7 @@ warp-schema-version = "1"
 mongodb-warp-index-version = "1"
 home-schema-version = "1"
 mongodb-home-index-version = "1"
+spawn-schema-version = "1"
 
 # Build
 run-task = "3.0.2"

@@ -109,6 +109,10 @@ public abstract class DataStorage implements AutoCloseable {
     @NotNull
     public abstract HomeStore homeStore();
 
+    // Spawn 模块的存储
+    @NotNull
+    public abstract SpawnStore spawnStore();
+
     // 建表或建集合时使用的名称前缀
     @NotNull
     protected String namePrefix() {

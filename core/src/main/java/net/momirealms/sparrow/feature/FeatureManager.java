@@ -2,6 +2,7 @@ package net.momirealms.sparrow.feature;
 
 import net.momirealms.sparrow.feature.back.BackFeature;
 import net.momirealms.sparrow.feature.bed.BedFeature;
+import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
@@ -54,6 +55,7 @@ public final class FeatureManager {
         this.features.put(BanFeature.ID, new BanFeature(plugin));
         this.features.put(BackFeature.ID, new BackFeature(plugin));
         this.features.put(BedFeature.ID, new BedFeature(plugin));
+        this.features.put(SpawnFeature.ID, new SpawnFeature(plugin));
         this.features.put(WarpFeature.ID, new WarpFeature(plugin));
         this.features.put(HomeFeature.ID, new HomeFeature(plugin));
     }
@@ -145,7 +147,7 @@ public final class FeatureManager {
     }
 
     // 模块开关变化后重发命令树, 玩家看到的模块命令随之显示或隐藏
-    private void refreshCommands() {
+    public void refreshCommands() {
         for (Player player : Bukkit.getOnlinePlayers()) player.updateCommands();
     }
 

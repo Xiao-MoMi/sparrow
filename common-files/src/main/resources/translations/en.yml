@@ -91,6 +91,17 @@ command.player-info.title: '<color:#FFAA00>Player info » </color><color:#FFFFFF
 command.player-info.unknown: '<color:#AAAAAA>Unknown</color>'
 command.player-info.uuid: '<color:#AAAAAA>UUID: </color><color:#FFFFFF><arg:0></color>'
 
+# command.spawn
+command.spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Returned to spawn</color>'
+command.spawn.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Connecting to spawn on <color:#C7BCE7><arg:0></color></color>'
+command.spawn.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The spawn server <color:#C7BCE7><arg:0></color> is offline</color>'
+command.spawn.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The spawn world or location is unavailable. Ask an administrator to set it again</color>'
+command.spawn.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Returning to spawn timed out. Try again later</color>'
+command.spawn.not-set: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Spawn has not been set</color>'
+command.spawn.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Failed to save spawn. Check the console</color>'
+command.set-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the network-wide spawn to your current location on <color:#C7BCE7><arg:0></color></color>'
+command.del-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared the network-wide spawn</color>'
+
 # command.bed
 command.bed.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no bed to return to</color>'
 command.bed.missing-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no bed to return to</color>'

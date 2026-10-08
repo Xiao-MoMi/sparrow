@@ -91,6 +91,17 @@ command.player-info.title: '<color:#FFAA00>玩家信息 » </color><color:#FFFFF
 command.player-info.unknown: '<color:#AAAAAA>未知</color>'
 command.player-info.uuid: '<color:#AAAAAA>UUID: </color><color:#FFFFFF><arg:0></color>'
 
+# command.spawn
+command.spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已返回 Spawn</color>'
+command.spawn.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>正在前往 <color:#C7BCE7><arg:0></color> 的 Spawn</color>'
+command.spawn.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Spawn 所在服务器 <color:#C7BCE7><arg:0></color> 不在线</color>'
+command.spawn.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Spawn 的世界或位置不可用, 请联系管理员重新设置</color>'
+command.spawn.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>返回 Spawn 超时, 请稍后重试</color>'
+command.spawn.not-set: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>尚未设置 Spawn</color>'
+command.spawn.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>保存 Spawn 失败, 请查看控制台</color>'
+command.set-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将当前位置设为全服 Spawn, 所在服务器 <color:#C7BCE7><arg:0></color></color>'
+command.del-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已清除全服 Spawn</color>'
+
 # command.bed
 command.bed.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 没有可以返回的床</color>'
 command.bed.missing-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有可以返回的床</color>'

@@ -6,7 +6,8 @@ public enum TeleportType {
     WARP("warp"),
     HOME("home"),
     BACK("back"),
-    BED("bed");
+    BED("bed"),
+    SPAWN("spawn");
 
     private final String id; // 冷却在 Redis 中的键名片段
 

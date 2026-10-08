@@ -11,6 +11,7 @@ import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
 import net.momirealms.sparrow.feature.playerlimit.PlayerLimitSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
+import net.momirealms.sparrow.feature.spawn.SpawnSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
 import net.momirealms.sparrow.feature.warp.WarpSettings;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -160,6 +161,11 @@ public final class FeaturesConfig {
         private BedSettings bed = new BedSettings();
 
         @BlankLineBefore
+        @Comment("Return to the network-wide spawn with /spawn. Set it at the current location with /set-spawn, or clear it with /del-spawn.")
+        @Comment(lang = "zh", value = "使用 /spawn 返回全服共用的 Spawn. /set-spawn 设置为当前位置, /del-spawn 清除.")
+        private SpawnSettings spawn = new SpawnSettings();
+
+        @BlankLineBefore
         @Comment("Warps shared by every server, used with /warp, /set-warp, /del-warp and /warp-list.")
         @Comment(lang = "zh", value = "所有服务器共用的 warp, 使用 /warp、/set-warp、/del-warp 和 /warp-list.")
         private WarpSettings warp = new WarpSettings();
@@ -187,6 +193,11 @@ public final class FeaturesConfig {
         @NotNull
         public BedSettings bed() {
             return this.bed;
+        }
+
+        @NotNull
+        public SpawnSettings spawn() {
+            return this.spawn;
         }
 
         @NotNull
@@ -243,6 +254,7 @@ public final class FeaturesConfig {
                 case "ban" -> this.ban;
                 case "back" -> this.back;
                 case "bed" -> this.bed;
+                case "spawn" -> this.spawn;
                 case "warp" -> this.warp;
                 case "home" -> this.home;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);

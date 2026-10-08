@@ -23,6 +23,10 @@ public final class MysqlSchema {
     public static final String HOME_COMPONENT = "home_schema";
     public static final List<String> HOME_TABLES = List.of("homes");
 
+    // spawn 模块
+    public static final String SPAWN_COMPONENT = "spawn_schema";
+    public static final List<String> SPAWN_TABLES = List.of("spawn");
+
     private static final String TABLE_OPTIONS = " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin";
 
     private MysqlSchema() {
@@ -61,5 +65,11 @@ public final class MysqlSchema {
                 + "server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, "
                 + "yaw FLOAT NOT NULL, pitch FLOAT NOT NULL, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, "
                 + "UNIQUE KEY homes_owner_name (owner, name_key), KEY homes_location (server, world), KEY homes_world (world))" + TABLE_OPTIONS);
+    }
+
+    public static void initializeSpawn(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "spawn` ("
+                + "id TINYINT PRIMARY KEY, server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, "
+                + "x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, yaw FLOAT NOT NULL, pitch FLOAT NOT NULL)" + TABLE_OPTIONS);
     }
 }

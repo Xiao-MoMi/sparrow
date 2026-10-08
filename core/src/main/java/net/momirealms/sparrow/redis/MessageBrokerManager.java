@@ -4,6 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.feature.ban.BanMessage;
 import net.momirealms.sparrow.feature.home.HomeChangedMessage;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
+import net.momirealms.sparrow.feature.spawn.SpawnMessage;
 import net.momirealms.sparrow.player.BroadcastMessage;
 import net.momirealms.sparrow.player.KickMessage;
 import net.momirealms.sparrow.player.cluster.PlayerPresenceMessage;
@@ -50,6 +51,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
         this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
+        this.broker.registry().register(SpawnMessage.ID, SpawnMessage.CODEC);
         this.broker.registry().register(HomeChangedMessage.ID, HomeChangedMessage.CODEC);
         this.broker.subscribe();
         // Redis Pub/Sub Proxy 代理频道.

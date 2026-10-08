@@ -61,6 +61,7 @@ buildConfig {
     buildConfigField("WARP_SCHEMA_VERSION", libs.versions.warp.schema.version.get().toInt())
     buildConfigField("MONGODB_WARP_INDEX_VERSION", libs.versions.mongodb.warp.index.version.get().toInt())
     buildConfigField("HOME_SCHEMA_VERSION", libs.versions.home.schema.version.get().toInt())
+    buildConfigField("SPAWN_SCHEMA_VERSION", libs.versions.spawn.schema.version.get().toInt())
     buildConfigField("MONGODB_HOME_INDEX_VERSION", libs.versions.mongodb.home.index.version.get().toInt())
 
     buildConfigField("PROJECT_ID", projectId)

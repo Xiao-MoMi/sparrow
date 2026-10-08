@@ -23,6 +23,10 @@ public final class PostgresSchema {
     public static final String HOME_COMPONENT = "home_schema";
     public static final List<String> HOME_TABLES = List.of("homes");
 
+    // spawn 模块
+    public static final String SPAWN_COMPONENT = "spawn_schema";
+    public static final List<String> SPAWN_TABLES = List.of("spawn");
+
     private PostgresSchema() {
     }
 
@@ -70,5 +74,12 @@ public final class PostgresSchema {
         handle.execute("CREATE UNIQUE INDEX IF NOT EXISTS \"" + prefix + "homes_owner_name\" ON " + homes + " (owner, name_key)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "homes_location\" ON " + homes + " (server, world)");
         handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "homes_world\" ON " + homes + " (world)");
+    }
+
+    public static void initializeSpawn(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS \"" + prefix + "spawn\" ("
+                + "id SMALLINT PRIMARY KEY, server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, "
+                + "x DOUBLE PRECISION NOT NULL, y DOUBLE PRECISION NOT NULL, z DOUBLE PRECISION NOT NULL, "
+                + "yaw REAL NOT NULL, pitch REAL NOT NULL)");
     }
 }

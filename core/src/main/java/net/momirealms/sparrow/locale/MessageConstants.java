@@ -145,6 +145,15 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_BED_SUCCESS_SELF = Component.translatable("command.bed.success-self");
     TranslatableComponent COMMAND_BED_MISSING = Component.translatable("command.bed.missing");
     TranslatableComponent COMMAND_BED_MISSING_SELF = Component.translatable("command.bed.missing-self");
+    TranslatableComponent COMMAND_SPAWN_SUCCESS = Component.translatable("command.spawn.success");
+    TranslatableComponent COMMAND_SPAWN_CONNECTING = Component.translatable("command.spawn.connecting");
+    TranslatableComponent COMMAND_SPAWN_SERVER_OFFLINE = Component.translatable("command.spawn.server-offline");
+    TranslatableComponent COMMAND_SPAWN_INVALID = Component.translatable("command.spawn.invalid");
+    TranslatableComponent COMMAND_SPAWN_TIMEOUT = Component.translatable("command.spawn.timeout");
+    TranslatableComponent COMMAND_SPAWN_NOT_SET = Component.translatable("command.spawn.not-set");
+    TranslatableComponent COMMAND_SPAWN_STORAGE_FAILED = Component.translatable("command.spawn.storage-failed");
+    TranslatableComponent COMMAND_SET_SPAWN_SUCCESS = Component.translatable("command.set-spawn.success");
+    TranslatableComponent COMMAND_DEL_SPAWN_SUCCESS = Component.translatable("command.del-spawn.success");
     TranslatableComponent COMMAND_HAT_SUCCESS = Component.translatable("command.hat.success");
     TranslatableComponent COMMAND_HAT_SUCCESS_SELF = Component.translatable("command.hat.success-self");
     TranslatableComponent COMMAND_HAT_ITEMLESS = Component.translatable("command.hat.itemless");
