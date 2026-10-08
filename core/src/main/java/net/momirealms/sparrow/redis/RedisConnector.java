@@ -4,7 +4,6 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.RedisException;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import io.lettuce.core.RedisCredentials;
 import io.lettuce.core.RedisCredentialsProvider;
 import io.lettuce.core.RedisURI;
@@ -63,15 +62,15 @@ public final class RedisConnector implements AutoCloseable {
         try {
             reported = RedisServerVersion.parse(connection.sync().info("server"));
         } catch (RedisException exception) {
-            this.logger.warn(TranslationManager.console(LogConstants.REDIS_VERSION_CHECK_FAILED), exception);
+            this.logger.warn(LogConstants.REDIS_VERSION_CHECK_FAILED, exception);
             return;
         }
         if (reported == null) {
-            this.logger.warn(TranslationManager.console(LogConstants.REDIS_VERSION_CHECK_FAILED));
+            this.logger.warn(LogConstants.REDIS_VERSION_CHECK_FAILED);
             return;
         }
         if (reported.atLeast(MINIMUM_SERVER_VERSION)) return;
-        this.logger.error(TranslationManager.console(LogConstants.REDIS_VERSION_UNSUPPORTED, reported.toString(), MINIMUM_SERVER_VERSION.toString()));
+        this.logger.error(LogConstants.REDIS_VERSION_UNSUPPORTED, reported.toString(), MINIMUM_SERVER_VERSION.toString());
         throw new IllegalStateException("Redis server version " + reported + " is not supported, Redis " + MINIMUM_SERVER_VERSION + " or later is required");
     }
 

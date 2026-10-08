@@ -3,7 +3,6 @@ package net.momirealms.sparrow.compatibility;
 import net.kyori.adventure.util.TriState;
 import net.momirealms.sparrow.compatibility.luckperms.LuckPermsHook;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.compatibility.papi.PlaceholderAPIUtils;
 import org.bukkit.Bukkit;
@@ -156,7 +155,7 @@ public final class CompatibilityManager {
     }
 
     private void logHook(String plugin) {
-        this.plugin.logger().info(TranslationManager.console(LogConstants.COMPATIBILITY_HOOKED, plugin));
+        this.plugin.logger().info(LogConstants.COMPATIBILITY_HOOKED, plugin);
     }
 
     private void runCatchingHook(ThrowableRunnable runnable, String plugin) {
@@ -164,7 +163,7 @@ public final class CompatibilityManager {
             runnable.run();
             this.logHook(plugin);
         } catch (Throwable e) {
-            this.plugin.logger().warn(TranslationManager.console(LogConstants.COMPATIBILITY_HOOK_FAILED, plugin), e);
+            this.plugin.logger().warn(LogConstants.COMPATIBILITY_HOOK_FAILED, e, plugin);
         }
     }
 

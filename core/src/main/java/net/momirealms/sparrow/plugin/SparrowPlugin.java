@@ -120,7 +120,7 @@ public class SparrowPlugin implements Plugin {
         if (ServerConfig.serverId().isEmpty()) {
             this.logger.error(" ");
             this.logger.error("============================================================");
-            this.logger.error(TranslationManager.console(LogConstants.SERVER_ID_MISSING));
+            this.logger.error(LogConstants.SERVER_ID_MISSING);
             this.logger.error("============================================================");
             this.logger.error(" ");
             Bukkit.getServer().shutdown();
@@ -148,7 +148,7 @@ public class SparrowPlugin implements Plugin {
             this.logger().error(" ");
             this.logger().error(" ");
             this.logger().error(" ");
-            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_RESTART_AT_RUNTIME));
+            this.logger().error(LogConstants.PLUGIN_RESTART_AT_RUNTIME);
             this.logger().error(" ");
             this.logger().error(" ");
             this.logger().error(" ");
@@ -160,8 +160,8 @@ public class SparrowPlugin implements Plugin {
             this.logger().error(" ");
             this.logger().error(" ");
             this.logger().error(" ");
-            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_ENABLE_FAILED));
-            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_SHUTDOWN_AFTER_FAILURE));
+            this.logger().error(LogConstants.PLUGIN_ENABLE_FAILED);
+            this.logger().error(LogConstants.PLUGIN_SHUTDOWN_AFTER_FAILURE);
             this.logger().error(" ");
             this.logger().error(" ");
             this.logger().error(" ");
@@ -207,7 +207,7 @@ public class SparrowPlugin implements Plugin {
             this.logger().error(" ");
             this.logger().error(" ");
             this.logger().error(" ");
-            this.logger().error(TranslationManager.console(LogConstants.PLUGIN_DISABLE_AT_RUNTIME));
+            this.logger().error(LogConstants.PLUGIN_DISABLE_AT_RUNTIME);
             this.logger().error(" ");
             this.logger().error(" ");
             this.logger().error(" ");
@@ -274,12 +274,12 @@ public class SparrowPlugin implements Plugin {
                             return result;
                         }
                         Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-                        this.logger().warn(TranslationManager.console(LogConstants.PLUGIN_RELOAD_FAILED), cause);
+                        this.logger().warn(LogConstants.PLUGIN_RELOAD_FAILED, cause);
                         return ReloadResult.failure();
                     });
         } catch (RuntimeException exception) {
             this.reloading.set(false);
-            this.logger().warn(TranslationManager.console(LogConstants.PLUGIN_RELOAD_FAILED), exception);
+            this.logger().warn(LogConstants.PLUGIN_RELOAD_FAILED, exception);
             return CompletableFuture.completedFuture(ReloadResult.failure());
         }
     }
@@ -345,7 +345,7 @@ public class SparrowPlugin implements Plugin {
      */
     private void initASMProxies() {
         if (!VersionHelper.IS_RUNNING_IN_DEV) return;
-        this.logger().info(TranslationManager.console(LogConstants.PLUGIN_INITIALIZING_PROXIES));
+        this.logger().info(LogConstants.PLUGIN_INITIALIZING_PROXIES);
         ClassLoader classLoader = ReflectionUtils.class.getClassLoader();
         ExceptionCollector<Throwable> collector = new ExceptionCollector<>(Throwable.class);
         try (InputStream resourceAsStream = classLoader.getResourceAsStream(DependencyVersions.PROXY_JAR_NAME)) {

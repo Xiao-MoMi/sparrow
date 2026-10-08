@@ -67,9 +67,9 @@ public final class TranslationManagerImpl implements TranslationManager {
                 this.translationFallback.putAll(data);
             }
         } catch (IOException e) {
-            plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_DEFAULT_LOAD_FAILED), e);
+            plugin.logger().warn(LogConstants.TRANSLATION_DEFAULT_LOAD_FAILED, e);
         } catch (Exception e) {
-            plugin.logger().error(TranslationManager.console(LogConstants.TRANSLATION_DEFAULT_SYNTAX_ERROR), e);
+            plugin.logger().error(LogConstants.TRANSLATION_DEFAULT_SYNTAX_ERROR, e);
         }
     }
 
@@ -205,7 +205,7 @@ public final class TranslationManagerImpl implements TranslationManager {
             }
             return supportedLanguages;
         } catch (IOException e) {
-            this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_DEFAULT_LOAD_FAILED), e);
+            this.plugin.logger().warn(LogConstants.TRANSLATION_DEFAULT_LOAD_FAILED, e);
             return Set.of();
         }
     }
@@ -231,9 +231,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                         String localeName = fileName.substring(0, fileName.length() - ".yml".length());
                         Locale locale = TranslationManager.parseLocale(localeName);
                         if (locale == null) {
-                            TranslationManagerImpl.this.plugin.logger().warn(
-                                    TranslationManager.console(LogConstants.TRANSLATION_INVALID_FILE, path.toString())
-                            );
+                            TranslationManagerImpl.this.plugin.logger().warn(LogConstants.TRANSLATION_INVALID_FILE, path.toString());
                             return FileVisitResult.CONTINUE;
                         }
                         // 比对上次缓存文件和本次即将读取文件, 如果一致则跳过.
@@ -268,7 +266,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                                 TranslationManagerImpl.this.cachedTranslations.put(locale, cachedFile);
                             } catch (IOException e) {
                                 TranslationManagerImpl.this.plugin.logger()
-                                        .error(TranslationManager.console(LogConstants.TRANSLATION_READ_FAILED, path.toString()), e);
+                                        .error(LogConstants.TRANSLATION_READ_FAILED, e, path.toString());
                                 return FileVisitResult.CONTINUE;
                             }
                         }
@@ -277,7 +275,7 @@ public final class TranslationManagerImpl implements TranslationManager {
                 }
             });
         } catch (IOException e) {
-            this.plugin.logger().warn(TranslationManager.console(LogConstants.TRANSLATION_DIRECTORY_FAILED), e);
+            this.plugin.logger().warn(LogConstants.TRANSLATION_DIRECTORY_FAILED, e);
         }
     }
 
@@ -353,11 +351,9 @@ public final class TranslationManagerImpl implements TranslationManager {
         }
 
         this.plugin.logger().warn(
-                TranslationManager.console(
-                        LogConstants.TRANSLATION_LOCALE_MISSING,
-                        localLocale.toString().toLowerCase(Locale.ENGLISH),
-                        DEFAULT_LOCALE.toString().toLowerCase(Locale.ENGLISH)
-                )
+                LogConstants.TRANSLATION_LOCALE_MISSING,
+                localLocale.toString().toLowerCase(Locale.ENGLISH),
+                DEFAULT_LOCALE.toString().toLowerCase(Locale.ENGLISH)
         );
         this.selectedLocale = DEFAULT_LOCALE;
     }

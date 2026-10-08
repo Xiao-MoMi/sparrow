@@ -595,7 +595,6 @@ command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 ban.expiry.permanent: '<color:#FFB6CB>Permanent</color>'
 ban.expiry.temporary: '<color:#FFE3A3><arg:0></color> <color:#C8E4E9>(<arg:1> left)</color>'
 ban.kick.player.permanent: |-
-  <color:#7D98BF>${project_name}</color>
   <gradient:#FF6B6B:#D84555><b>PERMANENT BAN</b></gradient>
 
   <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
@@ -607,7 +606,6 @@ ban.kick.player.permanent: |-
 
   <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
 ban.kick.player.temporary: |-
-  <color:#7D98BF>${project_name}</color>
   <gradient:#FF6B6B:#D84555><b>TEMPORARY BAN</b></gradient>
 
   <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
@@ -619,7 +617,6 @@ ban.kick.player.temporary: |-
 
   <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
 ban.kick.ip.permanent: |-
-  <color:#7D98BF>${project_name}</color>
   <gradient:#FF6B6B:#D84555><b>PERMANENT IP BAN</b></gradient>
 
   <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
@@ -631,7 +628,6 @@ ban.kick.ip.permanent: |-
 
   <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
 ban.kick.ip.temporary: |-
-  <color:#7D98BF>${project_name}</color>
   <gradient:#FF6B6B:#D84555><b>TEMPORARY IP BAN</b></gradient>
 
   <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
@@ -680,7 +676,7 @@ feature.state.unloaded: '<color:#7D98BF>Unloaded</color>'
 
 # kick
 kick.reason.none: '<color:#7D98BF>No reason given</color>'
-kick.screen: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>You were kicked from the server</color><newline><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>Kicked by: </color><color:#F2F4FF><arg:1></color>'
+kick.screen: '<color:#FFB6CB>You were kicked from the server</color><newline><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>Kicked by: </color><color:#F2F4FF><arg:1></color>'
 
 # log.compatibility
 log.compatibility.hook_failed: 'Failed to hook <arg:0>'
@@ -727,7 +723,7 @@ log.translation.read_failed: 'Failed to read translation file: <arg:0>'
 
 # maintenance
 maintenance.boss_bar: '<color:#FFE3A3>Server under maintenance</color>'
-maintenance.kick: '<color:#FFE08A><b>${project_name}</b></color><newline><newline><color:#FFB6CB>The server is under maintenance. Please come back later.</color>'
+maintenance.kick: '<color:#FFB6CB>The server is under maintenance. Please come back later.</color>'
 
 # teleport
 teleport.cancelled.damaged: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You took damage, the teleport was cancelled</color>'

@@ -5,7 +5,6 @@ import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -110,7 +109,7 @@ public final class ClusterRoster {
             // Redis 暂时不可用时保留本地视图, 下一轮校准补齐
             Throwable cause = failure instanceof CompletionException ? failure.getCause() : failure;
             if (cause != null && !(cause instanceof RedisException)) {
-                this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_ROSTER_REFRESH_FAILED), cause);
+                this.plugin.logger().warn(LogConstants.PLAYER_ROSTER_REFRESH_FAILED, cause);
             }
         });
     }

@@ -4,7 +4,6 @@ import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.sync.RedisCommands;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
@@ -52,7 +51,7 @@ public final class ServerHeartBeats {
         if (!this.claimIdentity()) {
             this.plugin.logger().error(" ");
             this.plugin.logger().error("============================================================");
-            this.plugin.logger().error(TranslationManager.console(LogConstants.SERVER_ID_DUPLICATE, this.serverId));
+            this.plugin.logger().error(LogConstants.SERVER_ID_DUPLICATE, this.serverId);
             this.plugin.logger().error("============================================================");
             this.plugin.logger().error(" ");
             throw new IllegalStateException("Server ID " + this.serverId + " is already used by another online server");
@@ -90,7 +89,7 @@ public final class ServerHeartBeats {
                 Long.toString(HEARTBEAT_TTL_MILLIS).getBytes(StandardCharsets.UTF_8)
         );
         if (swapped == 0L) return false;
-        this.plugin.logger().info(TranslationManager.console(LogConstants.SERVER_ID_SEIZED, new String(observed, StandardCharsets.UTF_8)));
+        this.plugin.logger().info(LogConstants.SERVER_ID_SEIZED, new String(observed, StandardCharsets.UTF_8));
         return true;
     }
 

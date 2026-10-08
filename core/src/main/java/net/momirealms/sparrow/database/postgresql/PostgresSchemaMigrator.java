@@ -2,7 +2,6 @@ package net.momirealms.sparrow.database.postgresql;
 
 import net.momirealms.sparrow.database.postgresql.upgrade.PostgresSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
@@ -94,9 +93,7 @@ public final class PostgresSchemaMigrator {
             if (existing != 0) {
                 throw new IllegalStateException("PostgreSQL business tables exist without a schema version");
             }
-            this.logger.info(
-                    TranslationManager.console(LogConstants.STORAGE_POSTGRESQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion))
-            );
+            this.logger.info(LogConstants.STORAGE_POSTGRESQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion));
             this.initializer.accept(handle, prefix);
             this.complete(handle, meta, this.currentVersion);
             return;
@@ -104,14 +101,7 @@ public final class PostgresSchemaMigrator {
         for (int i = (int) stored - 1; i < this.migrations.size(); i++) {
             PostgresSchemaMigration migration = this.migrations.get(i);
             int target = migration.targetVersion();
-            this.logger.info(
-                    TranslationManager.console(
-                            LogConstants.STORAGE_POSTGRESQL_SCHEMA_MIGRATING,
-                            prefix,
-                            String.valueOf(target - 1),
-                            String.valueOf(target)
-                    )
-            );
+            this.logger.info(LogConstants.STORAGE_POSTGRESQL_SCHEMA_MIGRATING, prefix, String.valueOf(target - 1), String.valueOf(target));
             migration.migrate(handle, prefix);
             this.complete(handle, meta, target);
         }

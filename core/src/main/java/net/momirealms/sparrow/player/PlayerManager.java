@@ -6,7 +6,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.player.cluster.ClusterPlayer;
 import net.momirealms.sparrow.player.cluster.ClusterRoster;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -111,7 +110,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.plugin.dataStorage().saveLogin(player.getUniqueId(), name, ip, System.currentTimeMillis())
                 .whenComplete((ignored, failure) -> {
                     if (failure != null) {
-                        this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
+                        this.plugin.logger().warn(LogConstants.PLAYER_SAVE_FAILED, failure, name);
                     }
                 });
         // 本插件的进服处理全部完成后再通知
@@ -144,7 +143,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                 )
                 .whenComplete((ignored, failure) -> {
                     if (failure != null) {
-                        this.plugin.logger().warn(TranslationManager.console(LogConstants.PLAYER_SAVE_FAILED, name), failure);
+                        this.plugin.logger().warn(LogConstants.PLAYER_SAVE_FAILED, failure, name);
                     }
                 });
         this.removeConnection((Channel) ConnectionProxy.INSTANCE.getChannel(this.connectionHandle(player)));

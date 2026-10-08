@@ -5,7 +5,6 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.ReplaceOptions;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.bson.Document;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +39,7 @@ final class IndexReconciler {
         Document schema = metaCollection.find(new Document("_id", schemaId)).first();
         int stored = schema != null && schema.get(SCHEMA_FIELD_VERSION) instanceof Number number ? number.intValue() : 0;
         if (stored > version) {
-            logger.error(TranslationManager.console(LogConstants.STORAGE_SCHEMA_TOO_NEW, String.valueOf(stored), String.valueOf(version)));
+            logger.error(LogConstants.STORAGE_SCHEMA_TOO_NEW, String.valueOf(stored), String.valueOf(version));
             throw new IllegalStateException("database schema generation " + stored + " is newer than this plugin supports (" + version + ")");
         }
         for (Map.Entry<String, List<IndexDeclaration>> entry : collections.entrySet()) {
@@ -82,7 +81,7 @@ final class IndexReconciler {
             }
             if (!declared) {
                 collection.dropIndex(name);
-                logger.info(TranslationManager.console(LogConstants.STORAGE_STALE_INDEX_DROPPED, name));
+                logger.info(LogConstants.STORAGE_STALE_INDEX_DROPPED, name);
             }
         }
         // 当前版本缺哪条索引就补哪条

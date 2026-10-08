@@ -9,7 +9,6 @@ import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -92,7 +91,7 @@ public class MysqlDataStorage extends DataStorage {
         if (version != null && version.atLeast(MINIMUM_SERVER_VERSION)) {
             return;
         }
-        super.logger.error(TranslationManager.console(LogConstants.STORAGE_MYSQL_VERSION_UNSUPPORTED, reported, MINIMUM_SERVER_VERSION.toString()));
+        super.logger.error(LogConstants.STORAGE_MYSQL_VERSION_UNSUPPORTED, reported, MINIMUM_SERVER_VERSION.toString());
         throw new IllegalStateException(
                 "MySQL server version " + reported + " is not supported, MySQL " + MINIMUM_SERVER_VERSION + " or later is required"
         );

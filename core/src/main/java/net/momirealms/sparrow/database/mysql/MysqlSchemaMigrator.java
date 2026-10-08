@@ -2,7 +2,6 @@ package net.momirealms.sparrow.database.mysql;
 
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
-import net.momirealms.sparrow.locale.TranslationManager;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.jdbi.v3.core.Handle;
 import org.jdbi.v3.core.Jdbi;
@@ -136,9 +135,7 @@ public final class MysqlSchemaMigrator {
                     throw new IllegalStateException("MySQL business tables exist without a schema version");
                 }
             }
-            this.logger.info(
-                    TranslationManager.console(LogConstants.STORAGE_MYSQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion))
-            );
+            this.logger.info(LogConstants.STORAGE_MYSQL_SCHEMA_INITIALIZING, prefix, String.valueOf(this.currentVersion));
             this.markPending(handle, meta, this.currentVersion);
             this.initializer.accept(handle, prefix);
             this.complete(handle, meta, this.currentVersion);
@@ -154,14 +151,7 @@ public final class MysqlSchemaMigrator {
         for (int i = (int) stored - 1; i < this.migrations.size(); i++) {
             MysqlSchemaMigration migration = this.migrations.get(i);
             int target = migration.targetVersion();
-            this.logger.info(
-                    TranslationManager.console(
-                            LogConstants.STORAGE_MYSQL_SCHEMA_MIGRATING,
-                            prefix,
-                            String.valueOf(target - 1),
-                            String.valueOf(target)
-                    )
-            );
+            this.logger.info(LogConstants.STORAGE_MYSQL_SCHEMA_MIGRATING, prefix, String.valueOf(target - 1), String.valueOf(target));
             this.markPending(handle, meta, target);
             migration.migrate(handle, prefix);
             this.complete(handle, meta, target);

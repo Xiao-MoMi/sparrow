@@ -1,5 +1,9 @@
 package net.momirealms.sparrow.plugin.logger;
 
+import net.momirealms.sparrow.locale.LogConstants;
+import net.momirealms.sparrow.locale.TranslationManager;
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 import java.nio.file.Path;
 
@@ -16,12 +20,20 @@ public interface PluginLogger {
      */
     void info(String s);
 
+    default void info(@NotNull LogConstants key, @NotNull String... arguments) {
+        this.info(TranslationManager.console(key.key(), arguments));
+    }
+
     /**
      * 输出一条 warn 级别的日志消息.
      *
      * @param s 日志消息内容.
      */
     void warn(String s);
+
+    default void warn(@NotNull LogConstants key, @NotNull String... arguments) {
+        this.warn(TranslationManager.console(key.key(), arguments));
+    }
 
     /**
      * 输出一条 warn 级别的日志消息, 包含关联的文件信息.
@@ -62,12 +74,20 @@ public interface PluginLogger {
      */
     void warn(String s, Throwable t);
 
+    default void warn(@NotNull LogConstants key, @NotNull Throwable cause, @NotNull String... arguments) {
+        this.warn(TranslationManager.console(key.key(), arguments), cause);
+    }
+
     /**
      * 输出一条 error 级别的日志消息.
      *
      * @param s 日志消息内容.
      */
     void error(String s);
+
+    default void error(@NotNull LogConstants key, @NotNull String... arguments) {
+        this.error(TranslationManager.console(key.key(), arguments));
+    }
 
     /**
      * 输出一条 error 级别的日志消息, 包含异常堆栈信息.
@@ -76,4 +96,8 @@ public interface PluginLogger {
      * @param t 关联的异常对象.
      */
     void error(String s, Throwable t);
+
+    default void error(@NotNull LogConstants key, @NotNull Throwable cause, @NotNull String... arguments) {
+        this.error(TranslationManager.console(key.key(), arguments), cause);
+    }
 }
