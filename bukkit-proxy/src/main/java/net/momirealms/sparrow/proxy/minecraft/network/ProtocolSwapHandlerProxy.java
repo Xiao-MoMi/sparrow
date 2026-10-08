@@ -11,5 +11,8 @@ public interface ProtocolSwapHandlerProxy {
     ProtocolSwapHandlerProxy INSTANCE = ASMProxyFactory.create(ProtocolSwapHandlerProxy.class);
 
     @MethodInvoker(name = "handleInboundTerminalPacket", isStatic = true)
-    void handleInboundTerminalPacket(@Type(name = "io.netty.channel.ChannelHandlerContext") Object context, @Type(clazz = PacketProxy.class) Object packet);
+    void handleInboundTerminalPacket(
+            @Type(name = "io.netty.channel.ChannelHandlerContext") Object context,
+            @Type(clazz = PacketProxy.class) Object packet
+    );
 }

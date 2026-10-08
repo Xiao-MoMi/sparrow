@@ -11,7 +11,10 @@ public interface ImpossibleTriggerProxy {
     @ConstructorInvoker
     Object create();
 
-    @ReflectionProxy(name = {"net.minecraft.advancements.triggers.ImpossibleTrigger$TriggerInstance", "net.minecraft.advancements.criterion.ImpossibleTrigger$TriggerInstance"})
+    @ReflectionProxy(name = {
+            "net.minecraft.advancements.triggers.ImpossibleTrigger$TriggerInstance",
+            "net.minecraft.advancements.criterion.ImpossibleTrigger$TriggerInstance"
+    })
     interface TriggerInstanceProxy {
         TriggerInstanceProxy INSTANCE = ASMProxyFactory.create(TriggerInstanceProxy.class);
 

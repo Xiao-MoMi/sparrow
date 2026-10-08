@@ -40,7 +40,8 @@ public final class BungeeCordSparrow extends Plugin implements ProxyPlatform {
     @Override
     public void disconnect(@NotNull UUID player, @NotNull String jsonReason) {
         ProxiedPlayer target = this.getProxy().getPlayer(player);
-        if (target == null) return;
-        target.disconnect(ComponentSerializer.deserialize(jsonReason));
+        if (target != null) {
+            target.disconnect(ComponentSerializer.deserialize(jsonReason));
+        }
     }
 }

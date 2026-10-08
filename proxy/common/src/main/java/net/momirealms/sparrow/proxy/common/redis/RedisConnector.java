@@ -60,7 +60,9 @@ public final class RedisConnector implements AutoCloseable {
      */
     @NotNull
     public StatefulRedisConnection<byte[], byte[]> connection() {
-        if (this.connection == null) throw new IllegalStateException("Redis is not initialized");
+        if (this.connection == null) {
+            throw new IllegalStateException("Redis is not initialized");
+        }
         return this.connection;
     }
 

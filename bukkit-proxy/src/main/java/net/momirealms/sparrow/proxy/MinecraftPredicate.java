@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 
 public final class MinecraftPredicate implements Predicate<String> {
     private static final Pattern TOKEN_PATTERN = Pattern.compile("\\s*(\\(|\\)|&&|\\|\\||!|[^\\s()&|!]+)\\s*");
+
     private final Context context;
 
     public MinecraftPredicate(String version, List<String> patches) {
@@ -16,8 +17,10 @@ public final class MinecraftPredicate implements Predicate<String> {
 
     @Override
     public boolean test(String expression) {
-        if (expression == null || expression.isEmpty()) return true;
-        return compile(expression).test(this.context);
+        if (expression == null || expression.isEmpty()) {
+            return true;
+        }
+        return this.compile(expression).test(this.context);
     }
 
     private Condition compile(String expression) {
@@ -26,14 +29,18 @@ public final class MinecraftPredicate implements Predicate<String> {
         Stack<String> ops = new Stack<>();
         while (matcher.find()) {
             String token = matcher.group(1);
-            if (token.isEmpty()) continue;
+            if (token.isEmpty()) {
+                continue;
+            }
             switch (token) {
                 case "(", "!" -> ops.push(token);
                 case ")" -> {
                     while (!ops.isEmpty() && !ops.peek().equals("(")) {
                         processOperator(nodes, ops.pop());
                     }
-                    if (!ops.isEmpty()) ops.pop(); // 弹出 "("
+                    if (!ops.isEmpty()) {
+                        ops.pop(); // 弹出 "("
+                    }
                 }
                 case "&&", "||" -> {
                     while (!ops.isEmpty() && precedence(ops.peek()) >= precedence(token)) {
@@ -52,11 +59,15 @@ public final class MinecraftPredicate implements Predicate<String> {
 
     private static void processOperator(Stack<Condition> nodes, String op) {
         if ("!".equals(op)) {
-            if (nodes.isEmpty()) throw new IllegalArgumentException("Invalid syntax: '!' used without operand");
+            if (nodes.isEmpty()) {
+                throw new IllegalArgumentException("Invalid syntax: '!' used without operand");
+            }
             Condition node = nodes.pop();
             nodes.push(ctx -> !node.test(ctx));
         } else {
-            if (nodes.size() < 2) throw new IllegalArgumentException("Invalid syntax: missing operands for " + op);
+            if (nodes.size() < 2) {
+                throw new IllegalArgumentException("Invalid syntax: missing operands for " + op);
+            }
             Condition right = nodes.pop();
             Condition left = nodes.pop();
             if ("&&".equals(op)) {
@@ -68,15 +79,23 @@ public final class MinecraftPredicate implements Predicate<String> {
     }
 
     private static int precedence(String op) {
-        if ("!".equals(op)) return 3;
-        if ("&&".equals(op)) return 2;
-        if ("||".equals(op)) return 1;
+        if ("!".equals(op)) {
+            return 3;
+        }
+        if ("&&".equals(op)) {
+            return 2;
+        }
+        if ("||".equals(op)) {
+            return 1;
+        }
         return 0;
     }
 
     private static Condition compileLeaf(String token) {
         String[] parts = token.split("=", 2);
-        if (parts.length != 2) return ctx -> false;
+        if (parts.length != 2) {
+            return ctx -> false;
+        }
         String type = parts[0].trim();
         String param = parts[1].trim();
         return switch (type) {
@@ -123,6 +142,7 @@ public final class MinecraftPredicate implements Predicate<String> {
     }
 
     public interface Condition {
+
         boolean test(Context predicate);
     }
 
@@ -138,7 +158,7 @@ public final class MinecraftPredicate implements Predicate<String> {
 
         @Override
         public boolean test(Context predicate) {
-            return predicate.version == targetVersion;
+            return predicate.version == this.targetVersion;
         }
     }
 

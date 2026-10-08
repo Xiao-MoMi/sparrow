@@ -10,5 +10,8 @@ public interface CriterionProxy {
     CriterionProxy INSTANCE = ASMProxyFactory.create(CriterionProxy.class);
 
     @ConstructorInvoker
-    Object create(@Type(clazz = CriterionTriggerProxy.class) Object trigger, @Type(name = "net.minecraft.advancements.CriterionTriggerInstance") Object triggerInstance);
+    Object create(
+            @Type(clazz = CriterionTriggerProxy.class) Object trigger,
+            @Type(name = "net.minecraft.advancements.CriterionTriggerInstance") Object triggerInstance
+    );
 }
