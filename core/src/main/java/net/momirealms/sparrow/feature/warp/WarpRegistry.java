@@ -27,7 +27,7 @@ public final class WarpRegistry implements AutoCloseable {
     }
 
     /**
-     * 订阅变更并建立本次启用的完整目录.
+     * 建立本次启用的完整目录.
      * <strong>会阻塞调用线程直到读取完成</strong>.
      */
     public void load() {
@@ -35,7 +35,6 @@ public final class WarpRegistry implements AutoCloseable {
         synchronized (this) {
             this.session = session;
             this.snapshot = Snapshot.EMPTY;
-            WarpMessage.listener(this::accept);
         }
         try {
             this.refresh().join();
@@ -161,7 +160,6 @@ public final class WarpRegistry implements AutoCloseable {
         CompletableFuture<Void> pending;
         synchronized (this) {
             if (session == null || this.session != session) return;
-            WarpMessage.listener(null);
             this.session = null;
             this.snapshot = Snapshot.EMPTY;
             pending = session.loading;

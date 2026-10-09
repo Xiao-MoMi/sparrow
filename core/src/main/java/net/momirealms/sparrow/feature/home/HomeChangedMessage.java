@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature.home;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -10,13 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.function.Consumer;
 
 public final class HomeChangedMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "home_changed");
     public static final MessageCodec<FriendlyByteBuf, HomeChangedMessage> CODEC = RedisMessage.codec(HomeChangedMessage::write, HomeChangedMessage::new);
-    private static volatile @Nullable Consumer<HomeChangedMessage> listener;
 
+    private final HomeFeature feature = SparrowPlugin.instance().featureManager().feature(HomeFeature.ID, HomeFeature.class);
     private final String origin;
     private final @Nullable UUID owner; // null 表示所有在线所有者的快照失效.
 
@@ -61,10 +61,6 @@ public final class HomeChangedMessage extends OneWayMessage<FriendlyByteBuf> {
         return this.owner;
     }
 
-    static void listener(@Nullable Consumer<HomeChangedMessage> listener) {
-        HomeChangedMessage.listener = listener;
-    }
-
     @Override
     @NotNull
     public MessageIdentifier identifier() {
@@ -73,9 +69,6 @@ public final class HomeChangedMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        Consumer<HomeChangedMessage> listener = HomeChangedMessage.listener;
-        if (listener != null) {
-            listener.accept(this);
-        }
+        this.feature.accept(this);
     }
 }

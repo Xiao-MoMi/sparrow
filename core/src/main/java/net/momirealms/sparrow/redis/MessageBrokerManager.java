@@ -53,7 +53,6 @@ public final class MessageBrokerManager {
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
         this.broker.registry().register(SpawnMessage.ID, SpawnMessage.CODEC);
         this.broker.registry().register(HomeChangedMessage.ID, HomeChangedMessage.CODEC);
-        this.broker.subscribe();
         // Redis Pub/Sub Proxy 代理频道.
         this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":proxy").getBytes(StandardCharsets.UTF_8))
@@ -66,6 +65,10 @@ public final class MessageBrokerManager {
         this.proxyBroker.registry().register(DisconnectResponse.ID, DisconnectResponse.CODEC);
         this.proxyBroker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
         this.proxyBroker.registry().register(PlayerDirectoryResetMessage.ID, PlayerDirectoryResetMessage.CODEC);
+    }
+
+    public void onEnable() {
+        this.broker.subscribe();
     }
 
     @NotNull

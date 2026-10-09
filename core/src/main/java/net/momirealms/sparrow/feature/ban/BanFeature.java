@@ -71,17 +71,11 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
     // 表结构在数据库线程上准备, 失败只记日志, 之后每次使用都会重新尝试
     @Override
     protected void onEnable() {
-        BanMessage.listener(this::accept);
         this.store().initialize().whenComplete((ignored, failure) -> {
             if (failure != null) {
                 this.plugin.logger().warn("Failed to prepare the ban tables", failure);
             }
         });
-    }
-
-    @Override
-    protected void onDisable() {
-        BanMessage.listener(null);
     }
 
     @NotNull
@@ -264,7 +258,8 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
     }
 
     // 收到消息后只处理本服玩家
-    private void accept(BanMessage message) {
+    void accept(@NotNull BanMessage message) {
+        if (!this.enabled()) return;
         long now = System.currentTimeMillis();
         if (message.banned()) {
             this.kickTargets(message, now);

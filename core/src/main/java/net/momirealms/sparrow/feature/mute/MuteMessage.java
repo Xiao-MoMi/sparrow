@@ -1,21 +1,19 @@
 package net.momirealms.sparrow.feature.mute;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public final class MuteMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "mute");
     public static final MessageCodec<FriendlyByteBuf, MuteMessage> CODEC = RedisMessage.codec(MuteMessage::write, MuteMessage::new);
-    private static volatile @Nullable Consumer<MuteMessage> listener;
 
+    private final MuteFeature feature = SparrowPlugin.instance().featureManager().feature(MuteFeature.ID, MuteFeature.class);
     private final String origin;
     private final MuteRecord record;
 
@@ -60,10 +58,6 @@ public final class MuteMessage extends OneWayMessage<FriendlyByteBuf> {
         }
     }
 
-    static void listener(@Nullable Consumer<MuteMessage> listener) {
-        MuteMessage.listener = listener;
-    }
-
     @NotNull
     public String origin() {
         return this.origin;
@@ -82,9 +76,6 @@ public final class MuteMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        Consumer<MuteMessage> listener = MuteMessage.listener;
-        if (listener != null) {
-            listener.accept(this);
-        }
+        this.feature.accept(this);
     }
 }

@@ -200,6 +200,7 @@ public class SparrowPlugin implements Plugin {
         this.compatibilityManager.onEnable();
         // 模块管理器
         this.featureManager = new FeatureManager(this);
+        this.messageBrokerManager.onEnable();
         this.featureManager.onEnable();
         // 延迟初始化事件
         this.isInitializing = true;

@@ -86,7 +86,6 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
     protected void onEnable() {
         this.store().initialize().join();
         this.running = true;
-        MuteMessage.listener(this::accept);
         List<CompletableFuture<Void>> loads = new ArrayList<>();
         for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             loads.add(this.refresh(player.uniqueId()));
@@ -97,7 +96,6 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
     @Override
     protected void onDisable() {
         this.running = false;
-        MuteMessage.listener(null);
         this.states.invalidateAll();
     }
 
@@ -159,7 +157,7 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
                 .thenApply(receivers -> null);
     }
 
-    private void accept(MuteMessage message) {
+    void accept(@NotNull MuteMessage message) {
         if (!this.running || message.origin().equals(ServerConfig.serverId())) return;
         this.refresh(message.record().player())
                 .thenRun(() -> this.notifyPlayers(message.record()))

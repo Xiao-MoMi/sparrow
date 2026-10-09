@@ -1,21 +1,19 @@
 package net.momirealms.sparrow.feature.warp;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.function.Consumer;
 
 public final class WarpMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "warp");
     public static final MessageCodec<FriendlyByteBuf, WarpMessage> CODEC = RedisMessage.codec(WarpMessage::write, WarpMessage::new);
-    private static volatile @Nullable Consumer<WarpMessage> listener;
 
+    private final WarpFeature feature = SparrowPlugin.instance().featureManager().feature(WarpFeature.ID, WarpFeature.class);
     private final String origin;
 
     public WarpMessage(@NotNull String origin) {
@@ -38,10 +36,6 @@ public final class WarpMessage extends OneWayMessage<FriendlyByteBuf> {
         return this.origin;
     }
 
-    static void listener(@Nullable Consumer<WarpMessage> listener) {
-        WarpMessage.listener = listener;
-    }
-
     @Override
     @NotNull
     public MessageIdentifier identifier() {
@@ -50,9 +44,6 @@ public final class WarpMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        Consumer<WarpMessage> listener = WarpMessage.listener;
-        if (listener != null) {
-            listener.accept(this);
-        }
+        this.feature.accept(this);
     }
 }

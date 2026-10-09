@@ -46,16 +46,15 @@ public final class SpawnFeature extends Feature<SpawnSettings> {
     @Override
     protected void onEnable() {
         this.service.load();
-        SpawnMessage.listener(this::accept);
     }
 
     @Override
     protected void onDisable() {
-        SpawnMessage.listener(null);
         this.spawn = null;
     }
 
-    private void accept(@NotNull SpawnMessage message) {
+    void accept(@NotNull SpawnMessage message) {
+        if (!this.enabled()) return;
         if (!message.origin().equals(ServerConfig.serverId())) {
             this.setSpawn(message.spawn());
         }

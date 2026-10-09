@@ -4,7 +4,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import net.momirealms.sparrow.redis.heartbeat.RedisServerRegistry;
-import net.momirealms.sparrow.redis.message.server.ServerChangedMessage;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +23,6 @@ public final class ServerDirectory {
     private boolean closed;
 
     public void onLoad() {
-        ServerChangedMessage.listener(this::accept);
         this.refresh().join();
         this.task = this.plugin.scheduler().asyncRepeating(() -> this.report(this.refresh()), 2, 2, TimeUnit.SECONDS);
     }
@@ -46,7 +44,7 @@ public final class ServerDirectory {
     }
 
     // 本服发布者已主动刷新本地目录, 消息监听处理其他服务器的变更.
-    private void accept(String serverId) {
+    public void accept(@NotNull String serverId) {
         if (serverId.equals(ServerConfig.serverId())) return;
         this.report(this.refresh());
     }
@@ -101,7 +99,6 @@ public final class ServerDirectory {
         synchronized (this) {
             this.closed = true;
             if (this.task != null) this.task.cancel();
-            ServerChangedMessage.listener(null);
             pending = this.loading;
             this.loading = null;
             this.snapshot = Map.of();

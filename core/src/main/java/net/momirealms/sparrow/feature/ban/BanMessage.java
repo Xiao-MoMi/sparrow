@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature.ban;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -11,7 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.function.Consumer;
 
 /**
  * 封禁或解封通知. 封禁时收到的服务器踢出本服命中的玩家, 非静默时通知本服有权限的玩家.
@@ -21,8 +21,8 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageCodec<FriendlyByteBuf, BanMessage> CODEC = RedisMessage.codec(BanMessage::write, BanMessage::new);
     private static final int HAS_PLAYER = 1;
     private static final int HAS_IP = 2;
-    private static volatile @Nullable Consumer<BanMessage> listener; // 模块启用期间由 BanFeature 处理
 
+    private final BanFeature feature = SparrowPlugin.instance().featureManager().feature(BanFeature.ID, BanFeature.class);
     private final boolean banned;           // true 为封禁, false 为解封
     private final String banId;             // 封禁时为新记录的 ID, 解封时为空字符串
     private final String display;           // 通知里展示的对象
@@ -91,10 +91,6 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
         buffer.writeBoolean(this.silent);
     }
 
-    static void listener(@Nullable Consumer<BanMessage> listener) {
-        BanMessage.listener = listener;
-    }
-
     @Override
     @NotNull
     public MessageIdentifier identifier() {
@@ -104,10 +100,7 @@ public final class BanMessage extends OneWayMessage<FriendlyByteBuf> {
     // 本服未启用封禁模块时忽略
     @Override
     protected void handle() {
-        Consumer<BanMessage> listener = BanMessage.listener;
-        if (listener != null) {
-            listener.accept(this);
-        }
+        this.feature.accept(this);
     }
 
     public boolean banned() {

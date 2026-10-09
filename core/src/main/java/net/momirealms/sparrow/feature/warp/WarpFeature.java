@@ -19,7 +19,7 @@ public final class WarpFeature extends Feature<WarpSettings> {
     public static final String PERMISSION_PREFIX = DependencyVersions.PROJECT_ID + ".warp."; // 开启权限限制后, 加上小写名称即为该 warp 的权限
 
     private final SparrowPlugin plugin;
-    private WarpRegistry registry;
+    private volatile WarpRegistry registry;
     private WarpService service;
 
     public WarpFeature(@NotNull SparrowPlugin plugin) {
@@ -65,6 +65,13 @@ public final class WarpFeature extends Feature<WarpSettings> {
     @Override
     protected void onDisable() {
         this.registry.close();
+    }
+
+    void accept(@NotNull WarpMessage message) {
+        WarpRegistry registry = this.registry;
+        if (registry != null) {
+            registry.accept(message);
+        }
     }
 
     @NotNull

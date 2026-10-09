@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.feature.spawn;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -10,13 +11,11 @@ import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.Consumer;
-
 public final class SpawnMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "spawn");
     public static final MessageCodec<FriendlyByteBuf, SpawnMessage> CODEC = RedisMessage.codec(SpawnMessage::write, SpawnMessage::new);
-    private static volatile @Nullable Consumer<SpawnMessage> listener;
 
+    private final SpawnFeature feature = SparrowPlugin.instance().featureManager().feature(SpawnFeature.ID, SpawnFeature.class);
     private final String origin;
     private final @Nullable Spawn spawn;
 
@@ -58,10 +57,6 @@ public final class SpawnMessage extends OneWayMessage<FriendlyByteBuf> {
         }
     }
 
-    static void listener(@Nullable Consumer<SpawnMessage> listener) {
-        SpawnMessage.listener = listener;
-    }
-
     @NotNull
     public String origin() {
         return this.origin;
@@ -80,9 +75,6 @@ public final class SpawnMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        Consumer<SpawnMessage> listener = SpawnMessage.listener;
-        if (listener != null) {
-            listener.accept(this);
-        }
+        this.feature.accept(this);
     }
 }

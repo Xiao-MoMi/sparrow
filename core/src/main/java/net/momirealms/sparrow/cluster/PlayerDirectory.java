@@ -6,7 +6,6 @@ import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.redis.proxy.PlayerDirectoryResetMessage;
 import net.momirealms.sparrow.redis.proxy.PlayerPresenceMessage;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.event.EventHandler;
@@ -39,8 +38,6 @@ public final class PlayerDirectory {
 
     public void onEnable() {
         if (VersionHelper.isBehindProxy()) {
-            PlayerPresenceMessage.listener(this::accept);
-            PlayerDirectoryResetMessage.listener(this::reload);
             this.plugin.messageBrokerManager().proxyBroker().subscribe();
             this.reload();
         } else {
@@ -52,7 +49,7 @@ public final class PlayerDirectory {
         }
     }
 
-    private synchronized void reload() {
+    public synchronized void reload() {
         if (this.closed) return;
         List<PlayerPresenceMessage> changes = new ArrayList<>();
         this.loading = changes;
@@ -93,7 +90,7 @@ public final class PlayerDirectory {
                 .toCompletableFuture();
     }
 
-    private synchronized void accept(PlayerPresenceMessage message) {
+    public synchronized void accept(@NotNull PlayerPresenceMessage message) {
         if (this.closed) return;
         if (this.loading != null) {
             this.loading.add(message);
@@ -133,8 +130,6 @@ public final class PlayerDirectory {
 
     public synchronized void shutdown() {
         this.closed = true;
-        PlayerPresenceMessage.listener(null);
-        PlayerDirectoryResetMessage.listener(null);
         this.plugin.playerManager().unregisterListener(this.localPlayers);
         HandlerList.unregisterAll(this.localPlayers);
         this.loading = null;

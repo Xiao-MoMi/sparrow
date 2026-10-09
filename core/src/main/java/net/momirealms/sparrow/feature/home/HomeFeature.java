@@ -67,7 +67,6 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         this.plugin.dataStorage().homeStore().initialize().join();
         HomeService service = new HomeService();
         this.service = service;
-        HomeChangedMessage.listener(service::accept);
         for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             this.plugin.scheduler().platform().run(() -> {
                         if (this.service == service) {
@@ -165,6 +164,13 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         }
     }
 
+    void accept(@NotNull HomeChangedMessage message) {
+        HomeService service = this.service;
+        if (service != null) {
+            service.accept(message);
+        }
+    }
+
     @Override
     protected void onDisable() {
         int size = this.placeholders.size();
@@ -172,7 +178,6 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
             this.placeholders.get(i).unregister();
         }
         this.placeholders.clear();
-        HomeChangedMessage.listener(null);
         this.suggestions.invalidateAll();
         HomeService service = this.service;
         this.service = null;
