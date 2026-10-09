@@ -136,28 +136,27 @@ public final class PlayerDirectory implements PlayerListener {
     // 只读取心跳仍存活的服务器, 崩溃服务器残留的名单在过期前也会被忽略.
     private CompletableFuture<Map<String, Map<UUID, PlayerPresence>>> readRosters() {
         RedisAsyncCommands<byte[], byte[]> commands = this.plugin.redisConnector().connection().async();
-        return this.plugin.serverHeartBeats().onlineServers()
-                .thenCompose(servers -> {
-                    // 各服名单并发读取, 全部返回后再组装
-                    Map<String, CompletableFuture<Map<byte[], byte[]>>> pending = new HashMap<>();
-                    for (String server : servers) {
-                        pending.put(server, commands.hgetall(rosterKey(server)).toCompletableFuture());
-                    }
-                    return CompletableFuture.allOf(pending.values().toArray(CompletableFuture[]::new)).thenApply(ignored -> {
-                        Map<String, Map<UUID, PlayerPresence>> rosters = new HashMap<>();
-                        pending.forEach((server, fields) -> {
-                            Map<UUID, PlayerPresence> roster = new HashMap<>();
-                            fields.join().forEach((uuid, name) -> {
-                                UUID playerId = UUIDUtils.fromBytes(uuid);
-                                roster.put(playerId, new PlayerPresence(playerId, new String(name, StandardCharsets.UTF_8), server));
-                            });
-                            if (!roster.isEmpty()) {
-                                rosters.put(server, roster);
-                            }
-                        });
-                        return rosters;
-                    });
+        List<ServerStatus> servers = this.plugin.serverDirectory().getServers();
+        // 各服名单并发读取, 全部返回后再组装
+        Map<String, CompletableFuture<Map<byte[], byte[]>>> pending = new HashMap<>();
+        for (int i = 0, size = servers.size(); i < size; i++) {
+            String server = servers.get(i).serverId();
+            pending.put(server, commands.hgetall(rosterKey(server)).toCompletableFuture());
+        }
+        return CompletableFuture.allOf(pending.values().toArray(CompletableFuture[]::new)).thenApply(ignored -> {
+            Map<String, Map<UUID, PlayerPresence>> rosters = new HashMap<>();
+            pending.forEach((server, fields) -> {
+                Map<UUID, PlayerPresence> roster = new HashMap<>();
+                fields.join().forEach((uuid, name) -> {
+                    UUID playerId = UUIDUtils.fromBytes(uuid);
+                    roster.put(playerId, new PlayerPresence(playerId, new String(name, StandardCharsets.UTF_8), server));
                 });
+                if (!roster.isEmpty()) {
+                    rosters.put(server, roster);
+                }
+            });
+            return rosters;
+        });
     }
 
     private void acceptRemote(PlayerPresenceMessage message) {

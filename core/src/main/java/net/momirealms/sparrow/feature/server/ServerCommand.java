@@ -8,10 +8,9 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.ServerParser;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.plugin.messaging.Messenger;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
@@ -28,24 +27,7 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     public ServerCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
-        this.parser = new ServerParser<>(
-                commandManager,
-                server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server)
-        );
-    }
-
-    @Override
-    public void registerRelatedFunctions() {
-        JavaPlugin javaPlugin = this.plugin().javaPlugin();
-        Messenger messenger = javaPlugin.getServer().getMessenger();
-        messenger.registerIncomingPluginChannel(javaPlugin, ServerParser.CHANNEL, this.parser);
-    }
-
-    @Override
-    public void unregisterRelatedFunctions() {
-        JavaPlugin javaPlugin = this.plugin().javaPlugin();
-        Messenger messenger = javaPlugin.getServer().getMessenger();
-        messenger.unregisterIncomingPluginChannel(javaPlugin, ServerParser.CHANNEL, this.parser);
+        this.parser = new ServerParser<>(server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server));
     }
 
     @Override
@@ -64,7 +46,7 @@ public final class ServerCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_SERVER_NOT_ALLOWED, Component.text(server));
             return;
         }
-        if (server.equals(this.parser.currentServer())) {
+        if (server.equals(ServerConfig.serverId())) {
             this.handleFeedback(context, MessageConstants.COMMAND_SERVER_CURRENT, Component.text(server));
             return;
         }

@@ -58,28 +58,21 @@ public final class TeleportManager implements PlayerListener {
                     : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
             return teleport.thenApply(success -> success ? TransferResult.SUCCESS : TransferResult.FAILED);
         }
-        return this.plugin.serverHeartBeats().isOnline(server).thenCompose(online -> {
-                    if (!online) {
-                        return CompletableFuture.completedFuture(TransferResult.SERVER_OFFLINE);
-                    }
-                    return this.plugin.messageBrokerManager()
-                            .broker()
-                            .publishTwoWay(new TeleportRequest(player.getUniqueId(), location), server)
-                            .orTimeout(5, TimeUnit.SECONDS)
-                            .thenApply(response -> {
-                                if (!response.accepted()) {
-                                    return TransferResult.INVALID;
-                                }
-                                if (!player.isOnline()) {
-                                    return TransferResult.FAILED;
-                                }
-                                // 对方已预留出生位置, 经由玩家自己的连接请求代理切服
-                                ByteArrayDataOutput out = ByteStreams.newDataOutput();
-                                out.writeUTF("Connect");
-                                out.writeUTF(server);
-                                player.sendPluginMessage(this.plugin.javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
-                                return TransferResult.CONNECTING;
-                            });
+        if (!this.plugin.serverDirectory().isOnline(server)) {
+            return CompletableFuture.completedFuture(TransferResult.SERVER_OFFLINE);
+        }
+        return this.plugin.messageBrokerManager().broker()
+                .publishTwoWay(new TeleportRequest(player.getUniqueId(), location), server)
+                .orTimeout(5, TimeUnit.SECONDS)
+                .thenApply(response -> {
+                    if (!response.accepted()) return TransferResult.INVALID;
+                    if (!player.isOnline()) return TransferResult.FAILED;
+                    // 对方已预留出生位置, 经由玩家自己的连接请求代理切服
+                    ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                    out.writeUTF("Connect");
+                    out.writeUTF(server);
+                    player.sendPluginMessage(this.plugin.javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
+                    return TransferResult.CONNECTING;
                 });
     }
 

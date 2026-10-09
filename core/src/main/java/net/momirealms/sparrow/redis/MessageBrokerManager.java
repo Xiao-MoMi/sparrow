@@ -11,11 +11,10 @@ import net.momirealms.sparrow.redis.message.player.KickMessage;
 import net.momirealms.sparrow.redis.message.player.PlayerPresenceMessage;
 import net.momirealms.sparrow.redis.message.teleport.TeleportRequest;
 import net.momirealms.sparrow.redis.message.teleport.TeleportResponse;
+import net.momirealms.sparrow.redis.message.server.ServerChangedMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
-import net.momirealms.sparrow.redis.heartbeat.ServerProbeMessage;
-import net.momirealms.sparrow.redis.heartbeat.ServerProbeResponseMessage;
 import net.momirealms.sparrow.redis.messagebroker.Logger;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
@@ -43,8 +42,7 @@ public final class MessageBrokerManager {
                 .logger(new BrokerLogger(this.plugin.logger()))
                 .connection(connector.brokerConnection())
                 .build();
-        this.broker.registry().register(ServerProbeMessage.ID, ServerProbeMessage.CODEC);
-        this.broker.registry().register(ServerProbeResponseMessage.ID, ServerProbeResponseMessage.CODEC);
+        this.broker.registry().register(ServerChangedMessage.ID, ServerChangedMessage.CODEC);
         this.broker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
         this.broker.registry().register(TeleportRequest.ID, TeleportRequest.CODEC);
         this.broker.registry().register(TeleportResponse.ID, TeleportResponse.CODEC);

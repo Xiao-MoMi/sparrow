@@ -27,7 +27,8 @@ import net.momirealms.sparrow.plugin.logger.filter.DisconnectLogFilter;
 import net.momirealms.sparrow.proxy.BukkitProxy;
 import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.redis.MessageBrokerManager;
-import net.momirealms.sparrow.redis.heartbeat.ServerHeartBeats;
+import net.momirealms.sparrow.redis.heartbeat.ServerHeartbeat;
+import net.momirealms.sparrow.cluster.ServerDirectory;
 import net.momirealms.sparrow.ui.SparrowUI;
 import net.momirealms.sparrow.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
@@ -70,7 +71,8 @@ public class SparrowPlugin implements Plugin {
     private final DataStorage dataStorage;
     private final RedisConnector redisConnector;
     private final MessageBrokerManager messageBrokerManager;
-    private final ServerHeartBeats serverHeartBeats;
+    private final ServerHeartbeat serverHeartbeat;
+    private final ServerDirectory serverDirectory;
     private final CompatibilityManager compatibilityManager;
     private final PlayerManager playerManager;
     private final PlayerLookup playerLookup;
@@ -106,7 +108,8 @@ public class SparrowPlugin implements Plugin {
         this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async(), this.logger);
         this.redisConnector = new RedisConnector(PluginConfig.redis(), this.logger);
         this.messageBrokerManager = new MessageBrokerManager(this);
-        this.serverHeartBeats = new ServerHeartBeats(this);
+        this.serverHeartbeat = new ServerHeartbeat();
+        this.serverDirectory = new ServerDirectory();
         this.translationManager = new TranslationManagerImpl(this);
         this.translationManager.reload();
         this.compatibilityManager = new CompatibilityManager(this);
@@ -143,11 +146,13 @@ public class SparrowPlugin implements Plugin {
         try {
             this.redisConnector.initialize();
             this.messageBrokerManager.onLoad();
-            this.serverHeartBeats.onLoad(); // 探测同名服务器需要消息代理已订阅
+            this.serverHeartbeat.onLoad();
+            this.serverDirectory.onLoad();
             this.compatibilityManager.onLoad(); // 集成插件管理器
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
-            this.serverHeartBeats.shutdown();
+            this.serverHeartbeat.shutdown();
+            this.serverDirectory.shutdown();
             this.messageBrokerManager.onDisable();
             this.redisConnector.close();
             this.dataStorage.close();
@@ -200,6 +205,7 @@ public class SparrowPlugin implements Plugin {
         // 集成插件管理器
         this.compatibilityManager.onEnable();
         this.scheduler.platform().runDelayed(this::onServerLoaded);
+        this.serverHeartbeat.onEnable();
     }
 
     public void onServerLoaded() {
@@ -211,12 +217,13 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginDisable() {
+        if (this.serverHeartbeat != null) this.serverHeartbeat.shutdown();
+        if (this.serverDirectory != null) this.serverDirectory.shutdown();
         if (this.featureManager != null) this.featureManager.onDisable();
         if (this.teleportService != null) this.teleportService.shutdown();
         if (this.teleportManager != null) this.teleportManager.shutdown();
         if (this.playerDirectory != null) this.playerDirectory.shutdown();
         if (this.playerManager != null) this.playerManager.shutdown();
-        if (this.serverHeartBeats != null) this.serverHeartBeats.shutdown();    // 心跳注销依赖 Redis 连接, 需要先于连接关闭.
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
         if (this.messageBrokerManager != null) this.messageBrokerManager.onDisable();
@@ -556,8 +563,13 @@ public class SparrowPlugin implements Plugin {
     }
 
     @Override
-    public ServerHeartBeats serverHeartBeats() {
-        return this.serverHeartBeats;
+    public ServerHeartbeat serverHeartbeat() {
+        return this.serverHeartbeat;
+    }
+
+    @Override
+    public ServerDirectory serverDirectory() {
+        return this.serverDirectory;
     }
 
     @Override

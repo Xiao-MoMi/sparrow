@@ -17,7 +17,8 @@ import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.redis.MessageBrokerManager;
-import net.momirealms.sparrow.redis.heartbeat.ServerHeartBeats;
+import net.momirealms.sparrow.redis.heartbeat.ServerHeartbeat;
+import net.momirealms.sparrow.cluster.ServerDirectory;
 
 import java.io.File;
 import java.io.InputStream;
@@ -80,7 +81,9 @@ public interface Plugin {
 
     MessageBrokerManager messageBrokerManager();
 
-    ServerHeartBeats serverHeartBeats();
+    ServerHeartbeat serverHeartbeat();
+
+    ServerDirectory serverDirectory();
 
     CompatibilityManager compatibilityManager();
 

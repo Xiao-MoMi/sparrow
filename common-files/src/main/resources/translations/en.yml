@@ -745,9 +745,8 @@ log.redis.version_check_failed: Failed to read the Redis version from INFO; skip
 log.redis.version_unsupported: 'Redis version <arg:0> is unsupported; requires Redis <arg:1> or later. Shutting down the server'
 
 # log.server
-log.server.id_duplicate: 'Another online server is already using server-id <arg:0>. Each server sharing this Redis database needs a different server-id in server.yml.'
+log.server.id_duplicate: 'Server-id <arg:0> is already registered in Redis. Each server sharing this Redis database needs a different server-id in server.yml.'
 log.server.id_missing: 'server-id is empty in server.yml; shutting down the server. Set a different server-id for each server sharing Redis and the database.'
-log.server.id_seized: 'Took over the stale heartbeat left by the previous run (token <arg:0>).'
 
 # log.storage
 log.storage.mysql_schema_initializing: 'Initializing the MySQL schema at v<arg:1> (table prefix: "<arg:0>")'

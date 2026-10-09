@@ -745,9 +745,8 @@ log.redis.version_check_failed: '无法从 INFO 读取 Redis 版本，已跳过�
 log.redis.version_unsupported: 'Redis 版本为 <arg:0>，要求 Redis <arg:1> 及以上，正在关闭服务器'
 
 # log.server
-log.server.id_duplicate: '已有在线服务器正在使用 server-id <arg:0>，共用同一 Redis 数据库的每台服务器需要在 server.yml 中填写不同的 server-id。'
+log.server.id_duplicate: 'server-id <arg:0> 已在 Redis 中登记，共用同一 Redis 数据库的每台服务器需要在 server.yml 中填写不同的 server-id。'
 log.server.id_missing: 'server.yml 中的 server-id 为空，正在关闭服务器。请为共用 Redis 和数据库的每台服务器填写不同的 server-id。'
-log.server.id_seized: '已接管上次运行残留的心跳（token <arg:0>）。'
 
 # log.storage
 log.storage.mysql_schema_initializing: '正在初始化 MySQL 表结构至 v<arg:1>（表前缀："<arg:0>"）'
