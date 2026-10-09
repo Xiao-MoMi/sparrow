@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportOptions;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -73,7 +73,7 @@ public final class DeathBackCommand extends BukkitCommandFeature {
             @NotNull TeleportOptions options
     ) {
         boolean self = player == context.sender();
-        return this.plugin().playerManager().teleportService()
+        return this.plugin().teleportService()
                 .teleport(player, server, location, options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {

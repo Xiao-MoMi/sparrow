@@ -7,7 +7,7 @@ import net.momirealms.sparrow.feature.ban.BanRecord;
 import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTexts;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -37,7 +37,7 @@ public final class BanCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .optional(
                         "reason",
                         StringParser.greedyFlagYieldingStringParser(),
@@ -70,7 +70,7 @@ public final class BanCommand extends BukkitCommandFeature {
                         this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));
                         return CompletableFuture.completedFuture(null);
                     }
-                    PlayerRef target = found.get();
+                    PlayerIdentity target = found.get();
                     if (!withIp) {
                         return this.feature.ban(target, null, reason, expiresAt, sender.getName(), silent, force)
                                 .thenAccept(result -> this.sendResult(context, result));

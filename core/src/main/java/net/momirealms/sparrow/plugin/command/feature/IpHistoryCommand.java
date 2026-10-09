@@ -5,7 +5,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.cluster.ClusterPlayer;
+import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -38,7 +38,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("target", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+        manager.command(builder.required("target", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .optional("page", IntegerParser.integerParser(1))
                 .handler(this::execute));
     }
@@ -60,9 +60,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
             UUID uuid = UUIDUtils.parse(input);
             CompletableFuture<Optional<PlayerData>> loading = uuid != null
                     ? this.plugin().dataStorage().loadPlayer(uuid)
-                    : this.plugin()
-                            .playerManager()
-                            .resolvePlayer(input)
+                    : this.plugin().playerLookup().resolvePlayer(input)
                             .thenCompose(found -> found.isEmpty()
                             ? CompletableFuture.completedFuture(Optional.empty())
                             : this.plugin().dataStorage().loadPlayer(found.get().uuid()));
@@ -105,7 +103,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
 
     private Component row(CommandSender sender, PlayerData data) {
         boolean player = sender instanceof Player;
-        ClusterPlayer online = this.plugin().playerManager().cluster().find(data.player());
+        PlayerPresence online = this.plugin().playerDirectory().find(data.player());
         Component name = Component.text(data.name());
         Component status = online != null
                 ? MessageConstants.COMMAND_IP_HISTORY_ONLINE.arguments(Component.text(online.server()))

@@ -22,14 +22,13 @@ public final class PlayerUuidCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
-                .handler(this::execute));
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory())).handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
         String name = context.get("player");
-        this.plugin().playerManager().resolvePlayer(name).thenAccept(found -> {
+        this.plugin().playerLookup().resolvePlayer(name).thenAccept(found -> {
                     if (found.isEmpty()) {
                         this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
                         return;

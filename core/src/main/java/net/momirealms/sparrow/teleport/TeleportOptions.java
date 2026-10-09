@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.teleport;
 
 import net.kyori.adventure.sound.Sound;
 import net.minecraft.world.BossEvent;

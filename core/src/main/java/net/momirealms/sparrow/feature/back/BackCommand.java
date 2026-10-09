@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
-import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportOptions;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -88,7 +88,7 @@ public final class BackCommand extends BukkitCommandFeature {
             WorldLocation location,
             TeleportOptions options
     ) {
-        return this.plugin().playerManager().teleportService()
+        return this.plugin().teleportService()
                 .teleport(player, server, location, options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {

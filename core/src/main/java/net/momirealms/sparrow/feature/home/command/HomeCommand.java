@@ -6,7 +6,7 @@ import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
-import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportOptions;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -81,7 +81,7 @@ public final class HomeCommand extends AbstractHomeCommand {
     private void teleport(CommandContext<Player> context, Home home) {
         Player player = context.sender();
         TeleportOptions options = super.feature.config().teleportOptions().resolve(player, true);
-        this.plugin().playerManager().teleportService()
+        this.plugin().teleportService()
                 .teleport(player, home.server(), home.location(), options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {

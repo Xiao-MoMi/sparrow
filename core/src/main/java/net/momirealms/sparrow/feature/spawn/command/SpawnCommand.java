@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.feature.spawn.Spawn;
 import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportOptions;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -77,7 +77,7 @@ public final class SpawnCommand extends BukkitCommandFeature {
         }
         Player player = context.sender();
         TeleportOptions options = this.feature.config().teleportOptions().resolve(player, true);
-        this.plugin().playerManager().teleportService()
+        this.plugin().teleportService()
                 .teleport(player, spawn.server(), spawn.location(), options)
                 .thenAccept(result -> {
                     switch (result) {

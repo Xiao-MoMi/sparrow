@@ -9,7 +9,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.feature.mute.command.MuteCommand;
 import net.momirealms.sparrow.feature.mute.command.UnmuteCommand;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
@@ -127,13 +127,13 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
     }
 
     @NotNull
-    public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull String input) {
+    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull String input) {
         UUID uuid = UUIDUtils.parse(input);
-        return uuid == null ? this.plugin.playerManager().resolvePlayer(input) : this.plugin.playerManager().resolvePlayer(uuid);
+        return uuid == null ? this.plugin.playerLookup().resolvePlayer(input) : this.plugin.playerLookup().resolvePlayer(uuid);
     }
 
     @NotNull
-    public CompletableFuture<Boolean> mute(@NotNull PlayerRef player, @NotNull Duration time, @NotNull String reason, @NotNull String operator) {
+    public CompletableFuture<Boolean> mute(@NotNull PlayerIdentity player, @NotNull Duration time, @NotNull String reason, @NotNull String operator) {
         long now = System.currentTimeMillis();
         MuteRecord record = new MuteRecord(
                 UUID.randomUUID().toString(), player.uuid(), player.name(), reason, operator, ServerConfig.serverId(), now, Math.addExact(now, time.toMillis()), 0, null

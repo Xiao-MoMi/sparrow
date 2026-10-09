@@ -1,7 +1,7 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.BroadcastMessage;
+import net.momirealms.sparrow.redis.message.player.BroadcastMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;

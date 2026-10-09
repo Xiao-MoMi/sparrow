@@ -1,12 +1,14 @@
 package net.momirealms.sparrow.util;
 
 import com.google.gson.JsonElement;
+import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.minecraft.sounds.SoundSource;
 import net.momirealms.sparrow.locale.tag.ExpressionTag;
 import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.locale.tag.NamedArgumentTag;
@@ -104,6 +106,23 @@ public final class AdventureHelper {
 
     public static LegacyComponentSerializer getLegacy() {
         return getInstance().legacyComponentSerializer;
+    }
+
+    @NotNull
+    public static SoundSource toNmsSoundSource(@NotNull Sound.Source source) {
+        return switch (source) {
+            case MASTER -> SoundSource.MASTER;
+            case MUSIC -> SoundSource.MUSIC;
+            case RECORD -> SoundSource.RECORDS;
+            case WEATHER -> SoundSource.WEATHER;
+            case BLOCK -> SoundSource.BLOCKS;
+            case HOSTILE -> SoundSource.HOSTILE;
+            case NEUTRAL -> SoundSource.NEUTRAL;
+            case PLAYER -> SoundSource.PLAYERS;
+            case AMBIENT -> SoundSource.AMBIENT;
+            case VOICE -> SoundSource.VOICE;
+            case UI -> SoundSource.UI;
+        };
     }
 
     /**

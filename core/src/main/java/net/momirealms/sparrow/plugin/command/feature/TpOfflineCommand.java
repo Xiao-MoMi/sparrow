@@ -32,10 +32,11 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+        Command.Builder<CommandSender> cmd = builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
-                .handler(this::execute));
+                .handler(this::execute);
+        manager.command(cmd);
     }
 
     private void execute(CommandContext<CommandSender> context) {
@@ -54,10 +55,8 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
             return;
         }
         String name = context.get("player");
-        this.plugin().dataStorage().lookupUser(name).thenCompose(
-                        found -> found.map(this.plugin().dataStorage()::loadPlayer)
-                                .orElseGet(() -> CompletableFuture.completedFuture(Optional.empty()))
-                )
+        this.plugin().dataStorage().lookupUser(name)
+                .thenCompose(found -> found.map(this.plugin().dataStorage()::loadPlayer).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())))
                 .thenCompose(found -> {
                     if (found.isEmpty()) {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_UNKNOWN, Component.text(name));
@@ -69,29 +68,29 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                         return CompletableFuture.completedFuture(null);
                     }
                     List<CompletableFuture<Void>> transfers = targets.stream()
-                            .map(player -> this.plugin()
-                            .playerManager()
-                            .teleports()
-                            .transfer(player, data.lastLogoutServer(), data.lastLogoutLocation())
-                            .thenAccept(result -> {
-                                TranslatableComponent message = switch (result) {
-                                    case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF
-                                            : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS);
-                                    case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_CONNECTING_SELF
-                                            : MessageConstants.COMMAND_TP_OFFLINE_CONNECTING);
-                                    case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
-                                    case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
-                                    case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF
-                                            : MessageConstants.COMMAND_TELEPORT_FAILURE;
-                                };
-                                this.handleFeedback(
-                                        context,
-                                        message,
-                                        Component.text(player.getName()),
-                                        Component.text(name),
-                                        Component.text(data.lastLogoutServer())
-                                );
-                            }))
+                            .map(player ->
+                                    this.plugin().teleportManager()
+                                            .transfer(player, data.lastLogoutServer(), data.lastLogoutLocation())
+                                            .thenAccept(result -> {
+                                                TranslatableComponent message = switch (result) {
+                                                    case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF
+                                                            : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS);
+                                                    case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_CONNECTING_SELF
+                                                            : MessageConstants.COMMAND_TP_OFFLINE_CONNECTING);
+                                                    case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
+                                                    case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
+                                                    case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF
+                                                            : MessageConstants.COMMAND_TELEPORT_FAILURE;
+                                                };
+                                                this.handleFeedback(
+                                                        context,
+                                                        message,
+                                                        Component.text(player.getName()),
+                                                        Component.text(name),
+                                                        Component.text(data.lastLogoutServer())
+                                                );
+                                            })
+                            )
                             .toList();
                     return CompletableFuture.allOf(transfers.toArray(CompletableFuture[]::new));
                 })

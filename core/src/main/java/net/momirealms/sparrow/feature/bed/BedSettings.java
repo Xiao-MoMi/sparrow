@@ -1,9 +1,9 @@
 package net.momirealms.sparrow.feature.bed;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
-import net.momirealms.sparrow.player.teleport.TeleportOptions;
-import net.momirealms.sparrow.player.teleport.TeleportSettings;
-import net.momirealms.sparrow.player.teleport.TeleportType;
+import net.momirealms.sparrow.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportSettings;
+import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;

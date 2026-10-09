@@ -50,13 +50,11 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
         manager.command(builder.optional(
                 "target",
                 OptionalWordParser.optionalWordParser(),
-                (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().cluster().suggest(input.peekString()))
-                )
+                (context, input) -> CompletableFuture.completedFuture(this.plugin().playerDirectory().suggest(input.peekString())))
                 .flag(
                         manager.flagBuilder("operator")
                         .withAliases("o")
-                        .withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
-                )
+                        .withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory())))
                 .flag(manager.flagBuilder("within").withAliases("w").withComponent(DurationParser.durationParser()))
                 .flag(manager.flagBuilder("active").withAliases("a"))
                 .flag(manager.flagBuilder("page").withAliases("p").withComponent(IntegerParser.integerParser(1)))

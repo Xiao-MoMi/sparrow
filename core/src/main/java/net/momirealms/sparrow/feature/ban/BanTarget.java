@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.feature.ban;
 
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.util.IpRange;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +9,7 @@ public sealed interface BanTarget {
     @NotNull
     String display();
 
-    record PlayerTarget(@NotNull PlayerRef player) implements BanTarget {
+    record PlayerTarget(@NotNull PlayerIdentity player) implements BanTarget {
 
         @NotNull
         @Override

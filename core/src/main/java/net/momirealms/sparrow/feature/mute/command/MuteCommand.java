@@ -29,7 +29,7 @@ public final class MuteCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(@NotNull CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .required("time", DurationParser.durationParser())
                 .optional("reason", StringParser.greedyStringParser())
                 .handler(this::execute));

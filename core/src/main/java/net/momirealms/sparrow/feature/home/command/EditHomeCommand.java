@@ -6,7 +6,7 @@ import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.feature.home.HomeService;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
@@ -96,7 +96,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
 
     private void saved(
             CommandContext<? extends CommandSender> context,
-            PlayerRef owner,
+            PlayerIdentity owner,
             HomeService.Result result,
             String name,
             TranslatableComponent success,
@@ -141,7 +141,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
                 });
     }
 
-    private void withHome(CommandContext<? extends CommandSender> context, BiFunction<PlayerRef, Home, CompletableFuture<Void>> action) {
+    private void withHome(CommandContext<? extends CommandSender> context, BiFunction<PlayerIdentity, Home, CompletableFuture<Void>> action) {
         this.target(context.sender(), context.get("name"))
                 .thenCompose(found -> {
                     if (found.isEmpty()) {
@@ -167,7 +167,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
                 });
     }
 
-    private void show(CommandSender sender, PlayerRef owner, Home home) {
+    private void show(CommandSender sender, PlayerIdentity owner, Home home) {
         boolean self = sender instanceof Player player && player.getUniqueId().equals(owner.uuid());
         String target = self ? home.name() : owner.name() + "." + home.name();
         WorldLocation location = home.location();
@@ -207,7 +207,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
         panel.actions(buttons.stream().filter(PanelButton::available).map(PanelButton::build).toArray(Component[]::new)).send();
     }
 
-    private PanelButton backToList(CommandPanel panel, PlayerRef owner, boolean self) {
+    private PanelButton backToList(CommandPanel panel, PlayerIdentity owner, boolean self) {
         PanelButton back = panel.suggest(CommandPanel.label("home_list"), "home-list", self ? "" : "other " + owner.name());
         if (!self) {
             back.permission(super.feature.permission("home-list") + ".other");

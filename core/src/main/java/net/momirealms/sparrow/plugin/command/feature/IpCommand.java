@@ -30,7 +30,7 @@ public final class IpCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .handler(this::execute));
     }
 
@@ -41,9 +41,11 @@ public final class IpCommand extends BukkitCommandFeature {
         UUID uuid = UUIDUtils.parse(input);
         CompletableFuture<Optional<PlayerData>> loading = uuid != null
                 ? this.plugin().dataStorage().loadPlayer(uuid)
-                : this.plugin().playerManager().resolvePlayer(input).thenCompose(found -> found.isEmpty()
+                : this.plugin().playerLookup().resolvePlayer(input).thenCompose(found ->
+                        found.isEmpty()
                         ? CompletableFuture.completedFuture(Optional.empty())
-                        : this.plugin().dataStorage().loadPlayer(found.get().uuid()));
+                        : this.plugin().dataStorage().loadPlayer(found.get().uuid())
+        );
         loading.thenAccept(found -> {
             if (found.isEmpty()) {
                 this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));

@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -27,7 +27,7 @@ public final class DelAllHomeCommand extends AbstractHomeCommand {
         manager.command(builder.senderType(ConsoleCommandSender.class)
                 .flag(
                         manager.flagBuilder("player")
-                        .withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+                        .withComponent(ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                         .build()
                 )
                 .flag(manager.flagBuilder("server").withComponent(StringParser.quotedStringParser()).build())
@@ -43,14 +43,15 @@ public final class DelAllHomeCommand extends AbstractHomeCommand {
             this.handleFeedback(context, MessageConstants.COMMAND_DEL_ALL_HOME_FILTER_REQUIRED);
             return;
         }
-        CompletableFuture<Optional<PlayerRef>> resolving = player == null ? CompletableFuture.completedFuture(Optional.empty())
-                : this.plugin().playerManager().resolvePlayer(player);
+        CompletableFuture<Optional<PlayerIdentity>> resolving = player == null
+                ? CompletableFuture.completedFuture(Optional.empty())
+                : this.plugin().playerLookup().resolvePlayer(player);
         resolving.thenCompose(owner -> {
             if (player != null && owner.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(player));
                 return CompletableFuture.completedFuture(null);
             }
-            HomeStore.Filter filter = new HomeStore.Filter(owner.map(PlayerRef::uuid).orElse(null), server, world);
+            HomeStore.Filter filter = new HomeStore.Filter(owner.map(PlayerIdentity::uuid).orElse(null), server, world);
             return super.feature.service()
                     .deleteAll(filter)
                     .thenAccept(count -> this.handleFeedback(context, MessageConstants.COMMAND_DEL_ALL_HOME_SUCCESS, Component.text(count)));

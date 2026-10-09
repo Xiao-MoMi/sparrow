@@ -1,9 +1,14 @@
 package net.momirealms.sparrow.plugin;
 
 import net.momirealms.sparrow.player.PlayerManager;
+import net.momirealms.sparrow.player.PlayerLookup;
+import net.momirealms.sparrow.cluster.PlayerDirectory;
+import net.momirealms.sparrow.teleport.TeleportManager;
+import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.parser.ServerParser;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
@@ -68,6 +73,10 @@ public class SparrowPlugin implements Plugin {
     private final ServerHeartBeats serverHeartBeats;
     private final CompatibilityManager compatibilityManager;
     private final PlayerManager playerManager;
+    private final PlayerLookup playerLookup;
+    private final PlayerDirectory playerDirectory;
+    private final TeleportManager teleportManager;
+    private final TeleportService teleportService;
 
     private CommandManager commandManager;
     private TranslationManager translationManager;
@@ -101,7 +110,11 @@ public class SparrowPlugin implements Plugin {
         this.translationManager = new TranslationManagerImpl(this);
         this.translationManager.reload();
         this.compatibilityManager = new CompatibilityManager(this);
-        this.playerManager = new PlayerManager(this);
+        this.playerManager = new PlayerManager();
+        this.playerLookup = new PlayerLookup();
+        this.playerDirectory = new PlayerDirectory();
+        this.teleportManager = new TeleportManager();
+        this.teleportService = new TeleportService();
 
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }
@@ -168,7 +181,11 @@ public class SparrowPlugin implements Plugin {
             Bukkit.getServer().shutdown();
             return;
         }
+        this.javaPlugin.getServer().getMessenger().registerOutgoingPluginChannel(this.javaPlugin, ServerParser.CHANNEL);
         this.playerManager.onEnable();
+        this.playerDirectory.onEnable();
+        this.teleportManager.onEnable();
+        this.teleportService.onEnable();
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
         // 命令管理器
@@ -195,7 +212,10 @@ public class SparrowPlugin implements Plugin {
     @Override
     public void onPluginDisable() {
         if (this.featureManager != null) this.featureManager.onDisable();
-        if (this.playerManager != null) this.playerManager.shutdown();          // 名单注销依赖 Redis 连接, 需要先于连接关闭.
+        if (this.teleportService != null) this.teleportService.shutdown();
+        if (this.teleportManager != null) this.teleportManager.shutdown();
+        if (this.playerDirectory != null) this.playerDirectory.shutdown();
+        if (this.playerManager != null) this.playerManager.shutdown();
         if (this.serverHeartBeats != null) this.serverHeartBeats.shutdown();    // 心跳注销依赖 Redis 连接, 需要先于连接关闭.
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
@@ -558,6 +578,30 @@ public class SparrowPlugin implements Plugin {
     @NotNull
     public PlayerManager playerManager() {
         return this.playerManager;
+    }
+
+    @Override
+    @NotNull
+    public PlayerLookup playerLookup() {
+        return this.playerLookup;
+    }
+
+    @Override
+    @NotNull
+    public PlayerDirectory playerDirectory() {
+        return this.playerDirectory;
+    }
+
+    @Override
+    @NotNull
+    public TeleportManager teleportManager() {
+        return this.teleportManager;
+    }
+
+    @Override
+    @NotNull
+    public TeleportService teleportService() {
+        return this.teleportService;
     }
 
     @NotNull

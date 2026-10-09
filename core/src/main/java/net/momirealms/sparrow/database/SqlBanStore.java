@@ -4,7 +4,7 @@ import net.momirealms.sparrow.feature.ban.BanQuery;
 import net.momirealms.sparrow.feature.ban.BanRecord;
 import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTarget;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.util.IpRange;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.Query;
@@ -225,7 +225,7 @@ public abstract class SqlBanStore implements BanStore {
 
     private <S extends SqlStatement<S>> S bindTarget(S statement, BanTarget target) {
         return switch (target) {
-            case BanTarget.PlayerTarget(PlayerRef player) -> this.bindUuid(statement, "player", player.uuid());
+            case BanTarget.PlayerTarget(PlayerIdentity player) -> this.bindUuid(statement, "player", player.uuid());
             case BanTarget.IpTarget ip -> statement.bind("ip_start", ip.range().start()).bind("ip_end", ip.range().end());
             case BanTarget.IdTarget id -> statement.bind("id", id.id());
         };

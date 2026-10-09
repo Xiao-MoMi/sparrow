@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.teleport;
 
 import org.jetbrains.annotations.NotNull;
 

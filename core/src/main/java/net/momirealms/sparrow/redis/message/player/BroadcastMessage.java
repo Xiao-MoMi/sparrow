@@ -1,8 +1,9 @@
-package net.momirealms.sparrow.player;
+package net.momirealms.sparrow.redis.message.player;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;

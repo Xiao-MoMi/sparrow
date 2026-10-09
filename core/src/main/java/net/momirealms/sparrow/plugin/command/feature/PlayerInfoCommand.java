@@ -11,7 +11,7 @@ import net.momirealms.sparrow.feature.mute.MuteRecord;
 import net.momirealms.sparrow.feature.mute.MuteTexts;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
-import net.momirealms.sparrow.player.cluster.ClusterPlayer;
+import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -44,7 +44,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .handler(this::execute));
     }
 
@@ -54,7 +54,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
         UUID uuid = UUIDUtils.parse(input);
         CompletableFuture<Optional<PlayerData>> loading = uuid != null
                 ? this.plugin().dataStorage().loadPlayer(uuid)
-                : this.plugin().playerManager().resolvePlayer(input)
+                : this.plugin().playerLookup().resolvePlayer(input)
                         .thenCompose(found -> found.isEmpty()
                                 ? CompletableFuture.completedFuture(Optional.empty())
                                 : this.plugin().dataStorage().loadPlayer(found.get().uuid()));
@@ -99,7 +99,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
                     .clickEvent(ClickEvent.copyToClipboard(uuid));
         }
         Component unknown = Component.translatable("command.player-info.unknown");
-        ClusterPlayer online = this.plugin().playerManager().cluster().find(data.player());
+        PlayerPresence online = this.plugin().playerDirectory().find(data.player());
         SparrowPlayer local = this.plugin().playerManager().getPlayer(data.player());
         String server = online == null ? data.lastLogoutServer() : online.server();
         Component serverName = unknown;

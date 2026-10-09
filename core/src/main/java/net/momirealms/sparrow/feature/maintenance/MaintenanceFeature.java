@@ -141,7 +141,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
         }
         // 无权限, 踢出.
         else {
-            player.kickFromServer(player.render(MessageConstants.MAINTENANCE_KICK));
+            player.kick(player.render(MessageConstants.MAINTENANCE_KICK), false);
         }
     }
 

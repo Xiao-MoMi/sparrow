@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.command.parser;
 import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -25,7 +26,7 @@ import java.util.function.Predicate;
 public final class ServerParser<C> implements ArgumentParser.FutureArgumentParser<C, String>, SuggestionProvider<C>, PluginMessageListener {
     public static final String CHANNEL = "BungeeCord";
 
-    private final JavaPlugin plugin;
+    private final JavaPlugin plugin = SparrowPlugin.instance().javaPlugin();
     private final Predicate<String> filter;
     private final CommandManager commandManager;
     private final AtomicReference<CompletableFuture<List<String>>> nextServers = new AtomicReference<>(new CompletableFuture<>());
@@ -38,8 +39,7 @@ public final class ServerParser<C> implements ArgumentParser.FutureArgumentParse
      * @param commandManager 提供平台是否允许等待异步补全的标记
      * @param filter 只有通过筛选的服务器会出现在补全中
      */
-    public ServerParser(@NotNull CommandManager commandManager, @NotNull JavaPlugin plugin, @NotNull Predicate<String> filter) {
-        this.plugin = plugin;
+    public ServerParser(@NotNull CommandManager commandManager, @NotNull Predicate<String> filter) {
         this.filter = filter;
         this.commandManager = commandManager;
     }

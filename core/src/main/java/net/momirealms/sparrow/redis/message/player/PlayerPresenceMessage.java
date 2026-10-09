@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.cluster;
+package net.momirealms.sparrow.redis.message.player;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;

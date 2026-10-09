@@ -127,12 +127,12 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
             return CompletableFuture.completedFuture(List.of());
         }
         // 他人补全短暂保留查询结果, 让同步补全在下次按 Tab 时能取得异步结果.
-        CompletableFuture<HomeSnapshot> loading = this.suggestions.get(owner, name -> this.plugin.playerManager()
-                .resolvePlayer(name)
-                .thenCompose(
-                        found -> found.isPresent() ? service.snapshot(found.get().uuid())
+        CompletableFuture<HomeSnapshot> loading = this.suggestions.get(owner, name ->
+                this.plugin.playerLookup().resolvePlayer(name).thenCompose(found ->
+                                found.isPresent()
+                                ? service.snapshot(found.get().uuid())
                                 : CompletableFuture.completedFuture(new HomeSnapshot(List.of()))
-                ));
+                        ));
         CompletableFuture<List<Suggestion>> result = loading.thenApply(snapshot -> snapshot.complete(prefix, super.config.suggestionLimit())
                 .stream()
                 .map(name -> Suggestion.suggestion(owner + "." + name))

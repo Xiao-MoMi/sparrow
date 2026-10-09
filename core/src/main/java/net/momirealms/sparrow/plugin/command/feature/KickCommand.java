@@ -2,8 +2,8 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.KickMessage;
-import net.momirealms.sparrow.player.cluster.ClusterPlayer;
+import net.momirealms.sparrow.redis.message.player.KickMessage;
+import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -25,7 +25,7 @@ public final class KickCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .optional("reason", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(this::execute));
@@ -35,7 +35,7 @@ public final class KickCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         CommandSender sender = context.sender();
         String name = context.get("player");
-        ClusterPlayer target = this.plugin().playerManager().cluster().find(name);
+        PlayerPresence target = this.plugin().playerDirectory().find(name);
         if (target == null) {
             this.handleFeedback(sender, MessageConstants.COMMAND_KICK_OFFLINE, Component.text(name));
             return;

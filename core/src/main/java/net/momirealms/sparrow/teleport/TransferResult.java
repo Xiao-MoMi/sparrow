@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.teleport;
 
 public enum TransferResult {
     SUCCESS,        // 已在本服完成传送

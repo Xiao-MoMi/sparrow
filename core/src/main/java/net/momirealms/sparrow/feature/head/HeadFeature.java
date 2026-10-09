@@ -1,7 +1,7 @@
 package net.momirealms.sparrow.feature.head;
 
 import net.momirealms.sparrow.feature.Feature;
-import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
@@ -102,7 +102,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
         if (!this.enabled() || this.generation != expectedGeneration) {
             return false;
         }
-        BukkitSparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
+        SparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
         if (receiver == null || !player.isOnline()) {
             return false;
         }
@@ -116,13 +116,13 @@ public final class HeadFeature extends Feature<HeadSettings> {
     }
 
     private HeadData online(Query query) {
-        BukkitSparrowPlayer target = null;
+        SparrowPlayer target = null;
         if (query.uuid != null) {
-            target = (BukkitSparrowPlayer) this.plugin.playerManager().getPlayer(query.uuid);
+            target = this.plugin.playerManager().getPlayer(query.uuid);
         } else {
             for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
                 if (player.name().equalsIgnoreCase(query.name)) {
-                    target = (BukkitSparrowPlayer) player;
+                    target = player;
                     break;
                 }
             }

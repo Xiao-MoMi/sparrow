@@ -2,8 +2,8 @@ package net.momirealms.sparrow.feature.bed;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.teleport.TeleportOptions;
-import net.momirealms.sparrow.player.teleport.TeleportResult;
+import net.momirealms.sparrow.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportResult;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -57,7 +57,7 @@ public final class BedCommand extends BukkitCommandFeature {
         String name = player.getName();
         boolean self = player == context.sender();
         TeleportOptions options = this.feature.config().teleportOptions().resolve(player, self);
-        this.plugin().playerManager().teleportService()
+        this.plugin().teleportService()
                 .teleport(player, ServerConfig.serverId(), WorldLocation.from(destination), options)
                 .whenComplete((result, error) -> {
                     if (error != null) {

@@ -6,7 +6,7 @@ import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.feature.home.HomeSnapshot;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
@@ -32,7 +32,7 @@ public final class HomeListCommand extends AbstractHomeCommand {
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.optional("page", IntegerParser.integerParser(1)).handler(this::execute));
         manager.command(builder.literal("other")
-                .required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+                .required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .optional("page", IntegerParser.integerParser(1))
                 .permission(this.otherPermission(builder))
                 .handler(this::execute));
@@ -61,7 +61,7 @@ public final class HomeListCommand extends AbstractHomeCommand {
                 });
     }
 
-    private void show(CommandSender sender, PlayerRef owner, HomeSnapshot snapshot, int requestedPage) {
+    private void show(CommandSender sender, PlayerIdentity owner, HomeSnapshot snapshot, int requestedPage) {
         boolean self = sender instanceof Player player && player.getUniqueId().equals(owner.uuid());
         if (!this.available(sender, !self)) {
             this.handleFeedback(sender, MessageConstants.COMMAND_HOME_NO_PERMISSION);

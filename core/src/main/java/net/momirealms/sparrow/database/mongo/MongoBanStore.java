@@ -10,7 +10,7 @@ import net.momirealms.sparrow.feature.ban.BanQuery;
 import net.momirealms.sparrow.feature.ban.BanRecord;
 import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTarget;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.util.IpRange;
@@ -156,7 +156,7 @@ final class MongoBanStore implements BanStore {
     @NotNull
     public CompletableFuture<List<BanRecord>> revokeBans(@NotNull BanTarget target, long now, @NotNull String revokedBy) {
         Bson match = switch (target) {
-            case BanTarget.PlayerTarget(PlayerRef player) -> Filters.eq(BAN_PLAYER, player.uuid());
+            case BanTarget.PlayerTarget(PlayerIdentity player) -> Filters.eq(BAN_PLAYER, player.uuid());
             case BanTarget.IpTarget ip -> Filters.and(
                     Filters.exists(BAN_PLAYER, false),
                     Filters.eq(BAN_IP_START, ip.range().start()),
@@ -207,7 +207,7 @@ final class MongoBanStore implements BanStore {
         BanTarget target = query.target();
         if (target != null) {
             conditions.add(switch (target) {
-                case BanTarget.PlayerTarget(PlayerRef player) -> Filters.eq(BAN_PLAYER, player.uuid());
+                case BanTarget.PlayerTarget(PlayerIdentity player) -> Filters.eq(BAN_PLAYER, player.uuid());
                 case BanTarget.IpTarget ip -> Filters.and(Filters.lte(BAN_IP_START, ip.range().start()), Filters.gte(BAN_IP_END, ip.range().end()));
                 case BanTarget.IdTarget id -> Filters.eq("_id", id.id());
             });

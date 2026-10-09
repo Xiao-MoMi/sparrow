@@ -30,7 +30,6 @@ public final class ServerCommand extends BukkitCommandFeature {
         super(commandManager, plugin);
         this.parser = new ServerParser<>(
                 commandManager,
-                plugin.javaPlugin(),
                 server -> this.plugin().featureManager().feature(ServerFeature.ID, ServerFeature.class).allowed(server)
         );
     }

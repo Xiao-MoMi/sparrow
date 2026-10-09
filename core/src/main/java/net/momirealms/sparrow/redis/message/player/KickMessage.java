@@ -1,9 +1,10 @@
-package net.momirealms.sparrow.player;
+package net.momirealms.sparrow.redis.message.player;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -48,7 +49,6 @@ public final class KickMessage extends OneWayMessage<FriendlyByteBuf> {
         return ID;
     }
 
-    // 玩家在消息送达前已经离开时不做处理
     @Override
     protected void handle() {
         SparrowPlugin plugin = SparrowPlugin.instance();
@@ -57,6 +57,6 @@ public final class KickMessage extends OneWayMessage<FriendlyByteBuf> {
         // 文本在当前线程按玩家语言渲染, 踢出放到玩家所属线程
         Component reason = this.reason.isEmpty() ? MessageConstants.KICK_REASON_NONE : Component.text(this.reason);
         Component screen = target.render(MessageConstants.KICK_SCREEN.arguments(reason, Component.text(this.operatorName)));
-        plugin.scheduler().platform().run(() -> target.kick(screen), () -> {}, target.platformPlayer());
+        plugin.scheduler().platform().run(() -> target.kick(screen, true), () -> {}, target.platformPlayer());
     }
 }

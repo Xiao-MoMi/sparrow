@@ -5,7 +5,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.feature.warp.Warp;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportOptions;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -67,7 +67,7 @@ public final class WarpCommand extends BukkitCommandFeature {
         }
         boolean self = target == context.sender();
         TeleportOptions options = this.feature.config().teleportOptions().resolve(target, self);
-        this.plugin().playerManager().teleportService()
+        this.plugin().teleportService()
                 .teleport(target, warp.server(), warp.location(), options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {

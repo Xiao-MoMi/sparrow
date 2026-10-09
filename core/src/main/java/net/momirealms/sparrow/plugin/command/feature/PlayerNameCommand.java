@@ -37,7 +37,7 @@ public final class PlayerNameCommand extends BukkitCommandFeature {
             this.handleFeedback(sender, MessageConstants.COMMAND_INVALID_UUID, Component.text(input));
             return;
         }
-        this.plugin().playerManager().resolvePlayer(uuid).thenAccept(found -> {
+        this.plugin().playerLookup().resolvePlayer(uuid).thenAccept(found -> {
                     if (found.isEmpty()) {
                         this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(uuid.toString()));
                         return;

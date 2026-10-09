@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.teleport;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import io.lettuce.core.SetArgs;
@@ -6,6 +6,8 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.PlayerListener;
+import org.bukkit.event.HandlerList;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.entity.Player;
@@ -19,11 +21,16 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class TeleportService implements Listener {
+public final class TeleportService implements Listener, PlayerListener {
     private static final String COOLDOWN_PREFIX = "sparrow:teleport-cooldown:"; // 后接传送类型与玩家 UUID, 过期即冷却结束
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, TeleportWarmup> warmups = new ConcurrentChainedObject2ObjectHashTable<>();
+
+    public void onEnable() {
+        this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        this.plugin.playerManager().registerListener(this);
+    }
 
     /**
      * 按参数检查冷却、原地预热后把玩家送到目标位置.
@@ -81,7 +88,7 @@ public final class TeleportService implements Listener {
 
     // 传送成功或开始切服后才开始冷却
     private CompletableFuture<TeleportResult> transfer(Player player, String server, WorldLocation destination, TeleportOptions options) {
-        return this.plugin.playerManager().teleports()
+        return this.plugin.teleportManager()
                 .transfer(player, server, destination)
                 .thenApply(result -> {
                     if (options.cooldownSeconds() > 0 && (result == TransferResult.SUCCESS || result == TransferResult.CONNECTING)) {
@@ -125,12 +132,15 @@ public final class TeleportService implements Listener {
     }
 
     // 离开本服取消预热
-    public void onQuit(@NotNull UUID player) {
-        TeleportWarmup warmup = this.warmups.get(player);
+    @Override
+    public void onQuit(@NotNull SparrowPlayer player) {
+        TeleportWarmup warmup = this.warmups.get(player.uniqueId());
         if (warmup != null) warmup.cancel(null);
     }
 
     public void shutdown() {
+        this.plugin.playerManager().unregisterListener(this);
+        HandlerList.unregisterAll(this);
         for (TeleportWarmup warmup : this.warmups.values()) {
             warmup.cancel(null);
         }

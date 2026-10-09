@@ -25,7 +25,7 @@ public final class DelHomeCommand extends AbstractHomeCommand {
                 TokenParser.tokenParser(),
                 (context, input) -> super.feature.suggest(context.sender(), input.peekString(), false, this.commandConfig().getPermission())
         )
-                .optional("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerManager().cluster()))
+                .optional("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
                 .handler(this::execute));
     }
 

@@ -3,7 +3,7 @@ package net.momirealms.sparrow.feature.home.command;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import org.bukkit.command.CommandSender;
@@ -30,8 +30,8 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
         return this.owner(sender, ownerName).thenApply(owner -> owner.map(found -> new Target(found, name)));
     }
 
-    protected CompletableFuture<Optional<PlayerRef>> owner(CommandSender sender, @Nullable String name) {
-        PlayerRef self = sender instanceof Player player ? new PlayerRef(player.getUniqueId(), player.getName()) : null;
+    protected CompletableFuture<Optional<PlayerIdentity>> owner(CommandSender sender, @Nullable String name) {
+        PlayerIdentity self = sender instanceof Player player ? new PlayerIdentity(player.getUniqueId(), player.getName()) : null;
         if (name == null) {
             if (self == null) {
                 this.handleFeedback(sender, MessageConstants.COMMAND_HOME_OWNER_REQUIRED);
@@ -46,8 +46,7 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
             this.handleFeedback(sender, MessageConstants.COMMAND_HOME_NO_PERMISSION);
             return CompletableFuture.completedFuture(Optional.empty());
         }
-        return this.plugin().playerManager()
-                .resolvePlayer(name)
+        return this.plugin().playerLookup().resolvePlayer(name)
                 .thenApply(found -> {
                     if (found.isEmpty()) {
                         this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
@@ -61,6 +60,6 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
         this.handleFeedback(sender, MessageConstants.COMMAND_HOME_STORAGE_FAILED);
     }
 
-    protected record Target(@NotNull PlayerRef owner, @Nullable String name) {
+    protected record Target(@NotNull PlayerIdentity owner, @Nullable String name) {
     }
 }

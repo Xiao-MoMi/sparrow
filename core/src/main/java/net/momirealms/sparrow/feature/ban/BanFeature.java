@@ -8,11 +8,11 @@ import net.momirealms.sparrow.feature.ban.command.BanCommand;
 import net.momirealms.sparrow.feature.ban.command.BanHistoryCommand;
 import net.momirealms.sparrow.feature.ban.command.BanIpCommand;
 import net.momirealms.sparrow.feature.ban.command.UnbanCommand;
-import net.momirealms.sparrow.player.PlayerManager;
+import net.momirealms.sparrow.player.PlayerLookup;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.PlayerRef;
+import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.player.SparrowPlayer;
-import net.momirealms.sparrow.player.cluster.ClusterPlayer;
+import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -136,14 +136,15 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
      * @return 解析任务, 玩家名没有记录时结果为空
      */
     @NotNull
-    public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull String input) {
+    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull String input) {
         UUID uuid = UUIDUtils.parse(input);
-        PlayerManager players = this.plugin.playerManager();
+        PlayerLookup players = this.plugin.playerLookup();
         if (uuid == null) {
             return players.resolvePlayer(input);
         }
-        return players.resolvePlayer(uuid)
-                .thenApply(found -> found.isEmpty() ? Optional.of(new PlayerRef(uuid, uuid.toString())) : found);
+        return players.resolvePlayer(uuid).thenApply(found ->
+                found.isEmpty() ? Optional.of(new PlayerIdentity(uuid, uuid.toString())) : found
+        );
     }
 
     /**
@@ -181,7 +182,7 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
      */
     @NotNull
     public CompletableFuture<BanResult> ban(
-            @Nullable PlayerRef player,
+            @Nullable PlayerIdentity player,
             @Nullable IpRange ip,
             @NotNull String reason,
             long expiresAt,
@@ -254,7 +255,7 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
         if (message.silent()) {
             if (!message.banned()) return;
             if (message.ip() == null) {
-                ClusterPlayer online = this.plugin.playerManager().cluster().find(message.player());
+                PlayerPresence online = this.plugin.playerDirectory().find(message.player());
                 if (online == null) return;
                 server = online.server();
             }
@@ -310,7 +311,7 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
                 ),
                 player.locale()
         );
-        this.plugin.scheduler().platform().run(() -> player.kick(screen), () -> {}, player.platformPlayer());
+        this.plugin.scheduler().platform().run(() -> player.kick(screen, true), () -> {}, player.platformPlayer());
     }
 
     // 同一语言的通知只渲染一次

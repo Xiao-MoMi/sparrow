@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.redis.message.teleport;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;

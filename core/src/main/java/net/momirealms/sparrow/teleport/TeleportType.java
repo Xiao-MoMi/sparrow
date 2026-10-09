@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.teleport;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -10,7 +10,7 @@ public enum TeleportType {
     BED("bed"),
     SPAWN("spawn");
 
-    private final String id; // 冷却在 Redis 中的键名片段
+    private final String id;
 
     TeleportType(@NotNull String id) {
         this.id = id;

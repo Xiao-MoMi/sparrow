@@ -1,6 +1,8 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.redis.message.teleport;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.teleport.TeleportManager;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
@@ -8,7 +10,6 @@ import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.TwoWayRequestMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -16,7 +17,6 @@ import java.util.concurrent.CompletableFuture;
 public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf, TeleportResponse> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "teleport_request");
     public static final MessageCodec<FriendlyByteBuf, TeleportRequest> CODEC = RedisMessage.codec(TeleportRequest::write, TeleportRequest::new);
-    private static volatile TeleportManager manager;
 
     private final UUID player;
     private final WorldLocation location;
@@ -57,11 +57,7 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
     @Override
     @NotNull
     protected CompletableFuture<TeleportResponse> handleRequest() {
-        TeleportManager manager = TeleportRequest.manager;
-        return CompletableFuture.completedFuture(new TeleportResponse(manager != null && manager.prepare(this.player, this.location)));
-    }
-
-    static void manager(@Nullable TeleportManager manager) {
-        TeleportRequest.manager = manager;
+        TeleportManager manager = SparrowPlugin.instance().teleportManager();
+        return CompletableFuture.completedFuture(new TeleportResponse(manager.prepare(this.player, this.location)));
     }
 }

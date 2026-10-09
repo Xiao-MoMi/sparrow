@@ -4,6 +4,10 @@ import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.player.PlayerManager;
+import net.momirealms.sparrow.player.PlayerLookup;
+import net.momirealms.sparrow.cluster.PlayerDirectory;
+import net.momirealms.sparrow.teleport.TeleportManager;
+import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
 import net.momirealms.sparrow.plugin.dependency.DependencyManager;
@@ -85,6 +89,14 @@ public interface Plugin {
     TranslationManager translationManager();
 
     PlayerManager playerManager();
+
+    PlayerLookup playerLookup();
+
+    PlayerDirectory playerDirectory();
+
+    TeleportManager teleportManager();
+
+    TeleportService teleportService();
 
     FeatureManager featureManager();
 }

@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player.teleport;
+package net.momirealms.sparrow.teleport;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -6,7 +6,10 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.PlayerListener;
+import net.momirealms.sparrow.redis.message.teleport.TeleportRequest;
 import net.momirealms.sparrow.plugin.command.parser.ServerParser;
+import org.bukkit.event.Listener;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -22,17 +25,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-public final class TeleportManager {
-    private final SparrowPlugin plugin;
+public final class TeleportManager implements PlayerListener {
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Cache<UUID, Arrival> arrivals;
+    private @Nullable Listener arrivalListener;
 
-    public TeleportManager(@NotNull SparrowPlugin plugin) {
-        this.plugin = plugin;
+    public TeleportManager() {
         this.arrivals = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
     }
 
     public void onEnable() {
-        TeleportRequest.manager(this);
+        this.arrivalListener = VersionHelper.hasPaperPatch ? new PaperArrivalListener() : new SpigotArrivalListener();
+        this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this.arrivalListener, this.plugin.javaPlugin());
+        this.plugin.playerManager().registerListener(this);
     }
 
     /**
@@ -97,16 +102,16 @@ public final class TeleportManager {
         return location;
     }
 
-    public void onJoin(@NotNull Player player) {
-        Arrival arrival = this.arrivals.asMap().remove(player.getUniqueId());
+    @Override
+    public void onJoin(@NotNull SparrowPlayer player) {
+        Arrival arrival = this.arrivals.asMap().remove(player.uniqueId());
         if (arrival != null && arrival.invalid) {
-            SparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
-            receiver.sendMessage(MessageConstants.COMMAND_TP_OFFLINE_INVALID);
+            player.sendMessage(MessageConstants.COMMAND_TP_OFFLINE_INVALID);
         }
     }
 
     public void shutdown() {
-        TeleportRequest.manager(null);
+        this.plugin.playerManager().unregisterListener(this);
         this.arrivals.invalidateAll();
     }
 
