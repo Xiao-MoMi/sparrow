@@ -24,7 +24,7 @@ public final class UnmuteCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(@NotNull CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
-        Command.Builder<CommandSender> cmd = builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory())).handler(this::execute);
+        Command.Builder<CommandSender> cmd = builder.required("player", ClusterPlayerParser.clusterPlayerNameParser(this.plugin().playerDirectory())).handler(this::execute);
         manager.command(cmd);
     }
 

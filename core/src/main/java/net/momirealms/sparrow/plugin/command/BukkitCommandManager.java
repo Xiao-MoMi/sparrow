@@ -188,8 +188,8 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                     builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile())
             );
             manager.brigadierManager().registerMapping(
-                    new TypeToken<ClusterPlayerParser<CommandSender>>() {},
-                    builder -> builder.cloudSuggestions().toConstant(GameProfileArgument.gameProfile())
+                    new TypeToken<ClusterPlayerParser<CommandSender, ?>>() {},
+                    builder -> builder.cloudSuggestions().to(ClusterPlayerParser::getNativeArgumentType)
             );
             manager.brigadierManager().registerMapping(
                     new TypeToken<OptionalWordParser<CommandSender>>() {},

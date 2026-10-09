@@ -37,7 +37,7 @@ public final class BanCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
+        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerNameParser(this.plugin().playerDirectory()))
                 .optional(
                         "reason",
                         StringParser.greedyFlagYieldingStringParser(),

@@ -38,7 +38,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("target", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
+        manager.command(builder.required("target", ClusterPlayerParser.clusterPlayerOrTokenParser(this.plugin().playerDirectory()))
                 .optional("page", IntegerParser.integerParser(1))
                 .handler(this::execute));
     }

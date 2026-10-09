@@ -28,7 +28,7 @@ public final class UnbanCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("target", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory()))
+        manager.command(builder.required("target", ClusterPlayerParser.clusterPlayerNameParser(this.plugin().playerDirectory()))
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(this::execute));
     }
