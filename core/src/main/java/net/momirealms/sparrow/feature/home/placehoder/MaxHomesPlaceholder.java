@@ -38,6 +38,7 @@ public final class MaxHomesPlaceholder extends PlaceholderExpansion {
     @Nullable
     public String onPlaceholderRequest(@Nullable Player player, @NotNull String params) {
         if (player == null || !params.equals("value")) return null;
+        if (!this.feature.enabled()) return "";
         int limit = this.feature.limit(player);
         return Integer.toString(limit == CompatibilityManager.UNLIMITED ? -1 : limit);
     }

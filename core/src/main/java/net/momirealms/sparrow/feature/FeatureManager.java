@@ -46,14 +46,14 @@ public final class FeatureManager {
         this.platformExecutor = plugin.scheduler().platform();
         this.commandManager = plugin.commandManager();
 
+        this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
+        this.features.put(BanFeature.ID, new BanFeature(plugin));
         this.features.put(QuickShulkerFeature.ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
         this.features.put(PatrolFeature.ID, new PatrolFeature(plugin));
         this.features.put(ServerFeature.ID, new ServerFeature(plugin));
         this.features.put(HighlightFeature.ID, new HighlightFeature(plugin));
         this.features.put(HeadFeature.ID, new HeadFeature(plugin));
-        this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
         this.features.put(PlayerLimitFeature.ID, new PlayerLimitFeature(plugin));
-        this.features.put(BanFeature.ID, new BanFeature(plugin));
         this.features.put(MuteFeature.ID, new MuteFeature());
         this.features.put(BackFeature.ID, new BackFeature(plugin));
         this.features.put(BedFeature.ID, new BedFeature(plugin));

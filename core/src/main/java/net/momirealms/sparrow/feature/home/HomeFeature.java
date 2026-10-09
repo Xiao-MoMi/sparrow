@@ -14,6 +14,7 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 
@@ -138,6 +139,14 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
                 .map(name -> Suggestion.suggestion(owner + "." + name))
                 .toList());
         return this.plugin.commandManager().asynchronousCompletion() ? result : CompletableFuture.completedFuture(result.getNow(List.of()));
+    }
+
+    @Override
+    public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
+        HomeService service = this.service;
+        if (service != null) {
+            service.preload(event.getUniqueId());
+        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package net.momirealms.sparrow.feature.home.placehoder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.momirealms.sparrow.feature.home.HomeFeature;
+import net.momirealms.sparrow.feature.home.HomeService;
 import net.momirealms.sparrow.feature.home.HomeSnapshot;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.entity.Player;
@@ -38,7 +39,9 @@ public final class HomesCountPlaceholder extends PlaceholderExpansion {
     @Nullable
     public String onPlaceholderRequest(@Nullable Player player, @NotNull String params) {
         if (player == null || !params.equals("value")) return null;
-        HomeSnapshot snapshot = this.feature.service().cachedSnapshot(player.getUniqueId());
-        return snapshot == null ? "0" : Integer.toString(snapshot.size());
+        if (!this.feature.enabled()) return "";
+        HomeService service = this.feature.service();
+        HomeSnapshot snapshot = service.cachedSnapshot(player.getUniqueId());
+        return snapshot == null ? null : Integer.toString(snapshot.size());
     }
 }
