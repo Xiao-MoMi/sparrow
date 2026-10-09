@@ -196,21 +196,19 @@ public class SparrowPlugin implements Plugin {
         // 命令管理器
         this.commandManager = new BukkitCommandManager(this);
         this.commandManager.registerDefaultFeatures();
+        // 集成插件管理器
+        this.compatibilityManager.onEnable();
         // 模块管理器
         this.featureManager = new FeatureManager(this);
         this.featureManager.onEnable();
         // 延迟初始化事件
         this.isInitializing = true;
         this.initASMProxies(); // Proxy 类测试, 仅 dev 模式下生效
-        // 集成插件管理器
-        this.compatibilityManager.onEnable();
         this.scheduler.platform().runDelayed(this::onServerLoaded);
         this.serverHeartbeat.onEnable();
     }
 
     public void onServerLoaded() {
-        // 集成插件管理器
-        this.compatibilityManager.onDelayedEnable();
         // 标记
         this.isInitializing = false;
     }

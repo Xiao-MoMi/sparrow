@@ -30,13 +30,10 @@ public final class CompatibilityManager {
     }
 
     public void onEnable() {
-    }
-
-    public void onDelayedEnable() {
-        if (this.isPluginEnabled("PlaceholderAPI")) {
+        if (this.hasPlugin("PlaceholderAPI")) {
             this.runCatchingHook(() -> this.hasPlaceholderAPI = true, "PlaceholderAPI");
         }
-        if (this.isPluginEnabled("LuckPerms")) {
+        if (this.hasPlugin("LuckPerms")) {
             this.runCatchingHook(() -> this.luckPerms = new LuckPermsHook(), "LuckPerms");
         }
     }
