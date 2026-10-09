@@ -354,5 +354,6 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_KICK_SUCCESS = Component.translatable("command.kick.success");
     TranslatableComponent COMMAND_KICK_SUCCESS_SELF = Component.translatable("command.kick.success-self");
     TranslatableComponent COMMAND_KICK_OFFLINE = Component.translatable("command.kick.offline");
+    TranslatableComponent COMMAND_KICK_FAILED = Component.translatable("command.kick.failed");
     TranslatableComponent MAINTENANCE_BOSS_BAR = Component.translatable("maintenance.boss_bar");
 }

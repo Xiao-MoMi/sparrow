@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.cluster;
+package net.momirealms.sparrow.proxy.common.player;
 
 import io.netty.buffer.ByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;

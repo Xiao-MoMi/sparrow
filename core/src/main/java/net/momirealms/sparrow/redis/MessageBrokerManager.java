@@ -7,8 +7,10 @@ import net.momirealms.sparrow.feature.home.HomeChangedMessage;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.feature.spawn.SpawnMessage;
 import net.momirealms.sparrow.redis.message.player.BroadcastMessage;
-import net.momirealms.sparrow.redis.message.player.KickMessage;
-import net.momirealms.sparrow.redis.message.player.PlayerPresenceMessage;
+import net.momirealms.sparrow.redis.proxy.PlayerPresenceMessage;
+import net.momirealms.sparrow.redis.proxy.PlayerDirectoryResetMessage;
+import net.momirealms.sparrow.redis.proxy.DisconnectRequest;
+import net.momirealms.sparrow.redis.proxy.DisconnectResponse;
 import net.momirealms.sparrow.redis.message.teleport.TeleportRequest;
 import net.momirealms.sparrow.redis.message.teleport.TeleportResponse;
 import net.momirealms.sparrow.redis.message.server.ServerChangedMessage;
@@ -43,10 +45,8 @@ public final class MessageBrokerManager {
                 .connection(connector.brokerConnection())
                 .build();
         this.broker.registry().register(ServerChangedMessage.ID, ServerChangedMessage.CODEC);
-        this.broker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
         this.broker.registry().register(TeleportRequest.ID, TeleportRequest.CODEC);
         this.broker.registry().register(TeleportResponse.ID, TeleportResponse.CODEC);
-        this.broker.registry().register(KickMessage.ID, KickMessage.CODEC);
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
         this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);
         this.broker.registry().register(MuteMessage.ID, MuteMessage.CODEC);
@@ -62,6 +62,10 @@ public final class MessageBrokerManager {
                 .connection(connector.brokerConnection())
                 .build();
         this.proxyBroker.registry().register(DisconnectMessage.ID, DisconnectMessage.CODEC);
+        this.proxyBroker.registry().register(DisconnectRequest.ID, DisconnectRequest.CODEC);
+        this.proxyBroker.registry().register(DisconnectResponse.ID, DisconnectResponse.CODEC);
+        this.proxyBroker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
+        this.proxyBroker.registry().register(PlayerDirectoryResetMessage.ID, PlayerDirectoryResetMessage.CODEC);
     }
 
     @NotNull

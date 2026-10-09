@@ -7,7 +7,6 @@ import com.velocitypowered.api.event.proxy.ProxyShutdownEvent;
 import com.velocitypowered.api.plugin.Plugin;
 import com.velocitypowered.api.plugin.annotation.DataDirectory;
 import com.velocitypowered.api.proxy.ProxyServer;
-import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.momirealms.sparrow.proxy.common.BuildInfo;
 import net.momirealms.sparrow.proxy.common.ProxyPlatform;
 import net.momirealms.sparrow.proxy.common.SparrowProxy;
@@ -16,7 +15,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
 import java.nio.file.Path;
-import java.util.UUID;
 
 @Plugin(
         id = "sparrow",
@@ -25,17 +23,15 @@ import java.util.UUID;
         authors = {"XiaoMoMi"}
 )
 public final class VelocitySparrow implements ProxyPlatform {
-    private final ProxyServer server;
     private final ProxyLogger logger;
     private final Path dataDirectory;
     private final SparrowProxy sparrow;
 
     @Inject
     public VelocitySparrow(ProxyServer server, Logger logger, @DataDirectory Path dataDirectory) {
-        this.server = server;
         this.logger = new Slf4jProxyLogger(logger);
         this.dataDirectory = dataDirectory;
-        this.sparrow = new SparrowProxy(this);
+        this.sparrow = new SparrowProxy(this, new VelocityPlayerManager(this, server));
     }
 
     @Subscribe
@@ -60,8 +56,4 @@ public final class VelocitySparrow implements ProxyPlatform {
         return this.logger;
     }
 
-    @Override
-    public void disconnect(@NotNull UUID player, @NotNull String jsonReason) {
-        this.server.getPlayer(player).ifPresent(target -> target.disconnect(GsonComponentSerializer.gson().deserialize(jsonReason)));
-    }
 }

@@ -4,7 +4,6 @@ import net.momirealms.sparrow.proxy.common.logger.ProxyLogger;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.file.Path;
-import java.util.UUID;
 
 public interface ProxyPlatform {
 
@@ -14,5 +13,4 @@ public interface ProxyPlatform {
     @NotNull
     ProxyLogger logger();
 
-    void disconnect(@NotNull UUID player, @NotNull String jsonReason);
 }

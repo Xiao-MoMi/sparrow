@@ -5,37 +5,36 @@ import net.momirealms.sparrow.proxy.common.player.ProxyPlayerManager;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
-import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
+import net.momirealms.sparrow.redis.messagebroker.message.TwoWayRequestMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-public final class DisconnectMessage extends OneWayMessage<ByteBuf> {
-    public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "disconnect");
+public final class DisconnectRequest extends TwoWayRequestMessage<ByteBuf, DisconnectResponse> {
+    public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "disconnect_request");
 
     private final ProxyPlayerManager platform;
     private final UUID player;
-    private final String reason;    // Json 格式的组件
+    private final String reason;
 
-    private DisconnectMessage(ByteBuf buffer, ProxyPlayerManager platform) {
+    private DisconnectRequest(ByteBuf buffer, ProxyPlayerManager platform) {
         super(buffer);
         this.platform = platform;
         this.player = new UUID(buffer.readLong(), buffer.readLong());
         this.reason = ByteBufHelper.readUtf8(buffer, 262144);
     }
 
-    // 解码出的消息交给当前代理平台处理
     @NotNull
-    public static MessageCodec<ByteBuf, DisconnectMessage> codec(@NotNull ProxyPlayerManager platform) {
-        return RedisMessage.codec(DisconnectMessage::write, buffer -> new DisconnectMessage(buffer, platform));
+    public static MessageCodec<ByteBuf, DisconnectRequest> codec(@NotNull ProxyPlayerManager platform) {
+        return RedisMessage.codec(DisconnectRequest::write, buffer -> new DisconnectRequest(buffer, platform));
     }
 
     @Override
     protected void write(ByteBuf buffer) {
         super.write(buffer);
-        buffer.writeLong(this.player.getMostSignificantBits());
-        buffer.writeLong(this.player.getLeastSignificantBits());
+        buffer.writeLong(this.player.getMostSignificantBits()).writeLong(this.player.getLeastSignificantBits());
         ByteBufHelper.writeUtf8(buffer, this.reason, 262144);
     }
 
@@ -46,7 +45,8 @@ public final class DisconnectMessage extends OneWayMessage<ByteBuf> {
     }
 
     @Override
-    protected void handle() {
-        this.platform.disconnect(this.player, this.reason);
+    @NotNull
+    protected CompletableFuture<DisconnectResponse> handleRequest() {
+        return CompletableFuture.completedFuture(new DisconnectResponse(this.platform.disconnect(this.player, this.reason)));
     }
 }
