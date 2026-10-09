@@ -16,7 +16,7 @@ val java25 = javaToolchains.launcherFor {
 /**
  * 配置和注册 Velocity 运行测试.
  */
-val projectJar = tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
+val projectJar = rootProject.tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
 val prepareProxyVelocity = tasks.register<InitializeRunDirectory>("prepareProxyVelocity") {
     templateDirectories.from(runTemplatesDirectory.dir("velocity"))
     targetDirectory.set(velocityDirectory)

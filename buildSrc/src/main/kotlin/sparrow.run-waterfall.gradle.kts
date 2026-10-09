@@ -17,7 +17,7 @@ val java21 = javaToolchains.launcherFor {
 /**
  * 配置和注册 Waterfall 运行测试.
  */
-val projectJar = tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
+val projectJar = rootProject.tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
 val prepareProxyWaterfall = tasks.register<InitializeRunDirectory>("prepareProxyWaterfall") {
     templateDirectories.from(runTemplatesDirectory.dir("waterfall"))
     targetDirectory.set(waterfallDirectory)

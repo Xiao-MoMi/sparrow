@@ -78,6 +78,7 @@ subprojects {
             val libs = "$projectPackage.libraries"
             // 代理端直接使用平台自带的 Adventure 和 netty, 只重定位自己打包进去的库
             if (project.path.startsWith(":proxy:")) {
+                val libs = "$projectPackage.proxy.libraries"
                 relocate("net.momirealms.sparrow.yaml", "$libs.yaml")
                 relocate("net.momirealms.sparrow.redis.messagebroker", "$libs.redis.messagebroker")
                 relocate("com.github.benmanes.caffeine", "$libs.caffeine")
@@ -131,6 +132,28 @@ subprojects {
 }
 
 tasks {
+    shadowJar {
+        // 合并各平台已经完成重定位的产物, 保留各自的依赖命名空间.
+        val platformJars = listOf(":core", ":proxy:velocity", ":proxy:bungeecord")
+        for (platform in platformJars) {
+            dependsOn("$platform:shadowJar")
+            from(provider { zipTree(project(platform).tasks.named<Jar>("shadowJar").get().archiveFile.get()) })
+        }
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        filesMatching("META-INF/services/**") {
+            duplicatesStrategy = DuplicatesStrategy.INCLUDE
+        }
+        mergeServiceFiles()
+        exclude("META-INF/*.SF", "META-INF/*.RSA", "META-INF/*.DSA")
+        manifest {
+            attributes["paperweight-mappings-namespace"] = "mojang"
+        }
+        archiveFileName = "${rootProject.name}-${project.version}.jar"
+        destinationDirectory.set(layout.projectDirectory.dir("target"))
+    }
+    assemble {
+        dependsOn(shadowJar)
+    }
     clean {
         delete("$rootDir/target")
     }

@@ -47,7 +47,7 @@ tasks.withType<RunServer>().configureEach {
     }
 }
 
-val projectJar = tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
+val projectJar = rootProject.tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
 val extraPluginJars = rootProject.fileTree("buildSrc/plugin") {
     include("*.jar")
 }

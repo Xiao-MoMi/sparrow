@@ -14,7 +14,6 @@ dependencies {
 tasks {
     shadowJar {
         archiveFileName = "$projectName-bungeecord-${project.version}.jar"
-        destinationDirectory.set(file("$rootDir/target"))
     }
 }
 

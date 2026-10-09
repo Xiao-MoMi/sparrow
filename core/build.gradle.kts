@@ -119,8 +119,7 @@ tasks {
             attributes["paperweight-mappings-namespace"] = "mojang"
         }
         from(project(":bukkit-proxy").tasks.shadowJar.flatMap { it.archiveFile })
-        archiveFileName = "$projectName-${project.version}.jar"
-        destinationDirectory.set(file("$rootDir/target"))
+        archiveFileName = "$projectName-backend-${project.version}.jar"
     }
 }
 

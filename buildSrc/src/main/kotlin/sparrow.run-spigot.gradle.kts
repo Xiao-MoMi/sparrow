@@ -15,7 +15,7 @@ val java25 = javaToolchains.launcherFor {
     vendor = JvmVendorSpec.JETBRAINS
     languageVersion = JavaLanguageVersion.of(25)
 }
-val projectJar = tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
+val projectJar = rootProject.tasks.named<Jar>("shadowJar").flatMap { it.archiveFile }
 val bukkitPluginJars = rootProject.fileTree("buildSrc/bukkit-plugin") {
     include("*.jar")
 }

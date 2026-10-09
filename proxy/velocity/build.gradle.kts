@@ -25,6 +25,5 @@ tasks {
 
     shadowJar {
         archiveFileName = "$projectName-velocity-${project.version}.jar"
-        destinationDirectory.set(file("$rootDir/target"))
     }
 }
