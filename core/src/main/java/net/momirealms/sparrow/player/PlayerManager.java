@@ -45,7 +45,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final ClusterRoster cluster;
     private final TeleportManager teleports;
     private final TeleportService teleportService;
-    // 配置阶段起登记, 连接关闭或退出时移除
+    // 配置阶段起登记, 连接关闭时移除
     private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>();
     // Join 时创建, 退出时移除
     private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();
@@ -69,11 +69,6 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.cluster.onEnable();
     }
 
-    /**
-     * 注册玩家进出本服的回调, 只对之后发生的进出生效.
-     *
-     * @param listener 待注册的回调
-     */
     public void registerListener(@NotNull PlayerListener listener) {
         this.listeners.add(listener);
     }
@@ -155,7 +150,41 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                         this.plugin.logger().warn(LogConstants.PLAYER_SAVE_FAILED, failure, name);
                     }
                 });
-        this.removeConnection((Channel) ConnectionProxy.INSTANCE.getChannel(this.connectionHandle(player)));
+        if (leaving != null && this.players.remove(player.getUniqueId(), leaving) == leaving) {
+            this.cluster.presence(leaving.uniqueId(), leaving.name(), false);
+        }
+    }
+
+
+    /**
+     * 按名字解析玩家, 离线玩家也能查到.
+     * 在线时名字忽略大小写, 离线时按数据库记录精确匹配.
+     *
+     * @param name 玩家名
+     * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
+     */
+    @NotNull
+    public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull String name) {
+        ClusterPlayer online = this.cluster.find(name);
+        if (online != null) {
+            return CompletableFuture.completedFuture(Optional.of(new PlayerRef(online.uuid(), online.name())));
+        }
+        return this.plugin.dataStorage().lookupUser(name).thenApply(found -> found.map(uuid -> new PlayerRef(uuid, name)));
+    }
+
+    /**
+     * 按 UUID 解析玩家, 离线时取数据库中最近使用的名字.
+     *
+     * @param uniqueId 玩家 UUID
+     * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
+     */
+    @NotNull
+    public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull UUID uniqueId) {
+        ClusterPlayer online = this.cluster.find(uniqueId);
+        if (online != null) {
+            return CompletableFuture.completedFuture(Optional.of(new PlayerRef(online.uuid(), online.name())));
+        }
+        return this.plugin.dataStorage().lookupName(uniqueId).thenApply(found -> found.map(name -> new PlayerRef(uniqueId, name)));
     }
 
     @Override
@@ -163,20 +192,11 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.removeConnection(future.channel());
     }
 
-    // 移除连接时一并移除该连接上已加入的玩家, 并通知集群名单.
     private void removeConnection(@NotNull Channel channel) {
-        this.connections.computeIfPresent(channel, (key, connection) -> {
-            BukkitSparrowPlayer player = this.players.get(connection.uniqueId());
-            if (player != null && player.connection() == connection && this.players.remove(connection.uniqueId(), player) == player) {
-                this.cluster.presence(connection.uniqueId(), connection.name(), false);
-            }
-            key.closeFuture().removeListener(this);
-            return null;
-        });
+        this.connections.remove(channel);
+        channel.closeFuture().removeListener(this);
     }
 
-    // 需要在 Redis 连接关闭前调用
-    @ApiStatus.Internal
     public void shutdown() {
         this.teleportService.shutdown();
         this.teleports.shutdown();
@@ -188,7 +208,6 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.connections.clear();
     }
 
-    // 读取玩家游戏阶段包监听器持有的原版 Connection
     @NotNull
     private ChannelHandler connectionHandle(@NotNull Player player) {
         Object handle = CraftPlayerProxy.INSTANCE.getHandle(player);
@@ -230,36 +249,5 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @NotNull
     public TeleportService teleportService() {
         return this.teleportService;
-    }
-
-    /**
-     * 按名字解析玩家, 离线玩家也能查到.
-     * 在线时名字忽略大小写, 离线时按数据库记录精确匹配.
-     *
-     * @param name 玩家名
-     * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
-     */
-    @NotNull
-    public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull String name) {
-        ClusterPlayer online = this.cluster.find(name);
-        if (online != null) {
-            return CompletableFuture.completedFuture(Optional.of(new PlayerRef(online.uuid(), online.name())));
-        }
-        return this.plugin.dataStorage().lookupUser(name).thenApply(found -> found.map(uuid -> new PlayerRef(uuid, name)));
-    }
-
-    /**
-     * 按 UUID 解析玩家, 离线时取数据库中最近使用的名字.
-     *
-     * @param uniqueId 玩家 UUID
-     * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
-     */
-    @NotNull
-    public CompletableFuture<Optional<PlayerRef>> resolvePlayer(@NotNull UUID uniqueId) {
-        ClusterPlayer online = this.cluster.find(uniqueId);
-        if (online != null) {
-            return CompletableFuture.completedFuture(Optional.of(new PlayerRef(online.uuid(), online.name())));
-        }
-        return this.plugin.dataStorage().lookupName(uniqueId).thenApply(found -> found.map(name -> new PlayerRef(uniqueId, name)));
     }
 }

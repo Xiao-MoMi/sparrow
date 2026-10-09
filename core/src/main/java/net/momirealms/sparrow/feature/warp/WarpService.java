@@ -126,31 +126,23 @@ public final class WarpService {
     }
 
     private CompletableFuture<Result> save(CompletableFuture<WarpStore.SaveResult> write, Status success) {
-        return write.thenApply(saved -> {
+        return write.thenCompose(saved -> {
             if (saved.status() != WarpStore.Status.SUCCESS) {
                 Status status = switch (saved.status()) {
                     case DUPLICATE_NAME -> Status.DUPLICATE_NAME;
                     case NOT_FOUND -> Status.NOT_FOUND;
                     case SUCCESS -> throw new AssertionError();
                 };
-                return new Result(status, null);
+                return this.result(status);
             }
-            this.registry.put(saved.warp());
-            SparrowPlugin.instance().messageBrokerManager().publishOneWay(WarpMessage.save(this.serverId, saved.warp()), "");
-            return new Result(success, saved.warp());
+            return this.committed().thenApply(ignored -> new Result(success, saved.warp()));
         });
     }
 
     // 删除指定 Warp
     @NotNull
     public CompletableFuture<Boolean> delete(@NotNull UUID id) {
-        return this.store.delete(id).thenApply(deleted -> {
-            if (deleted) {
-                this.registry.remove(id);
-                SparrowPlugin.instance().messageBrokerManager().publishOneWay(WarpMessage.delete(this.serverId, id), "");
-            }
-            return deleted;
-        });
+        return this.store.delete(id).thenCompose(deleted -> deleted ? this.committed().thenApply(ignored -> true) : CompletableFuture.completedFuture(false));
     }
 
     // 删除指定服务器和世界的记录, 返回数据库实际删除数量.
@@ -167,11 +159,13 @@ public final class WarpService {
 
     private CompletableFuture<Integer> reloadAfterBulkDelete(int deleted) {
         if (deleted == 0) return CompletableFuture.completedFuture(0);
-        SparrowPlugin.instance().messageBrokerManager().publishOneWay(WarpMessage.reload(this.serverId), "");
-        return this.store.loadAll().thenApply(warps -> {
-            this.registry.replaceAll(warps);
-            return deleted;
-        });
+        return this.committed().thenApply(ignored -> deleted);
+    }
+
+    private CompletableFuture<Void> committed() {
+        CompletableFuture<Void> refreshed = this.registry.refresh();
+        CompletableFuture<Long> published = SparrowPlugin.instance().messageBrokerManager().publishOneWay(new WarpMessage(this.serverId), "");
+        return CompletableFuture.allOf(refreshed, published);
     }
 
     public enum Status {

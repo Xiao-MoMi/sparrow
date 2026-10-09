@@ -11,6 +11,9 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.UpdateOptions;
+import com.mongodb.event.ServerHeartbeatFailedEvent;
+import com.mongodb.event.ServerHeartbeatStartedEvent;
+import com.mongodb.event.ServerHeartbeatSucceededEvent;
 import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.MuteStore;
 import net.momirealms.sparrow.database.DataStorage;
@@ -42,6 +45,14 @@ import java.util.concurrent.TimeUnit;
 // 用户文档以玩家 UUID 作为 _id, 连接使用 STANDARD UUID 编码.
 @ApiStatus.Internal
 public final class MongoDataStorage extends DataStorage {
+    // 预加载心跳事件类, 供插件类加载器关闭后仍在结束心跳的驱动线程使用.
+    @SuppressWarnings("unused")
+    private static final Class<?>[] HEARTBEAT_EVENT_CLASSES = {
+            ServerHeartbeatStartedEvent.class,
+            ServerHeartbeatSucceededEvent.class,
+            ServerHeartbeatFailedEvent.class
+    };
+
     static final String SCHEMA_ID = "schema";
     static final Map<String, List<IndexReconciler.IndexDeclaration>> INDEXES = Map.of(
             "data", List.of(

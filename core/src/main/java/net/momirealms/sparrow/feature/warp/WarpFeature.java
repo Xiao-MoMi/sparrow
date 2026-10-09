@@ -60,12 +60,11 @@ public final class WarpFeature extends Feature<WarpSettings> {
     @Override
     protected void onEnable() {
         this.registry.load();
-        WarpMessage.listener(this.registry::accept);
     }
 
     @Override
     protected void onDisable() {
-        WarpMessage.listener(null);
+        this.registry.close();
     }
 
     @NotNull
