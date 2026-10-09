@@ -1,5 +1,32 @@
 __version__: '${lang_version}'
 
+# command.air
+command.air.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的剩余氧气设为 <color:#C7BCE7><arg:1></color>/<color:#C7BCE7><arg:2></color> tick</color>'
+
+# command.clear-ender
+command.clear-ender.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已清空 <color:#C7BCE7><arg:0></color> 的末影箱</color>'
+
+# command.clear-inv
+command.clear-inv.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已清空 <color:#C7BCE7><arg:0></color> 的背包、装备、副手和鼠标物品</color>'
+
+# command.force-say
+command.force-say.command: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>聊天内容不能以 / 开头，请使用 sudo 执行命令</color>'
+command.force-say.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请输入要发送的聊天内容</color>'
+command.force-say.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已以 <color:#C7BCE7><arg:0></color> 的身份提交聊天消息</color>'
+
+# command.item-damage
+command.item-damage.broken: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> 的主手物品已达到耐久上限并损坏</color>'
+command.item-damage.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 的主手没有物品</color>'
+command.item-damage.not-damageable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 的主手物品没有耐久值</color>'
+command.item-damage.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 的主手物品损耗设为 <color:#C7BCE7><arg:1></color>，剩余耐久 <color:#C7BCE7><arg:2></color>/<color:#C7BCE7><arg:3></color></color>'
+
+# command.repair-all
+command.repair-all.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 修复 <color:#C7BCE7><arg:1></color> 件物品，共恢复 <color:#C7BCE7><arg:2></color> 点耐久</color>'
+
+# command.smite
+command.smite.effect: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已在 <color:#C7BCE7><arg:0></color> 的位置播放雷电效果</color>'
+command.smite.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已在 <color:#C7BCE7><arg:0></color> 的位置引雷</color>'
+
 # mute
 command.mute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 禁言 <color:#C7BCE7><arg:1></color>.</color>'
 command.mute.already-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 已有生效中的禁言, 请先解禁再设置.</color>'

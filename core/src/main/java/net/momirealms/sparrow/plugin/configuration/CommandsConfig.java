@@ -95,6 +95,13 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig air = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " air", "/air"),
+                DependencyVersions.PROJECT_ID + ".command.air"
+        );
+
+        @BlankLineBefore
         CommandConfig anvil = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " anvil", "/anvil"),
@@ -121,6 +128,30 @@ public final class CommandsConfig {
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " cartography-table", "/cartography-table"),
                 DependencyVersions.PROJECT_ID + ".command.cartography-table"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("clear-chat")
+        CommandConfig clearChat = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " clear-chat", "/clear-chat"),
+                DependencyVersions.PROJECT_ID + ".command.clear-chat"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("clear-ender")
+        CommandConfig clearEnder = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " clear-ender", "/clear-ender"),
+                DependencyVersions.PROJECT_ID + ".command.clear-ender"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("clear-inv")
+        CommandConfig clearInv = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " clear-inv", "/clear-inv"),
+                DependencyVersions.PROJECT_ID + ".command.clear-inv"
         );
 
         @BlankLineBefore
@@ -220,6 +251,14 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        @YamlProperty("force-say")
+        CommandConfig forceSay = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " force-say", "/force-say"),
+                DependencyVersions.PROJECT_ID + ".command.force-say"
+        );
+
+        @BlankLineBefore
         CommandConfig grindstone = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"),
@@ -253,6 +292,14 @@ public final class CommandsConfig {
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " ip-history", "/ip-history"),
                 DependencyVersions.PROJECT_ID + ".command.ip-history"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("item-damage")
+        CommandConfig itemDamage = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " item-damage", "/item-damage"),
+                DependencyVersions.PROJECT_ID + ".command.item-damage"
         );
 
         @BlankLineBefore
@@ -343,6 +390,21 @@ public final class CommandsConfig {
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " repair", "/repair"),
                 DependencyVersions.PROJECT_ID + ".command.repair"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("repair-all")
+        CommandConfig repairAll = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " repair-all", "/repair-all"),
+                DependencyVersions.PROJECT_ID + ".command.repair-all"
+        );
+
+        @BlankLineBefore
+        CommandConfig smite = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " smite", "/smite"),
+                DependencyVersions.PROJECT_ID + ".command.smite"
         );
 
         @BlankLineBefore
@@ -674,11 +736,15 @@ public final class CommandsConfig {
                 case "feature_list" -> this.featureList;
                 // a-z
                 case "actionbar" -> this.actionbar;
+                case "air" -> this.air;
                 case "anvil" -> this.anvil;
                 case "bed" -> this.bed;
                 case "broadcast" -> this.broadcast;
                 case "burn" -> this.burn;
                 case "cartography-table" -> this.cartographyTable;
+                case "clear-chat" -> this.clearChat;
+                case "clear-ender" -> this.clearEnder;
+                case "clear-inv" -> this.clearInv;
                 case "color" -> this.color;
                 case "credits" -> this.credits;
                 case "custom-model-data" -> this.customModelData;
@@ -692,11 +758,13 @@ public final class CommandsConfig {
                 case "feed" -> this.feed;
                 case "fly" -> this.fly;
                 case "fly-speed" -> this.flySpeed;
+                case "force-say" -> this.forceSay;
                 case "grindstone" -> this.grindstone;
                 case "hat" -> this.hat;
                 case "heal" -> this.heal;
                 case "ip" -> this.ip;
                 case "ip-history" -> this.ipHistory;
+                case "item-damage" -> this.itemDamage;
                 case "item-data" -> this.itemData;
                 case "item-lore" -> this.itemLore;
                 case "item-name" -> this.itemName;
@@ -709,6 +777,8 @@ public final class CommandsConfig {
                 case "player-name" -> this.playerName;
                 case "player-uuid" -> this.playerUuid;
                 case "repair" -> this.repair;
+                case "repair-all" -> this.repairAll;
+                case "smite" -> this.smite;
                 case "smithing-table" -> this.smithingTable;
                 case "stonecutter" -> this.stonecutter;
                 case "sudo" -> this.sudo;

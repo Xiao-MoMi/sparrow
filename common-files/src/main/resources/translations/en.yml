@@ -1,5 +1,32 @@
 __version__: '${lang_version}'
 
+# command.air
+command.air.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set remaining air for <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>/<color:#C7BCE7><arg:2></color> ticks</color>'
+
+# command.clear-ender
+command.clear-ender.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared the Ender Chest of <color:#C7BCE7><arg:0></color></color>'
+
+# command.clear-inv
+command.clear-inv.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared the inventory, equipment, offhand and cursor item of <color:#C7BCE7><arg:0></color></color>'
+
+# command.force-say
+command.force-say.command: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Chat text cannot start with /. Use sudo to execute commands</color>'
+command.force-say.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Enter a chat message to send</color>'
+command.force-say.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Submitted a chat message as <color:#C7BCE7><arg:0></color></color>'
+
+# command.item-damage
+command.item-damage.broken: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>The main-hand item of <color:#C7BCE7><arg:0></color> reached its damage limit and broke</color>'
+command.item-damage.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no item in their main hand</color>'
+command.item-damage.not-damageable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#C7BCE7><arg:0></color> has no durability</color>'
+command.item-damage.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand item damage of <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>, with <color:#C7BCE7><arg:2></color>/<color:#C7BCE7><arg:3></color> durability remaining</color>'
+
+# command.repair-all
+command.repair-all.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Repaired <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>, restoring <color:#C7BCE7><arg:2></color> durability in total</color>'
+
+# command.smite
+command.smite.effect: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a lightning effect at the location of <color:#C7BCE7><arg:0></color></color>'
+command.smite.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Struck lightning at the location of <color:#C7BCE7><arg:0></color></color>'
+
 # mute
 command.mute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Muted <color:#C7BCE7><arg:0></color> for <color:#C7BCE7><arg:1></color>.</color>'
 command.mute.already-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> is already muted. Unmute them before applying another mute.</color>'

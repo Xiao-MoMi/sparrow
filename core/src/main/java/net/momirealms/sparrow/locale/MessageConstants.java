@@ -4,6 +4,19 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 
 public interface MessageConstants {
+    TranslatableComponent COMMAND_AIR_SUCCESS = Component.translatable("command.air.success");
+    TranslatableComponent COMMAND_CLEAR_ENDER_SUCCESS = Component.translatable("command.clear-ender.success");
+    TranslatableComponent COMMAND_CLEAR_INV_SUCCESS = Component.translatable("command.clear-inv.success");
+    TranslatableComponent COMMAND_FORCE_SAY_COMMAND = Component.translatable("command.force-say.command");
+    TranslatableComponent COMMAND_FORCE_SAY_EMPTY = Component.translatable("command.force-say.empty");
+    TranslatableComponent COMMAND_FORCE_SAY_SUCCESS = Component.translatable("command.force-say.success");
+    TranslatableComponent COMMAND_ITEM_DAMAGE_BROKEN = Component.translatable("command.item-damage.broken");
+    TranslatableComponent COMMAND_ITEM_DAMAGE_ITEMLESS = Component.translatable("command.item-damage.itemless");
+    TranslatableComponent COMMAND_ITEM_DAMAGE_NOT_DAMAGEABLE = Component.translatable("command.item-damage.not-damageable");
+    TranslatableComponent COMMAND_ITEM_DAMAGE_SUCCESS = Component.translatable("command.item-damage.success");
+    TranslatableComponent COMMAND_REPAIR_ALL_SUCCESS = Component.translatable("command.repair-all.success");
+    TranslatableComponent COMMAND_SMITE_EFFECT = Component.translatable("command.smite.effect");
+    TranslatableComponent COMMAND_SMITE_SUCCESS = Component.translatable("command.smite.success");
     TranslatableComponent COMMAND_HEAD_SOURCE_REQUIRED = Component.translatable("command.head.source_required");
     TranslatableComponent COMMAND_HEAD_INVALID = Component.translatable("command.head.invalid");
     TranslatableComponent COMMAND_HEAD_NOT_FOUND = Component.translatable("command.head.not_found");

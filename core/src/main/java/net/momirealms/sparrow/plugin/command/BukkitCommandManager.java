@@ -3,6 +3,14 @@ package net.momirealms.sparrow.plugin.command;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
 import net.momirealms.sparrow.plugin.command.feature.RepairCommand;
+import net.momirealms.sparrow.plugin.command.feature.AirCommand;
+import net.momirealms.sparrow.plugin.command.feature.ClearChatCommand;
+import net.momirealms.sparrow.plugin.command.feature.ClearEnderCommand;
+import net.momirealms.sparrow.plugin.command.feature.ClearInvCommand;
+import net.momirealms.sparrow.plugin.command.feature.ForceSayCommand;
+import net.momirealms.sparrow.plugin.command.feature.ItemDamageCommand;
+import net.momirealms.sparrow.plugin.command.feature.RepairAllCommand;
+import net.momirealms.sparrow.plugin.command.feature.SmiteCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantCommand;
 import net.momirealms.sparrow.plugin.command.feature.EnchantmentTableCommand;
 import net.momirealms.sparrow.plugin.command.feature.WorldCommand;
@@ -113,10 +121,14 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new FeatureListCommand(this, plugin),
                 // a-z
                 new ActionBarCommand(this, plugin),
+                new AirCommand(this, plugin),
                 new AnvilCommand(this, plugin),
                 new BroadcastCommand(this, plugin),
                 new BurnCommand(this, plugin),
                 new CartographyTableCommand(this, plugin),
+                new ClearChatCommand(this, plugin),
+                new ClearEnderCommand(this, plugin),
+                new ClearInvCommand(this, plugin),
                 new ColorCommand(this, plugin),
                 new CreditsCommand(this, plugin),
                 new CustomModelDataCommand(this, plugin),
@@ -130,11 +142,13 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new FeedCommand(this, plugin),
                 new FlyCommand(this, plugin),
                 new FlySpeedCommand(this, plugin),
+                new ForceSayCommand(this, plugin),
                 new GrindstoneCommand(this, plugin),
                 new HatCommand(this, plugin),
                 new HealCommand(this, plugin),
                 new IpCommand(this, plugin),
                 new IpHistoryCommand(this, plugin),
+                new ItemDamageCommand(this, plugin),
                 new ItemDataCommand(this, plugin),
                 new ItemLoreCommand(this, plugin),
                 new ItemNameCommand(this, plugin),
@@ -147,6 +161,8 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new PlayerNameCommand(this, plugin),
                 new PlayerUuidCommand(this, plugin),
                 new RepairCommand(this, plugin),
+                new RepairAllCommand(this, plugin),
+                new SmiteCommand(this, plugin),
                 new SmithingTableCommand(this, plugin),
                 new StonecutterCommand(this, plugin),
                 new SudoCommand(this, plugin),
