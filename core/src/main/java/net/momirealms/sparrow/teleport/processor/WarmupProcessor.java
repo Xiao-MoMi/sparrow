@@ -9,6 +9,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.teleport.Teleport;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
+import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class WarmupProcessor implements TeleportProcessor.Pre {
+    public static final SparrowKey TYPE = SparrowKey.sparrow("warmup");
     public static final String SECONDS_NODE = DependencyVersions.PROJECT_ID + ".teleport-warmup"; // 后接秒数, 覆盖配置的预热时间
 
     private int seconds = 3;

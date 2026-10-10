@@ -1,11 +1,13 @@
 package net.momirealms.sparrow.plugin.configuration.serializer;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
-import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
 import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
+import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;
 import net.momirealms.sparrow.yaml.serializer.NodeSerializer;
@@ -20,18 +22,24 @@ import java.util.Map;
 
 public final class TeleportProcessorSerializer {
     private static final String TYPE_KEY = "processor-type";
-    private static final Map<String, Class<? extends TeleportProcessor>> TYPES = Map.of(
-            "cooldown", CooldownProcessor.class,
-            "warmup", WarmupProcessor.class,
-            "world-blacklist", WorldBlacklistProcessor.class,
-            "sound", SoundProcessor.class
-    );
 
     private final SparrowYaml sparrowYaml;
+    private final ConcurrentChainedObject2ObjectHashTable<SparrowKey, Class<? extends TeleportProcessor>> types = new ConcurrentChainedObject2ObjectHashTable<>();
     private int issues; // 上次取走之后被忽略的处理器数量
 
     public TeleportProcessorSerializer(@NotNull SparrowYaml sparrowYaml) {
         this.sparrowYaml = sparrowYaml;
+        this.register(CooldownProcessor.TYPE, CooldownProcessor.class);
+        this.register(WarmupProcessor.TYPE, WarmupProcessor.class);
+        this.register(WorldBlacklistProcessor.TYPE, WorldBlacklistProcessor.class);
+        this.register(SoundProcessor.TYPE, SoundProcessor.class);
+    }
+
+    // 类型表只在读取配置时查询, 类型已被注册时抛出 IllegalArgumentException
+    public void register(@NotNull SparrowKey type, @NotNull Class<? extends TeleportProcessor> processorType) {
+        if (this.types.putIfAbsent(type, processorType) != null) {
+            throw new IllegalArgumentException("Teleport processor type is already registered: " + type);
+        }
     }
 
     // 读取某个阶段的处理器列表. 写错的项不进入列表, 只在控制台警告并计入问题数量
@@ -69,11 +77,11 @@ public final class TeleportProcessorSerializer {
     // 按 processor-type 读成对应的处理器, 其余的键是这个处理器自己的选项
     private <T extends TeleportProcessor> T read(Class<T> stage, Object entry) {
         Map<?, ?> options = (Map<?, ?>) entry;
-        String type = String.valueOf(options.get(TYPE_KEY));
-        Class<? extends TeleportProcessor> processorType = TYPES.get(type);
-        if (processorType == null) throw new IllegalArgumentException("unknown processor type " + type);
+        SparrowKey type = SparrowKey.of(String.valueOf(options.get(TYPE_KEY)));
+        Class<? extends TeleportProcessor> processorType = this.types.get(type);
+        if (processorType == null) throw new IllegalArgumentException("unknown processor type " + type.asMinimalString());
         if (!stage.isAssignableFrom(processorType)) {
-            throw new IllegalArgumentException(type + " cannot be used as a " + stage.getSimpleName().toLowerCase(Locale.ROOT) + "-processor");
+            throw new IllegalArgumentException(type.asMinimalString() + " cannot be used as a " + stage.getSimpleName().toLowerCase(Locale.ROOT) + "-processor");
         }
         // 选项放进一份空文档, 交给处理器自己的序列化器读取
         YamlDocument document = this.sparrowYaml.createDocument();
@@ -87,13 +95,13 @@ public final class TeleportProcessorSerializer {
     private Map<Object, Object> write(TeleportProcessor processor) {
         NodeSerializer<TeleportProcessor> serializer = (NodeSerializer<TeleportProcessor>) this.sparrowYaml.serializers().register(processor.getClass());
         Map<Object, Object> entry = new LinkedHashMap<>();
-        entry.put(TYPE_KEY, typeOf(processor.getClass()));
+        entry.put(TYPE_KEY, this.typeOf(processor.getClass()).asMinimalString());
         entry.putAll((Map<Object, Object>) serializer.serialize(processor));
         return entry;
     }
 
-    private static String typeOf(Class<?> processorType) {
-        for (Map.Entry<String, Class<? extends TeleportProcessor>> type : TYPES.entrySet()) {
+    private SparrowKey typeOf(Class<?> processorType) {
+        for (ConcurrentChainedObject2ObjectHashTable.TableEntry<SparrowKey, Class<? extends TeleportProcessor>> type : this.types) {
             if (type.getValue() == processorType) return type.getKey();
         }
         throw new IllegalArgumentException("Unregistered processor: " + processorType.getName());

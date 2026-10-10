@@ -101,7 +101,6 @@ public class SparrowPlugin implements Plugin {
         this.dependencyManager = new DependencyManager(this);
         this.dependencyManager.loadDependencies(Dependencies.ADVENTURE_DEPENDENCIES);
         this.configurationManager = new ConfigurationManager(this);
-        this.configurationManager.reload();
         this.applyDependencies();
         this.setupProxy();
         this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async(), this.logger);
@@ -190,6 +189,7 @@ public class SparrowPlugin implements Plugin {
             Bukkit.getPluginManager().disablePlugin(this.javaPlugin);
             return;
         }
+        this.configurationManager.onEnable();
         this.playerManager.onEnable();
         this.playerDirectory.onEnable();
         this.teleportService.onEnable();

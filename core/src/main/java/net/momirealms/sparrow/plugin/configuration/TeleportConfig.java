@@ -4,6 +4,7 @@ import net.momirealms.sparrow.plugin.configuration.serializer.TeleportProcessorS
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.teleport.TeleportGroup;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
+import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.mapper.YamlMapper;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
@@ -51,6 +52,10 @@ public final class TeleportConfig {
         }
     }
 
+    public void registerProcessor(@NotNull SparrowKey type, @NotNull Class<? extends TeleportProcessor> processorType) {
+        this.processorSerializer.register(type, processorType);
+    }
+
     // 名称留空或为 default 时取默认分组, 分组不存在时抛出 IllegalArgumentException
     @NotNull
     public static TeleportGroup group(@NotNull String name) {
@@ -73,12 +78,14 @@ public final class TeleportConfig {
                 "The default teleport group. A feature uses it unless it names another group with teleport-group in features.yml.",
                 "A group lists the processors a teleport goes through at each stage. It only runs what it lists, so removing an entry turns that processor off.",
                 "An entry that is written wrong is ignored and reported in the console.",
+                "Processors registered by other plugins are used the same way, with the type they registered, such as myplugin:example.",
                 "Teleports started on behalf of another player, such as /warp <name> <player>, skip the cooldown, the warmup and the world blacklist."
         })
         @Comment(lang = "zh", value = {
                 "默认传送分组. 功能没有在 features.yml 中用 teleport-group 指定其他分组时使用它.",
                 "分组列出一次传送在各个阶段要经过的处理器. 分组只执行列出的处理器, 删掉某一项即可关闭它.",
                 "写错的项会被忽略, 并在控制台给出警告.",
+                "其他插件注册的处理器用法相同, processor-type 填它注册的类型, 例如 myplugin:example.",
                 "代其他玩家发起的传送 (例如 /warp <名称> <玩家>) 不经过冷却、预热和世界黑名单."
         })
         @YamlProperty("default")

@@ -9,6 +9,7 @@ import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.teleport.Teleport;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.TeleportResult;
+import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,6 +18,7 @@ import java.util.concurrent.CompletableFuture;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class CooldownProcessor implements TeleportProcessor.Pre {
+    public static final SparrowKey TYPE = SparrowKey.sparrow("cooldown");
     private static final String KEY_PREFIX = "sparrow:teleport-cooldown:"; // 后接冷却 ID 与玩家 UUID, 过期即冷却结束
 
     private String id = "";

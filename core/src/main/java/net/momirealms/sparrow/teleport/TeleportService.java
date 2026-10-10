@@ -15,6 +15,7 @@ import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import net.momirealms.sparrow.teleport.processor.WarmupManager;
+import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;
@@ -213,6 +214,12 @@ public final class TeleportService implements PlayerListener {
         } else {
             this.arrived(player, arrival.teleport);
         }
+    }
+
+    // 注册一种处理器, 之后 teleport.yml 的 processor-type 可以写它的类型. 类型表只在读取 teleport.yml 时查询,
+    // 其他插件应在 onLoad 中注册, 更晚注册的类型在下次重载配置后生效. 类型已被注册时抛出 IllegalArgumentException
+    public void registerProcessor(@NotNull SparrowKey type, @NotNull Class<? extends TeleportProcessor> processorType) {
+        this.plugin.configurationManager().teleportConfig().registerProcessor(type, processorType);
     }
 
     public void shutdown() {

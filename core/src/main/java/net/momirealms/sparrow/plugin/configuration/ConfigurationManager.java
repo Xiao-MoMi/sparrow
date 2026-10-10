@@ -31,6 +31,13 @@ public class ConfigurationManager {
         this.commandsConfig = new CommandsConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.teleportConfig = new TeleportConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.featuresConfig = new FeaturesConfig(plugin.dataFolderPath(), this.sparrowYaml);
+        this.pluginConfig.reload();
+        this.serverConfig.reload();
+    }
+
+    // teleport.yml 留到启用时才第一次读取, 其他插件可以先在 onLoad 里注册自己的处理器类型
+    public void onEnable() {
+        this.teleportConfig.reload();
     }
 
     /**
@@ -52,6 +59,11 @@ public class ConfigurationManager {
 
     public CommandsConfig commandsConfig() {
         return this.commandsConfig;
+    }
+
+    @NotNull
+    public TeleportConfig teleportConfig() {
+        return this.teleportConfig;
     }
 
     @NotNull
