@@ -22,7 +22,6 @@ import net.momirealms.sparrow.redis.proxy.DisconnectMessage;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
-import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -113,13 +112,11 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
         // 先拒绝登录
         event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, AdventureHelper.componentToLegacy(screen));
         // 本服拒绝登录会被代理转到下一个服务器, 所以先让代理断开整条连接, 等待期间代理没有处理再由本服拒绝.
-        if (VersionHelper.isBehindProxy()) {
-            this.plugin.messageBrokerManager().proxyBroker().publishOneWay(new DisconnectMessage(event.getUniqueId(), AdventureHelper.componentToJson(screen)), "");
-            try {
-                Thread.sleep(PROXY_DISCONNECT_WAIT_MILLIS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+        this.plugin.messageBrokerManager().proxyBroker().publishOneWay(new DisconnectMessage(event.getUniqueId(), AdventureHelper.componentToJson(screen)), "");
+        try {
+            Thread.sleep(PROXY_DISCONNECT_WAIT_MILLIS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
     }
 

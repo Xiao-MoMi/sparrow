@@ -103,7 +103,7 @@ public final class SparrowPlayer {
     }
 
     public void kick(@NotNull Component reason, boolean disconnectFromProxy) {
-        if (!disconnectFromProxy || !VersionHelper.isBehindProxy()) {
+        if (!disconnectFromProxy) {
             if (VersionHelper.hasPaperPatch) {
                 // JSON 用于跨越插件与服务端的 Adventure 类加载器.
                 this.nmsPlayer.connection.disconnect(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(reason)), PlayerKickEvent.Cause.PLUGIN);

@@ -4,9 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.redis.proxy.DisconnectRequest;
 import net.momirealms.sparrow.redis.proxy.DisconnectResponse;
-import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -75,20 +73,10 @@ public final class KickCommand extends BukkitCommandFeature {
     }
 
     private CompletableFuture<Boolean> disconnect(PlayerPresence target, Component screen) {
-        if (VersionHelper.isBehindProxy()) {
-            return this.plugin().messageBrokerManager().proxyBroker()
-                    .publishTwoWay(new DisconnectRequest(target.uuid(), AdventureHelper.componentToJson(screen)), "proxy")
-                    .orTimeout(5, TimeUnit.SECONDS)
-                    .thenApply(DisconnectResponse::disconnected);
-        }
-        SparrowPlayer player = this.plugin().playerManager().getPlayer(target.uuid());
-        if (player == null) return CompletableFuture.completedFuture(false);
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        this.plugin().scheduler().platform().run(() -> {
-            player.kick(screen, false);
-            result.complete(true);
-        }, () -> result.complete(false), player.platformPlayer());
-        return result;
+        return this.plugin().messageBrokerManager().proxyBroker()
+                .publishTwoWay(new DisconnectRequest(target.uuid(), AdventureHelper.componentToJson(screen)), "proxy")
+                .orTimeout(5, TimeUnit.SECONDS)
+                .thenApply(DisconnectResponse::disconnected);
     }
 
     @Override

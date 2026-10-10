@@ -397,6 +397,7 @@ command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 command.item-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的主手物品没有物品名称组件.</color>'
 
 # command.kick
+command.kick.failed: '<color:#FFB6CB>踢出 <arg:0> 失败，请查看控制台。</color>'
 command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 不在任何服务器上</color>'
 command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 从 <color:#C7BCE7><arg:1></color> 踢出</color>'
 command.kick.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你从 <color:#C7BCE7><arg:1></color> 踢出.</color>'

@@ -397,6 +397,7 @@ command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 command.item-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main-hand item has no item name component.</color>'
 
 # command.kick
+command.kick.failed: '<color:#FFB6CB>Failed to kick <arg:0>. Check the server console.</color>'
 command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online on any server.</color>'
 command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked <color:#C7BCE7><arg:0></color> from <color:#C7BCE7><arg:1></color>.</color>'
 command.kick.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked you from <color:#C7BCE7><arg:1></color>.</color>'

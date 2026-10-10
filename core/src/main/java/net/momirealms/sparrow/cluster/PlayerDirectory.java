@@ -2,16 +2,8 @@ package net.momirealms.sparrow.cluster;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.redis.proxy.PlayerPresenceMessage;
-import net.momirealms.sparrow.util.VersionHelper;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerLocaleChangeEvent;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,22 +23,13 @@ public final class PlayerDirectory {
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Map<UUID, PlayerPresence> players = new HashMap<>();
-    private final LocalPlayers localPlayers = new LocalPlayers();
     private volatile OnlineView view = OnlineView.EMPTY;
     private @Nullable List<PlayerPresenceMessage> loading;
     private boolean closed;
 
     public void onEnable() {
-        if (VersionHelper.isBehindProxy()) {
-            this.plugin.messageBrokerManager().proxyBroker().subscribe();
-            this.reload();
-        } else {
-            this.plugin.playerManager().registerListener(this.localPlayers);
-            this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this.localPlayers, this.plugin.javaPlugin());
-            for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
-                this.localPlayers.onJoin(player);
-            }
-        }
+        this.plugin.messageBrokerManager().proxyBroker().subscribe();
+        this.reload();
     }
 
     public synchronized void reload() {
@@ -130,34 +113,9 @@ public final class PlayerDirectory {
 
     public synchronized void shutdown() {
         this.closed = true;
-        this.plugin.playerManager().unregisterListener(this.localPlayers);
-        HandlerList.unregisterAll(this.localPlayers);
         this.loading = null;
         this.players.clear();
         this.view = OnlineView.EMPTY;
-    }
-
-    private final class LocalPlayers implements PlayerListener, Listener {
-
-        @Override
-        public void onJoin(@NotNull SparrowPlayer player) {
-            PlayerPresence presence = new PlayerPresence(player.uniqueId(), player.name(), ServerConfig.serverId(), player.locale());
-            PlayerDirectory.this.accept(new PlayerPresenceMessage(player.uniqueId(), presence));
-        }
-
-        @Override
-        public void onQuit(@NotNull SparrowPlayer player) {
-            PlayerDirectory.this.accept(new PlayerPresenceMessage(player.uniqueId(), null));
-        }
-
-        @EventHandler
-        public void onLocaleChanged(@NotNull PlayerLocaleChangeEvent event) {
-            SparrowPlayer player = PlayerDirectory.this.plugin.playerManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-            Locale locale = Locale.forLanguageTag(event.getLocale().replace('_', '-'));
-            PlayerPresence presence = new PlayerPresence(player.uniqueId(), player.name(), ServerConfig.serverId(), locale);
-            PlayerDirectory.this.accept(new PlayerPresenceMessage(player.uniqueId(), presence));
-        }
     }
 
     private record OnlineView(

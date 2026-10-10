@@ -28,13 +28,16 @@ for (spigotJar in spigotJars.sortedBy { it.name }) {
     val minecraftVersion = spigotJar.name.removePrefix("spigot-").removeSuffix(".jar")
     val spigotDirectory = rootProject.layout.projectDirectory.dir("run/spigot/$minecraftVersion")
     val prepareSpigot = tasks.register<InitializeRunDirectory>("prepareSpigot_$minecraftVersion") {
-        templateDirectories.from(runTemplatesDirectory.dir("backend/spigot"))
+        templateDirectories.from(
+            runTemplatesDirectory.dir("backend/common"),
+            runTemplatesDirectory.dir("backend/spigot")
+        )
         targetDirectory.set(spigotDirectory)
     }
     tasks.register<RunServer>("runSpigot_$minecraftVersion") {
         group = "run paper"
         displayName.set("Spigot $minecraftVersion")
-        description = "Run the standalone Spigot $minecraftVersion server on port 25568."
+        description = "Run the Spigot $minecraftVersion backend on port 25568."
         minecraftVersion(minecraftVersion)
         runDirectory.set(spigotDirectory)
         legacyPluginLoading()

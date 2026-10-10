@@ -41,7 +41,7 @@ public final class DisconnectMessage extends OneWayMessage<FriendlyByteBuf> {
         return ID;
     }
 
-    // 后端只发送, 不订阅代理频道
+    // 断开连接由代理端执行.
     @Override
     protected void handle() {
     }
