@@ -16,13 +16,24 @@ import java.util.concurrent.CompletableFuture;
 final class LocalPlayerSelectorParser<C> extends WrappedBrigadierParser<C, EntitySelector> {
 
     LocalPlayerSelectorParser(boolean single) {
-        super(() -> new SelectorArgument(single), (argument, reader) -> ((EntityArgument) argument).parse(reader, true, true));
+        super(() -> new SelectorArgument(single), (argument, reader) -> ((SelectorArgument) argument).parseSelector(reader));
     }
 
     private static final class SelectorArgument extends EntityArgument {
 
         private SelectorArgument(boolean single) {
             super(single, true);
+        }
+
+        private EntitySelector parseSelector(StringReader reader) throws CommandSyntaxException {
+            // 原版在单目标校验失败时把游标归零, 使用参数局部游标与 Cloud 的整条命令游标衔接.
+            int start = reader.getCursor();
+            StringReader argument = new StringReader(reader.getRemaining());
+            try {
+                return this.parse(argument, true, true);
+            } finally {
+                reader.setCursor(start + argument.getCursor());
+            }
         }
 
         @Override

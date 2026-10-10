@@ -46,8 +46,8 @@ public final class VelocityPlayerManager extends ProxyPlayerManager {
 
     @Subscribe
     public void onDisconnect(DisconnectEvent event) {
-        // 被拒绝的重复登录也有断开事件, 只移除成功登录的连接.
-        if (event.getLoginStatus() != DisconnectEvent.LoginStatus.SUCCESSFUL_LOGIN) return;
+        Player current = this.server.getPlayer(event.getPlayer().getUniqueId()).orElse(null);
+        if (current != null && current != event.getPlayer()) return;
         this.directory.disconnected(event.getPlayer().getUniqueId());
     }
 

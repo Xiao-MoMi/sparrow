@@ -9,6 +9,7 @@ listeners:
     priorities:
       - paper
       - folia
+      - spigot
     force_default_server: false
     forced_hosts: {}
     query_enabled: false

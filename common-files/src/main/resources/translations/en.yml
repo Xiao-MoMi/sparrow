@@ -771,3 +771,5 @@ command.server.player-offline: '<color:#FFB6CB><arg:0> is no longer online.</col
 command.server.unknown: '<color:#FFB6CB>The proxy has no server named <arg:0>.</color>'
 command.server.failed: '<color:#FFB6CB>Could not connect <arg:0> to <arg:1>.</color>'
 command.server.timeout: '<color:#FFB6CB>The connection request for <arg:0> to <arg:1> timed out; the result could not be confirmed.</color>'
+
+log.proxy.required: 'Sparrow requires BungeeCord or Velocity forwarding. Enable proxy forwarding on this backend; shutting down the server.'

@@ -1,5 +1,7 @@
 package net.momirealms.sparrow.plugin;
 
+import io.papermc.paper.configuration.GlobalConfiguration;
+import org.spigotmc.SpigotConfig;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.PlayerLookup;
 import net.momirealms.sparrow.cluster.PlayerDirectory;
@@ -131,6 +133,11 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginLoad() {
+        if (!SpigotConfig.bungee && !(VersionHelper.hasPaperPatch && GlobalConfiguration.get().proxies.velocity.enabled)) {
+            this.logger.error(LogConstants.PROXY_REQUIRED);
+            Bukkit.getServer().shutdown();
+            return;
+        }
         // 服务器身份缺失时不放行
         if (ServerConfig.serverId().isEmpty()) {
             this.logger.error(" ");
@@ -141,10 +148,10 @@ public class SparrowPlugin implements Plugin {
             Bukkit.getServer().shutdown();
             return;
         }
-        this.dataStorage.initialize();
         try {
             this.redisConnector.initialize();
             this.messageBrokerManager.onLoad();
+            this.dataStorage.initialize();
             this.serverHeartbeat.onLoad();
             this.serverDirectory.onLoad();
             this.compatibilityManager.onLoad(); // 集成插件管理器
@@ -183,6 +190,7 @@ public class SparrowPlugin implements Plugin {
             this.logger().error(" ");
             this.logger().error(" ");
             Bukkit.getServer().shutdown();
+            Bukkit.getPluginManager().disablePlugin(this.javaPlugin);
             return;
         }
         this.playerManager.onEnable();

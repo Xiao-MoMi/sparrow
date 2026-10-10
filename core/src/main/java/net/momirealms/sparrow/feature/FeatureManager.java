@@ -137,14 +137,12 @@ public final class FeatureManager {
             return CompletableFuture.runAsync(() -> {
                 this.requireOpen();
                 feature.loadConfig();
-            }, this.asyncExecutor).thenApplyAsync(
-                    ignored -> {
+            }, this.asyncExecutor).thenApplyAsync(ignored -> {
                         this.requireOpen();
                         feature.start();
                         this.refreshCommands();
                         return feature.state().get();
-                    },
-                    this.platformExecutor
+                    }, this.platformExecutor
             );
         }
         this.refreshCommands();
@@ -154,7 +152,8 @@ public final class FeatureManager {
     // 模块开关变化后重发命令树, 玩家看到的模块命令随之显示或隐藏
     public void refreshCommands() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            player.updateCommands();
+            // Spigot 的命令树更新会触发同步 PlayerCommandSendEvent.
+            this.platformExecutor.run(player::updateCommands, () -> {}, player);
         }
     }
 

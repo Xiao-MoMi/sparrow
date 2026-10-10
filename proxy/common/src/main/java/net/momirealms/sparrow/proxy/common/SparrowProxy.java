@@ -32,9 +32,9 @@ public final class SparrowProxy {
         this.redisConnector = new RedisConnector(config.redis());
         this.redisConnector.initialize();
         this.messageBrokerManager = new MessageBrokerManager(this);
-        this.messageBrokerManager.subscribe();
         this.playerManager.enable(this.playerDirectory);
         this.playerDirectory.initialize();
+        this.messageBrokerManager.subscribe();
         this.platform.logger().info("Connected to Redis");
     }
 

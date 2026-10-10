@@ -37,7 +37,7 @@ for (spigotJar in spigotJars.sortedBy { it.name }) {
     tasks.register<RunServer>("runSpigot_$minecraftVersion") {
         group = "run paper"
         displayName.set("Spigot $minecraftVersion")
-        description = "Run the Spigot $minecraftVersion backend on port 25568."
+        description = "Run the Spigot $minecraftVersion backend on port 25568 behind runProxyVelocity or runProxyWaterfall."
         minecraftVersion(minecraftVersion)
         runDirectory.set(spigotDirectory)
         legacyPluginLoading()

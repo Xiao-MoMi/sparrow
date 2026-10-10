@@ -16,7 +16,7 @@ enable-player-address-logging = true
 paper = "127.0.0.1:25566"
 folia = "127.0.0.1:25567"
 spigot = "127.0.0.1:25568"
-try = ["paper", "folia"]
+try = ["paper", "folia", "spigot"]
 
 [forced-hosts]
 

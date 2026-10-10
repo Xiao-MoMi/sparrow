@@ -771,3 +771,5 @@ command.server.player-offline: '<color:#FFB6CB>玩家 <arg:0> 已不在线。</c
 command.server.unknown: '<color:#FFB6CB>代理中没有配置服务器 <arg:0>。</color>'
 command.server.failed: '<color:#FFB6CB>未能将 <arg:0> 连接到 <arg:1>。</color>'
 command.server.timeout: '<color:#FFB6CB>将 <arg:0> 连接到 <arg:1> 的请求超时，未能确认切服结果。</color>'
+
+log.proxy.required: 'Sparrow 必须运行在 BungeeCord 或 Velocity 代理环境下。请启用本服的代理转发配置，服务器将关闭。'

@@ -14,6 +14,7 @@ public enum LogConstants {
     COMPATIBILITY_HOOK_FAILED("log.compatibility.hook_failed"),
     SERVER_ID_MISSING("log.server.id_missing"),
     SERVER_ID_DUPLICATE("log.server.id_duplicate"),
+    PROXY_REQUIRED("log.proxy.required"),
     PLAYER_SAVE_FAILED("log.player.save_failed"),
     PLAYER_ROSTER_REFRESH_FAILED("log.player.roster_refresh_failed"),
     TRANSLATION_DEFAULT_LOAD_FAILED("log.translation.default_load_failed"),
