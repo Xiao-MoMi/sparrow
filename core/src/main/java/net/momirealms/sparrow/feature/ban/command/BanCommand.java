@@ -6,8 +6,8 @@ import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.ban.BanRecord;
 import net.momirealms.sparrow.feature.ban.BanResult;
 import net.momirealms.sparrow.feature.ban.BanTexts;
+import net.momirealms.sparrow.feature.ban.BanTarget;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -64,24 +64,23 @@ public final class BanCommand extends BukkitCommandFeature {
         boolean withIp = context.flags().hasFlag("ip");
         boolean silent = context.flags().hasFlag("silent");
         boolean force = context.flags().hasFlag("force");
-        this.feature.resolvePlayer(input)
+        this.feature.resolvePlayerTarget(input)
                 .thenCompose(found -> {
                     if (found.isEmpty()) {
                         this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));
                         return CompletableFuture.completedFuture(null);
                     }
-                    PlayerIdentity target = found.get();
+                    BanTarget.PlayerTarget target = found.get();
                     if (!withIp) {
                         return this.feature.ban(target, null, reason, expiresAt, sender.getName(), silent, force)
                                 .thenAccept(result -> this.sendResult(context, result));
                     }
                     // 在线玩家进服时已经写入当前 IP, 数据库中的记录就是最近一次登录的 IP
-                    return this.plugin().dataStorage()
-                            .loadPlayer(target.uuid())
+                    return this.plugin().dataStorage().loadPlayer(target.uuid())
                             .thenCompose(data -> {
                                 String ip = data.map(PlayerData::lastLoginIp).orElse(null);
                                 if (ip == null) {
-                                    this.handleFeedback(sender, MessageConstants.COMMAND_NO_ADDRESS, Component.text(target.name()));
+                                    this.handleFeedback(sender, MessageConstants.COMMAND_NO_ADDRESS, Component.text(target.display()));
                                     return CompletableFuture.completedFuture(null);
                                 }
                                 return this.feature.ban(target, IpRange.parse(ip), reason, expiresAt, sender.getName(), silent, force)

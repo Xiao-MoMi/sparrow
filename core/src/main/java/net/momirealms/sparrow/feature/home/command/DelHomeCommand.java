@@ -38,7 +38,7 @@ public final class DelHomeCommand extends AbstractHomeCommand {
                         return CompletableFuture.completedFuture(null);
                     }
                     return super.feature.service()
-                            .delete(owner.get().uuid(), name)
+                            .delete(owner.get().uniqueId(), name)
                             .thenAccept(deleted -> this.handleFeedback(
                                     context,
                                     deleted ? MessageConstants.COMMAND_DEL_HOME_SUCCESS : MessageConstants.COMMAND_HOME_UNKNOWN,

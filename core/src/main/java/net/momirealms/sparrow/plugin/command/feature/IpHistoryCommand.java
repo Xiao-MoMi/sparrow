@@ -63,7 +63,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
                     : this.plugin().playerLookup().resolvePlayer(input)
                             .thenCompose(found -> found.isEmpty()
                             ? CompletableFuture.completedFuture(Optional.empty())
-                            : this.plugin().dataStorage().loadPlayer(found.get().uuid()));
+                            : found.get().loadData());
             resolved = loading.thenApply(data -> data.map(PlayerData::lastLoginIp).map(IpRange::parse));
         }
         resolved.thenCompose(found -> {

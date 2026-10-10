@@ -1,8 +1,7 @@
 package net.momirealms.sparrow.feature.head;
 
 import net.momirealms.sparrow.feature.Feature;
-import net.momirealms.sparrow.player.SparrowPlayer;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.util.DurationUtils;
@@ -11,19 +10,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.http.HttpClient;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.function.Consumer;
 
 public final class HeadFeature extends Feature<HeadSettings> {
@@ -102,7 +90,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
         if (!this.enabled() || this.generation != expectedGeneration) {
             return false;
         }
-        SparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
+        BukkitSparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
         if (receiver == null || !player.isOnline()) {
             return false;
         }
@@ -116,11 +104,11 @@ public final class HeadFeature extends Feature<HeadSettings> {
     }
 
     private HeadData online(Query query) {
-        SparrowPlayer target = null;
+        BukkitSparrowPlayer target = null;
         if (query.uuid != null) {
             target = this.plugin.playerManager().getPlayer(query.uuid);
         } else {
-            for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+            for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
                 if (player.name().equalsIgnoreCase(query.name)) {
                     target = player;
                     break;

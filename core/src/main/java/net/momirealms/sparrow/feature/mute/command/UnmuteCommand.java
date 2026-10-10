@@ -35,7 +35,7 @@ public final class UnmuteCommand extends BukkitCommandFeature {
                 this.handleFeedback(context, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));
                 return CompletableFuture.completedFuture(null);
             }
-            return this.feature.unmute(found.get().uuid(), context.sender().getName()).thenAccept(revoked -> this.handleFeedback(
+            return this.feature.unmute(found.get().uniqueId(), context.sender().getName()).thenAccept(revoked -> this.handleFeedback(
                     context,
                     Component.translatable(revoked ? "command.unmute.success" : "command.unmute.not-muted"),
                     Component.text(found.get().name())

@@ -1,7 +1,7 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -33,7 +33,7 @@ public final class ClearChatCommand extends BukkitCommandFeature {
         Player target = context.getOrDefault("player", null);
         Collection<? extends Player> players = target == null ? Bukkit.getOnlinePlayers() : List.of(target);
         for (Player player : players) {
-            SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+            BukkitSparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             for (int i = 0; i < CLEAR_LINES; i++) {
                 receiver.sendMessage(BLANK_LINE);
             }

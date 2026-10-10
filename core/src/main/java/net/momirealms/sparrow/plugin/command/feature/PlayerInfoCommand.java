@@ -10,7 +10,7 @@ import net.momirealms.sparrow.feature.mute.MuteFeature;
 import net.momirealms.sparrow.feature.mute.MuteRecord;
 import net.momirealms.sparrow.feature.mute.MuteTexts;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -57,7 +57,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
                 : this.plugin().playerLookup().resolvePlayer(input)
                         .thenCompose(found -> found.isEmpty()
                                 ? CompletableFuture.completedFuture(Optional.empty())
-                                : this.plugin().dataStorage().loadPlayer(found.get().uuid()));
+                                : found.get().loadData());
         loading.thenCompose(found -> {
             if (found.isEmpty()) {
                 this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(input));
@@ -100,7 +100,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
         }
         Component unknown = Component.translatable("command.player-info.unknown");
         PlayerPresence online = this.plugin().playerDirectory().find(data.player());
-        SparrowPlayer local = this.plugin().playerManager().getPlayer(data.player());
+        BukkitSparrowPlayer local = this.plugin().playerManager().getPlayer(data.player());
         String server = online == null ? data.lastLogoutServer() : online.server();
         Component serverName = unknown;
         if (server != null) {

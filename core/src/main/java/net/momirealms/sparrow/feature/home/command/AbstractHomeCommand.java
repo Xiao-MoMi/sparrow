@@ -3,7 +3,7 @@ package net.momirealms.sparrow.feature.home.command;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerIdentity;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import org.bukkit.command.CommandSender;
@@ -30,8 +30,8 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
         return this.owner(sender, ownerName).thenApply(owner -> owner.map(found -> new Target(found, name)));
     }
 
-    protected CompletableFuture<Optional<PlayerIdentity>> owner(CommandSender sender, @Nullable String name) {
-        PlayerIdentity self = sender instanceof Player player ? new PlayerIdentity(player.getUniqueId(), player.getName()) : null;
+    protected CompletableFuture<Optional<SparrowPlayer>> owner(CommandSender sender, @Nullable String name) {
+        SparrowPlayer self = sender instanceof Player player ? this.plugin().playerManager().getPlayer(player) : null;
         if (name == null) {
             if (self == null) {
                 this.handleFeedback(sender, MessageConstants.COMMAND_HOME_OWNER_REQUIRED);
@@ -60,6 +60,6 @@ abstract class AbstractHomeCommand extends BukkitCommandFeature {
         this.handleFeedback(sender, MessageConstants.COMMAND_HOME_STORAGE_FAILED);
     }
 
-    protected record Target(@NotNull PlayerIdentity owner, @Nullable String name) {
+    protected record Target(@NotNull SparrowPlayer owner, @Nullable String name) {
     }
 }

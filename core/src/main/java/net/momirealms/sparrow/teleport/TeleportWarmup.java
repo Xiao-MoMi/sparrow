@@ -4,7 +4,7 @@ import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +17,7 @@ final class TeleportWarmup {
     private static final double MOVE_TOLERANCE_SQUARED = 0.25; // 允许 0.5 格以内的晃动
 
     private final TeleportService service;
-    private final SparrowPlayer player;
+    private final BukkitSparrowPlayer player;
     private final TeleportOptions options;
     private final CompletableFuture<Boolean> result;
     private final Location start;
@@ -28,7 +28,7 @@ final class TeleportWarmup {
 
     TeleportWarmup(
             @NotNull TeleportService service,
-            @NotNull SparrowPlayer player,
+            @NotNull BukkitSparrowPlayer player,
             @NotNull TeleportOptions options,
             @NotNull CompletableFuture<Boolean> result
     ) {

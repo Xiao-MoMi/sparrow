@@ -11,9 +11,9 @@ public interface PlayerListener {
     default void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
     }
 
-    default void onJoin(@NotNull SparrowPlayer player) {
+    default void onJoin(@NotNull BukkitSparrowPlayer player) {
     }
 
-    default void onQuit(@NotNull SparrowPlayer player) {
+    default void onQuit(@NotNull BukkitSparrowPlayer player) {
     }
 }

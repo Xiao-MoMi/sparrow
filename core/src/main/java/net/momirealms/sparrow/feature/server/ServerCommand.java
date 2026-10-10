@@ -2,7 +2,7 @@ package net.momirealms.sparrow.feature.server;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -72,7 +72,7 @@ public final class ServerCommand extends BukkitCommandFeature {
 
     private void connect(CommandContext<CommandSender> context, Player player, String server) {
         String name = player.getName();
-        SparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
+        BukkitSparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
         if (sparrow == null) {
             this.handleFeedback(context, MessageConstants.COMMAND_SERVER_PLAYER_OFFLINE, Component.text(name));
             return;

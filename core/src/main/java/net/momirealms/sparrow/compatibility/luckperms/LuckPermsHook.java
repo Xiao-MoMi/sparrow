@@ -4,11 +4,13 @@ import net.kyori.adventure.util.TriState;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
+import net.luckperms.api.model.user.UserManager;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class LuckPermsHook {
     private final LuckPerms api = LuckPermsProvider.get();
@@ -25,6 +27,25 @@ public final class LuckPermsHook {
     public TriState check(@NotNull UUID uniqueId, @NotNull String permission) {
         User user = this.api.getUserManager().getUser(uniqueId);
         if (user == null) return TriState.NOT_SET;
+        return this.check(user, permission);
+    }
+
+    @NotNull
+    public CompletableFuture<TriState> checkAsync(@NotNull UUID uniqueId, @NotNull String permission) {
+        UserManager users = this.api.getUserManager();
+        User cached = users.getUser(uniqueId);
+        if (cached != null) return CompletableFuture.completedFuture(this.check(cached, permission));
+        return users.loadUser(uniqueId).thenApply(user -> {
+            try {
+                return this.check(user, permission);
+            } finally {
+                // 释放本次手动加载的用户, 在线用户由 LuckPerms 保留.
+                users.cleanupUser(user);
+            }
+        });
+    }
+
+    private TriState check(User user, String permission) {
         return switch (user.getCachedData().getPermissionData(this.api.getContextManager().getStaticQueryOptions()).checkPermission(permission)) {
             case TRUE -> TriState.TRUE;
             case FALSE -> TriState.FALSE;

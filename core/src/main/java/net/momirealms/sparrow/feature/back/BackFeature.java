@@ -4,7 +4,7 @@ import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObj
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
@@ -73,7 +73,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
     }
 
     @Override
-    public void onQuit(@NotNull SparrowPlayer player) {
+    public void onQuit(@NotNull BukkitSparrowPlayer player) {
         this.points.remove(player.uniqueId());
     }
 
@@ -83,7 +83,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
             return;
         }
         // 还没完成进服处理, 或者还在进服保护期内, 这时的传送多半是其他插件把玩家送到出生点
-        SparrowPlayer player = this.plugin.playerManager().getPlayer(event.getPlayer());
+        BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(event.getPlayer());
         if (player == null || System.currentTimeMillis() - player.connection().connectedAt() < super.config.joinGraceSeconds() * 1000L) {
             return;
         }
@@ -136,7 +136,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
      * 判断玩家是否刚从下线记录里的服务器切换过来, 是的话 /back 可以回到那里.
      * 重新登录的玩家下线时间远早于连上本服的时间, 不算切服.
      */
-    public boolean switchedFrom(@NotNull SparrowPlayer player, @NotNull PlayerData data) {
+    public boolean switchedFrom(@NotNull BukkitSparrowPlayer player, @NotNull PlayerData data) {
         if (data.lastLogoutLocation() == null || data.lastLogoutServer() == null) {
             return false;
         }

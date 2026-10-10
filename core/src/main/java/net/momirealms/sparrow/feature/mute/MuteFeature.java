@@ -9,8 +9,8 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.feature.mute.command.MuteCommand;
 import net.momirealms.sparrow.feature.mute.command.UnmuteCommand;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
@@ -87,7 +87,7 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
         this.store().initialize().join();
         this.running = true;
         List<CompletableFuture<Void>> loads = new ArrayList<>();
-        for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+        for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             loads.add(this.refresh(player.uniqueId()));
         }
         CompletableFuture.allOf(loads.toArray(CompletableFuture[]::new)).join();
@@ -112,7 +112,7 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
     }
 
     @Override
-    public void onJoin(@NotNull SparrowPlayer player) {
+    public void onJoin(@NotNull BukkitSparrowPlayer player) {
         // 模块可能在该玩家通过预登录之后才启用.
         if (this.running && this.states.getIfPresent(player.uniqueId()) == null) {
             this.refresh(player.uniqueId()).join();
@@ -125,16 +125,16 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
     }
 
     @NotNull
-    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull String input) {
+    public CompletableFuture<Optional<SparrowPlayer>> resolvePlayer(@NotNull String input) {
         UUID uuid = UUIDUtils.parse(input);
         return uuid == null ? this.plugin.playerLookup().resolvePlayer(input) : this.plugin.playerLookup().resolvePlayer(uuid);
     }
 
     @NotNull
-    public CompletableFuture<Boolean> mute(@NotNull PlayerIdentity player, @NotNull Duration time, @NotNull String reason, @NotNull String operator) {
+    public CompletableFuture<Boolean> mute(@NotNull SparrowPlayer player, @NotNull Duration time, @NotNull String reason, @NotNull String operator) {
         long now = System.currentTimeMillis();
         MuteRecord record = new MuteRecord(
-                UUID.randomUUID().toString(), player.uuid(), player.name(), reason, operator, ServerConfig.serverId(), now, Math.addExact(now, time.toMillis()), 0, null
+                UUID.randomUUID().toString(), player.uniqueId(), player.name(), reason, operator, ServerConfig.serverId(), now, Math.addExact(now, time.toMillis()), 0, null
         );
         return this.store().create(record).thenCompose(created -> {
             if (!created) return CompletableFuture.completedFuture(false);
@@ -189,12 +189,12 @@ public final class MuteFeature extends Feature<MuteSettings> implements PlayerLi
         if (!this.running) return;
         long now = System.currentTimeMillis();
         boolean muted = record.revokedAt() == 0;
-        SparrowPlayer target = this.plugin.playerManager().getPlayer(record.player());
+        BukkitSparrowPlayer target = this.plugin.playerManager().getPlayer(record.player());
         if (target != null) {
             target.sendMessage(MuteTexts.describe(muted ? "mute.applied" : "mute.removed", record, now));
         }
         TranslatableComponent notification = MuteTexts.describe(muted ? "mute.notify.applied" : "mute.notify.removed", record, now);
-        for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+        for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             if (player.hasPermission(NOTIFY_PERMISSION)) {
                 player.sendMessage(notification);
             }

@@ -5,7 +5,7 @@ import io.lettuce.core.SetArgs;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerListener;
 import org.bukkit.event.HandlerList;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -49,7 +49,7 @@ public final class TeleportService implements Listener, PlayerListener {
         return remaining.thenCompose(millis -> {
             // 正在冷却
             if (millis > 0) {
-                SparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
+                BukkitSparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
                 if (receiver != null) receiver.sendMessage(MessageConstants.TELEPORT_COOLDOWN, Component.text((millis + 999) / 1000));
                 return CompletableFuture.completedFuture(TeleportResult.COOLDOWN);
             }
@@ -71,7 +71,7 @@ public final class TeleportService implements Listener, PlayerListener {
     private CompletableFuture<Boolean> warmup(Player player, TeleportOptions options) {
         CompletableFuture<Boolean> result = new CompletableFuture<>();
         this.plugin.scheduler().platform().run(() -> {
-                    SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
+                    BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
                     if (sparrow == null) {
                         result.complete(false);
                         return;
@@ -97,7 +97,7 @@ public final class TeleportService implements Listener, PlayerListener {
                     // 到达音效只在本服到达时播放, 跨服到达发生在对方服务器上
                     if (result == TeleportResult.LOCAL_SUCCESS) {
                         Sound sound = options.completeSound();
-                        SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
+                        BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
                         if (sound != null && sparrow != null) {
                             sparrow.playSound(sound);
                         }
@@ -133,7 +133,7 @@ public final class TeleportService implements Listener, PlayerListener {
 
     // 离开本服取消预热
     @Override
-    public void onQuit(@NotNull SparrowPlayer player) {
+    public void onQuit(@NotNull BukkitSparrowPlayer player) {
         TeleportWarmup warmup = this.warmups.get(player.uniqueId());
         if (warmup != null) warmup.cancel(null);
     }

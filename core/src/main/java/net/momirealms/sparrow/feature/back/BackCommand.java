@@ -3,7 +3,7 @@ package net.momirealms.sparrow.feature.back;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.teleport.TeleportOptions;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
@@ -50,7 +50,7 @@ public final class BackCommand extends BukkitCommandFeature {
             transfer = this.send(context, player, ServerConfig.serverId(), point, options);
         } else {
             // 本服没有记录时才查询上一个服务器的下线位置, 玩家还没完成进服处理时无法判断是否刚切服
-            SparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
+            BukkitSparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
             transfer = this.plugin().dataStorage()
                     .loadPlayer(player.getUniqueId())
                     .thenCompose(found -> {

@@ -5,7 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -92,14 +92,14 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
 
     // 登录检查之后才开启维护的玩家在这里补查
     @Override
-    public void onJoin(@NotNull SparrowPlayer player) {
+    public void onJoin(@NotNull BukkitSparrowPlayer player) {
         if (this.active) {
             this.apply(player);
         }
     }
 
     @Override
-    public void onQuit(@NotNull SparrowPlayer player) {
+    public void onQuit(@NotNull BukkitSparrowPlayer player) {
         this.bossBarViewers.remove(player.uniqueId());
     }
 
@@ -120,7 +120,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
 
     // 在各玩家所属线程上更新
     private void applyToOnlinePlayers() {
-        for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+        for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             this.plugin.scheduler()
                     .platform()
                     .run(() -> this.apply(player), () -> {}, player.nmsPlayer().getBukkitEntity());
@@ -128,7 +128,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     }
 
     // 更新玩家的维护状态
-    private void apply(SparrowPlayer player) {
+    private void apply(BukkitSparrowPlayer player) {
         // 未开启
         if (!this.active) {
             if (this.bossBarViewers.remove(player.uniqueId()) != null) {
@@ -146,7 +146,7 @@ public final class MaintenanceFeature extends Feature<MaintenanceSettings> imple
     }
 
     // 标题按玩家语言渲染
-    private void showBossBar(SparrowPlayer player) {
+    private void showBossBar(BukkitSparrowPlayer player) {
         MaintenanceSettings.BossBarOptions options = super.config.bossBar();
         if (!options.enabled() || this.bossBarViewers.putIfAbsent(player.uniqueId(), Boolean.TRUE) != null) {
             return;

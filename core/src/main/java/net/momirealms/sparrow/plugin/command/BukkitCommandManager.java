@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.plugin.command;
 
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.command.feature.ReloadCommand;
 import net.momirealms.sparrow.plugin.command.feature.RepairCommand;
 import net.momirealms.sparrow.plugin.command.feature.AirCommand;
@@ -203,7 +203,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
     @Override
     protected Locale getLocale(CommandSender sender) {
         if (sender instanceof Player player) {
-            SparrowPlayer pluginPlayer = this.plugin.playerManager().getPlayer(player);
+            BukkitSparrowPlayer pluginPlayer = this.plugin.playerManager().getPlayer(player);
             return pluginPlayer == null ? null : pluginPlayer.locale();
         }
         return null;

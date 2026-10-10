@@ -44,7 +44,7 @@ public final class IpCommand extends BukkitCommandFeature {
                 : this.plugin().playerLookup().resolvePlayer(input).thenCompose(found ->
                         found.isEmpty()
                         ? CompletableFuture.completedFuture(Optional.empty())
-                        : this.plugin().dataStorage().loadPlayer(found.get().uuid())
+                        : found.get().loadData()
         );
         loading.thenAccept(found -> {
             if (found.isEmpty()) {

@@ -8,7 +8,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerConnection;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
@@ -185,7 +185,7 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
                     if (!this.current(expectedGeneration)) {
                         return;
                     }
-                    SparrowPlayer player = this.plugin.playerManager().getPlayer(viewer);
+                    BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(viewer);
                     if (player == null || viewer.getWorld() != world) {
                         continue;
                     }
@@ -238,7 +238,7 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
     }
 
     @Override
-    public void onQuit(@NotNull SparrowPlayer player) {
+    public void onQuit(@NotNull BukkitSparrowPlayer player) {
         this.clear(player.platformPlayer(), false);
     }
 

@@ -2,7 +2,7 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -59,7 +59,7 @@ public final class TitleCommand extends BukkitCommandFeature {
         int stay = context.get("stay");
         int fadeOut = context.get("fadeOut");
         for (Player player : players) {
-            SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+            BukkitSparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             Component main = AdventureHelper.miniMessage(parts[0], legacy, player);
             Component subtitle = parts.length == 2 ? AdventureHelper.miniMessage(parts[1], legacy, player) : Component.empty();
             receiver.sendTitle(main, subtitle, fadeIn, stay, fadeOut);

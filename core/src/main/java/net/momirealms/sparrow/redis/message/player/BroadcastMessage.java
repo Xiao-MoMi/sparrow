@@ -3,7 +3,7 @@ package net.momirealms.sparrow.redis.message.player;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -45,7 +45,7 @@ public final class BroadcastMessage extends OneWayMessage<FriendlyByteBuf> {
     @Override
     protected void handle() {
         SparrowPlugin plugin = SparrowPlugin.instance();
-        for (SparrowPlayer receiver : plugin.playerManager().getOnlinePlayers()) {
+        for (BukkitSparrowPlayer receiver : plugin.playerManager().getOnlinePlayers()) {
             Component component = AdventureHelper.miniMessage(this.message, this.legacy, receiver.platformPlayer());
             receiver.sendMessage(component);
         }

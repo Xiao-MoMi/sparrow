@@ -14,7 +14,7 @@ import java.util.UUID;
  *
  * @param id 随机处罚 ID, 不含 # 前缀
  * @param player 被封禁玩家的 UUID, 纯 IP 封禁时为 null
- * @param playerName 封禁时玩家使用的名字, 只用于展示
+ * @param playerName 封禁时已知的玩家名, 未知时为 null, 展示使用 UUID
  * @param ip 被封禁的 IP 段, 纯玩家封禁时为 null
  * @param reason 封禁原因, 空字符串表示未提供
  * @param operatorName 执行人名字
@@ -78,15 +78,13 @@ public record BanRecord(@NotNull String id,
         return this.revokedAt == 0 && (this.expiresAt == 0 || this.expiresAt > now);
     }
 
-    // 玩家名, IP, 或 "玩家名 + IP"
+    // 账号名字未知时显示 UUID, 带 IP 的记录同时展示账号与 IP.
     @NotNull
     public String display() {
-        if (this.ip == null) {
-            return String.valueOf(this.playerName);
-        }
         if (this.player == null) {
             return this.ip.toString();
         }
-        return this.playerName + " + " + this.ip;
+        String account = this.playerName == null ? this.player.toString() : this.playerName;
+        return this.ip == null ? account : account + " + " + this.ip;
     }
 }

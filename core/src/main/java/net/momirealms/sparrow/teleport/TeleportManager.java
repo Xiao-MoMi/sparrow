@@ -3,7 +3,7 @@ package net.momirealms.sparrow.teleport;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.redis.message.teleport.TeleportRequest;
 import net.momirealms.sparrow.redis.proxy.ConnectResult;
@@ -64,7 +64,7 @@ public final class TeleportManager implements PlayerListener {
                 .orTimeout(5, TimeUnit.SECONDS)
                 .thenCompose(response -> {
                     if (!response.accepted()) return CompletableFuture.completedFuture(TeleportResult.INVALID);
-                    SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
+                    BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
                     if (sparrow == null || !player.isOnline()) return CompletableFuture.completedFuture(TeleportResult.FAILED);
                     return sparrow.connect(server)
                             .thenApply(result -> result == ConnectResult.SUCCESS ? TeleportResult.REMOTE_SUCCESS : TeleportResult.FAILED);
@@ -91,7 +91,7 @@ public final class TeleportManager implements PlayerListener {
     }
 
     @Override
-    public void onJoin(@NotNull SparrowPlayer player) {
+    public void onJoin(@NotNull BukkitSparrowPlayer player) {
         Arrival arrival = this.arrivals.asMap().remove(player.uniqueId());
         if (arrival != null && arrival.invalid) {
             player.sendMessage(MessageConstants.COMMAND_TP_OFFLINE_INVALID);

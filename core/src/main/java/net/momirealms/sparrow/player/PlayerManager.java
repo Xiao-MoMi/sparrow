@@ -1,6 +1,8 @@
 package net.momirealms.sparrow.player;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
@@ -31,13 +33,15 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.time.Duration;
 
 public final class PlayerManager implements Listener, ChannelFutureListener {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     // 配置阶段起登记, 连接关闭时移除
     private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>();
     // Join 时创建, 退出时移除
-    private final ConcurrentChainedObject2ObjectHashTable<UUID, SparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> players = new ConcurrentChainedObject2ObjectHashTable<>();
+    private final Cache<UUID, OfflineSparrowPlayer> offlinePlayers = Caffeine.newBuilder().maximumSize(4096).expireAfterAccess(Duration.ofMinutes(5)).build();
     private final List<PlayerListener> listeners = new CopyOnWriteArrayList<>();
 
     public void onEnable() {
@@ -80,7 +84,8 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.registerConnection(handle, player.getUniqueId(), player.getName());
         // 与连接关闭的清理串行执行, 连接已经移除时不会创建玩家
         this.connections.computeIfPresent((Channel) ConnectionProxy.INSTANCE.getChannel(handle), (channel, connection) -> {
-            this.players.put(connection.uniqueId(), new SparrowPlayer(connection, player));
+            this.players.put(connection.uniqueId(), new BukkitSparrowPlayer(connection, player));
+            this.offlinePlayers.invalidate(connection.uniqueId());
             return connection;
         });
         // 登录刷新名字、时间和 IP, 下线位置由 Quit 事件保存.
@@ -94,7 +99,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                     }
                 });
         // 本插件的进服处理全部完成后再通知
-        SparrowPlayer joined = this.getPlayer(player);
+        BukkitSparrowPlayer joined = this.getPlayer(player);
         if (joined != null) {
             for (PlayerListener listener : this.listeners) {
                 listener.onJoin(joined);
@@ -105,7 +110,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         Player player = event.getPlayer();
-        SparrowPlayer leaving = this.getPlayer(player);
+        BukkitSparrowPlayer leaving = this.getPlayer(player);
         if (leaving != null) {
             for (PlayerListener listener : this.listeners) {
                 listener.onQuit(leaving);
@@ -128,6 +133,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         if (leaving != null) {
             this.players.remove(player.getUniqueId(), leaving);
         }
+        this.offlinePlayers.invalidate(player.getUniqueId());
     }
 
     @Override
@@ -148,19 +154,35 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     }
 
     @Nullable
-    public SparrowPlayer getPlayer(@NotNull UUID uniqueId) {
+    public BukkitSparrowPlayer getPlayer(@NotNull UUID uniqueId) {
         return this.players.get(uniqueId);
     }
 
     @Nullable
-    public SparrowPlayer getPlayer(@NotNull Player player) {
-        SparrowPlayer sparrowPlayer = this.players.get(player.getUniqueId());
+    public BukkitSparrowPlayer getPlayer(@NotNull Player player) {
+        BukkitSparrowPlayer sparrowPlayer = this.players.get(player.getUniqueId());
         return sparrowPlayer != null && sparrowPlayer.platformPlayer() == player ? sparrowPlayer : null;
     }
 
     @NotNull
-    public Collection<SparrowPlayer> getOnlinePlayers() {
+    public Collection<BukkitSparrowPlayer> getOnlinePlayers() {
         return List.copyOf(this.players.values());
+    }
+
+    @NotNull
+    SparrowPlayer getOrCreate(@NotNull UUID uniqueId, @NotNull String name) {
+        BukkitSparrowPlayer online = this.players.get(uniqueId);
+        if (online != null) return online;
+        OfflineSparrowPlayer offline = this.offlinePlayers.asMap().compute(uniqueId, (id, cached) ->
+                cached != null && cached.name().equals(name) ? cached : new OfflineSparrowPlayer(id, name)
+        );
+        // 查询期间完成 Join 时, 返回已经创建的在线会话.
+        online = this.players.get(uniqueId);
+        if (online != null) {
+            this.offlinePlayers.invalidate(uniqueId);
+            return online;
+        }
+        return offline;
     }
 
     @Nullable
@@ -173,6 +195,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
             this.removeConnection(channel);
         }
         this.players.clear();
+        this.offlinePlayers.invalidateAll();
         this.connections.clear();
     }
 }

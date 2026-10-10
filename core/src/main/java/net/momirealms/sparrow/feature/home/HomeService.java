@@ -3,7 +3,7 @@ package net.momirealms.sparrow.feature.home;
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.HomeStore;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.util.UUIDUtils;
@@ -35,11 +35,11 @@ public final class HomeService implements AutoCloseable {
         this.cache.preload(owner).join();
     }
 
-    public void join(@NotNull SparrowPlayer player) {
+    public void join(@NotNull BukkitSparrowPlayer player) {
         this.cache.join(player);
     }
 
-    public void quit(@NotNull SparrowPlayer player) {
+    public void quit(@NotNull BukkitSparrowPlayer player) {
         this.cache.quit(player);
     }
 

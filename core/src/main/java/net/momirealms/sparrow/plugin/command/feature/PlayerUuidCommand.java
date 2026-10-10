@@ -33,7 +33,7 @@ public final class PlayerUuidCommand extends BukkitCommandFeature {
                         this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
                         return;
                     }
-                    String uuid = found.get().uuid().toString();
+                    String uuid = found.get().uniqueId().toString();
                     this.handleFeedback(
                             sender,
                             MessageConstants.COMMAND_PLAYER_UUID_SUCCESS,

@@ -6,7 +6,7 @@ import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.feature.home.HomeSnapshot;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerIdentity;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
@@ -53,7 +53,7 @@ public final class HomeListCommand extends AbstractHomeCommand {
                         return CompletableFuture.completedFuture(null);
                     }
                     return super.feature.service()
-                            .snapshot(owner.get().uuid())
+                            .snapshot(owner.get().uniqueId())
                             .thenAccept(snapshot -> this.show(sender, owner.get(), snapshot, context.getOrDefault("page", 1)));
                 })
                 .exceptionally(error -> {
@@ -61,8 +61,8 @@ public final class HomeListCommand extends AbstractHomeCommand {
                 });
     }
 
-    private void show(CommandSender sender, PlayerIdentity owner, HomeSnapshot snapshot, int requestedPage) {
-        boolean self = sender instanceof Player player && player.getUniqueId().equals(owner.uuid());
+    private void show(CommandSender sender, SparrowPlayer owner, HomeSnapshot snapshot, int requestedPage) {
+        boolean self = sender instanceof Player player && player.getUniqueId().equals(owner.uniqueId());
         if (!this.available(sender, !self)) {
             this.handleFeedback(sender, MessageConstants.COMMAND_HOME_NO_PERMISSION);
             return;

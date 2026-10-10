@@ -2,7 +2,7 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -47,7 +47,7 @@ public final class ActionBarCommand extends BukkitCommandFeature {
         PluginConfig.TextOptions text = PluginConfig.text();
         boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
         for (Player player : players) {
-            SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+            BukkitSparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
             Component component = AdventureHelper.miniMessage(message, legacy, player);
             receiver.sendActionBar(component);
             this.handleFeedback(

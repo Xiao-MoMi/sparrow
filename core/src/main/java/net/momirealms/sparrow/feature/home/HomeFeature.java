@@ -7,7 +7,7 @@ import net.momirealms.sparrow.feature.home.placehoder.HomesCountPlaceholder;
 import net.momirealms.sparrow.feature.home.placehoder.HomesListPlaceholder;
 import net.momirealms.sparrow.feature.home.placehoder.MaxHomesPlaceholder;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import com.github.benmanes.caffeine.cache.Cache;
@@ -67,7 +67,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         this.plugin.dataStorage().homeStore().initialize().join();
         HomeService service = new HomeService();
         this.service = service;
-        for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+        for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             this.plugin.scheduler().platform().run(() -> {
                         if (this.service == service) {
                             this.onJoin(player);
@@ -130,7 +130,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         CompletableFuture<HomeSnapshot> loading = this.suggestions.get(owner, name ->
                 this.plugin.playerLookup().resolvePlayer(name).thenCompose(found ->
                                 found.isPresent()
-                                ? service.snapshot(found.get().uuid())
+                                ? service.snapshot(found.get().uniqueId())
                                 : CompletableFuture.completedFuture(new HomeSnapshot(List.of()))
                         ));
         CompletableFuture<List<Suggestion>> result = loading.thenApply(snapshot -> snapshot.complete(prefix, super.config.suggestionLimit())
@@ -149,7 +149,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     }
 
     @Override
-    public void onJoin(@NotNull SparrowPlayer player) {
+    public void onJoin(@NotNull BukkitSparrowPlayer player) {
         HomeService service = this.service;
         if (service != null && this.plugin.playerManager().getPlayer(player.uniqueId()) == player) {
             service.join(player);
@@ -157,7 +157,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     }
 
     @Override
-    public void onQuit(@NotNull SparrowPlayer player) {
+    public void onQuit(@NotNull BukkitSparrowPlayer player) {
         HomeService service = this.service;
         if (service != null) {
             service.quit(player);

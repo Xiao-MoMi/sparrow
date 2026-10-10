@@ -4,7 +4,7 @@ import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObj
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.momirealms.sparrow.database.HomeStore;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.jetbrains.annotations.NotNull;
@@ -46,7 +46,7 @@ final class HomeCache implements AutoCloseable {
         return state.read();
     }
 
-    void join(@NotNull SparrowPlayer player) {
+    void join(@NotNull BukkitSparrowPlayer player) {
         OwnerState state;
         OwnerState previous;
         synchronized (this) {
@@ -68,7 +68,7 @@ final class HomeCache implements AutoCloseable {
         state.read();
     }
 
-    void quit(@NotNull SparrowPlayer player) {
+    void quit(@NotNull BukkitSparrowPlayer player) {
         OwnerState state;
         synchronized (this) {
             state = this.online.get(player.uniqueId());
@@ -130,7 +130,7 @@ final class HomeCache implements AutoCloseable {
 
     private final class OwnerState {
         private final UUID owner;
-        private @Nullable SparrowPlayer player;
+        private @Nullable BukkitSparrowPlayer player;
         private @Nullable HomeSnapshot snapshot;
         private @Nullable CompletableFuture<HomeSnapshot> loading;
         private boolean dirty;

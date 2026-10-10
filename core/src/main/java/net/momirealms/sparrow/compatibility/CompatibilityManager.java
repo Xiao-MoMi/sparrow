@@ -2,6 +2,7 @@ package net.momirealms.sparrow.compatibility;
 
 import net.kyori.adventure.util.TriState;
 import net.momirealms.sparrow.compatibility.luckperms.LuckPermsHook;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.compatibility.papi.PlaceholderAPIUtils;
@@ -9,11 +10,13 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
+import org.bukkit.permissions.Permission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class CompatibilityManager {
     public static final int UNLIMITED = Integer.MAX_VALUE; // 数量上限为无限时的返回值
@@ -70,6 +73,25 @@ public final class CompatibilityManager {
             return state == TriState.TRUE;
         }
         return Bukkit.getOfflinePlayer(uniqueId).isOp();
+    }
+
+    @NotNull
+    public CompletableFuture<Boolean> checkPermission(@NotNull UUID uniqueId, @NotNull String permission) {
+        BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(uniqueId);
+        if (player != null) return CompletableFuture.completedFuture(player.hasPermission(permission));
+        LuckPermsHook hook = this.luckPerms;
+        if (hook == null) {
+            return CompletableFuture.failedFuture(new IllegalStateException("Offline permission checks require LuckPerms"));
+        }
+        return hook.checkAsync(uniqueId, permission).thenApply(state -> {
+            // 加载期间完成进服时, 使用当前游戏会话的权限及上下文.
+            BukkitSparrowPlayer current = this.plugin.playerManager().getPlayer(uniqueId);
+            if (current != null) return current.hasPermission(permission);
+            if (state != TriState.NOT_SET) return state == TriState.TRUE;
+            Permission registered = Bukkit.getPluginManager().getPermission(permission);
+            boolean op = Bukkit.getOfflinePlayer(uniqueId).isOp();
+            return (registered == null ? Permission.DEFAULT_PERMISSION : registered.getDefault()).getValue(op);
+        });
     }
 
     /**

@@ -7,7 +7,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentEffectComponents;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -40,7 +40,7 @@ public final class HatCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-                    SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+                    BukkitSparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
                     ServerPlayer handle = receiver.nmsPlayer();
                     ItemStack hand = receiver.getItemInMainHand();
                     if (hand.isEmpty()) {

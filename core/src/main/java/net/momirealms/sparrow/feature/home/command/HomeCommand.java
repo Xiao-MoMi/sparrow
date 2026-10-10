@@ -44,7 +44,7 @@ public final class HomeCommand extends AbstractHomeCommand {
                     Target target = found.get();
                     String name = target.name();
                     return super.feature.service()
-                            .snapshot(target.owner().uuid())
+                            .snapshot(target.owner().uniqueId())
                             .thenAccept(snapshot -> {
                                 Home home = name == null ? snapshot.get(super.feature.config().defaultName()) : snapshot.get(name);
                                 if (name == null && home == null) {

@@ -3,7 +3,7 @@ package net.momirealms.sparrow.feature.head;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -71,7 +71,7 @@ public final class HeadCommand extends BukkitCommandFeature {
             );
             return;
         }
-        SparrowPlayer sender = context.sender() instanceof Player player ? plugin.playerManager().getPlayer(player) : null;
+        BukkitSparrowPlayer sender = context.sender() instanceof Player player ? plugin.playerManager().getPlayer(player) : null;
         long generation = feature.generation();
         int amount = context.getOrDefault("amount", 1);
         CompletableFuture<HeadData> future;

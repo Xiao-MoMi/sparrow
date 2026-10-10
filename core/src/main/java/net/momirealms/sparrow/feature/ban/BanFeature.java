@@ -10,8 +10,8 @@ import net.momirealms.sparrow.feature.ban.command.BanIpCommand;
 import net.momirealms.sparrow.feature.ban.command.UnbanCommand;
 import net.momirealms.sparrow.player.PlayerLookup;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.PlayerIdentity;
 import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
@@ -121,21 +121,21 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
     }
 
     /**
-     * 按玩家名或 UUID 找到要封禁的玩家.
-     * 玩家名必须有记录, UUID 没有记录时用 UUID 文本代替名字.
+     * 按玩家名或 UUID 解析账号封禁目标.
+     * 玩家名必须有记录, UUID 可以预先封禁, 未知名字保留为空.
      *
      * @return 解析任务, 玩家名没有记录时结果为空
      */
     @NotNull
-    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull String input) {
+    public CompletableFuture<Optional<BanTarget.PlayerTarget>> resolvePlayerTarget(@NotNull String input) {
         UUID uuid = UUIDUtils.parse(input);
         PlayerLookup players = this.plugin.playerLookup();
         if (uuid == null) {
-            return players.resolvePlayer(input);
+            return players.resolvePlayer(input)
+                    .thenApply(found -> found.map(player -> new BanTarget.PlayerTarget(player.uniqueId(), player.name())));
         }
-        return players.resolvePlayer(uuid).thenApply(found ->
-                found.isEmpty() ? Optional.of(new PlayerIdentity(uuid, uuid.toString())) : found
-        );
+        return players.resolvePlayer(uuid)
+                .thenApply(found -> Optional.of(new BanTarget.PlayerTarget(uuid, found.map(SparrowPlayer::name).orElse(null))));
     }
 
     /**
@@ -156,14 +156,14 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
         if (IpRange.looksLikeIp(input)) {
             return CompletableFuture.completedFuture(Optional.of(new BanTarget.IpTarget(IpRange.parse(input))));
         }
-        return this.resolvePlayer(input).thenApply(found -> found.map(BanTarget.PlayerTarget::new));
+        return this.resolvePlayerTarget(input).thenApply(found -> found.map(target -> (BanTarget) target));
     }
 
     /**
      * 写入封禁并踢出各服命中的在线玩家.
      * 带玩家的封禁覆盖该玩家的旧封禁, 纯 IP 封禁覆盖同一段的纯 IP 封禁.
      *
-     * @param player 被封禁的玩家, 纯 IP 封禁时为 null
+     * @param player 账号封禁目标, 纯 IP 封禁时为 null
      * @param ip 被封禁的 IP 段, 纯玩家封禁时为 null. <strong>两者不能同时为 null</strong>
      * @param reason 封禁原因, 空字符串表示未提供
      * @param expiresAt 到期时间, 单位为 Unix 毫秒, 0 表示永久
@@ -173,7 +173,7 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
      */
     @NotNull
     public CompletableFuture<BanResult> ban(
-            @Nullable PlayerIdentity player,
+            @Nullable BanTarget.PlayerTarget player,
             @Nullable IpRange ip,
             @NotNull String reason,
             long expiresAt,
@@ -182,7 +182,7 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
             boolean force
     ) {
         UUID uuid = player == null ? null : player.uuid();
-        String name = player == null ? null : player.name();
+        String name = player == null ? null : player.knownName();
         BanRecord record = new BanRecord(
                 BanRecord.newId(),
                 uuid,
@@ -270,13 +270,13 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
     private void kickTargets(BanMessage message, long now) {
         IpRange range = message.ip();
         if (range == null) {
-            SparrowPlayer player = this.plugin.playerManager().getPlayer(message.player());
+            BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(message.player());
             if (player != null) {
                 this.kick(player, true, message, now);
             }
             return;
         }
-        for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+        for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             if (player.uniqueId().equals(message.player())) {
                 this.kick(player, true, message, now);
                 continue;
@@ -289,7 +289,7 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
     }
 
     // 文本在当前线程渲染好, 踢出放到玩家所属线程
-    private void kick(SparrowPlayer player, boolean account, BanMessage message, long now) {
+    private void kick(BukkitSparrowPlayer player, boolean account, BanMessage message, long now) {
         Component screen = this.plugin.translationManager().render(
                 BanTexts.kickScreen(
                         account,
@@ -310,7 +310,7 @@ public final class BanFeature extends Feature<BanSettings> implements PlayerList
     private void notifyStaff(BanMessage message, long now) {
         Map<Locale, Component> rendered = new HashMap<>(4);
         Sound sound = super.config.getNotifySound(message.banned());
-        for (SparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+        for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             if (player.hasPermission(NOTIFY_PERMISSION)) {
                 player.sendMessage(rendered.computeIfAbsent(
                         player.locale(),

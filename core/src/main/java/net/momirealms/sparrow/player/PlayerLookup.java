@@ -2,6 +2,8 @@ package net.momirealms.sparrow.player;
 
 import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -19,12 +21,15 @@ public final class PlayerLookup {
      * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
      */
     @NotNull
-    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull String name) {
+    public CompletableFuture<Optional<SparrowPlayer>> resolvePlayer(@NotNull String name) {
+        Player local = Bukkit.getPlayerExact(name);
+        BukkitSparrowPlayer current = local == null ? null : this.plugin.playerManager().getPlayer(local);
+        if (current != null) return CompletableFuture.completedFuture(Optional.of(current));
         PlayerPresence online = this.plugin.playerDirectory().find(name);
         if (online != null) {
-            return CompletableFuture.completedFuture(Optional.of(new PlayerIdentity(online.uuid(), online.name())));
+            return CompletableFuture.completedFuture(Optional.of(this.plugin.playerManager().getOrCreate(online.uuid(), online.name())));
         }
-        return this.plugin.dataStorage().lookupUser(name).thenApply(found -> found.map(uuid -> new PlayerIdentity(uuid, name)));
+        return this.plugin.dataStorage().lookupUser(name).thenApply(found -> found.map(uuid -> this.plugin.playerManager().getOrCreate(uuid, name)));
     }
 
     /**
@@ -34,11 +39,13 @@ public final class PlayerLookup {
      * @return 解析任务, 找不到玩家时结果为空, 数据库出错时异常完成
      */
     @NotNull
-    public CompletableFuture<Optional<PlayerIdentity>> resolvePlayer(@NotNull UUID uniqueId) {
+    public CompletableFuture<Optional<SparrowPlayer>> resolvePlayer(@NotNull UUID uniqueId) {
+        BukkitSparrowPlayer current = this.plugin.playerManager().getPlayer(uniqueId);
+        if (current != null) return CompletableFuture.completedFuture(Optional.of(current));
         PlayerPresence online = this.plugin.playerDirectory().find(uniqueId);
         if (online != null) {
-            return CompletableFuture.completedFuture(Optional.of(new PlayerIdentity(online.uuid(), online.name())));
+            return CompletableFuture.completedFuture(Optional.of(this.plugin.playerManager().getOrCreate(online.uuid(), online.name())));
         }
-        return this.plugin.dataStorage().lookupName(uniqueId).thenApply(found -> found.map(name -> new PlayerIdentity(uniqueId, name)));
+        return this.plugin.dataStorage().lookupName(uniqueId).thenApply(found -> found.map(name -> this.plugin.playerManager().getOrCreate(uniqueId, name)));
     }
 }

@@ -7,7 +7,7 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -40,7 +40,7 @@ public final class MoreCommand extends BukkitCommandFeature {
         }
         int amount = context.getOrDefault("amount", 0);
         this.plugin().scheduler().platform().run(() -> {
-                    SparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
+                    BukkitSparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
                     ItemStack item = receiver.getItemInMainHand();
                     if (item.isEmpty()) {
                         this.handleFeedback(

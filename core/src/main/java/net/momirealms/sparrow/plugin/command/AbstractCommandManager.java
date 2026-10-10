@@ -6,7 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.util.ArrayUtils;
 import net.momirealms.sparrow.util.TriConsumer;
@@ -60,7 +60,7 @@ public abstract class AbstractCommandManager implements CommandManager {
     public TriConsumer<CommandSender, String, Component> defaultFeedbackConsumer() {
         return ((sender, node, component) -> {
             if (sender instanceof Player player) {
-                SparrowPlayer pluginPlayer = this.plugin.playerManager().getPlayer(player);
+                BukkitSparrowPlayer pluginPlayer = this.plugin.playerManager().getPlayer(player);
                 if (pluginPlayer != null) {
                     pluginPlayer.sendMessage(component);
                 }

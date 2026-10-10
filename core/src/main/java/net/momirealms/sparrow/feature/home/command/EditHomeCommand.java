@@ -6,7 +6,7 @@ import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.feature.home.HomeService;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerIdentity;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
@@ -70,7 +70,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
     private void rename(CommandContext<CommandSender> context) {
         String name = context.get("new_name");
         this.withHome(context, (owner, home) -> super.feature.service()
-                .rename(owner.uuid(), home.id(), name)
+                .rename(owner.uniqueId(), home.id(), name)
                 .thenAccept(result ->
                 this.saved(
                         context,
@@ -88,7 +88,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
         this.withHome(
                 context,
                 (owner, home) -> super.feature.service()
-                        .relocate(owner.uuid(), home.id(), ServerConfig.serverId(), location)
+                        .relocate(owner.uniqueId(), home.id(), ServerConfig.serverId(), location)
                         .thenAccept(result ->
                 this.saved(context, owner, result, home.name(), MessageConstants.COMMAND_EDIT_HOME_RELOCATED, Component.text(home.name())))
         );
@@ -96,7 +96,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
 
     private void saved(
             CommandContext<? extends CommandSender> context,
-            PlayerIdentity owner,
+            SparrowPlayer owner,
             HomeService.Result result,
             String name,
             TranslatableComponent success,
@@ -128,7 +128,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
                     }
                     Target target = found.get();
                     return super.feature.service()
-                            .delete(target.owner().uuid(), target.name())
+                            .delete(target.owner().uniqueId(), target.name())
                             .thenAccept(deleted -> this.handleFeedback(
                                     context,
                                     deleted ? MessageConstants.COMMAND_DEL_HOME_SUCCESS : MessageConstants.COMMAND_HOME_UNKNOWN,
@@ -141,7 +141,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
                 });
     }
 
-    private void withHome(CommandContext<? extends CommandSender> context, BiFunction<PlayerIdentity, Home, CompletableFuture<Void>> action) {
+    private void withHome(CommandContext<? extends CommandSender> context, BiFunction<SparrowPlayer, Home, CompletableFuture<Void>> action) {
         this.target(context.sender(), context.get("name"))
                 .thenCompose(found -> {
                     if (found.isEmpty()) {
@@ -149,7 +149,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
                     }
                     Target target = found.get();
                     return super.feature.service()
-                            .find(target.owner().uuid(), target.name())
+                            .find(target.owner().uniqueId(), target.name())
                             .thenCompose(home -> {
                                 if (home.isEmpty()) {
                                     this.handleFeedback(
@@ -167,8 +167,8 @@ public final class EditHomeCommand extends AbstractHomeCommand {
                 });
     }
 
-    private void show(CommandSender sender, PlayerIdentity owner, Home home) {
-        boolean self = sender instanceof Player player && player.getUniqueId().equals(owner.uuid());
+    private void show(CommandSender sender, SparrowPlayer owner, Home home) {
+        boolean self = sender instanceof Player player && player.getUniqueId().equals(owner.uniqueId());
         String target = self ? home.name() : owner.name() + "." + home.name();
         WorldLocation location = home.location();
         CommandPanel panel = new CommandPanel(this.commandManager(), sender);
@@ -207,7 +207,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
         panel.actions(buttons.stream().filter(PanelButton::available).map(PanelButton::build).toArray(Component[]::new)).send();
     }
 
-    private PanelButton backToList(CommandPanel panel, PlayerIdentity owner, boolean self) {
+    private PanelButton backToList(CommandPanel panel, SparrowPlayer owner, boolean self) {
         PanelButton back = panel.suggest(CommandPanel.label("home_list"), "home-list", self ? "" : "other " + owner.name());
         if (!self) {
             back.permission(super.feature.permission("home-list") + ".other");

@@ -2,7 +2,7 @@ package net.momirealms.sparrow.feature.patrol;
 
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -59,13 +59,13 @@ public final class PatrolFeature extends Feature<PatrolSettings> implements Play
     }
 
     @Override
-    public void onJoin(@NotNull SparrowPlayer player) {
+    public void onJoin(@NotNull BukkitSparrowPlayer player) {
         this.queue.addFirst(player.uniqueId());
     }
 
     // 并发移动可能留下重复记录, 退出时全部移除
     @Override
-    public void onQuit(@NotNull SparrowPlayer player) {
+    public void onQuit(@NotNull BukkitSparrowPlayer player) {
         UUID id = player.uniqueId();
         this.queue.removeIf(id::equals);
     }

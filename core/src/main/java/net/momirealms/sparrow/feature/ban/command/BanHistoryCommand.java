@@ -199,7 +199,11 @@ public final class BanHistoryCommand extends BukkitCommandFeature {
 
     // 玩家名 (UUID) 与 IP, 按记录实际包含的部分组合
     private Component targetDetails(BanRecord record) {
-        Component account = record.player() == null ? Component.empty() : Component.text(record.playerName() + " (" + record.player() + ")");
+        Component account = Component.empty();
+        if (record.player() != null) {
+            String name = record.playerName() == null ? record.player().toString() : record.playerName() + " (" + record.player() + ")";
+            account = Component.text(name);
+        }
         Component ip = record.ip() == null ? Component.empty() : Component.text(record.ip().toString());
         if (record.player() != null && record.ip() != null) {
             return account.append(Component.newline()).append(ip);
