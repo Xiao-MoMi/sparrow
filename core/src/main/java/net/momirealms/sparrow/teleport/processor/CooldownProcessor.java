@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport;
+package net.momirealms.sparrow.teleport.processor;
 
 import io.lettuce.core.SetArgs;
 import net.kyori.adventure.text.Component;
@@ -6,6 +6,9 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.teleport.Teleport;
+import net.momirealms.sparrow.teleport.TeleportProcessor;
+import net.momirealms.sparrow.teleport.TeleportResult;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +26,7 @@ public final class CooldownProcessor implements TeleportProcessor.Pre {
     CooldownProcessor() {
     }
 
-    CooldownProcessor(@NotNull String id) {
+    public CooldownProcessor(@NotNull String id) {
         this.id = id;
     }
 

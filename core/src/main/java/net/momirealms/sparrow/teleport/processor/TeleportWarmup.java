@@ -1,10 +1,11 @@
-package net.momirealms.sparrow.teleport;
+package net.momirealms.sparrow.teleport.processor;
 
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 final class TeleportWarmup {
     private static final double MOVE_TOLERANCE_SQUARED = 0.25; // 允许 0.5 格以内的晃动
 
-    private final TeleportService service;
+    private final WarmupManager manager;
     private final BukkitSparrowPlayer player;
     private final WarmupProcessor options;
     private final CompletableFuture<Component> result; // 结果的含义与出发前处理器相同
@@ -29,13 +30,13 @@ final class TeleportWarmup {
     private SchedulerTask task;
 
     TeleportWarmup(
-            @NotNull TeleportService service,
+            @NotNull WarmupManager manager,
             @NotNull BukkitSparrowPlayer player,
             @NotNull WarmupProcessor options,
             int seconds,
             @NotNull CompletableFuture<Component> result
     ) {
-        this.service = service;
+        this.manager = manager;
         this.player = player;
         this.options = options;
         this.result = result;
@@ -51,7 +52,7 @@ final class TeleportWarmup {
             return;
         }
         this.countdown();
-        this.task = this.service.plugin().scheduler().platform().runRepeating(this::tick, () -> this.cancel(null), 1, 1, this.player.platformPlayer());
+        this.task = SparrowPlugin.instance().scheduler().platform().runRepeating(this::tick, () -> this.cancel(null), 1, 1, this.player.platformPlayer());
         // 关服时可能在任务创建前就从其他线程取消了
         if (this.result.isDone()) {
             this.task.cancel();
@@ -127,7 +128,7 @@ final class TeleportWarmup {
         if (this.task != null) {
             this.task.cancel();
         }
-        this.service.finished(this.player.uniqueId(), this);
+        this.manager.finished(this.player.uniqueId(), this);
         if (this.result.isDone()) {
             return false;
         }

@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport;
+package net.momirealms.sparrow.teleport.processor;
 
 public enum WarmupDisplay {
     ACTION_BAR,

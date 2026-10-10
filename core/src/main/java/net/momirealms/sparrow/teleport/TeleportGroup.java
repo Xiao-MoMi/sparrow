@@ -1,5 +1,9 @@
 package net.momirealms.sparrow.teleport;
 
+import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
+import net.momirealms.sparrow.teleport.processor.SoundProcessor;
+import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
+import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -25,7 +29,9 @@ public final class TeleportGroup {
             "     boss-bar-color: PINK, BLUE, RED, GREEN, YELLOW, PURPLE or WHITE.",
             "     boss-bar-overlay: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12 or NOTCHED_20.",
             "     warmup-sound, cancel-sound: played every second of the countdown and when the warmup is cancelled.",
-            "         A sound is a key such as block.note_block.banjo, or a section with key, volume, pitch and source. Leave empty to play nothing."
+            "         A sound is a key such as block.note_block.banjo, or a section with key, volume, pitch and source. Leave empty to play nothing.",
+            "   sound - plays a sound to the player when its turn comes. Placed after warmup, that is the moment of leaving.",
+            "     sound: the sound to play, written the same way as above."
     })
     @Comment(lang = "zh", value = {
             "出发前的处理器, 在玩家当前所在的服务器上执行.",
@@ -43,7 +49,9 @@ public final class TeleportGroup {
             "     boss-bar-color: PINK、BLUE、RED、GREEN、YELLOW、PURPLE 或 WHITE.",
             "     boss-bar-overlay: PROGRESS、NOTCHED_6、NOTCHED_10、NOTCHED_12 或 NOTCHED_20.",
             "     warmup-sound, cancel-sound: 分别在倒计时每秒和预热被取消时播放.",
-            "         音效可以只写名称, 例如 block.note_block.banjo, 也可以写成包含 key、volume、pitch、source 的小节. 留空表示不播放."
+            "         音效可以只写名称, 例如 block.note_block.banjo, 也可以写成包含 key、volume、pitch、source 的小节. 留空表示不播放.",
+            "   sound - 轮到它时给玩家播放一个音效. 放在 warmup 之后就是出发的那一刻.",
+            "     sound: 要播放的音效, 写法同上."
     })
     private List<TeleportProcessor.Pre> preProcessor = List.of();
 

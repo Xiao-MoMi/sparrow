@@ -1,11 +1,11 @@
 package net.momirealms.sparrow.plugin.configuration.serializer;
 
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.CooldownProcessor;
-import net.momirealms.sparrow.teleport.SoundProcessor;
+import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
+import net.momirealms.sparrow.teleport.processor.SoundProcessor;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
-import net.momirealms.sparrow.teleport.WarmupProcessor;
-import net.momirealms.sparrow.teleport.WorldBlacklistProcessor;
+import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
+import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;
 import net.momirealms.sparrow.yaml.serializer.NodeSerializer;

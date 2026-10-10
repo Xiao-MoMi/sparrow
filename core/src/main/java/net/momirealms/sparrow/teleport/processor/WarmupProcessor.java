@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport;
+package net.momirealms.sparrow.teleport.processor;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
@@ -7,6 +7,8 @@ import net.minecraft.world.BossEvent;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.teleport.Teleport;
+import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +36,7 @@ public final class WarmupProcessor implements TeleportProcessor.Pre {
         // 预热取配置值与 sparrow.teleport-warmup.<秒> 中最小的节点
         int seconds = SparrowPlugin.instance().compatibilityManager().permissionMinimum(player.platformPlayer(), SECONDS_NODE, this.seconds);
         if (seconds <= 0) return PASS;
-        return SparrowPlugin.instance().teleportService().warmup(player, this, seconds);
+        return SparrowPlugin.instance().teleportService().warmupManager().start(player, this, seconds);
     }
 
     public boolean cancelOnMove() {
