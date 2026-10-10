@@ -5,6 +5,7 @@ import net.momirealms.sparrow.teleport.CooldownProcessor;
 import net.momirealms.sparrow.teleport.SoundProcessor;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.WarmupProcessor;
+import net.momirealms.sparrow.teleport.WorldBlacklistProcessor;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;
 import net.momirealms.sparrow.yaml.serializer.NodeSerializer;
@@ -22,6 +23,7 @@ public final class TeleportProcessorSerializer {
     private static final Map<String, Class<? extends TeleportProcessor>> TYPES = Map.of(
             "cooldown", CooldownProcessor.class,
             "warmup", WarmupProcessor.class,
+            "world-blacklist", WorldBlacklistProcessor.class,
             "sound", SoundProcessor.class
     );
 

@@ -33,6 +33,7 @@ public final class TeleportConfig {
         this.configFilePath = dataFolder.resolve(CONFIG_FILE);
         this.processorSerializer = new TeleportProcessorSerializer(sparrowYaml);
         sparrowYaml.serializers().register(new TypeRef<List<TeleportProcessor.Pre>>() {}, this.processorSerializer.serializer(TeleportProcessor.Pre.class));
+        sparrowYaml.serializers().register(new TypeRef<List<TeleportProcessor.Target>>() {}, this.processorSerializer.serializer(TeleportProcessor.Target.class));
         sparrowYaml.serializers().register(new TypeRef<List<TeleportProcessor.Post>>() {}, this.processorSerializer.serializer(TeleportProcessor.Post.class));
         this.configMapper = YamlMapperFactory.builder()
                 .sparrowYaml(sparrowYaml)
@@ -72,13 +73,13 @@ public final class TeleportConfig {
                 "The default teleport group. A feature uses it unless it names another group with teleport-group in features.yml.",
                 "A group lists the processors a teleport goes through at each stage. It only runs what it lists, so removing an entry turns that processor off.",
                 "An entry that is written wrong is ignored and reported in the console.",
-                "Teleports started on behalf of another player, such as /warp <name> <player>, skip the cooldown and the warmup."
+                "Teleports started on behalf of another player, such as /warp <name> <player>, skip the cooldown, the warmup and the world blacklist."
         })
         @Comment(lang = "zh", value = {
                 "默认传送分组. 功能没有在 features.yml 中用 teleport-group 指定其他分组时使用它.",
                 "分组列出一次传送在各个阶段要经过的处理器. 分组只执行列出的处理器, 删掉某一项即可关闭它.",
                 "写错的项会被忽略, 并在控制台给出警告.",
-                "代其他玩家发起的传送 (例如 /warp <名称> <玩家>) 不经过冷却和预热."
+                "代其他玩家发起的传送 (例如 /warp <名称> <玩家>) 不经过冷却、预热和世界黑名单."
         })
         @YamlProperty("default")
         TeleportGroup defaultGroup = TeleportGroup.createDefault();

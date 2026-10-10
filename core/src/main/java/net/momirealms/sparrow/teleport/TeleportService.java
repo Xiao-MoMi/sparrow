@@ -7,7 +7,9 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerListener;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.redis.message.teleport.TeleportRequest;
+import net.momirealms.sparrow.redis.message.teleport.TeleportResponse;
 import net.momirealms.sparrow.redis.proxy.ConnectResult;
 import org.bukkit.event.HandlerList;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -26,12 +28,15 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class TeleportService implements Listener, PlayerListener {
+    private static final TeleportGroup DIRECT = new TeleportGroup(); // 直接传送使用的空分组
+
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, TeleportWarmup> warmups = new ConcurrentChainedObject2ObjectHashTable<>();
     private final Cache<UUID, Arrival> arrivals = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
@@ -59,34 +64,24 @@ public final class TeleportService implements Listener, PlayerListener {
         BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
         if (sparrow == null) return CompletableFuture.completedFuture(TeleportResult.FAILED);
         Teleport teleport = new Teleport(player.getUniqueId(), type, server, destination, self);
-        TeleportGroup group = this.group(type);
+        List<TeleportProcessor.Pre> processors = this.group(type).preProcessor();
         // 出发前处理器逐个执行, 前一个放行后才轮到下一个
         CompletableFuture<Component> denial = TeleportProcessor.PASS;
-        for (TeleportProcessor.Pre processor : group.preProcessor()) {
+        for (TeleportProcessor.Pre processor : processors) {
             denial = denial.thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(reason) : processor.before(sparrow, teleport));
         }
         return denial
-                .thenCompose(reason -> {
-                    if (reason == null) return this.transfer(player, server, destination);
-                    if (!reason.equals(Component.empty())) sparrow.sendMessage(sparrow.render(reason));
-                    return CompletableFuture.completedFuture(TeleportResult.REJECTED);
-                })
+                .thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(this.reject(player, reason)) : this.transfer(player, teleport))
                 .thenApply(result -> {
-                    // 到达后处理器只在本服到达时执行, 跨服到达发生在对方服务器上
-                    BukkitSparrowPlayer arrived = result == TeleportResult.LOCAL_SUCCESS ? this.plugin.playerManager().getPlayer(player) : null;
-                    if (arrived != null) {
-                        for (TeleportProcessor.Post processor : group.postProcessor()) {
-                            processor.arrived(arrived, teleport);
-                        }
-                    }
-                    for (TeleportProcessor.Pre processor : group.preProcessor()) {
+                    for (TeleportProcessor.Pre processor : processors) {
                         processor.finished(teleport, result);
                     }
                     return result;
                 });
     }
 
-    private TeleportGroup group(TeleportType type) {
+    private TeleportGroup group(@Nullable TeleportType type) {
+        if (type == null) return DIRECT;
         FeaturesConfig.ConfigDefinition features = this.plugin.configurationManager().featuresConfig().config();
         return TeleportConfig.group(switch (type) {
             case WARP -> features.warp().teleportGroup();
@@ -117,30 +112,43 @@ public final class TeleportService implements Listener, PlayerListener {
     }
 
     /**
-     * 把玩家送到指定服务器上的位置.
-     * 本服直接传送, 其他服务器会先预留出生位置再请求代理切服.
+     * 不经过任何处理器, 直接把玩家送到指定服务器上的位置.
      *
      * @return 传送结果, 落点预留或代理切服请求等待超过 5 秒时以 {@link TimeoutException} 异常完成
      */
     @NotNull
     public CompletableFuture<TeleportResult> transfer(@NotNull Player player, @NotNull String server, @NotNull WorldLocation location) {
+        return this.transfer(player, new Teleport(player.getUniqueId(), null, server, location, false));
+    }
+
+    // 本服直接传送, 其他服务器会先请对方预留落点再请求代理切服. 落点处理器由落点所在的服务器执行
+    private CompletableFuture<TeleportResult> transfer(Player player, Teleport teleport) {
+        String server = teleport.server();
         if (ServerConfig.serverId().equals(server)) {
-            Location destination = location.resolve();
-            if (destination == null) {
-                return CompletableFuture.completedFuture(TeleportResult.INVALID);
-            }
-            CompletableFuture<Boolean> teleport = VersionHelper.hasPaperPatch
-                    ? player.teleportAsync(destination, TeleportCause.PLUGIN)
-                    : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
-            return teleport.thenApply(success -> success ? TeleportResult.LOCAL_SUCCESS : TeleportResult.FAILED);
+            return this.destination(teleport).thenCompose(reason -> {
+                if (reason != null) return CompletableFuture.completedFuture(this.reject(player, reason));
+                Location destination = teleport.location().resolve();
+                if (destination == null) return CompletableFuture.completedFuture(TeleportResult.INVALID);
+                CompletableFuture<Boolean> moved = VersionHelper.hasPaperPatch
+                        ? player.teleportAsync(destination, TeleportCause.PLUGIN)
+                        : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
+                return moved.thenApply(success -> {
+                    if (!success) return TeleportResult.FAILED;
+                    BukkitSparrowPlayer arrived = this.plugin.playerManager().getPlayer(player);
+                    if (arrived != null) this.arrived(arrived, teleport);
+                    return TeleportResult.LOCAL_SUCCESS;
+                });
+            });
         }
         if (!this.plugin.serverDirectory().isOnline(server)) {
             return CompletableFuture.completedFuture(TeleportResult.SERVER_OFFLINE);
         }
         return this.plugin.messageBrokerManager().broker()
-                .publishTwoWay(new TeleportRequest(player.getUniqueId(), location), server)
+                .publishTwoWay(new TeleportRequest(teleport), server)
                 .orTimeout(5, TimeUnit.SECONDS)
                 .thenCompose(response -> {
+                    Component denial = response.denial();
+                    if (denial != null) return CompletableFuture.completedFuture(this.reject(player, denial));
                     if (!response.accepted()) return CompletableFuture.completedFuture(TeleportResult.INVALID);
                     BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
                     if (sparrow == null || !player.isOnline()) return CompletableFuture.completedFuture(TeleportResult.FAILED);
@@ -149,22 +157,55 @@ public final class TeleportService implements Listener, PlayerListener {
                 });
     }
 
-    public boolean prepare(@NotNull UUID player, @NotNull WorldLocation location) {
-        if (location.resolve() == null) return false;
-        this.arrivals.put(player, new Arrival(location, false));
-        return true;
+    /**
+     * 为其他服务器送来的玩家执行落点处理器, 全部放行后预留落点等玩家进服.
+     *
+     * @return 给来源服务器的回应, 被拒绝时带有给玩家的提示
+     */
+    @NotNull
+    public CompletableFuture<TeleportResponse> prepare(@NotNull Teleport teleport) {
+        return this.destination(teleport).thenApply(reason -> {
+            if (reason != null) return new TeleportResponse(false, reason);
+            if (teleport.location().resolve() == null) return new TeleportResponse(false, null);
+            this.arrivals.put(teleport.player(), new Arrival(teleport, false));
+            return new TeleportResponse(true, null);
+        });
+    }
+
+    // 落点处理器逐个执行, 结果的含义与出发前处理器相同
+    private CompletableFuture<Component> destination(Teleport teleport) {
+        List<TeleportProcessor.Target> processors = this.group(teleport.type()).targetProcessor();
+        if (processors.isEmpty()) return TeleportProcessor.PASS;
+        return this.plugin.playerLookup().resolvePlayer(teleport.player()).thenCompose(found -> {
+            SparrowPlayer player = found.orElseThrow();
+            CompletableFuture<Component> denial = TeleportProcessor.PASS;
+            for (TeleportProcessor.Target processor : processors) {
+                denial = denial.thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(reason) : processor.destination(player, teleport));
+            }
+            return denial;
+        });
+    }
+
+    private void arrived(BukkitSparrowPlayer player, Teleport teleport) {
+        for (TeleportProcessor.Post processor : this.group(teleport.type()).postProcessor()) {
+            processor.arrived(player, teleport);
+        }
+    }
+
+    // 把拒绝的原因提示给被传送的玩家, 空组件表示处理器已经自行提示
+    private TeleportResult reject(Player player, Component reason) {
+        BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
+        if (sparrow != null && !reason.equals(Component.empty())) sparrow.sendMessage(sparrow.render(reason));
+        return TeleportResult.REJECTED;
     }
 
     @Nullable
-    public Location consumeSpawn(@NotNull UUID player) {
-        Arrival arrival = this.arrivals.asMap().remove(player);
-        if (arrival == null) return null;
-        Location location = arrival.location.resolve();
-        if (location == null || arrival.invalid) {
-            // 配置阶段还不能发送游戏聊天, 留到 Join 时提示.
-            this.arrivals.put(player, new Arrival(arrival.location, true));
-            return null;
-        }
+    public Location getSpawnLocation(@NotNull UUID player) {
+        Arrival arrival = this.arrivals.getIfPresent(player);
+        if (arrival == null || arrival.invalid) return null;
+        Location location = arrival.teleport.location().resolve();
+        // 记录留到 Join 再处理: 配置阶段还不能发送游戏聊天, 到达后处理器也要等玩家进入世界
+        this.arrivals.put(player, new Arrival(arrival.teleport, location == null));
         return location;
     }
 
@@ -181,8 +222,11 @@ public final class TeleportService implements Listener, PlayerListener {
     @Override
     public void onJoin(@NotNull BukkitSparrowPlayer player) {
         Arrival arrival = this.arrivals.asMap().remove(player.uniqueId());
-        if (arrival != null && arrival.invalid) {
+        if (arrival == null) return;
+        if (arrival.invalid) {
             player.sendMessage(MessageConstants.COMMAND_TP_OFFLINE_INVALID);
+        } else {
+            this.arrived(player, arrival.teleport);
         }
     }
 
@@ -211,6 +255,7 @@ public final class TeleportService implements Listener, PlayerListener {
         return this.plugin;
     }
 
-    private record Arrival(WorldLocation location, boolean invalid) {
+    // invalid 表示玩家进服时落点所在的世界已经不存在
+    private record Arrival(Teleport teleport, boolean invalid) {
     }
 }

@@ -49,12 +49,31 @@ public final class TeleportGroup {
 
     @BlankLineBefore
     @Comment({
-            "Processors that run after the player has arrived, from top to bottom.",
+            "Processors that run on the destination server before the landing spot is reserved. The player may still be on another server.",
+            "They run from top to bottom. Each one may reject the teleport or move the landing spot.",
+            "   world-blacklist - rejects teleports into the listed worlds.",
+            "     worlds: names of the worlds that players cannot teleport into.",
+            "     bypass-permission: players with this permission may enter anyway. Leave empty to let nobody through.",
+            "         Checking it for a player who is still on another server requires LuckPerms."
+    })
+    @Comment(lang = "zh", value = {
+            "落点处理器, 在落点所在的服务器上、预留落点之前执行. 此时玩家可能还在别的服务器上.",
+            "从上到下依次执行, 每一个都可以拒绝传送或改写落点.",
+            "   world-blacklist - 拒绝传送进入列出的世界.",
+            "     worlds: 禁止传送进入的世界名称.",
+            "     bypass-permission: 拥有此权限的玩家仍然可以进入. 留空表示任何人都不能进入.",
+            "         玩家还在别的服务器上时, 检查这个权限需要安装 LuckPerms."
+    })
+    private List<TeleportProcessor.Target> targetProcessor = List.of();
+
+    @BlankLineBefore
+    @Comment({
+            "Processors that run on the destination server after the player has arrived, from top to bottom.",
             "   sound - plays a sound to the player.",
             "     sound: a key such as entity.enderman.teleport, or a section with key, volume, pitch and source."
     })
     @Comment(lang = "zh", value = {
-            "到达后的处理器, 玩家到达落点后从上到下依次执行.",
+            "到达后的处理器, 玩家到达落点后在落点所在的服务器上从上到下依次执行.",
             "   sound - 给玩家播放一个音效.",
             "     sound: 音效名称, 例如 entity.enderman.teleport, 也可以写成包含 key、volume、pitch、source 的小节."
     })
@@ -64,6 +83,7 @@ public final class TeleportGroup {
     public static TeleportGroup createDefault() {
         TeleportGroup group = new TeleportGroup();
         group.preProcessor = List.of(new CooldownProcessor("teleport"), new WarmupProcessor());
+        group.targetProcessor = List.of(new WorldBlacklistProcessor());
         group.postProcessor = List.of(new SoundProcessor());
         return group;
     }
@@ -71,6 +91,11 @@ public final class TeleportGroup {
     @NotNull
     public List<TeleportProcessor.Pre> preProcessor() {
         return this.preProcessor;
+    }
+
+    @NotNull
+    public List<TeleportProcessor.Target> targetProcessor() {
+        return this.targetProcessor;
     }
 
     @NotNull

@@ -13,7 +13,7 @@ final class PaperArrivalListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(@NotNull AsyncPlayerSpawnLocationEvent event) {
-        Location location = this.service.consumeSpawn(event.getConnection().getProfile().getId());
+        Location location = this.service.getSpawnLocation(event.getConnection().getProfile().getId());
         if (location != null) {
             event.setSpawnLocation(location);
         }

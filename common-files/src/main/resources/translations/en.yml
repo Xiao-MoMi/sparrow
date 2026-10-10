@@ -765,6 +765,7 @@ teleport.cancelled.damaged: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 teleport.cancelled.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You moved, the teleport was cancelled</color>'
 teleport.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can teleport again in <color:#F2F4FF><arg:0></color> seconds</color>'
 teleport.processing: '<color:#FFE3A3>Teleporting…</color>'
+teleport.rejected.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You cannot teleport into that world</color>'
 teleport.warmup: '<color:#FFE3A3>Teleporting in <color:#F2F4FF><arg:0></color> seconds, do not move</color>'
 
 command.server.connecting-self: '<color:#FFE3A3>Connecting to <arg:0>...</color>'

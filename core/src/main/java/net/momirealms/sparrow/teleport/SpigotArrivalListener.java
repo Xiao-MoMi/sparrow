@@ -14,7 +14,7 @@ final class SpigotArrivalListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(@NotNull PlayerSpawnLocationEvent event) {
-        Location location = this.service.consumeSpawn(event.getPlayer().getUniqueId());
+        Location location = this.service.getSpawnLocation(event.getPlayer().getUniqueId());
         if (location != null) {
             event.setSpawnLocation(location);
         }
