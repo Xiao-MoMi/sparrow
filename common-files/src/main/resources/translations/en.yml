@@ -496,6 +496,7 @@ command.repair.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 
 # command.reload
 command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Reload failed. Check the console log</color>'
+command.reload.config.issues: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The configuration has <color:#FFE08A><arg:0></color> error(s). Check the console log</color>'
 command.reload.config.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Configuration reloaded<color:#C8E4E9> (took <color:#FFE08A><arg:0></color> ms)</color></color>'
 command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>A reload is in progress. Please wait</color>'
 

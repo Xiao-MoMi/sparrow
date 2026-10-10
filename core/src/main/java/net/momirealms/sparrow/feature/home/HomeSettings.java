@@ -2,8 +2,6 @@ package net.momirealms.sparrow.feature.home;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
-import net.momirealms.sparrow.teleport.TeleportOptions;
-import net.momirealms.sparrow.teleport.TeleportType;
 import org.jetbrains.annotations.NotNull;
 import java.util.regex.Pattern;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
@@ -67,7 +65,7 @@ public final class HomeSettings implements FeatureSettings {
     }
 
     @NotNull
-    public TeleportOptions teleportOptions() {
-        return TeleportConfig.group(this.teleportGroup).createOptions(TeleportType.HOME);
+    public String teleportGroup() {
+        return this.teleportGroup;
     }
 }

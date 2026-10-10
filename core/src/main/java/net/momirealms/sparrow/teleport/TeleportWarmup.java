@@ -18,10 +18,12 @@ final class TeleportWarmup {
 
     private final TeleportService service;
     private final BukkitSparrowPlayer player;
-    private final TeleportOptions options;
-    private final CompletableFuture<Boolean> result;
+    private final WarmupProcessor options;
+    private final CompletableFuture<Component> result; // 结果的含义与出发前处理器相同
     private final Location start;
     private final UUID bossBarId = UUID.randomUUID();
+    private final Sound warmupSound;
+    private final Sound cancelSound;
     private final int warmupTicks;
     private int ticksLeft;
     private SchedulerTask task;
@@ -29,15 +31,18 @@ final class TeleportWarmup {
     TeleportWarmup(
             @NotNull TeleportService service,
             @NotNull BukkitSparrowPlayer player,
-            @NotNull TeleportOptions options,
-            @NotNull CompletableFuture<Boolean> result
+            @NotNull WarmupProcessor options,
+            int seconds,
+            @NotNull CompletableFuture<Component> result
     ) {
         this.service = service;
         this.player = player;
         this.options = options;
         this.result = result;
         this.start = player.platformPlayer().getLocation();
-        this.warmupTicks = options.warmupSeconds() * 20;
+        this.warmupSound = options.warmupSound();
+        this.cancelSound = options.cancelSound();
+        this.warmupTicks = seconds * 20;
         this.ticksLeft = this.warmupTicks;
     }
 
@@ -65,10 +70,10 @@ final class TeleportWarmup {
         }
         this.ticksLeft--;
         if (this.ticksLeft <= 0) {
-            this.stop(true);
+            this.stop(null);
             return;
         }
-        if (this.options.warmupDisplay() == WarmupDisplay.BOSS_BAR) {
+        if (this.options.display() == WarmupDisplay.BOSS_BAR) {
             this.player.updateBossBarProgress(this.bossBarId, (float) this.ticksLeft / this.warmupTicks);
         }
         // 每过一秒刷新一次倒计时
@@ -80,7 +85,7 @@ final class TeleportWarmup {
     // 按配置的位置显示剩余秒数并播放预热音效
     private void countdown() {
         Component seconds = Component.text(this.ticksLeft / 20);
-        switch (this.options.warmupDisplay()) {
+        switch (this.options.display()) {
             case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_WARMUP, seconds);
             case TITLE -> this.player.sendTitle(
                     Component.empty(),
@@ -101,10 +106,7 @@ final class TeleportWarmup {
             case NONE -> {
             }
         }
-        Sound warmupSound = this.options.warmupSound();
-        if (warmupSound != null) {
-            this.player.playSound(warmupSound);
-        }
+        this.player.playSound(this.warmupSound);
     }
 
     private boolean moved() {
@@ -114,18 +116,14 @@ final class TeleportWarmup {
 
     // reason 为 null 时静默取消, 例如被新的传送替换、玩家离开或插件关闭
     void cancel(@Nullable TranslatableComponent reason) {
-        if (!this.stop(false) || reason == null) {
+        if (!this.stop(reason == null ? Component.empty() : reason) || reason == null) {
             return;
         }
-        this.player.sendMessage(reason);
-        Sound cancelSound = this.options.cancelSound();
-        if (cancelSound != null) {
-            this.player.playSound(cancelSound);
-        }
+        this.player.playSound(this.cancelSound);
     }
 
-    // 多个线程同时结束时只有一方生效, 返回是否由本次结束
-    private boolean stop(boolean completed) {
+    // 多个线程同时结束时只有一方生效, 返回是否由本次结束. denial 为 null 表示倒计时走完
+    private boolean stop(@Nullable Component denial) {
         if (this.task != null) {
             this.task.cancel();
         }
@@ -135,9 +133,9 @@ final class TeleportWarmup {
         }
         this.hideBossBar();
         // 先替换掉倒计时再交出结果, 避免传送后客户端还显示着剩余秒数
-        if (completed) {
+        if (denial == null) {
             // 走完时在倒计时的位置显示正在传送;
-            switch (this.options.warmupDisplay()) {
+            switch (this.options.display()) {
                 case ACTION_BAR -> this.player.sendActionBar(MessageConstants.TELEPORT_PROCESSING);
                 case TITLE -> this.player.sendTitle(Component.empty(), this.player.render(MessageConstants.TELEPORT_PROCESSING), 0, 20, 5);
                 case BOSS_BAR, CHAT, NONE -> {
@@ -146,18 +144,18 @@ final class TeleportWarmup {
         } else {
             this.clearCountdown();
         }
-        return this.result.complete(completed);
+        return this.result.complete(denial);
     }
 
     private void hideBossBar() {
-        if (this.options.warmupDisplay() == WarmupDisplay.BOSS_BAR) {
+        if (this.options.display() == WarmupDisplay.BOSS_BAR) {
             this.player.hideBossBar(this.bossBarId);
         }
     }
 
     // 取消时主动清除动作栏和标题
     private void clearCountdown() {
-        switch (this.options.warmupDisplay()) {
+        switch (this.options.display()) {
             case ACTION_BAR -> this.player.sendActionBar(Component.empty());
             case TITLE -> this.player.clearTitle();
             case BOSS_BAR, CHAT, NONE -> {

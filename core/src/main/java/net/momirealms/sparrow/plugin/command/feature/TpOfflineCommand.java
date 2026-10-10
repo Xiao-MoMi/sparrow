@@ -78,7 +78,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                                                     case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
                                                     case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
                                                     case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
-                                                    case COOLDOWN, CANCELLED -> null;
+                                                    case REJECTED -> null;
                                                 };
                                                 if (message != null) {
                                                     this.handleFeedback(

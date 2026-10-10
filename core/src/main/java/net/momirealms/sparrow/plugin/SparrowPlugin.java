@@ -278,20 +278,20 @@ public class SparrowPlugin implements Plugin {
                             () -> {
                                 // 执行异步重载任务
                                 long startTime = System.currentTimeMillis();
-                                this.configurationManager.reload();
+                                int issues = this.configurationManager.reload();
                                 this.translationManager.reload();
                                 this.featureManager.onReloadAsync();
-                                return System.currentTimeMillis() - startTime;
+                                return ReloadResult.success(System.currentTimeMillis() - startTime, 0, issues);
                             },
                             asyncExecutor
                     )
                     .thenApplyAsync(
-                            asyncTime -> {
+                            async -> {
                                 // 执行同步重载任务
                                 long syncStartTime = System.currentTimeMillis();
                                 this.featureManager.onReloadFinish();
                                 long syncTime = disableTime + System.currentTimeMillis() - syncStartTime;
-                                return ReloadResult.success(asyncTime, syncTime, 0);
+                                return ReloadResult.success(async.asyncTime(), syncTime, async.issues());
                             },
                             syncExecutor
                     )

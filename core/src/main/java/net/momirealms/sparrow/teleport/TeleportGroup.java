@@ -1,129 +1,80 @@
 package net.momirealms.sparrow.teleport;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.sound.Sound;
-import net.minecraft.world.BossEvent;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class TeleportGroup {
     @Comment({
-            "Processors to run, in order. Built-in processors:",
+            "Processors that run before departure, on the server the player is leaving.",
+            "They run from top to bottom, and the teleport stops at the first one that rejects it.",
+            "Every entry needs processor-type. An option left out of an entry takes its built-in default.",
             "   cooldown - rejects the teleport while the cooldown is running, and starts the cooldown after a successful teleport.",
-            "   warmup - makes the player wait in place before leaving, with a countdown and sounds.",
-            "   world-blacklist - rejects teleports into the listed worlds."
+            "     id: required. Teleports with the same cooldown ID share one cooldown.",
+            "     seconds: cooldown seconds, shared across servers. 0 disables it.",
+            "     bypass-permission: players with this permission are not held by the cooldown. Leave empty to let nobody skip it.",
+            "   warmup - makes the player wait in place before leaving.",
+            "     seconds: seconds to wait. sparrow.teleport-warmup.<seconds> overrides it.",
+            "     bypass-permission: players with this permission leave at once. Leave empty to let nobody skip the warmup.",
+            "     cancel-on-move, cancel-on-damage: cancel the warmup when the player moves or takes damage.",
+            "     display: where the countdown is shown. ACTION_BAR, TITLE, BOSS_BAR, CHAT or NONE.",
+            "     boss-bar-color: PINK, BLUE, RED, GREEN, YELLOW, PURPLE or WHITE.",
+            "     boss-bar-overlay: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12 or NOTCHED_20.",
+            "     warmup-sound, cancel-sound: played every second of the countdown and when the warmup is cancelled.",
+            "         A sound is a key such as block.note_block.banjo, or a section with key, volume, pitch and source. Leave empty to play nothing."
     })
     @Comment(lang = "zh", value = {
-            "按顺序执行的处理器. 内置处理器:",
+            "出发前的处理器, 在玩家当前所在的服务器上执行.",
+            "从上到下依次执行, 其中一个拒绝后传送就此中止.",
+            "每一项都要写 processor-type. 某一项没有写出的选项使用内置默认值.",
             "   cooldown - 冷却期间拒绝传送, 传送成功后开始冷却.",
-            "   warmup - 出发前让玩家原地等待, 带倒计时和音效.",
-            "   world-blacklist - 拒绝传送进入列出的世界."
+            "     id: 必填. 冷却 ID 相同的传送共用一份冷却.",
+            "     seconds: 冷却秒数, 跨服共享. 0 表示不限制.",
+            "     bypass-permission: 拥有此权限的玩家不受冷却限制. 留空表示任何人都不能跳过.",
+            "   warmup - 出发前让玩家原地等待.",
+            "     seconds: 等待的秒数. sparrow.teleport-warmup.<秒> 可覆盖.",
+            "     bypass-permission: 拥有此权限的玩家立即出发. 留空表示任何人都不能跳过预热.",
+            "     cancel-on-move, cancel-on-damage: 等待期间移动或受伤时是否取消传送.",
+            "     display: 倒计时显示位置. ACTION_BAR (动作栏)、TITLE (屏幕中央)、BOSS_BAR (进度条)、CHAT (聊天栏) 或 NONE (不显示).",
+            "     boss-bar-color: PINK、BLUE、RED、GREEN、YELLOW、PURPLE 或 WHITE.",
+            "     boss-bar-overlay: PROGRESS、NOTCHED_6、NOTCHED_10、NOTCHED_12 或 NOTCHED_20.",
+            "     warmup-sound, cancel-sound: 分别在倒计时每秒和预热被取消时播放.",
+            "         音效可以只写名称, 例如 block.note_block.banjo, 也可以写成包含 key、volume、pitch、source 的小节. 留空表示不播放."
     })
-    private List<String> processors = List.of("cooldown", "warmup", "world-blacklist");
+    private List<TeleportProcessor.Pre> preProcessor = List.of();
 
     @BlankLineBefore
-    @Comment("Options of the cooldown processor.")
-    @Comment(lang = "zh", value = "cooldown 处理器的选项.")
-    private Cooldown cooldown = new Cooldown();
+    @Comment({
+            "Processors that run after the player has arrived, from top to bottom.",
+            "   sound - plays a sound to the player.",
+            "     sound: a key such as entity.enderman.teleport, or a section with key, volume, pitch and source."
+    })
+    @Comment(lang = "zh", value = {
+            "到达后的处理器, 玩家到达落点后从上到下依次执行.",
+            "   sound - 给玩家播放一个音效.",
+            "     sound: 音效名称, 例如 entity.enderman.teleport, 也可以写成包含 key、volume、pitch、source 的小节."
+    })
+    private List<TeleportProcessor.Post> postProcessor = List.of();
 
-    @BlankLineBefore
-    @Comment("Options of the warmup processor.")
-    @Comment(lang = "zh", value = "warmup 处理器的选项.")
-    private Warmup warmup = new Warmup();
-
-    @BlankLineBefore
-    @Comment("Options of the world-blacklist processor.")
-    @Comment(lang = "zh", value = "world-blacklist 处理器的选项.")
-    private WorldBlacklist worldBlacklist = new WorldBlacklist();
-
-    // 把分组选项整理成传送服务使用的参数快照.
     @NotNull
-    public TeleportOptions createOptions(@NotNull TeleportType type) {
-        return new TeleportOptions(
-                this.cooldown.id.isEmpty() ? type.id() : this.cooldown.id,
-                Math.max(0, this.warmup.seconds),
-                Math.max(0, this.cooldown.seconds),
-                this.warmup.cancelOnMove,
-                this.warmup.cancelOnDamage,
-                this.warmup.display,
-                this.warmup.bossBarColor,
-                this.warmup.bossBarOverlay,
-                parseSound(this.warmup.warmupSound),
-                parseSound(this.warmup.completeSound),
-                parseSound(this.warmup.cancelSound)
-        );
+    public static TeleportGroup createDefault() {
+        TeleportGroup group = new TeleportGroup();
+        group.preProcessor = List.of(new CooldownProcessor("teleport"), new WarmupProcessor());
+        group.postProcessor = List.of(new SoundProcessor());
+        return group;
     }
 
-    @Nullable
-    private static Sound parseSound(@NotNull String key) {
-        if (key.isEmpty() || !Key.parseable(key)) return null;
-        return Sound.sound(Key.key(key), Sound.Source.MASTER, 1.0f, 1.0f);
+    @NotNull
+    public List<TeleportProcessor.Pre> preProcessor() {
+        return this.preProcessor;
     }
 
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static final class Cooldown {
-        @Comment({
-                "Teleports with the same cooldown ID share one cooldown.",
-                "Leave empty to use the kind of teleport as the ID, so that home, warp, back and the others each have their own cooldown."
-        })
-        @Comment(lang = "zh", value = {
-                "冷却 ID 相同的传送共用一份冷却.",
-                "留空时以传送的种类作为 ID, home、warp、back 等各自独立冷却."
-        })
-        private String id = "";
-
-        @Comment("Cooldown seconds, shared across servers. 0 disables it, sparrow.bypass.teleport-cooldown skips it.")
-        @Comment(lang = "zh", value = "冷却秒数, 跨服共享. 0 表示不限制, sparrow.bypass.teleport-cooldown 可跳过.")
-        private int seconds = 0;
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static final class Warmup {
-        @Comment("Seconds to wait before teleporting. sparrow.teleport-warmup.<seconds> overrides it, sparrow.bypass.teleport-warmup skips it.")
-        @Comment(lang = "zh", value = "传送前的预热秒数. sparrow.teleport-warmup.<秒> 可覆盖, sparrow.bypass.teleport-warmup 可跳过.")
-        private int seconds = 3;
-
-        @Comment("Cancel the warmup when the player moves or takes damage.")
-        @Comment(lang = "zh", value = "预热期间移动或受伤时是否取消传送.")
-        private boolean cancelOnMove = true;
-        private boolean cancelOnDamage = true;
-
-        @BlankLineBefore
-        @Comment("Where the warmup countdown is shown: ACTION_BAR, TITLE, BOSS_BAR, CHAT or NONE.")
-        @Comment(lang = "zh", value = "预热倒计时显示位置: ACTION_BAR (动作栏)、TITLE (屏幕中央)、BOSS_BAR (进度条)、CHAT (聊天栏) 或 NONE (不显示).")
-        private WarmupDisplay display = WarmupDisplay.ACTION_BAR;
-
-        @Comment("Boss bar color: PINK, BLUE, RED, GREEN, YELLOW, PURPLE or WHITE.")
-        @Comment(lang = "zh", value = "BossBar 颜色: PINK、BLUE、RED、GREEN、YELLOW、PURPLE 或 WHITE.")
-        private BossEvent.BossBarColor bossBarColor = BossEvent.BossBarColor.YELLOW;
-
-        @Comment("Boss bar style: PROGRESS, NOTCHED_6, NOTCHED_10, NOTCHED_12 or NOTCHED_20.")
-        @Comment(lang = "zh", value = "BossBar 样式: PROGRESS、NOTCHED_6、NOTCHED_10、NOTCHED_12 或 NOTCHED_20.")
-        private BossEvent.BossBarOverlay bossBarOverlay = BossEvent.BossBarOverlay.PROGRESS;
-
-        @Comment({
-                "Sound keys, such as entity.enderman.teleport. Leave empty to play nothing.",
-                "warmup-sound plays every second of the countdown, cancel-sound when the warmup is cancelled, complete-sound on arrival."
-        })
-        @Comment(lang = "zh", value = {
-                "音效名称, 例如 entity.enderman.teleport. 留空表示不播放.",
-                "warmup-sound 在倒计时每秒播放, cancel-sound 在预热被取消时播放, complete-sound 在到达时播放."
-        })
-        private String warmupSound = "block.note_block.banjo";
-        private String cancelSound = "entity.item.break";
-        private String completeSound = "entity.enderman.teleport";
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static final class WorldBlacklist {
-        @Comment("Worlds that players cannot teleport into. The server the world belongs to runs the check.")
-        @Comment(lang = "zh", value = "禁止传送进入的世界, 由世界所在的服务器检查.")
-        private List<String> worlds = List.of();
+    @NotNull
+    public List<TeleportProcessor.Post> postProcessor() {
+        return this.postProcessor;
     }
 }

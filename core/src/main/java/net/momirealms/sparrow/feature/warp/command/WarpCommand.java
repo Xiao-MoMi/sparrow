@@ -5,7 +5,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.feature.warp.Warp;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -66,9 +66,8 @@ public final class WarpCommand extends BukkitCommandFeature {
             return;
         }
         boolean self = target == context.sender();
-        TeleportOptions options = this.feature.config().teleportOptions().resolve(target, self);
         this.plugin().teleportService()
-                .teleport(target, warp.server(), warp.location(), options)
+                .teleport(target, TeleportType.WARP, warp.server(), warp.location(), self)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {
                         case LOCAL_SUCCESS -> self ? MessageConstants.COMMAND_WARP_SUCCESS_SELF : MessageConstants.COMMAND_WARP_SUCCESS;
@@ -76,8 +75,8 @@ public final class WarpCommand extends BukkitCommandFeature {
                         case SERVER_OFFLINE -> MessageConstants.COMMAND_WARP_SERVER_OFFLINE;
                         case INVALID -> MessageConstants.COMMAND_WARP_INVALID;
                         case FAILED -> self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
-                        // 冷却与取消的原因已经提示给玩家本人
-                        case COOLDOWN, CANCELLED -> null;
+                        // 被拒绝的原因已经提示给被传送的玩家
+                        case REJECTED -> self ? null : MessageConstants.COMMAND_TELEPORT_FAILURE;
                     };
                     if (message == null) {
                         return;

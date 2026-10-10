@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.feature.spawn.Spawn;
 import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -76,9 +76,8 @@ public final class SpawnCommand extends BukkitCommandFeature {
             return;
         }
         Player player = context.sender();
-        TeleportOptions options = this.feature.config().teleportOptions().resolve(player, true);
         this.plugin().teleportService()
-                .teleport(player, spawn.server(), spawn.location(), options)
+                .teleport(player, TeleportType.SPAWN, spawn.server(), spawn.location(), true)
                 .thenAccept(result -> {
                     switch (result) {
                         case LOCAL_SUCCESS -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_SUCCESS);
@@ -89,7 +88,7 @@ public final class SpawnCommand extends BukkitCommandFeature {
                         );
                         case INVALID -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_INVALID);
                         case FAILED -> this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-                        case REMOTE_SUCCESS, COOLDOWN, CANCELLED -> {
+                        case REMOTE_SUCCESS, REJECTED -> {
                         }
                     }
                 })

@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.database.PlayerData;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -43,7 +43,6 @@ public final class DeathBackCommand extends BukkitCommandFeature {
         }
         BackFeature back = this.plugin().featureManager().feature(BackFeature.ID, BackFeature.class);
         boolean self = player == context.sender();
-        TeleportOptions options = back.config().deathTeleportOptions().resolve(player, self);
         back.loadDeath(player.getUniqueId())
                 .thenCompose(found -> {
                     if (found.isEmpty() || found.get().lastDeathLocation() == null) {
@@ -51,7 +50,7 @@ public final class DeathBackCommand extends BukkitCommandFeature {
                         return CompletableFuture.completedFuture(null);
                     }
                     PlayerData data = found.get();
-                    return this.send(context, player, data.lastDeathServer(), data.lastDeathLocation(), options);
+                    return this.send(context, player, data.lastDeathServer(), data.lastDeathLocation());
                 })
                 .exceptionally(error -> {
                     Throwable cause = error instanceof CompletionException ? error.getCause() : error;
@@ -69,12 +68,11 @@ public final class DeathBackCommand extends BukkitCommandFeature {
             @NotNull CommandContext<CommandSender> context,
             @NotNull Player player,
             @NotNull String server,
-            @NotNull WorldLocation location,
-            @NotNull TeleportOptions options
+            @NotNull WorldLocation location
     ) {
         boolean self = player == context.sender();
         return this.plugin().teleportService()
-                .teleport(player, server, location, options)
+                .teleport(player, TeleportType.DEATH_BACK, server, location, self)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {
                         case LOCAL_SUCCESS -> (self ? MessageConstants.COMMAND_DEATH_BACK_SUCCESS_SELF : MessageConstants.COMMAND_DEATH_BACK_SUCCESS);
@@ -82,7 +80,7 @@ public final class DeathBackCommand extends BukkitCommandFeature {
                         case SERVER_OFFLINE -> MessageConstants.COMMAND_DEATH_BACK_SERVER_OFFLINE;
                         case INVALID -> MessageConstants.COMMAND_DEATH_BACK_INVALID;
                         case FAILED -> (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
-                        case COOLDOWN, CANCELLED -> null;
+                        case REJECTED -> self ? null : MessageConstants.COMMAND_TELEPORT_FAILURE;
                     };
                     if (message != null) {
                         this.handleFeedback(context, message, Component.text(player.getName()), Component.text(server));

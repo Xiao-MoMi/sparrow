@@ -39,6 +39,9 @@ public final class ReloadCommand extends BukkitCommandFeature {
                                                 Component.text(reloadResult.asyncTime()),
                                                 Component.text(reloadResult.syncTime())
                                         );
+                                        if (reloadResult.issues() > 0) {
+                                            this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_CONFIG_ISSUES, Component.text(reloadResult.issues()));
+                                        }
                                     });
                         })));
     }

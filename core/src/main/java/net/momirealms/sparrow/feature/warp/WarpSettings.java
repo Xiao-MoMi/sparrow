@@ -1,9 +1,6 @@
 package net.momirealms.sparrow.feature.warp;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
-import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
-import net.momirealms.sparrow.teleport.TeleportOptions;
-import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
@@ -62,11 +59,5 @@ public final class WarpSettings implements FeatureSettings {
     @NotNull
     public String teleportGroup() {
         return this.teleportGroup;
-    }
-
-    // 玩家自己传送时的默认参数, 实际参数由 TeleportOptions.resolve 按权限与命令参数调整
-    @NotNull
-    public TeleportOptions teleportOptions() {
-        return TeleportConfig.group(this.teleportGroup).createOptions(TeleportType.WARP);
     }
 }

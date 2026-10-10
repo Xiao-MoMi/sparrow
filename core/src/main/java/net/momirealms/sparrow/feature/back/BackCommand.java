@@ -4,7 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.teleport.TeleportOptions;
+import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -43,11 +43,10 @@ public final class BackCommand extends BukkitCommandFeature {
             return;
         }
         BackFeature back = this.plugin().featureManager().feature(BackFeature.ID, BackFeature.class);
-        TeleportOptions options = back.config().teleportOptions().resolve(player, player == context.sender());
         WorldLocation point = back.point(player.getUniqueId());
         CompletableFuture<Void> transfer;
         if (point != null) {
-            transfer = this.send(context, player, ServerConfig.serverId(), point, options);
+            transfer = this.send(context, player, ServerConfig.serverId(), point);
         } else {
             // 本服没有记录时才查询上一个服务器的下线位置, 玩家还没完成进服处理时无法判断是否刚切服
             BukkitSparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
@@ -62,7 +61,7 @@ public final class BackCommand extends BukkitCommandFeature {
                             );
                             return CompletableFuture.completedFuture(null);
                         }
-                        return this.send(context, player, found.get().lastLogoutServer(), found.get().lastLogoutLocation(), options);
+                        return this.send(context, player, found.get().lastLogoutServer(), found.get().lastLogoutLocation());
                     });
         }
         transfer.exceptionally(error -> {
@@ -81,15 +80,9 @@ public final class BackCommand extends BukkitCommandFeature {
         });
     }
 
-    private CompletableFuture<Void> send(
-            CommandContext<CommandSender> context,
-            Player player,
-            String server,
-            WorldLocation location,
-            TeleportOptions options
-    ) {
+    private CompletableFuture<Void> send(CommandContext<CommandSender> context, Player player, String server, WorldLocation location) {
         return this.plugin().teleportService()
-                .teleport(player, server, location, options)
+                .teleport(player, TeleportType.BACK, server, location, player == context.sender())
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {
                         case LOCAL_SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_BACK_SUCCESS_SELF : MessageConstants.COMMAND_BACK_SUCCESS);
@@ -97,7 +90,7 @@ public final class BackCommand extends BukkitCommandFeature {
                         case SERVER_OFFLINE -> MessageConstants.COMMAND_BACK_SERVER_OFFLINE;
                         case INVALID -> MessageConstants.COMMAND_BACK_INVALID;
                         case FAILED -> (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
-                        case COOLDOWN, CANCELLED -> null;
+                        case REJECTED -> player == context.sender() ? null : MessageConstants.COMMAND_TELEPORT_FAILURE;
                     };
                     if (message != null) {
                         this.handleFeedback(context, message, Component.text(player.getName()), Component.text(server));

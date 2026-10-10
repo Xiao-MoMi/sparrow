@@ -227,6 +227,7 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_RELOAD_TOO_FAST = Component.translatable("command.reload.too_fast");
     TranslatableComponent COMMAND_RELOAD_CONFIG_SUCCESS = Component.translatable("command.reload.config.success");
     TranslatableComponent COMMAND_RELOAD_CONFIG_FAILURE = Component.translatable("command.reload.config.failure");
+    TranslatableComponent COMMAND_RELOAD_CONFIG_ISSUES = Component.translatable("command.reload.config.issues");
     TranslatableComponent COMMAND_FEATURE_UNKNOWN = Component.translatable("command.feature.unknown");
     TranslatableComponent COMMAND_FEATURE_DISABLED = Component.translatable("command.feature.disabled");
     TranslatableComponent COMMAND_FEATURE_BUSY = Component.translatable("command.feature.busy");

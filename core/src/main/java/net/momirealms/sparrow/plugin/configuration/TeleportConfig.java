@@ -1,10 +1,13 @@
 package net.momirealms.sparrow.plugin.configuration;
 
+import net.momirealms.sparrow.plugin.configuration.serializer.TeleportProcessorSerializer;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.teleport.TeleportGroup;
+import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.mapper.YamlMapper;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
+import net.momirealms.sparrow.yaml.serializer.TypeRef;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -14,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 public final class TeleportConfig {
@@ -22,19 +26,25 @@ public final class TeleportConfig {
     private static volatile ConfigDefinition config; // 重载会换上完整的新快照, 读取可能发生在不同线程
 
     private final Path configFilePath;
+    private final TeleportProcessorSerializer processorSerializer;
     private final YamlMapper<ConfigDefinition> configMapper;
 
     TeleportConfig(@NotNull Path dataFolder, @NotNull SparrowYaml sparrowYaml) {
         this.configFilePath = dataFolder.resolve(CONFIG_FILE);
+        this.processorSerializer = new TeleportProcessorSerializer(sparrowYaml);
+        sparrowYaml.serializers().register(new TypeRef<List<TeleportProcessor.Pre>>() {}, this.processorSerializer.serializer(TeleportProcessor.Pre.class));
+        sparrowYaml.serializers().register(new TypeRef<List<TeleportProcessor.Post>>() {}, this.processorSerializer.serializer(TeleportProcessor.Post.class));
         this.configMapper = YamlMapperFactory.builder()
                 .sparrowYaml(sparrowYaml)
                 .build()
                 .create(ConfigDefinition.class, ConfigDefinition::new);
     }
 
-    void reload() {
+    // 返回这次加载中被忽略的处理器数量
+    int reload() {
         try {
             config = this.configMapper.load(this.configFilePath).value();
+            return this.processorSerializer.takeIssues();
         } catch (IOException exception) {
             throw new UncheckedIOException("Failed to load " + CONFIG_FILE, exception);
         }
@@ -60,35 +70,35 @@ public final class TeleportConfig {
         @BlankLineBefore
         @Comment({
                 "The default teleport group. A feature uses it unless it names another group with teleport-group in features.yml.",
-                "A teleport passes through the processors of its group in the listed order. Each processor either lets it continue or rejects it.",
-                "Remove a processor from the list to turn it off. Its options below are then ignored.",
-                "Processors registered by other plugins are used the same way, by adding their ID to the list.",
+                "A group lists the processors a teleport goes through at each stage. It only runs what it lists, so removing an entry turns that processor off.",
+                "An entry that is written wrong is ignored and reported in the console.",
                 "Teleports started on behalf of another player, such as /warp <name> <player>, skip the cooldown and the warmup."
         })
         @Comment(lang = "zh", value = {
                 "默认传送分组. 功能没有在 features.yml 中用 teleport-group 指定其他分组时使用它.",
-                "传送会按列表顺序依次经过分组中的处理器, 每个处理器可以放行或拒绝这次传送.",
-                "从列表中删掉某个处理器即可关闭它, 下方对应的选项随之失效.",
-                "其他插件注册的处理器用法相同, 把它的 ID 写进列表即可.",
+                "分组列出一次传送在各个阶段要经过的处理器. 分组只执行列出的处理器, 删掉某一项即可关闭它.",
+                "写错的项会被忽略, 并在控制台给出警告.",
                 "代其他玩家发起的传送 (例如 /warp <名称> <玩家>) 不经过冷却和预热."
         })
         @YamlProperty("default")
-        TeleportGroup defaultGroup = new TeleportGroup();
+        TeleportGroup defaultGroup = TeleportGroup.createDefault();
 
         @BlankLineBefore
         @Comment({
-                "Custom groups, written the same way as \"default\". Options left out take the built-in defaults, not the values of \"default\".",
-                "Example, a group without cooldown or warmup:",
+                "Custom groups, written the same way as \"default\". A stage left out of a group runs nothing.",
+                "Example, a group that teleports at once and only plays the arrival sound:",
                 "groups:",
                 "   instant:",
-                "     processors: []"
+                "     post-processor:",
+                "       - processor-type: sound"
         })
         @Comment(lang = "zh", value = {
-                "自定义分组, 写法与 default 相同. 没有写出的选项使用内置默认值, 不继承 default 中的值.",
-                "示例, 一个没有冷却和预热的分组:",
+                "自定义分组, 写法与 default 相同. 分组里没有写出的阶段不执行任何处理器.",
+                "示例, 一个立即传送、只播放到达音效的分组:",
                 "groups:",
                 "   instant:",
-                "     processors: []"
+                "     post-processor:",
+                "       - processor-type: sound"
         })
         Map<String, TeleportGroup> groups = Map.of();
     }

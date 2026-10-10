@@ -36,11 +36,13 @@ public class ConfigurationManager {
     /**
      * 重新加载允许运行时更新的配置快照.
      */
-    public void reload() {
+    public int reload() {
+        int issues = 0;
         this.pluginConfig.reload();
         this.serverConfig.reload();
-        this.teleportConfig.reload();
+        issues += this.teleportConfig.reload();
         this.featuresConfig.reload();
+        return issues;
     }
 
     @NotNull

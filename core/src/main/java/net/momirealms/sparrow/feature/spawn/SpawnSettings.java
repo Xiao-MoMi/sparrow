@@ -1,9 +1,6 @@
 package net.momirealms.sparrow.feature.spawn;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
-import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
-import net.momirealms.sparrow.teleport.TeleportOptions;
-import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +26,5 @@ public final class SpawnSettings implements FeatureSettings {
     @NotNull
     public String teleportGroup() {
         return this.teleportGroup;
-    }
-
-    @NotNull
-    public TeleportOptions teleportOptions() {
-        return TeleportConfig.group(this.teleportGroup).createOptions(TeleportType.SPAWN);
     }
 }

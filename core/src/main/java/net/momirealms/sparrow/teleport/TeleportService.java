@@ -3,8 +3,6 @@ package net.momirealms.sparrow.teleport;
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import io.lettuce.core.SetArgs;
-import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
@@ -13,7 +11,9 @@ import net.momirealms.sparrow.redis.message.teleport.TeleportRequest;
 import net.momirealms.sparrow.redis.proxy.ConnectResult;
 import org.bukkit.event.HandlerList;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
+import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;
@@ -26,15 +26,12 @@ import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class TeleportService implements Listener, PlayerListener {
-    private static final String COOLDOWN_PREFIX = "sparrow:teleport-cooldown:"; // 后接冷却 ID 与玩家 UUID, 过期即冷却结束
-
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, TeleportWarmup> warmups = new ConcurrentChainedObject2ObjectHashTable<>();
     private final Cache<UUID, Arrival> arrivals = Caffeine.newBuilder().expireAfterWrite(10, TimeUnit.SECONDS).build();
@@ -47,91 +44,76 @@ public final class TeleportService implements Listener, PlayerListener {
     }
 
     /**
-     * 按参数检查冷却、原地预热后把玩家送到目标位置.
+     * 让玩家依次经过所属传送分组的处理器, 全部放行后送到目标位置.
      *
      * @return 传送结果, 落点预留或代理切服请求等待超过 5 秒时以 {@link TimeoutException} 异常完成
      */
     @NotNull
     public CompletableFuture<TeleportResult> teleport(
             @NotNull Player player,
+            @NotNull TeleportType type,
             @NotNull String server,
             @NotNull WorldLocation destination,
-            @NotNull TeleportOptions options
+            boolean self
     ) {
-        CompletableFuture<Long> remaining = options.cooldownSeconds() > 0 ? this.remainingCooldown(player.getUniqueId(), options.cooldownId())
-                : CompletableFuture.completedFuture(0L);
-        return remaining.thenCompose(millis -> {
-            // 正在冷却
-            if (millis > 0) {
-                BukkitSparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
-                if (receiver != null) receiver.sendMessage(MessageConstants.TELEPORT_COOLDOWN, Component.text((millis + 999) / 1000));
-                return CompletableFuture.completedFuture(TeleportResult.COOLDOWN);
-            }
-            // 没有倒计时
-            if (options.warmupSeconds() <= 0) {
-                return this.transfer(player, server, destination, options);
-            }
-            // 开始倒计时预热
-            return this.warmup(player, options)
-                    .thenCompose(finished ->
-                            finished
-                            ? this.transfer(player, server, destination, options)
-                            : CompletableFuture.completedFuture(TeleportResult.CANCELLED)
-                    );
-        });
-    }
-
-    // 在玩家所属线程上开始预热, 结果为是否完整走完; 同一玩家新的预热会替换旧的, 玩家已不在本服时视为取消
-    private CompletableFuture<Boolean> warmup(Player player, TeleportOptions options) {
-        CompletableFuture<Boolean> result = new CompletableFuture<>();
-        this.plugin.scheduler().platform().run(() -> {
-                    BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
-                    if (sparrow == null) {
-                        result.complete(false);
-                        return;
-                    }
-                    TeleportWarmup warmup = new TeleportWarmup(this, sparrow, options, result);
-                    TeleportWarmup previous = this.warmups.put(player.getUniqueId(), warmup);
-                    if (previous != null) {
-                        previous.cancel(null);
-                    }
-                    warmup.start();
-                }, () -> result.complete(false), player);
-        return result;
-    }
-
-    // 本服传送成功或代理确认切服成功后开始冷却.
-    private CompletableFuture<TeleportResult> transfer(Player player, String server, WorldLocation destination, TeleportOptions options) {
-        return this.transfer(player, server, destination)
+        BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
+        if (sparrow == null) return CompletableFuture.completedFuture(TeleportResult.FAILED);
+        Teleport teleport = new Teleport(player.getUniqueId(), type, server, destination, self);
+        TeleportGroup group = this.group(type);
+        // 出发前处理器逐个执行, 前一个放行后才轮到下一个
+        CompletableFuture<Component> denial = TeleportProcessor.PASS;
+        for (TeleportProcessor.Pre processor : group.preProcessor()) {
+            denial = denial.thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(reason) : processor.before(sparrow, teleport));
+        }
+        return denial
+                .thenCompose(reason -> {
+                    if (reason == null) return this.transfer(player, server, destination);
+                    if (!reason.equals(Component.empty())) sparrow.sendMessage(sparrow.render(reason));
+                    return CompletableFuture.completedFuture(TeleportResult.REJECTED);
+                })
                 .thenApply(result -> {
-                    if (options.cooldownSeconds() > 0 && (result == TeleportResult.LOCAL_SUCCESS || result == TeleportResult.REMOTE_SUCCESS)) {
-                        this.startCooldown(player.getUniqueId(), options);
-                    }
-                    // 到达音效只在本服到达时播放, 跨服到达发生在对方服务器上
-                    if (result == TeleportResult.LOCAL_SUCCESS) {
-                        Sound sound = options.completeSound();
-                        BukkitSparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
-                        if (sound != null && sparrow != null) {
-                            sparrow.playSound(sound);
+                    // 到达后处理器只在本服到达时执行, 跨服到达发生在对方服务器上
+                    BukkitSparrowPlayer arrived = result == TeleportResult.LOCAL_SUCCESS ? this.plugin.playerManager().getPlayer(player) : null;
+                    if (arrived != null) {
+                        for (TeleportProcessor.Post processor : group.postProcessor()) {
+                            processor.arrived(arrived, teleport);
                         }
+                    }
+                    for (TeleportProcessor.Pre processor : group.preProcessor()) {
+                        processor.finished(teleport, result);
                     }
                     return result;
                 });
     }
 
-    // 记录冷却到 Redis
-    private void startCooldown(UUID player, TeleportOptions options) {
-        this.plugin.redisConnector().connection().async().set(cooldownKey(player, options.cooldownId()), new byte[]{1}, SetArgs.Builder.px(options.cooldownSeconds() * 1000L));
+    private TeleportGroup group(TeleportType type) {
+        FeaturesConfig.ConfigDefinition features = this.plugin.configurationManager().featuresConfig().config();
+        return TeleportConfig.group(switch (type) {
+            case WARP -> features.warp().teleportGroup();
+            case HOME -> features.home().teleportGroup();
+            case BACK, DEATH_BACK -> features.back().teleportGroup();
+            case BED -> features.bed().teleportGroup();
+            case SPAWN -> features.spawn().teleportGroup();
+        });
     }
 
-    // 读取剩余冷却毫秒数, 没有冷却时为 0
-    private CompletableFuture<Long> remainingCooldown(UUID player, String cooldownId) {
-        return this.plugin.redisConnector().connection().async().pttl(cooldownKey(player, cooldownId)).toCompletableFuture().thenApply(millis -> Math.max(millis, 0L));
-    }
-
-    // 功能冷却 KEY
-    private static byte[] cooldownKey(UUID player, String cooldownId) {
-        return (COOLDOWN_PREFIX + cooldownId + ":" + player).getBytes(StandardCharsets.UTF_8);
+    // 在玩家所属线程上开始预热, 结果的含义与出发前处理器相同. 同一玩家新的预热会替换旧的, 玩家已不在本服时静默取消
+    @NotNull
+    CompletableFuture<Component> warmup(@NotNull BukkitSparrowPlayer player, @NotNull WarmupProcessor options, int seconds) {
+        CompletableFuture<Component> result = new CompletableFuture<>();
+        this.plugin.scheduler().platform().run(() -> {
+                    if (this.plugin.playerManager().getPlayer(player.platformPlayer()) != player) {
+                        result.complete(Component.empty());
+                        return;
+                    }
+                    TeleportWarmup warmup = new TeleportWarmup(this, player, options, seconds, result);
+                    TeleportWarmup previous = this.warmups.put(player.uniqueId(), warmup);
+                    if (previous != null) {
+                        previous.cancel(null);
+                    }
+                    warmup.start();
+                }, () -> result.complete(Component.empty()), player.platformPlayer());
+        return result;
     }
 
     /**

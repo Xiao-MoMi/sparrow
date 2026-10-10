@@ -2,8 +2,8 @@ package net.momirealms.sparrow.feature.bed;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.teleport.TeleportOptions;
 import net.momirealms.sparrow.teleport.TeleportResult;
+import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -56,15 +56,14 @@ public final class BedCommand extends BukkitCommandFeature {
         }
         String name = player.getName();
         boolean self = player == context.sender();
-        TeleportOptions options = this.feature.config().teleportOptions().resolve(player, self);
         this.plugin().teleportService()
-                .teleport(player, ServerConfig.serverId(), WorldLocation.from(destination), options)
+                .teleport(player, TeleportType.BED, ServerConfig.serverId(), WorldLocation.from(destination), self)
                 .whenComplete((result, error) -> {
                     if (error != null) {
                         this.plugin().logger().warn("Failed to teleport " + name + " to the bed", error);
                     }
-                    // 冷却和预热取消的原因由传送服务提示.
-                    if (result == TeleportResult.COOLDOWN || result == TeleportResult.CANCELLED) {
+                    // 被拒绝的原因由传送服务提示给玩家本人.
+                    if (result == TeleportResult.REJECTED && self) {
                         return;
                     }
                     this.handleFeedback(

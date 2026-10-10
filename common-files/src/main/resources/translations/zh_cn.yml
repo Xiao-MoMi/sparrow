@@ -496,6 +496,7 @@ command.repair.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_n
 
 # command.reload
 command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>配置重载失败，请查看控制台日志</color>'
+command.reload.config.issues: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>配置文件存在 <color:#FFE08A><arg:0></color> 个错误，请在控制台检查</color>'
 command.reload.config.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>配置已重载<color:#C8E4E9>（耗时 <color:#FFE08A><arg:0></color> 毫秒）</color></color>'
 command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在重载，请稍候</color>'
 
