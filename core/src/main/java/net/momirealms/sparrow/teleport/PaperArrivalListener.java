@@ -9,11 +9,11 @@ import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
 final class PaperArrivalListener implements Listener {
-    private final TeleportManager manager = SparrowPlugin.instance().teleportManager();
+    private final TeleportService service = SparrowPlugin.instance().teleportService();
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(@NotNull AsyncPlayerSpawnLocationEvent event) {
-        Location location = this.manager.consumeSpawn(event.getConnection().getProfile().getId());
+        Location location = this.service.consumeSpawn(event.getConnection().getProfile().getId());
         if (location != null) {
             event.setSpawnLocation(location);
         }

@@ -2,7 +2,7 @@ package net.momirealms.sparrow.redis.message.teleport;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.TeleportManager;
+import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
@@ -57,7 +57,7 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
     @Override
     @NotNull
     protected CompletableFuture<TeleportResponse> handleRequest() {
-        TeleportManager manager = SparrowPlugin.instance().teleportManager();
-        return CompletableFuture.completedFuture(new TeleportResponse(manager.prepare(this.player, this.location)));
+        TeleportService service = SparrowPlugin.instance().teleportService();
+        return CompletableFuture.completedFuture(new TeleportResponse(service.prepare(this.player, this.location)));
     }
 }

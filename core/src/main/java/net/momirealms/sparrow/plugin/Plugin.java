@@ -6,7 +6,6 @@ import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.PlayerLookup;
 import net.momirealms.sparrow.cluster.PlayerDirectory;
-import net.momirealms.sparrow.teleport.TeleportManager;
 import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
@@ -96,8 +95,6 @@ public interface Plugin {
     PlayerLookup playerLookup();
 
     PlayerDirectory playerDirectory();
-
-    TeleportManager teleportManager();
 
     TeleportService teleportService();
 

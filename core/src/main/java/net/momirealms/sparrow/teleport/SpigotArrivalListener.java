@@ -10,11 +10,11 @@ import org.jetbrains.annotations.NotNull;
 
 @SuppressWarnings("all")
 final class SpigotArrivalListener implements Listener {
-    private final TeleportManager manager = SparrowPlugin.instance().teleportManager();
+    private final TeleportService service = SparrowPlugin.instance().teleportService();
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onSpawn(@NotNull PlayerSpawnLocationEvent event) {
-        Location location = this.manager.consumeSpawn(event.getPlayer().getUniqueId());
+        Location location = this.service.consumeSpawn(event.getPlayer().getUniqueId());
         if (location != null) {
             event.setSpawnLocation(location);
         }

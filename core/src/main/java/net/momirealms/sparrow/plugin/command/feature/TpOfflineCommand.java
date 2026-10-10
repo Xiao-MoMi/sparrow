@@ -69,7 +69,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                     }
                     List<CompletableFuture<Void>> transfers = targets.stream()
                             .map(player ->
-                                    this.plugin().teleportManager()
+                                    this.plugin().teleportService()
                                             .transfer(player, data.lastLogoutServer(), data.lastLogoutLocation())
                                             .thenAccept(result -> {
                                                 TranslatableComponent message = switch (result) {

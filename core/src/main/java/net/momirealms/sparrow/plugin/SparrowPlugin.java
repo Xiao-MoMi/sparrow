@@ -5,7 +5,6 @@ import org.spigotmc.SpigotConfig;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.PlayerLookup;
 import net.momirealms.sparrow.cluster.PlayerDirectory;
-import net.momirealms.sparrow.teleport.TeleportManager;
 import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
@@ -78,7 +77,6 @@ public class SparrowPlugin implements Plugin {
     private final PlayerManager playerManager;
     private final PlayerLookup playerLookup;
     private final PlayerDirectory playerDirectory;
-    private final TeleportManager teleportManager;
     private final TeleportService teleportService;
 
     private CommandManager commandManager;
@@ -117,7 +115,6 @@ public class SparrowPlugin implements Plugin {
         this.playerManager = new PlayerManager();
         this.playerLookup = new PlayerLookup();
         this.playerDirectory = new PlayerDirectory();
-        this.teleportManager = new TeleportManager();
         this.teleportService = new TeleportService();
 
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
@@ -195,7 +192,6 @@ public class SparrowPlugin implements Plugin {
         }
         this.playerManager.onEnable();
         this.playerDirectory.onEnable();
-        this.teleportManager.onEnable();
         this.teleportService.onEnable();
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
@@ -226,7 +222,6 @@ public class SparrowPlugin implements Plugin {
         if (this.serverDirectory != null) this.serverDirectory.shutdown();
         if (this.featureManager != null) this.featureManager.onDisable();
         if (this.teleportService != null) this.teleportService.shutdown();
-        if (this.teleportManager != null) this.teleportManager.shutdown();
         if (this.playerDirectory != null) this.playerDirectory.shutdown();
         if (this.playerManager != null) this.playerManager.shutdown();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
@@ -607,12 +602,6 @@ public class SparrowPlugin implements Plugin {
     @NotNull
     public PlayerDirectory playerDirectory() {
         return this.playerDirectory;
-    }
-
-    @Override
-    @NotNull
-    public TeleportManager teleportManager() {
-        return this.teleportManager;
     }
 
     @Override
