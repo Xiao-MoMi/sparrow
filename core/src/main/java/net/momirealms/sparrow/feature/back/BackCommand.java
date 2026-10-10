@@ -92,8 +92,8 @@ public final class BackCommand extends BukkitCommandFeature {
                 .teleport(player, server, location, options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {
-                        case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_BACK_SUCCESS_SELF : MessageConstants.COMMAND_BACK_SUCCESS);
-                        case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_BACK_CONNECTING_SELF : MessageConstants.COMMAND_BACK_CONNECTING);
+                        case LOCAL_SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_BACK_SUCCESS_SELF : MessageConstants.COMMAND_BACK_SUCCESS);
+                        case REMOTE_SUCCESS -> player == context.sender() ? null : MessageConstants.COMMAND_BACK_SUCCESS;
                         case SERVER_OFFLINE -> MessageConstants.COMMAND_BACK_SERVER_OFFLINE;
                         case INVALID -> MessageConstants.COMMAND_BACK_INVALID;
                         case FAILED -> (player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);

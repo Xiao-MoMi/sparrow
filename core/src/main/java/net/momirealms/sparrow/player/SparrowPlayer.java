@@ -31,6 +31,9 @@ import net.minecraft.world.item.component.DeathProtection;
 import net.momirealms.sparrow.proxy.bukkit.util.CraftChatMessageProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.redis.proxy.ConnectRequest;
+import net.momirealms.sparrow.redis.proxy.ConnectResponse;
+import net.momirealms.sparrow.redis.proxy.ConnectResult;
 import net.momirealms.sparrow.redis.proxy.DisconnectMessage;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.VersionHelper;
@@ -49,7 +52,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
 public final class SparrowPlayer {
     private final PlayerConnection connection;
@@ -100,6 +105,14 @@ public final class SparrowPlayer {
 
     public boolean hasPermission(@NotNull String permission) {
         return this.platformPlayer.hasPermission(permission);
+    }
+
+    @NotNull
+    public CompletableFuture<ConnectResult> connect(@NotNull String server) {
+        return SparrowPlugin.instance().messageBrokerManager().proxyBroker()
+                .publishTwoWay(new ConnectRequest(this.uniqueId(), server), "proxy")
+                .orTimeout(5, TimeUnit.SECONDS)
+                .thenApply(ConnectResponse::result);
     }
 
     public void kick(@NotNull Component reason, boolean disconnectFromProxy) {

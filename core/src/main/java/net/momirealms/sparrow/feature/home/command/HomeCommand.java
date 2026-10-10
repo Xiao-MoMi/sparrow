@@ -85,12 +85,11 @@ public final class HomeCommand extends AbstractHomeCommand {
                 .teleport(player, home.server(), home.location(), options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {
-                        case SUCCESS -> MessageConstants.COMMAND_HOME_SUCCESS;
-                        case CONNECTING -> MessageConstants.COMMAND_HOME_CONNECTING;
+                        case LOCAL_SUCCESS -> MessageConstants.COMMAND_HOME_SUCCESS;
                         case SERVER_OFFLINE -> MessageConstants.COMMAND_HOME_SERVER_OFFLINE;
                         case INVALID -> MessageConstants.COMMAND_HOME_INVALID;
                         case FAILED -> MessageConstants.COMMAND_TELEPORT_FAILURE_SELF;
-                        case COOLDOWN, CANCELLED -> null;
+                        case REMOTE_SUCCESS, COOLDOWN, CANCELLED -> null;
                     };
                     if (message != null) {
                         this.handleFeedback(context, message, Component.text(home.name()), Component.text(home.server()));

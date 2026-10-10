@@ -71,8 +71,8 @@ public final class WarpCommand extends BukkitCommandFeature {
                 .teleport(target, warp.server(), warp.location(), options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {
-                        case SUCCESS -> self ? MessageConstants.COMMAND_WARP_SUCCESS_SELF : MessageConstants.COMMAND_WARP_SUCCESS;
-                        case CONNECTING -> self ? MessageConstants.COMMAND_WARP_CONNECTING_SELF : MessageConstants.COMMAND_WARP_CONNECTING;
+                        case LOCAL_SUCCESS -> self ? MessageConstants.COMMAND_WARP_SUCCESS_SELF : MessageConstants.COMMAND_WARP_SUCCESS;
+                        case REMOTE_SUCCESS -> self ? null : MessageConstants.COMMAND_WARP_SUCCESS;
                         case SERVER_OFFLINE -> MessageConstants.COMMAND_WARP_SERVER_OFFLINE;
                         case INVALID -> MessageConstants.COMMAND_WARP_INVALID;
                         case FAILED -> self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;

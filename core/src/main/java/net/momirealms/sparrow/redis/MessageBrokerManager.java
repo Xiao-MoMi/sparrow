@@ -1,6 +1,8 @@
 package net.momirealms.sparrow.redis;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.redis.proxy.ConnectRequest;
+import net.momirealms.sparrow.redis.proxy.ConnectResponse;
 import net.momirealms.sparrow.feature.ban.BanMessage;
 import net.momirealms.sparrow.feature.mute.MuteMessage;
 import net.momirealms.sparrow.feature.home.HomeChangedMessage;
@@ -65,6 +67,8 @@ public final class MessageBrokerManager {
         this.proxyBroker.registry().register(DisconnectResponse.ID, DisconnectResponse.CODEC);
         this.proxyBroker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
         this.proxyBroker.registry().register(PlayerDirectoryResetMessage.ID, PlayerDirectoryResetMessage.CODEC);
+        this.proxyBroker.registry().register(ConnectRequest.ID, ConnectRequest.CODEC);
+        this.proxyBroker.registry().register(ConnectResponse.ID, ConnectResponse.CODEC);
     }
 
     public void onEnable() {

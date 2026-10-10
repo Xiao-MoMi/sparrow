@@ -1,6 +1,8 @@
 package net.momirealms.sparrow.proxy.common.redis;
 
 import io.netty.buffer.ByteBuf;
+import net.momirealms.sparrow.proxy.common.message.ConnectRequest;
+import net.momirealms.sparrow.proxy.common.message.ConnectResponse;
 import net.momirealms.sparrow.proxy.common.SparrowProxy;
 import net.momirealms.sparrow.proxy.common.logger.ProxyLogger;
 import net.momirealms.sparrow.proxy.common.message.DisconnectMessage;
@@ -28,11 +30,13 @@ public final class MessageBrokerManager {
                 .logger(new BrokerLogger(plugin.platform().logger()))
                 .connection(connector.brokerConnection())
                 .build();
-        this.broker.registry().register(DisconnectMessage.ID, DisconnectMessage.codec(plugin.playerManager()));
-        this.broker.registry().register(DisconnectRequest.ID, DisconnectRequest.codec(plugin.playerManager()));
+        this.broker.registry().register(DisconnectMessage.ID, DisconnectMessage.CODEC);
+        this.broker.registry().register(DisconnectRequest.ID, DisconnectRequest.CODEC);
         this.broker.registry().register(DisconnectResponse.ID, DisconnectResponse.CODEC);
         this.broker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
         this.broker.registry().register(PlayerDirectoryResetMessage.ID, PlayerDirectoryResetMessage.CODEC);
+        this.broker.registry().register(ConnectRequest.ID, ConnectRequest.CODEC);
+        this.broker.registry().register(ConnectResponse.ID, ConnectResponse.CODEC);
     }
 
     public void subscribe() {

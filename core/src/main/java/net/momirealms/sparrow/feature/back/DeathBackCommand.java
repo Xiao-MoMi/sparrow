@@ -77,8 +77,8 @@ public final class DeathBackCommand extends BukkitCommandFeature {
                 .teleport(player, server, location, options)
                 .thenAccept(result -> {
                     TranslatableComponent message = switch (result) {
-                        case SUCCESS -> (self ? MessageConstants.COMMAND_DEATH_BACK_SUCCESS_SELF : MessageConstants.COMMAND_DEATH_BACK_SUCCESS);
-                        case CONNECTING -> (self ? MessageConstants.COMMAND_DEATH_BACK_CONNECTING_SELF : MessageConstants.COMMAND_DEATH_BACK_CONNECTING);
+                        case LOCAL_SUCCESS -> (self ? MessageConstants.COMMAND_DEATH_BACK_SUCCESS_SELF : MessageConstants.COMMAND_DEATH_BACK_SUCCESS);
+                        case REMOTE_SUCCESS -> self ? null : MessageConstants.COMMAND_DEATH_BACK_SUCCESS;
                         case SERVER_OFFLINE -> MessageConstants.COMMAND_DEATH_BACK_SERVER_OFFLINE;
                         case INVALID -> MessageConstants.COMMAND_DEATH_BACK_INVALID;
                         case FAILED -> (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);

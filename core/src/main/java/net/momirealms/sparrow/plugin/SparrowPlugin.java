@@ -8,7 +8,6 @@ import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.command.parser.ServerParser;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
@@ -186,7 +185,6 @@ public class SparrowPlugin implements Plugin {
             Bukkit.getServer().shutdown();
             return;
         }
-        this.javaPlugin.getServer().getMessenger().registerOutgoingPluginChannel(this.javaPlugin, ServerParser.CHANNEL);
         this.playerManager.onEnable();
         this.playerDirectory.onEnable();
         this.teleportManager.onEnable();

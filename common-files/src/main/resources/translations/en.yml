@@ -78,15 +78,13 @@ command.anvil.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 command.anvil.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an anvil for you</color>'
 
 # command.back
-command.back.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending <color:#C7BCE7><arg:0></color> back to the previous location on <color:#C7BCE7><arg:1></color></color>'
-command.back.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending you back to the previous location on <color:#C7BCE7><arg:1></color></color>'
 command.back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The world of the previous location no longer exists</color>'
 command.back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no location to go back to</color>'
 command.back.none-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no location to go back to</color>'
 command.back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:1></color> is offline, cannot go back</color>'
 command.back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> back to the previous location</color>'
 command.back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent you back to the previous location</color>'
-command.back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target server did not respond within 5 seconds</color>'
+command.back.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
 
 # command.ban
 command.ban.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The ban reason cannot be longer than <color:#F2F4FF><arg:0></color> characters.</color>'
@@ -138,10 +136,9 @@ command.player-info.uuid: '<color:#AAAAAA>UUID: </color><color:#FFFFFF><arg:0></
 
 # command.spawn
 command.spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Returned to spawn</color>'
-command.spawn.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Connecting to spawn on <color:#C7BCE7><arg:0></color></color>'
 command.spawn.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The spawn server <color:#C7BCE7><arg:0></color> is offline</color>'
 command.spawn.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The spawn world or location is unavailable. Ask an administrator to set it again</color>'
-command.spawn.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Returning to spawn timed out. Try again later</color>'
+command.spawn.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
 command.spawn.not-set: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Spawn has not been set</color>'
 command.spawn.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Failed to save spawn. Check the console</color>'
 command.set-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the network-wide spawn to your current location on <color:#C7BCE7><arg:0></color></color>'
@@ -196,10 +193,8 @@ command.custom-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>$
 command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Deleted warp <color:#C7BCE7><arg:0></color></color>'
 
 # command.death-back
-command.death-back.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending <color:#C7BCE7><arg:0></color> to their last death location on <color:#C7BCE7><arg:1></color></color>'
-command.death-back.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending you to your last death location on <color:#C7BCE7><arg:1></color></color>'
 command.death-back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#C7BCE7><arg:1></color> is offline; cannot return to the death location</color>'
-command.death-back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The death location server did not respond within 5 seconds</color>'
+command.death-back.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
 command.death-back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> back to their last death location</color>'
 command.death-back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent you back to your last death location</color>'
 command.death-back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no recorded death location</color>'
@@ -508,7 +503,6 @@ command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_
 command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Already on server <color:#F2F4FF><arg:0></color></color>'
 command.server.not_allowed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:0></color> is not allowed</color>'
 command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> to server <color:#C7BCE7><arg:1></color></color>'
-command.server.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent you to server <color:#C7BCE7><arg:1></color></color>'
 
 # command.set-warp
 command.set-warp.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Created warp <color:#C7BCE7><arg:0></color> at your location</color>'
@@ -563,14 +557,12 @@ command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 command.totem-animation.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a totem animation for you</color>'
 
 # command.tp-offline
-command.tp-offline.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The destination accepted the request. Sending <color:#C7BCE7><arg:0></color> to the last logout location of <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:2></color>.</color>'
-command.tp-offline.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The destination accepted the request. Sending you to the last logout location of <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:2></color>.</color>'
 command.tp-offline.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The destination world or coordinates are invalid. Spawn location and position were left unchanged.</color>'
 command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> has no saved logout location.</color>'
 command.tp-offline.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:2></color> has no active heartbeat.</color>'
 command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to the last logout location of <color:#C7BCE7><arg:1></color>.</color>'
 command.tp-offline.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to the last logout location of <color:#C7BCE7><arg:1></color>.</color>'
-command.tp-offline.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The destination server did not respond within 5 seconds.</color>'
+command.tp-offline.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
 command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No database record was found for <color:#F2F4FF><arg:0></color>.</color>'
 
 # command.unban
@@ -583,11 +575,10 @@ command.walk-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 
 # command.home
 command.home.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Teleported to home <arg:0></color>'
-command.home.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Heading to home <arg:0> on <arg:1></color>'
 command.home.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Home <arg:0> does not exist</color>'
 command.home.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Server <arg:1> of home <arg:0> is offline</color>'
 command.home.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>The world of home <arg:0> no longer exists</color>'
-command.home.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>The target server did not respond within 5 seconds</color>'
+command.home.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
 command.home.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Invalid home name <arg:0>. Use at most <arg:2> characters matching the configured name rule; whitespace, dots and a leading - are forbidden</color>'
 command.home.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Could not access home data, see the console for details</color>'
 command.home.owner-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Specify a player when running this command from the console</color>'
@@ -612,15 +603,13 @@ command.edit-home.relocated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proj
 command.edit-home.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>A home named <arg:0> already exists for this owner. Choose another name</color>'
 
 # command.warp
-command.warp.connecting: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Sending <color:#C7BCE7><arg:0></color> to warp <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:2></color></color>'
-command.warp.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Heading to warp <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:2></color></color>'
 command.warp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The world of warp <color:#C7BCE7><arg:1></color> no longer exists</color>'
 command.warp.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid warp name <color:#F2F4FF><arg:0></color>. Use at most <arg:1> letters, digits, _ or -</color>'
 command.warp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:2></color> of warp <color:#C7BCE7><arg:1></color> is offline</color>'
 command.warp.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not save warp <color:#C7BCE7><arg:0></color>, see the console for details</color>'
 command.warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to warp <color:#C7BCE7><arg:1></color></color>'
 command.warp.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported to warp <color:#C7BCE7><arg:1></color></color>'
-command.warp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target server did not respond within 5 seconds</color>'
+command.warp.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
 command.warp.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Warp <color:#F2F4FF><arg:0></color> does not exist</color>'
 
 # command.warp-list
@@ -776,3 +765,9 @@ teleport.cancelled.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project
 teleport.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can teleport again in <color:#F2F4FF><arg:0></color> seconds</color>'
 teleport.processing: '<color:#FFE3A3>Teleporting…</color>'
 teleport.warmup: '<color:#FFE3A3>Teleporting in <color:#F2F4FF><arg:0></color> seconds, do not move</color>'
+
+command.server.connecting-self: '<color:#FFE3A3>Connecting to <arg:0>...</color>'
+command.server.player-offline: '<color:#FFB6CB><arg:0> is no longer online.</color>'
+command.server.unknown: '<color:#FFB6CB>The proxy has no server named <arg:0>.</color>'
+command.server.failed: '<color:#FFB6CB>Could not connect <arg:0> to <arg:1>.</color>'
+command.server.timeout: '<color:#FFB6CB>The connection request for <arg:0> to <arg:1> timed out; the result could not be confirmed.</color>'

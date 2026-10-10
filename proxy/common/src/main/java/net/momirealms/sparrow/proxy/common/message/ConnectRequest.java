@@ -13,25 +13,25 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class DisconnectRequest extends TwoWayRequestMessage<ByteBuf, DisconnectResponse> {
-    public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "disconnect_request");
-    public static final MessageCodec<ByteBuf, DisconnectRequest> CODEC = RedisMessage.codec(DisconnectRequest::write, DisconnectRequest::new);
+public final class ConnectRequest extends TwoWayRequestMessage<ByteBuf, ConnectResponse> {
+    public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "connect_request");
+    public static final MessageCodec<ByteBuf, ConnectRequest> CODEC = RedisMessage.codec(ConnectRequest::write, ConnectRequest::new);
 
-    private final ProxyPlayerManager platform = SparrowProxy.instance().playerManager();
+    private final ProxyPlayerManager players = SparrowProxy.instance().playerManager();
     private final UUID player;
-    private final String reason;
+    private final String destination;
 
-    private DisconnectRequest(ByteBuf buffer) {
+    private ConnectRequest(ByteBuf buffer) {
         super(buffer);
         this.player = new UUID(buffer.readLong(), buffer.readLong());
-        this.reason = ByteBufHelper.readUtf8(buffer, 262144);
+        this.destination = ByteBufHelper.readUtf8(buffer, 255);
     }
 
     @Override
     protected void write(ByteBuf buffer) {
         super.write(buffer);
         buffer.writeLong(this.player.getMostSignificantBits()).writeLong(this.player.getLeastSignificantBits());
-        ByteBufHelper.writeUtf8(buffer, this.reason, 262144);
+        ByteBufHelper.writeUtf8(buffer, this.destination, 255);
     }
 
     @Override
@@ -42,7 +42,7 @@ public final class DisconnectRequest extends TwoWayRequestMessage<ByteBuf, Disco
 
     @Override
     @NotNull
-    protected CompletableFuture<DisconnectResponse> handleRequest() {
-        return CompletableFuture.completedFuture(new DisconnectResponse(this.platform.disconnect(this.player, this.reason)));
+    protected CompletableFuture<ConnectResponse> handleRequest() {
+        return this.players.connect(this.player, this.sourceServer(), this.destination).thenApply(ConnectResponse::new);
     }
 }

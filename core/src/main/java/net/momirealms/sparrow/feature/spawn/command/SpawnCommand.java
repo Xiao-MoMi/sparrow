@@ -81,8 +81,7 @@ public final class SpawnCommand extends BukkitCommandFeature {
                 .teleport(player, spawn.server(), spawn.location(), options)
                 .thenAccept(result -> {
                     switch (result) {
-                        case SUCCESS -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_SUCCESS);
-                        case CONNECTING -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_CONNECTING, Component.text(spawn.server()));
+                        case LOCAL_SUCCESS -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_SUCCESS);
                         case SERVER_OFFLINE -> this.handleFeedback(
                                 context,
                                 MessageConstants.COMMAND_SPAWN_SERVER_OFFLINE,
@@ -90,7 +89,7 @@ public final class SpawnCommand extends BukkitCommandFeature {
                         );
                         case INVALID -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_INVALID);
                         case FAILED -> this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-                        case COOLDOWN, CANCELLED -> {
+                        case REMOTE_SUCCESS, COOLDOWN, CANCELLED -> {
                         }
                     }
                 })

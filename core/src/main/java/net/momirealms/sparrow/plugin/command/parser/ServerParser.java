@@ -17,8 +17,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public final class ServerParser<C> implements ArgumentParser<C, String>, SuggestionProvider<C> {
-    public static final String CHANNEL = "BungeeCord";
-
     private final Predicate<String> filter;
 
     public ServerParser(@NotNull Predicate<String> filter) {

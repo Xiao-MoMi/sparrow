@@ -103,8 +103,6 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_TELEPORT_FAILURE_SELF = Component.translatable("command.teleport.failure-self");
     TranslatableComponent COMMAND_BACK_SUCCESS = Component.translatable("command.back.success");
     TranslatableComponent COMMAND_BACK_SUCCESS_SELF = Component.translatable("command.back.success-self");
-    TranslatableComponent COMMAND_BACK_CONNECTING = Component.translatable("command.back.connecting");
-    TranslatableComponent COMMAND_BACK_CONNECTING_SELF = Component.translatable("command.back.connecting-self");
     TranslatableComponent COMMAND_BACK_NONE = Component.translatable("command.back.none");
     TranslatableComponent COMMAND_BACK_NONE_SELF = Component.translatable("command.back.none-self");
     TranslatableComponent COMMAND_BACK_SERVER_OFFLINE = Component.translatable("command.back.server-offline");
@@ -112,15 +110,12 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_BACK_TIMEOUT = Component.translatable("command.back.timeout");
     TranslatableComponent COMMAND_DEATH_BACK_SUCCESS = Component.translatable("command.death-back.success");
     TranslatableComponent COMMAND_DEATH_BACK_SUCCESS_SELF = Component.translatable("command.death-back.success-self");
-    TranslatableComponent COMMAND_DEATH_BACK_CONNECTING = Component.translatable("command.death-back.connecting");
-    TranslatableComponent COMMAND_DEATH_BACK_CONNECTING_SELF = Component.translatable("command.death-back.connecting-self");
     TranslatableComponent COMMAND_DEATH_BACK_SERVER_OFFLINE = Component.translatable("command.death-back.server-offline");
     TranslatableComponent COMMAND_DEATH_BACK_TIMEOUT = Component.translatable("command.death-back.timeout");
     TranslatableComponent COMMAND_DEATH_BACK_NONE = Component.translatable("command.death-back.none");
     TranslatableComponent COMMAND_DEATH_BACK_NONE_SELF = Component.translatable("command.death-back.none-self");
     TranslatableComponent COMMAND_DEATH_BACK_INVALID = Component.translatable("command.death-back.invalid");
     TranslatableComponent COMMAND_HOME_SUCCESS = Component.translatable("command.home.success");
-    TranslatableComponent COMMAND_HOME_CONNECTING = Component.translatable("command.home.connecting");
     TranslatableComponent COMMAND_HOME_UNKNOWN = Component.translatable("command.home.unknown");
     TranslatableComponent COMMAND_HOME_SERVER_OFFLINE = Component.translatable("command.home.server-offline");
     TranslatableComponent COMMAND_HOME_INVALID = Component.translatable("command.home.invalid");
@@ -143,8 +138,6 @@ public interface MessageConstants {
 
     TranslatableComponent COMMAND_WARP_SUCCESS = Component.translatable("command.warp.success");
     TranslatableComponent COMMAND_WARP_SUCCESS_SELF = Component.translatable("command.warp.success-self");
-    TranslatableComponent COMMAND_WARP_CONNECTING = Component.translatable("command.warp.connecting");
-    TranslatableComponent COMMAND_WARP_CONNECTING_SELF = Component.translatable("command.warp.connecting-self");
     TranslatableComponent COMMAND_WARP_UNKNOWN = Component.translatable("command.warp.unknown");
     TranslatableComponent COMMAND_WARP_SERVER_OFFLINE = Component.translatable("command.warp.server-offline");
     TranslatableComponent COMMAND_WARP_INVALID = Component.translatable("command.warp.invalid");
@@ -168,7 +161,6 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_BED_MISSING = Component.translatable("command.bed.missing");
     TranslatableComponent COMMAND_BED_MISSING_SELF = Component.translatable("command.bed.missing-self");
     TranslatableComponent COMMAND_SPAWN_SUCCESS = Component.translatable("command.spawn.success");
-    TranslatableComponent COMMAND_SPAWN_CONNECTING = Component.translatable("command.spawn.connecting");
     TranslatableComponent COMMAND_SPAWN_SERVER_OFFLINE = Component.translatable("command.spawn.server-offline");
     TranslatableComponent COMMAND_SPAWN_INVALID = Component.translatable("command.spawn.invalid");
     TranslatableComponent COMMAND_SPAWN_TIMEOUT = Component.translatable("command.spawn.timeout");
@@ -193,10 +185,12 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_TP_OFFLINE_TIMEOUT = Component.translatable("command.tp-offline.timeout");
     TranslatableComponent COMMAND_TP_OFFLINE_SUCCESS = Component.translatable("command.tp-offline.success");
     TranslatableComponent COMMAND_TP_OFFLINE_SUCCESS_SELF = Component.translatable("command.tp-offline.success-self");
-    TranslatableComponent COMMAND_TP_OFFLINE_CONNECTING = Component.translatable("command.tp-offline.connecting");
-    TranslatableComponent COMMAND_TP_OFFLINE_CONNECTING_SELF = Component.translatable("command.tp-offline.connecting-self");
+    TranslatableComponent COMMAND_SERVER_CONNECTING_SELF = Component.translatable("command.server.connecting-self");
+    TranslatableComponent COMMAND_SERVER_PLAYER_OFFLINE = Component.translatable("command.server.player-offline");
+    TranslatableComponent COMMAND_SERVER_UNKNOWN = Component.translatable("command.server.unknown");
+    TranslatableComponent COMMAND_SERVER_FAILED = Component.translatable("command.server.failed");
+    TranslatableComponent COMMAND_SERVER_TIMEOUT = Component.translatable("command.server.timeout");
     TranslatableComponent COMMAND_SERVER_SUCCESS = Component.translatable("command.server.success");
-    TranslatableComponent COMMAND_SERVER_SUCCESS_SELF = Component.translatable("command.server.success-self");
     TranslatableComponent COMMAND_SERVER_NOT_ALLOWED = Component.translatable("command.server.not_allowed");
     TranslatableComponent COMMAND_SERVER_CURRENT = Component.translatable("command.server.current");
     TranslatableComponent COMMAND_LOOK_TARGET_MISSING = Component.translatable("command.look.target_missing");

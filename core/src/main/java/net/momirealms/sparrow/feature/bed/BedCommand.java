@@ -69,7 +69,7 @@ public final class BedCommand extends BukkitCommandFeature {
                     }
                     this.handleFeedback(
                             context,
-                            error == null && result == TeleportResult.SUCCESS
+                            error == null && result == TeleportResult.LOCAL_SUCCESS
                                     ? (self ? MessageConstants.COMMAND_BED_SUCCESS_SELF : MessageConstants.COMMAND_BED_SUCCESS)
                                             : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE),
                             Component.text(name)

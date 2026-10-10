@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.proxy.common.message;
 
 import io.netty.buffer.ByteBuf;
+import net.momirealms.sparrow.proxy.common.SparrowProxy;
 import net.momirealms.sparrow.proxy.common.player.ProxyPlayerManager;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
@@ -13,22 +14,16 @@ import java.util.UUID;
 
 public final class DisconnectMessage extends OneWayMessage<ByteBuf> {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "disconnect");
+    public static final MessageCodec<ByteBuf, DisconnectMessage> CODEC = RedisMessage.codec(DisconnectMessage::write, DisconnectMessage::new);
 
-    private final ProxyPlayerManager platform;
+    private final ProxyPlayerManager platform = SparrowProxy.instance().playerManager();
     private final UUID player;
     private final String reason;    // Json 格式的组件
 
-    private DisconnectMessage(ByteBuf buffer, ProxyPlayerManager platform) {
+    private DisconnectMessage(ByteBuf buffer) {
         super(buffer);
-        this.platform = platform;
         this.player = new UUID(buffer.readLong(), buffer.readLong());
         this.reason = ByteBufHelper.readUtf8(buffer, 262144);
-    }
-
-    // 解码出的消息交给当前代理平台处理
-    @NotNull
-    public static MessageCodec<ByteBuf, DisconnectMessage> codec(@NotNull ProxyPlayerManager platform) {
-        return RedisMessage.codec(DisconnectMessage::write, buffer -> new DisconnectMessage(buffer, platform));
     }
 
     @Override

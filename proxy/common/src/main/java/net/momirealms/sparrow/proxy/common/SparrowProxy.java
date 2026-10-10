@@ -8,6 +8,8 @@ import net.momirealms.sparrow.proxy.common.player.ProxyPlayerManager;
 import org.jetbrains.annotations.NotNull;
 
 public final class SparrowProxy {
+    private static SparrowProxy instance;
+
     private final ProxyPlatform platform;
     private final ProxyPlayerManager playerManager;
     private RedisConnector redisConnector;
@@ -17,6 +19,12 @@ public final class SparrowProxy {
     public SparrowProxy(@NotNull ProxyPlatform platform, @NotNull ProxyPlayerManager playerManager) {
         this.platform = platform;
         this.playerManager = playerManager;
+        instance = this;
+    }
+
+    @NotNull
+    public static SparrowProxy instance() {
+        return instance;
     }
 
     public void enable() {

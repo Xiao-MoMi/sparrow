@@ -1,9 +1,8 @@
 package net.momirealms.sparrow.feature.server;
 
-import com.google.common.io.ByteArrayDataOutput;
-import com.google.common.io.ByteStreams;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -21,6 +20,8 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeoutException;
 
 public final class ServerCommand extends BukkitCommandFeature {
     private final ServerParser<CommandSender> parser;
@@ -65,22 +66,43 @@ public final class ServerCommand extends BukkitCommandFeature {
             return;
         }
         for (Player player : players) {
-            this.connect(player, server);
-            this.handleFeedback(
-                    context,
-                    (player == context.sender() ? MessageConstants.COMMAND_SERVER_SUCCESS_SELF : MessageConstants.COMMAND_SERVER_SUCCESS),
-                    Component.text(player.getName()),
-                    Component.text(server)
-            );
+            this.connect(context, player, server);
         }
     }
 
-    // 经由目标玩家自己的连接请求代理切服. 发送后立即返回, 代理找不到服务器或拒绝连接时玩家留在原服
-    private void connect(Player player, String server) {
-        ByteArrayDataOutput out = ByteStreams.newDataOutput();
-        out.writeUTF("Connect");
-        out.writeUTF(server);
-        player.sendPluginMessage(this.plugin().javaPlugin(), ServerParser.CHANNEL, out.toByteArray());
+    private void connect(CommandContext<CommandSender> context, Player player, String server) {
+        String name = player.getName();
+        SparrowPlayer sparrow = this.plugin().playerManager().getPlayer(player);
+        if (sparrow == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_SERVER_PLAYER_OFFLINE, Component.text(name));
+            return;
+        }
+        boolean self = player == context.sender();
+        if (self) {
+            this.handleFeedback(context, MessageConstants.COMMAND_SERVER_CONNECTING_SELF, Component.text(server));
+        }
+        sparrow.connect(server).whenComplete((result, error) -> {
+            if (error != null) {
+                Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+                if (cause instanceof TimeoutException) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_SERVER_TIMEOUT, Component.text(name), Component.text(server));
+                } else {
+                    this.plugin().logger().warn("Failed to connect " + name + " to " + server, cause);
+                    this.handleFeedback(context, MessageConstants.COMMAND_SERVER_FAILED, Component.text(name), Component.text(server));
+                }
+                return;
+            }
+            switch (result) {
+                case SUCCESS -> {
+                    if (!self) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_SERVER_SUCCESS, Component.text(name), Component.text(server));
+                    }
+                }
+                case PLAYER_OFFLINE -> this.handleFeedback(context, MessageConstants.COMMAND_SERVER_PLAYER_OFFLINE, Component.text(name));
+                case SERVER_NOT_FOUND -> this.handleFeedback(context, MessageConstants.COMMAND_SERVER_UNKNOWN, Component.text(server));
+                case FAILED -> this.handleFeedback(context, MessageConstants.COMMAND_SERVER_FAILED, Component.text(name), Component.text(server));
+            }
+        });
     }
 
     @Override

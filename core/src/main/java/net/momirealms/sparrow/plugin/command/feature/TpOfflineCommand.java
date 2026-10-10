@@ -73,22 +73,22 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                                             .transfer(player, data.lastLogoutServer(), data.lastLogoutLocation())
                                             .thenAccept(result -> {
                                                 TranslatableComponent message = switch (result) {
-                                                    case SUCCESS -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF
-                                                            : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS);
-                                                    case CONNECTING -> (player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_CONNECTING_SELF
-                                                            : MessageConstants.COMMAND_TP_OFFLINE_CONNECTING);
+                                                    case LOCAL_SUCCESS -> player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS;
+                                                    case REMOTE_SUCCESS -> player == context.sender() ? null : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS;
                                                     case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
                                                     case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
-                                                    case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF
-                                                            : MessageConstants.COMMAND_TELEPORT_FAILURE;
+                                                    case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
+                                                    case COOLDOWN, CANCELLED -> null;
                                                 };
-                                                this.handleFeedback(
-                                                        context,
-                                                        message,
-                                                        Component.text(player.getName()),
-                                                        Component.text(name),
-                                                        Component.text(data.lastLogoutServer())
-                                                );
+                                                if (message != null) {
+                                                    this.handleFeedback(
+                                                            context,
+                                                            message,
+                                                            Component.text(player.getName()),
+                                                            Component.text(name),
+                                                            Component.text(data.lastLogoutServer())
+                                                    );
+                                                }
                                             })
                             )
                             .toList();

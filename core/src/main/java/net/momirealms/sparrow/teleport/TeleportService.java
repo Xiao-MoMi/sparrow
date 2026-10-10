@@ -35,7 +35,7 @@ public final class TeleportService implements Listener, PlayerListener {
     /**
      * 按参数检查冷却、原地预热后把玩家送到目标位置.
      *
-     * @return 传送结果, 目标服务器 5 秒内没有应答时以 {@link java.util.concurrent.TimeoutException} 异常完成
+     * @return 传送结果, 落点预留或代理切服请求等待超过 5 秒时以 {@link java.util.concurrent.TimeoutException} 异常完成
      */
     @NotNull
     public CompletableFuture<TeleportResult> teleport(
@@ -86,23 +86,23 @@ public final class TeleportService implements Listener, PlayerListener {
         return result;
     }
 
-    // 传送成功或开始切服后才开始冷却
+    // 本服传送成功或代理确认切服成功后开始冷却.
     private CompletableFuture<TeleportResult> transfer(Player player, String server, WorldLocation destination, TeleportOptions options) {
         return this.plugin.teleportManager()
                 .transfer(player, server, destination)
                 .thenApply(result -> {
-                    if (options.cooldownSeconds() > 0 && (result == TransferResult.SUCCESS || result == TransferResult.CONNECTING)) {
+                    if (options.cooldownSeconds() > 0 && (result == TeleportResult.LOCAL_SUCCESS || result == TeleportResult.REMOTE_SUCCESS)) {
                         this.startCooldown(player.getUniqueId(), options);
                     }
                     // 到达音效只在本服到达时播放, 跨服到达发生在对方服务器上
-                    if (result == TransferResult.SUCCESS) {
+                    if (result == TeleportResult.LOCAL_SUCCESS) {
                         Sound sound = options.completeSound();
                         SparrowPlayer sparrow = this.plugin.playerManager().getPlayer(player);
                         if (sound != null && sparrow != null) {
                             sparrow.playSound(sound);
                         }
                     }
-                    return TeleportResult.of(result);
+                    return result;
                 });
     }
 
