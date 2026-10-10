@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class TeleportService implements Listener, PlayerListener {
-    private static final String COOLDOWN_PREFIX = "sparrow:teleport-cooldown:"; // 后接传送类型与玩家 UUID, 过期即冷却结束
+    private static final String COOLDOWN_PREFIX = "sparrow:teleport-cooldown:"; // 后接冷却 ID 与玩家 UUID, 过期即冷却结束
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, TeleportWarmup> warmups = new ConcurrentChainedObject2ObjectHashTable<>();
@@ -58,7 +58,7 @@ public final class TeleportService implements Listener, PlayerListener {
             @NotNull WorldLocation destination,
             @NotNull TeleportOptions options
     ) {
-        CompletableFuture<Long> remaining = options.cooldownSeconds() > 0 ? this.remainingCooldown(player.getUniqueId(), options.type())
+        CompletableFuture<Long> remaining = options.cooldownSeconds() > 0 ? this.remainingCooldown(player.getUniqueId(), options.cooldownId())
                 : CompletableFuture.completedFuture(0L);
         return remaining.thenCompose(millis -> {
             // 正在冷却
@@ -121,17 +121,17 @@ public final class TeleportService implements Listener, PlayerListener {
 
     // 记录冷却到 Redis
     private void startCooldown(UUID player, TeleportOptions options) {
-        this.plugin.redisConnector().connection().async().set(cooldownKey(player, options.type()), new byte[]{1}, SetArgs.Builder.px(options.cooldownSeconds() * 1000L));
+        this.plugin.redisConnector().connection().async().set(cooldownKey(player, options.cooldownId()), new byte[]{1}, SetArgs.Builder.px(options.cooldownSeconds() * 1000L));
     }
 
     // 读取剩余冷却毫秒数, 没有冷却时为 0
-    private CompletableFuture<Long> remainingCooldown(UUID player, TeleportType type) {
-        return this.plugin.redisConnector().connection().async().pttl(cooldownKey(player, type)).toCompletableFuture().thenApply(millis -> Math.max(millis, 0L));
+    private CompletableFuture<Long> remainingCooldown(UUID player, String cooldownId) {
+        return this.plugin.redisConnector().connection().async().pttl(cooldownKey(player, cooldownId)).toCompletableFuture().thenApply(millis -> Math.max(millis, 0L));
     }
 
     // 功能冷却 KEY
-    private static byte[] cooldownKey(UUID player, TeleportType type) {
-        return (COOLDOWN_PREFIX + type.id() + ":" + player).getBytes(StandardCharsets.UTF_8);
+    private static byte[] cooldownKey(UUID player, String cooldownId) {
+        return (COOLDOWN_PREFIX + cooldownId + ":" + player).getBytes(StandardCharsets.UTF_8);
     }
 
     /**

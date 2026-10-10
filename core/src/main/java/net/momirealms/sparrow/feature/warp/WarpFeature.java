@@ -5,6 +5,7 @@ import net.momirealms.sparrow.feature.warp.command.*;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -37,6 +38,7 @@ public final class WarpFeature extends Feature<WarpSettings> {
         } catch (PatternSyntaxException exception) {
             throw new IllegalArgumentException("warp.name-pattern is not a valid regular expression: " + settings.namePattern(), exception);
         }
+        TeleportConfig.group(settings.teleportGroup());
         super.config = settings;
     }
 

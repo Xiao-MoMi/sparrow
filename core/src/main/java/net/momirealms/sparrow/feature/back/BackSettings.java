@@ -1,10 +1,9 @@
 package net.momirealms.sparrow.feature.back;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import net.momirealms.sparrow.teleport.TeleportOptions;
-import net.momirealms.sparrow.teleport.TeleportSettings;
 import net.momirealms.sparrow.teleport.TeleportType;
-import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
@@ -37,10 +36,9 @@ public final class BackSettings implements FeatureSettings {
     @Comment(lang = "zh", value = "本服没有记录时, 如果玩家是在这么多秒内从上一个服务器切换过来的, /back 会回到上一个服务器离开时的位置.")
     private int serverSwitchWindowSeconds = 30;
 
-    @BlankLineBefore
-    @Comment("Teleport settings for /back and /death-back. Each command has its own cooldown.")
-    @Comment(lang = "zh", value = "/back 与 /death-back 的传送设置, 两条命令独立计算冷却.")
-    private TeleportSettings teleport = new TeleportSettings();
+    @Comment("Teleport group from teleport.yml used by /back and /death-back. Leave empty to use the default group.")
+    @Comment(lang = "zh", value = "/back 与 /death-back 使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
+    private String teleportGroup = "default";
 
     @Override
     public boolean enabled() {
@@ -69,14 +67,19 @@ public final class BackSettings implements FeatureSettings {
         return this.serverSwitchWindowSeconds;
     }
 
+    @NotNull
+    public String teleportGroup() {
+        return this.teleportGroup;
+    }
+
     /** 生成 /back 的默认预热与冷却参数. */
     @NotNull
     public TeleportOptions teleportOptions() {
-        return this.teleport.createOptions(TeleportType.BACK);
+        return TeleportConfig.group(this.teleportGroup).createOptions(TeleportType.BACK);
     }
 
     @NotNull
     public TeleportOptions deathTeleportOptions() {
-        return this.teleport.createOptions(TeleportType.DEATH_BACK);
+        return TeleportConfig.group(this.teleportGroup).createOptions(TeleportType.DEATH_BACK);
     }
 }

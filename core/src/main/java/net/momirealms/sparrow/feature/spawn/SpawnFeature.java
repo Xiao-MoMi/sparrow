@@ -8,6 +8,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
+import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,7 +28,9 @@ public final class SpawnFeature extends Feature<SpawnSettings> {
 
     @Override
     public void loadConfig() {
-        super.config = this.plugin.configurationManager().featuresConfig().config().spawn();
+        SpawnSettings settings = this.plugin.configurationManager().featuresConfig().config().spawn();
+        TeleportConfig.group(settings.teleportGroup());
+        super.config = settings;
     }
 
     @Override

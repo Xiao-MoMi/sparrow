@@ -12,13 +12,14 @@ import org.jetbrains.annotations.Nullable;
  * 一次传送的参数快照, 包含预热、冷却、取消条件、显示和音效.
  * 各功能从配置生成快照, 权限覆盖后的实际参数由 {@link #resolve} 得出.
  *
+ * @param cooldownId 冷却 ID, 相同 ID 的传送共用一份冷却
  * @param warmupSeconds 原地等待的秒数, 0 表示立即传送
- * @param cooldownSeconds 该类型传送的冷却秒数, 0 表示不检查也不记录冷却
+ * @param cooldownSeconds 冷却秒数, 0 表示不检查也不记录冷却
  * @param cancelOnMove 预热期间移动时是否取消
  * @param cancelOnDamage 预热期间受伤时是否取消
  */
 public record TeleportOptions(
-        @NotNull TeleportType type,
+        @NotNull String cooldownId,
         int warmupSeconds,
         int cooldownSeconds,
         boolean cancelOnMove,
@@ -49,7 +50,7 @@ public record TeleportOptions(
                 : 0;
         int cooldownSeconds = self && !player.hasPermission(BYPASS_COOLDOWN) ? this.cooldownSeconds : 0;
         return new TeleportOptions(
-                this.type,
+                this.cooldownId,
                 warmupSeconds,
                 cooldownSeconds,
                 this.cancelOnMove,

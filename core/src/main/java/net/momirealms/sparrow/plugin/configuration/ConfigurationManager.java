@@ -13,6 +13,7 @@ public class ConfigurationManager {
     private final CommandsConfig commandsConfig;
     private final PluginConfig pluginConfig;
     private final ServerConfig serverConfig;
+    private final TeleportConfig teleportConfig;
     private final FeaturesConfig featuresConfig;
 
     public ConfigurationManager(Plugin plugin) {
@@ -28,6 +29,7 @@ public class ConfigurationManager {
         this.pluginConfig = new PluginConfig(plugin, this.sparrowYaml);
         this.serverConfig = new ServerConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.commandsConfig = new CommandsConfig(plugin.dataFolderPath(), this.sparrowYaml);
+        this.teleportConfig = new TeleportConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.featuresConfig = new FeaturesConfig(plugin.dataFolderPath(), this.sparrowYaml);
     }
 
@@ -37,6 +39,7 @@ public class ConfigurationManager {
     public void reload() {
         this.pluginConfig.reload();
         this.serverConfig.reload();
+        this.teleportConfig.reload();
         this.featuresConfig.reload();
     }
 

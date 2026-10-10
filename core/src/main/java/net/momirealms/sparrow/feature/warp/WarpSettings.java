@@ -1,10 +1,9 @@
 package net.momirealms.sparrow.feature.warp;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
+import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import net.momirealms.sparrow.teleport.TeleportOptions;
-import net.momirealms.sparrow.teleport.TeleportSettings;
 import net.momirealms.sparrow.teleport.TeleportType;
-import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
@@ -29,10 +28,9 @@ public final class WarpSettings implements FeatureSettings {
     @Comment(lang = "zh", value = "按 Tab 补全时最多显示多少个名称.")
     private int suggestionLimit = 100;
 
-    @BlankLineBefore
-    @Comment("Teleport warmup, cooldown, display and sounds.")
-    @Comment(lang = "zh", value = "传送预热、冷却、显示和音效.")
-    private TeleportSettings teleport = new TeleportSettings();
+    @Comment("Teleport group from teleport.yml used by /warp. Leave empty to use the default group.")
+    @Comment(lang = "zh", value = "/warp 使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
+    private String teleportGroup = "default";
 
     @Override
     public boolean enabled() {
@@ -61,9 +59,14 @@ public final class WarpSettings implements FeatureSettings {
         return this.suggestionLimit;
     }
 
+    @NotNull
+    public String teleportGroup() {
+        return this.teleportGroup;
+    }
+
     // 玩家自己传送时的默认参数, 实际参数由 TeleportOptions.resolve 按权限与命令参数调整
     @NotNull
     public TeleportOptions teleportOptions() {
-        return this.teleport.createOptions(TeleportType.WARP);
+        return TeleportConfig.group(this.teleportGroup).createOptions(TeleportType.WARP);
     }
 }
