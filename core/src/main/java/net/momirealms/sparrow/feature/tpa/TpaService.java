@@ -1,5 +1,7 @@
 package net.momirealms.sparrow.feature.tpa;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -11,22 +13,28 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.teleport.TeleportDestination;
 import net.momirealms.sparrow.teleport.TeleportType;
+import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public final class TpaService {
     private static final CompletableFuture<Long> NO_WAIT = CompletableFuture.completedFuture(0L);
+    private static final Duration SUGGESTION_TTL = Duration.ofSeconds(3); // 同一位玩家连续补全时, 这段时间内只读一次 Redis
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final TpaFeature feature = this.plugin.featureManager().feature(TpaFeature.ID, TpaFeature.class);
     private final TpaStore store = new TpaStore();
+    private final Cache<UUID, CompletableFuture<List<String>>> requesterNames = Caffeine.newBuilder().expireAfterWrite(SUGGESTION_TTL).build(); // 补全用, 向玩家发起请求的人
+    private final Cache<UUID, CompletableFuture<List<String>>> targetNames = Caffeine.newBuilder().expireAfterWrite(SUGGESTION_TTL).build();    // 补全用, 玩家发起请求的对象
 
     /**
      * 向一位在线玩家发起传送请求.
@@ -61,9 +69,25 @@ public final class TpaService {
                         return CompletableFuture.completedFuture(null);
                     }
                     TpaRequest request = new TpaRequest(from, requester.name(), to, target.name(), direction, System.currentTimeMillis());
+                    int expireSeconds = this.feature.config().expireSeconds();
                     return this.store.save(request).thenRun(() -> {
-                        requester.sendMessage(MessageConstants.COMMAND_TPA_SENT, name, Component.text(this.feature.config().expireSeconds()));
+                        requester.sendMessage(MessageConstants.COMMAND_TPA_SENT, name, Component.text(expireSeconds));
                         this.plugin.messageBrokerManager().publishOneWay(new TpaMessage(TpaMessage.Event.REQUESTED, request, ""), "");
+                        // 到期由发出请求的本服清理. 本服在到期前停掉的话没有过期提示, 请求留到记录自己失效
+                        this.plugin.scheduler().asyncLater(() -> {
+                            // 请求到期时删除并通知双方
+                            this.store.find(request.requester(), request.target())
+                                    .thenCompose(current -> current != null && current.createdAt() == request.createdAt()
+                                            ? this.store.take(request)
+                                            : CompletableFuture.completedFuture(false))
+                                    .thenAccept(taken -> {
+                                        if (taken) this.plugin.messageBrokerManager().publishOneWay(new TpaMessage(TpaMessage.Event.EXPIRED, request, ""), "");
+                                    })
+                                    .exceptionally(error -> {
+                                        this.plugin.logger().warn("Failed to expire the tpa request from " + request.requesterName() + " to " + request.targetName(), error);
+                                        return null;
+                                    });
+                        }, expireSeconds, TimeUnit.SECONDS);
                     });
                 })
                 .exceptionally(error -> {
@@ -154,6 +178,24 @@ public final class TpaService {
                 });
     }
 
+    /**
+     * 补全回应和取消命令里的玩家名.
+     *
+     * @param incoming true 时补全向这位玩家发起请求的人, false 时补全这位玩家发起请求的对象
+     */
+    @NotNull
+    public CompletableFuture<List<Suggestion>> suggest(@NotNull UUID player, @NotNull String input, boolean incoming) {
+        // Spigot 的补全等不了异步结果, 在 Spigot 上不补全
+        if (!this.plugin.commandManager().asynchronousCompletion()) return CompletableFuture.completedFuture(List.of());
+        CompletableFuture<List<String>> names = incoming
+                ? this.requesterNames.get(player, uuid -> this.store.incoming(uuid).thenApply(requests -> requests.stream().map(TpaRequest::requesterName).toList()))
+                : this.targetNames.get(player, uuid -> this.store.outgoing(uuid).thenApply(requests -> requests.stream().map(TpaRequest::targetName).toList()));
+        return names.thenApply(found -> found.stream()
+                .filter(name -> name.regionMatches(true, 0, input, 0, input.length()))
+                .map(Suggestion::suggestion)
+                .toList());
+    }
+
     // 每台服务器都会收到通知, 各自只处理此刻在本服的那位玩家
     void handle(@NotNull TpaMessage message) {
         TpaRequest request = message.request();
@@ -187,6 +229,10 @@ public final class TpaService {
             }
             case CANCELLED -> {
                 if (target != null) target.sendMessage(MessageConstants.COMMAND_TPA_CANCELLED, requesterName);
+            }
+            case EXPIRED -> {
+                if (requester != null) requester.sendMessage(MessageConstants.COMMAND_TPA_EXPIRED, targetName);
+                if (target != null) target.sendMessage(MessageConstants.COMMAND_TPA_EXPIRED_FROM, requesterName);
             }
         }
     }

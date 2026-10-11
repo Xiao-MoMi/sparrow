@@ -185,6 +185,8 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_TPA_ACCEPTED = Component.translatable("command.tpa.accepted");
     TranslatableComponent COMMAND_TPA_DENIED = Component.translatable("command.tpa.denied");
     TranslatableComponent COMMAND_TPA_CANCELLED = Component.translatable("command.tpa.cancelled");
+    TranslatableComponent COMMAND_TPA_EXPIRED = Component.translatable("command.tpa.expired");
+    TranslatableComponent COMMAND_TPA_EXPIRED_FROM = Component.translatable("command.tpa.expired-from");
     TranslatableComponent COMMAND_TPA_TELEPORT_SUCCESS = Component.translatable("command.tpa.teleport.success");
     TranslatableComponent COMMAND_TPA_TELEPORT_SERVER_OFFLINE = Component.translatable("command.tpa.teleport.server-offline");
     TranslatableComponent COMMAND_TPA_TELEPORT_INVALID = Component.translatable("command.tpa.teleport.invalid");

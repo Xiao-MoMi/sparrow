@@ -23,7 +23,11 @@ public final class TpaCancelCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
-                .optional("player", TokenParser.tokenParser())
+                .optional(
+                        "player",
+                        TokenParser.tokenParser(),
+                        (context, input) -> this.feature.service().suggest(context.sender().getUniqueId(), input.peekString(), false)
+                )
                 .handler(this::execute));
     }
 

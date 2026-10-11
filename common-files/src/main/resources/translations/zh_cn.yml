@@ -574,6 +574,8 @@ command.tpa.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 command.tpa.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>发送请求冷却中, 还需等待 <color:#F2F4FF><arg:0></color> 秒</color>'
 command.tpa.denied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 拒绝了你的传送请求</color>'
 command.tpa.denied-cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 拒绝过你的请求, 还需等待 <color:#F2F4FF><arg:1></color> 秒才能再次向对方发送</color>'
+command.tpa.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你发给 <color:#F2F4FF><arg:0></color> 的传送请求已过期</color>'
+command.tpa.expired-from: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 的传送请求已过期</color>'
 command.tpa.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>处理传送请求时出错, 请查看控制台</color>'
 command.tpa.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有待回应的传送请求</color>'
 command.tpa.none-from: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有来自 <color:#F2F4FF><arg:0></color> 的传送请求</color>'

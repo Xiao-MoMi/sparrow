@@ -79,6 +79,6 @@ public final class TpaMessage extends OneWayMessage<FriendlyByteBuf> {
 
     // 序号会写进消息, 新增的事件只能加在末尾
     public enum Event {
-        REQUESTED, ACCEPTED, DENIED, CANCELLED
+        REQUESTED, ACCEPTED, DENIED, CANCELLED, EXPIRED
     }
 }
