@@ -49,7 +49,7 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
         };
         this.teleport = new Teleport(player, type < 0 ? null : TeleportType.values()[type], super.targetServer, destination, self);
         if (type >= 0) {
-            this.teleport.dimensions(new TeleportDimensions(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()));
+            this.teleport.dimensions(new TeleportDimensions(buffer.readDouble(), buffer.readDouble(), buffer.readDouble(), buffer.readDouble()));
         }
     }
 
@@ -78,6 +78,7 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
             buffer.writeDouble(dimensions.width());
             buffer.writeDouble(dimensions.height());
             buffer.writeDouble(dimensions.depth());
+            buffer.writeDouble(dimensions.eyeHeight());
         }
     }
 

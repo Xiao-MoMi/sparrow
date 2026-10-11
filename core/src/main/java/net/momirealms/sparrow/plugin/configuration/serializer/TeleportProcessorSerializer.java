@@ -5,6 +5,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
+import net.momirealms.sparrow.teleport.processor.SafeLocationProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
 import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
@@ -33,6 +34,7 @@ public final class TeleportProcessorSerializer {
         this.register(CooldownProcessor.TYPE, CooldownProcessor.class);
         this.register(WarmupProcessor.TYPE, WarmupProcessor.class);
         this.register(WorldBlacklistProcessor.TYPE, WorldBlacklistProcessor.class);
+        this.register(SafeLocationProcessor.TYPE, SafeLocationProcessor.class);
         this.register(SoundProcessor.TYPE, SoundProcessor.class);
         this.register(InvulnerabilityProcessor.TYPE, InvulnerabilityProcessor.class);
     }

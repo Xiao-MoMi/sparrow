@@ -2,6 +2,7 @@ package net.momirealms.sparrow.teleport;
 
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
+import net.momirealms.sparrow.teleport.processor.SafeLocationProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
@@ -59,6 +60,14 @@ public final class TeleportGroup {
     @Comment({
             "Processors that run on the destination server before the landing spot is reserved. The player may still be on another server.",
             "They run from top to bottom. Each one may reject the teleport or move the landing spot.",
+            "   safe-location - checks the requested position, then searches nearby, then vertically at the original X/Z.",
+            "     Place it after processors that change the destination. It also applies when teleporting another player.",
+            "     Uses the player's current bounding box. Standing heights above 5 blocks use a 0.6 x 2 x 0.6 detection box.",
+            "     nearby.horizontal-radius, nearby.vertical-radius: nearby search distances in blocks. Both must be at least 0.",
+            "     max-checks: positive limit shared by all search stages, including the requested position.",
+            "     allow-nether-roof: whether the search may go above the dimension's logical height in worlds with a ceiling.",
+            "     force-on-failure: use the requested position if no safe location is found. false cancels the teleport.",
+            "     fallback-min-y: minimum Y for forced teleports, also kept at least one block above the world's minimum height.",
             "   world-blacklist - rejects teleports into the listed worlds.",
             "     worlds: names of the worlds that players cannot teleport into.",
             "     bypass-permission: players with this permission may enter anyway. Leave empty to let nobody through.",
@@ -67,6 +76,14 @@ public final class TeleportGroup {
     @Comment(lang = "zh", value = {
             "落点处理器, 在落点所在的服务器上、预留落点之前执行. 此时玩家可能还在别的服务器上.",
             "从上到下依次执行, 每一个都可以拒绝传送或改写落点.",
+            "   safe-location - 先检查原位置, 再搜索附近, 最后在原 X/Z 上垂直搜索.",
+            "     放在会改写落点的处理器之后. 代其他玩家发起传送时同样执行.",
+            "     使用玩家当前检测体积. 缩放后的站立高度超过 5 格时, 按 0.6 x 2 x 0.6 的体积检查.",
+            "     nearby.horizontal-radius, nearby.vertical-radius: 附近搜索的水平和垂直距离, 单位为格, 均须大于等于 0.",
+            "     max-checks: 所有搜索阶段共用的检查次数上限, 包含原位置检查, 必须大于 0.",
+            "     allow-nether-roof: 有顶层的维度是否允许搜索超过维度逻辑高度的位置.",
+            "     force-on-failure: 找不到安全位置时是否强制传送到原位置. false 表示取消传送.",
+            "     fallback-min-y: 强制传送的最低 Y, 同时至少高于世界最低高度一格.",
             "   world-blacklist - 拒绝传送进入列出的世界.",
             "     worlds: 禁止传送进入的世界名称.",
             "     bypass-permission: 拥有此权限的玩家仍然可以进入. 留空表示任何人都不能进入.",
@@ -103,6 +120,7 @@ public final class TeleportGroup {
     public static TeleportGroup createDeathBack() {
         TeleportGroup group = new TeleportGroup();
         group.preProcessor = List.of(new CooldownProcessor("death-back"), new WarmupProcessor());
+        group.targetProcessor = List.of(new SafeLocationProcessor());
         group.postProcessor = List.of(new InvulnerabilityProcessor(), new SoundProcessor());
         return group;
     }
