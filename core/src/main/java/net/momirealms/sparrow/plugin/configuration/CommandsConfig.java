@@ -719,6 +719,46 @@ public final class CommandsConfig {
                 DependencyVersions.PROJECT_ID + ".command.edit-warp"
         );
 
+        // tpa 模块
+        @BlankLineBefore
+        CommandConfig tpa = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa", "/tpa"),
+                DependencyVersions.PROJECT_ID + ".command.tpa"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-here")
+        CommandConfig tpaHere = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-here", "/tpa-here", "/tpahere"),
+                DependencyVersions.PROJECT_ID + ".command.tpa-here"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-accept")
+        CommandConfig tpaAccept = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-accept", "/tpa-accept", "/tpaccept"),
+                DependencyVersions.PROJECT_ID + ".command.tpa-accept"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-deny")
+        CommandConfig tpaDeny = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-deny", "/tpa-deny", "/tpdeny"),
+                DependencyVersions.PROJECT_ID + ".command.tpa-deny"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-cancel")
+        CommandConfig tpaCancel = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-cancel", "/tpa-cancel", "/tpacancel"),
+                DependencyVersions.PROJECT_ID + ".command.tpa-cancel"
+        );
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -820,6 +860,11 @@ public final class CommandsConfig {
                 case "del-warp" -> this.delWarp;
                 case "warp-list" -> this.warpList;
                 case "edit-warp" -> this.editWarp;
+                case "tpa" -> this.tpa;
+                case "tpa-here" -> this.tpaHere;
+                case "tpa-accept" -> this.tpaAccept;
+                case "tpa-deny" -> this.tpaDeny;
+                case "tpa-cancel" -> this.tpaCancel;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }

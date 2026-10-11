@@ -566,6 +566,42 @@ command.tp-offline.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 command.tp-offline.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
 command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No database record was found for <color:#F2F4FF><arg:0></color>.</color>'
 
+# command.tpa
+command.tpa.accepted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> accepted your teleport request</color>'
+command.tpa.button.accept: '<color:#C9F2C7>[Accept]</color>'
+command.tpa.button.deny: '<color:#FFB6CB>[Deny]</color>'
+command.tpa.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> cancelled the teleport request</color>'
+command.tpa.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can send another request in <color:#F2F4FF><arg:0></color> seconds</color>'
+command.tpa.denied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> denied your teleport request</color>'
+command.tpa.denied-cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> denied your request, you can ask them again in <color:#F2F4FF><arg:1></color> seconds</color>'
+command.tpa.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not handle the teleport request, check the console</color>'
+command.tpa.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no teleport requests to answer</color>'
+command.tpa.none-from: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>There is no teleport request from <color:#F2F4FF><arg:0></color></color>'
+command.tpa.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online</color>'
+command.tpa.pending: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your teleport request to <color:#F2F4FF><arg:0></color> is still waiting for an answer</color>'
+command.tpa.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> wants to teleport to you <arg:1> <arg:2></color>'
+command.tpa.self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You cannot send a teleport request to yourself</color>'
+command.tpa.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a teleport request to <color:#C7BCE7><arg:0></color>, valid for <color:#C7BCE7><arg:1></color> seconds</color>'
+command.tpa.teleport.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is no longer on that server, the teleport was cancelled</color>'
+command.tpa.teleport.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:1></color>, where <color:#F2F4FF><arg:0></color> is playing, is offline</color>'
+command.tpa.teleport.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported to <color:#C7BCE7><arg:0></color></color>'
+command.tpa.teleport.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
+
+# command.tpa-accept
+command.tpa-accept.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is no longer online, the request was dropped</color>'
+command.tpa-accept.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Accepted the teleport request from <color:#C7BCE7><arg:0></color></color>'
+
+# command.tpa-cancel
+command.tpa-cancel.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have not sent any teleport requests</color>'
+command.tpa-cancel.none-to: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no teleport request to <color:#F2F4FF><arg:0></color></color>'
+command.tpa-cancel.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cancelled the teleport request to <color:#C7BCE7><arg:0></color></color>'
+
+# command.tpa-deny
+command.tpa-deny.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Denied the teleport request from <color:#C7BCE7><arg:0></color></color>'
+
+# command.tpa-here
+command.tpa-here.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> wants you to teleport to them <arg:1> <arg:2></color>'
+
 # command.unban
 command.unban.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:0></color> has no active bans.</color>'
 command.unban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Unbanned <color:#C7BCE7><arg:0></color>, revoked <arg:1> ban(s).</color>'

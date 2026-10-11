@@ -8,6 +8,7 @@ import net.momirealms.sparrow.feature.mute.MuteMessage;
 import net.momirealms.sparrow.feature.home.HomeChangedMessage;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.feature.spawn.SpawnMessage;
+import net.momirealms.sparrow.feature.tpa.TpaMessage;
 import net.momirealms.sparrow.redis.message.player.BroadcastMessage;
 import net.momirealms.sparrow.redis.proxy.PlayerPresenceMessage;
 import net.momirealms.sparrow.redis.proxy.PlayerDirectoryResetMessage;
@@ -55,6 +56,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
         this.broker.registry().register(SpawnMessage.ID, SpawnMessage.CODEC);
         this.broker.registry().register(HomeChangedMessage.ID, HomeChangedMessage.CODEC);
+        this.broker.registry().register(TpaMessage.ID, TpaMessage.CODEC);
         // Redis Pub/Sub Proxy 代理频道.
         this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":proxy").getBytes(StandardCharsets.UTF_8))

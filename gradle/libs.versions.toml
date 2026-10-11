@@ -2,11 +2,11 @@
 # Project
 project-version = "26.9-SNAPSHOT-2"
 config-version = "3"
-commands-config-version = "12"
-features-config-version = "12"
+commands-config-version = "13"
+features-config-version = "13"
 server-config-version = "1"
 teleport-config-version = "1"
-lang-version = "41"
+lang-version = "42"
 proxy-config-version = "1"
 
 # Database

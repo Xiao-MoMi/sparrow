@@ -19,17 +19,19 @@ final class TpaStore {
     private static final String COOLDOWN_PREFIX = "sparrow:tpa:cooldown:"; // 后接发起者 UUID, 过期即可以再次发起
     private static final String DENIED_PREFIX = "sparrow:tpa:denied:";     // 后接发起者与目标的 UUID, 过期即可以再次向他发起
     private static final long GRACE_MILLIS = 10_000L;                      // 记录比请求多保留的时间, 请求正常由过期任务删除
-    private static final byte[] MARK = {1};
+    private static final byte[] MARK = {1};                                // 两种冷却只看键在不在, 值没有含义
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final TpaFeature feature = this.plugin.featureManager().feature(TpaFeature.ID, TpaFeature.class);
 
+    // 把请求记进目标的收到列表和发起者的发出列表
     @NotNull
     CompletableFuture<Void> save(@NotNull TpaRequest request) {
         RedisAsyncCommands<byte[], byte[]> redis = this.redis();
         byte[] incoming = key(INCOMING_PREFIX, request.target());
         byte[] outgoing = key(OUTGOING_PREFIX, request.requester());
         byte[] value = request.encode();
+        // 两个键的过期时间随每次写入顺延, 只在没有人来删的时候起作用
         long ttl = this.expireMillis() + GRACE_MILLIS;
         return CompletableFuture.allOf(
                 redis.hset(incoming, field(request.requester()), value).toCompletableFuture(),
@@ -47,11 +49,13 @@ final class TpaStore {
                 .toCompletableFuture()
                 .thenApply(removed -> {
                     if (removed == 0) return false;
+                    // 谁删成功由收到列表决定, 发出列表跟着清掉这一项
                     redis.hdel(key(OUTGOING_PREFIX, request.requester()), field(request.target()));
                     return true;
                 });
     }
 
+    // 查询发起者发给目标的那一条请求, 没有或已经超过有效期时为 null
     @NotNull
     CompletableFuture<@Nullable TpaRequest> find(@NotNull UUID requester, @NotNull UUID target) {
         return this.redis().hget(key(INCOMING_PREFIX, target), field(requester))
@@ -63,6 +67,7 @@ final class TpaStore {
                 });
     }
 
+    // 目标收到的、还在有效期内的全部请求
     @NotNull
     CompletableFuture<List<TpaRequest>> incoming(@NotNull UUID target) {
         return this.redis().hgetall(key(INCOMING_PREFIX, target))
@@ -70,6 +75,7 @@ final class TpaStore {
                 .thenApply(entries -> this.pending(entries, (requester, value) -> TpaRequest.decode(requester, target, value)));
     }
 
+    // 发起者发出的、还在有效期内的全部请求
     @NotNull
     CompletableFuture<List<TpaRequest>> outgoing(@NotNull UUID requester) {
         return this.redis().hgetall(key(OUTGOING_PREFIX, requester))
@@ -84,11 +90,13 @@ final class TpaStore {
         if (millis <= 0) return CompletableFuture.completedFuture(0L);
         RedisAsyncCommands<byte[], byte[]> redis = this.redis();
         byte[] key = key(COOLDOWN_PREFIX, requester);
+        // 键不存在时写入成功就是占用成功, 已经存在时读出它的剩余时间, 至少算 1 毫秒
         return redis.set(key, MARK, SetArgs.Builder.nx().px(millis))
                 .toCompletableFuture()
                 .thenCompose(claimed -> claimed != null ? CompletableFuture.completedFuture(0L) : redis.pttl(key).toCompletableFuture().thenApply(left -> Math.max(left, 1L)));
     }
 
+    // 目标拒绝发起者后调用, 开始这两人之间的单人冷却
     void markDenied(@NotNull UUID requester, @NotNull UUID target) {
         long millis = this.feature.config().denyCooldownSeconds() * 1000L;
         if (millis > 0) this.redis().set(deniedKey(requester, target), MARK, SetArgs.Builder.px(millis));
@@ -100,7 +108,7 @@ final class TpaStore {
         return this.redis().pttl(deniedKey(requester, target)).toCompletableFuture().thenApply(left -> Math.max(left, 0L));
     }
 
-    // 安排过期任务的服务器停掉时, 请求会留在哈希里, 读取时按创建时间把它们筛掉
+    // 把哈希里的各项读成请求, 跳过已经超过有效期的
     private List<TpaRequest> pending(Map<byte[], byte[]> entries, Decoder decoder) {
         List<TpaRequest> requests = new ArrayList<>(entries.size());
         for (Map.Entry<byte[], byte[]> entry : entries.entrySet()) {
@@ -110,6 +118,7 @@ final class TpaStore {
         return requests;
     }
 
+    // 请求到期时由过期任务删除. 安排任务的服务器停掉后它会留在哈希里, 超过有效期加宽限时间就当作不存在
     private boolean expired(TpaRequest request) {
         return request.createdAt() + this.expireMillis() + GRACE_MILLIS < System.currentTimeMillis();
     }
@@ -134,6 +143,7 @@ final class TpaStore {
         return player.toString().getBytes(StandardCharsets.UTF_8);
     }
 
+    // 哈希的字段是另一位玩家的 UUID, 它是发起者还是目标由调用方决定
     @FunctionalInterface
     private interface Decoder {
         TpaRequest decode(UUID other, byte[] value);
