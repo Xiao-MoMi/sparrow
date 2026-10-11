@@ -13,6 +13,7 @@ import net.momirealms.sparrow.feature.playerlimit.PlayerLimitSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
 import net.momirealms.sparrow.feature.spawn.SpawnSettings;
+import net.momirealms.sparrow.feature.tpa.TpaSettings;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerSettings;
 import net.momirealms.sparrow.feature.warp.WarpSettings;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -181,9 +182,19 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "个人 Home, 使用本地缓存与跨服变更消息同步.")
         private HomeSettings home = new HomeSettings();
 
+        @BlankLineBefore
+        @Comment("Ask to teleport to another player with /tpa, or ask them to come to you with /tpa-here. Works across servers.")
+        @Comment(lang = "zh", value = "使用 /tpa 请求传送到其他玩家身边, 使用 /tpa-here 请求对方来到自己身边, 支持跨服.")
+        private TpaSettings tpa = new TpaSettings();
+
         @NotNull
         public HomeSettings home() {
             return this.home;
+        }
+
+        @NotNull
+        public TpaSettings tpa() {
+            return this.tpa;
         }
 
         @NotNull
@@ -269,6 +280,7 @@ public final class FeaturesConfig {
                 case "spawn" -> this.spawn;
                 case "warp" -> this.warp;
                 case "home" -> this.home;
+                case "tpa" -> this.tpa;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

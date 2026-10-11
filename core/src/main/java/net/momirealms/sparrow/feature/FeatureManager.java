@@ -3,6 +3,7 @@ package net.momirealms.sparrow.feature;
 import net.momirealms.sparrow.feature.back.BackFeature;
 import net.momirealms.sparrow.feature.bed.BedFeature;
 import net.momirealms.sparrow.feature.spawn.SpawnFeature;
+import net.momirealms.sparrow.feature.tpa.TpaFeature;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.mute.MuteFeature;
@@ -60,6 +61,7 @@ public final class FeatureManager {
         this.features.put(SpawnFeature.ID, new SpawnFeature(plugin));
         this.features.put(WarpFeature.ID, new WarpFeature(plugin));
         this.features.put(HomeFeature.ID, new HomeFeature(plugin));
+        this.features.put(TpaFeature.ID, new TpaFeature(plugin));
     }
 
     // 模块命令只在插件启用时注册一次, 此后命令树不再变化, 模块开关只决定这些命令是否可见

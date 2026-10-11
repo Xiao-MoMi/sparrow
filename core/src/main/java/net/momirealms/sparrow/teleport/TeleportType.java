@@ -8,7 +8,8 @@ public enum TeleportType {
     BACK("back"),
     DEATH_BACK("death-back"),
     BED("bed"),
-    SPAWN("spawn");
+    SPAWN("spawn"),
+    TPA("tpa");
 
     private final String id;
 

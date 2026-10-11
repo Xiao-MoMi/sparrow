@@ -102,6 +102,7 @@ public final class TeleportService implements PlayerListener {
             case BACK, DEATH_BACK -> features.back().teleportGroup();
             case BED -> features.bed().teleportGroup();
             case SPAWN -> features.spawn().teleportGroup();
+            case TPA -> features.tpa().teleportGroup();
         });
     }
 
