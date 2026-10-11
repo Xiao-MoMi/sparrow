@@ -49,6 +49,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
         BackSettings settings = this.plugin.configurationManager().featuresConfig().config().back();
         this.causes = parseCauses(settings.teleportCauses());
         TeleportConfig.group(settings.teleportGroup());
+        TeleportConfig.group(settings.deathTeleportGroup());
         super.config = settings;
     }
 

@@ -14,6 +14,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
+import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupManager;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.VersionHelper;
@@ -99,7 +100,8 @@ public final class TeleportService implements PlayerListener {
         return TeleportConfig.group(switch (type) {
             case WARP -> features.warp().teleportGroup();
             case HOME -> features.home().teleportGroup();
-            case BACK, DEATH_BACK -> features.back().teleportGroup();
+            case BACK -> features.back().teleportGroup();
+            case DEATH_BACK -> features.back().deathTeleportGroup();
             case BED -> features.bed().teleportGroup();
             case SPAWN -> features.spawn().teleportGroup();
             case TPA -> features.tpa().teleportGroup();
@@ -215,6 +217,11 @@ public final class TeleportService implements PlayerListener {
         } else {
             this.arrived(player, arrival.teleport);
         }
+    }
+
+    @Override
+    public void onQuit(@NotNull BukkitSparrowPlayer player) {
+        InvulnerabilityProcessor.clear(player);
     }
 
     // 注册一种处理器, 之后 teleport.yml 的 processor-type 可以写它的类型. 类型表只在读取 teleport.yml 时查询,

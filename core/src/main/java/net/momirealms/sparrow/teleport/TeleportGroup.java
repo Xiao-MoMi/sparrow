@@ -1,9 +1,9 @@
 package net.momirealms.sparrow.teleport;
 
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
+import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
-import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -77,11 +77,15 @@ public final class TeleportGroup {
     @BlankLineBefore
     @Comment({
             "Processors that run on the destination server after the player has arrived, from top to bottom.",
+            "   invulnerability - grants temporary vanilla invulnerability.",
+            "     seconds: duration in seconds (20 ticks each). 0 disables it.",
             "   sound - plays a sound to the player.",
             "     sound: a key such as entity.enderman.teleport, or a section with key, volume, pitch and source."
     })
     @Comment(lang = "zh", value = {
             "到达后的处理器, 玩家到达落点后在落点所在的服务器上从上到下依次执行.",
+            "   invulnerability - 给予临时的原版无敌效果.",
+            "     seconds: 持续秒数, 每秒按 20 tick 计算. 0 表示关闭.",
             "   sound - 给玩家播放一个音效.",
             "     sound: 音效名称, 例如 entity.enderman.teleport, 也可以写成包含 key、volume、pitch、source 的小节."
     })
@@ -91,7 +95,21 @@ public final class TeleportGroup {
     public static TeleportGroup createDefault() {
         TeleportGroup group = new TeleportGroup();
         group.preProcessor = List.of(new CooldownProcessor("teleport"), new WarmupProcessor());
-        group.targetProcessor = List.of(new WorldBlacklistProcessor());
+        group.postProcessor = List.of(new SoundProcessor());
+        return group;
+    }
+
+    @NotNull
+    public static TeleportGroup createDeathBack() {
+        TeleportGroup group = new TeleportGroup();
+        group.preProcessor = List.of(new CooldownProcessor("death-back"), new WarmupProcessor());
+        group.postProcessor = List.of(new InvulnerabilityProcessor(), new SoundProcessor());
+        return group;
+    }
+
+    @NotNull
+    public static TeleportGroup createInstant() {
+        TeleportGroup group = new TeleportGroup();
         group.postProcessor = List.of(new SoundProcessor());
         return group;
     }

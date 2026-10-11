@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -93,21 +94,20 @@ public final class TeleportConfig {
 
         @BlankLineBefore
         @Comment({
-                "Custom groups, written the same way as \"default\". A stage left out of a group runs nothing.",
-                "Example, a group that teleports at once and only plays the arrival sound:",
-                "groups:",
-                "   instant:",
-                "     post-processor:",
-                "       - processor-type: sound"
+                "Named groups, written the same way as \"default\". A stage left out of a group runs nothing.",
+                "death-back is used by /death-back and grants 5 seconds of invulnerability after arrival.",
+                "instant teleports at once and only plays the arrival sound. Assign it to a feature to use it."
         })
         @Comment(lang = "zh", value = {
-                "自定义分组, 写法与 default 相同. 分组里没有写出的阶段不执行任何处理器.",
-                "示例, 一个立即传送、只播放到达音效的分组:",
-                "groups:",
-                "   instant:",
-                "     post-processor:",
-                "       - processor-type: sound"
+                "命名分组, 写法与 default 相同. 分组里没有写出的阶段不执行任何处理器.",
+                "death-back 供 /death-back 使用, 到达后给予 5 秒无敌.",
+                "instant 立即传送并播放到达音效, 将功能的传送分组设为 instant 即可使用."
         })
-        Map<String, TeleportGroup> groups = Map.of();
+        Map<String, TeleportGroup> groups = new LinkedHashMap<>();
+
+        public ConfigDefinition() {
+            this.groups.put("death-back", TeleportGroup.createDeathBack());
+            this.groups.put("instant", TeleportGroup.createInstant());
+        }
     }
 }

@@ -33,9 +33,13 @@ public final class BackSettings implements FeatureSettings {
     @Comment(lang = "zh", value = "本服没有记录时, 如果玩家是在这么多秒内从上一个服务器切换过来的, /back 会回到上一个服务器离开时的位置.")
     private int serverSwitchWindowSeconds = 30;
 
-    @Comment("Teleport group from teleport.yml used by /back and /death-back. Leave empty to use the default group.")
-    @Comment(lang = "zh", value = "/back 与 /death-back 使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
+    @Comment("Teleport group from teleport.yml used by /back. Leave empty to use the default group.")
+    @Comment(lang = "zh", value = "/back 使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
     private String teleportGroup = "default";
+
+    @Comment("Teleport group from teleport.yml used by /death-back. Leave empty to use the default group.")
+    @Comment(lang = "zh", value = "/death-back 使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
+    private String deathTeleportGroup = "death-back";
 
     @Override
     public boolean enabled() {
@@ -67,5 +71,10 @@ public final class BackSettings implements FeatureSettings {
     @NotNull
     public String teleportGroup() {
         return this.teleportGroup;
+    }
+
+    @NotNull
+    public String deathTeleportGroup() {
+        return this.deathTeleportGroup;
     }
 }

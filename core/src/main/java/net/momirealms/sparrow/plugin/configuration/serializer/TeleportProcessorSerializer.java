@@ -4,6 +4,7 @@ import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObj
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
+import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
 import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
@@ -33,6 +34,7 @@ public final class TeleportProcessorSerializer {
         this.register(WarmupProcessor.TYPE, WarmupProcessor.class);
         this.register(WorldBlacklistProcessor.TYPE, WorldBlacklistProcessor.class);
         this.register(SoundProcessor.TYPE, SoundProcessor.class);
+        this.register(InvulnerabilityProcessor.TYPE, InvulnerabilityProcessor.class);
     }
 
     // 类型表只在读取配置时查询, 类型已被注册时抛出 IllegalArgumentException
