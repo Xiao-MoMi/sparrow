@@ -18,6 +18,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,16 +83,19 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onTeleport(@NotNull PlayerTeleportEvent event) {
-        if (!this.enabled() || !this.causes.contains(event.getCause())) {
+        this.recordTeleport(event.getPlayer(), event.getFrom(), event.getTo(), event.getCause());
+    }
+
+    @ApiStatus.Internal
+    public void recordTeleport(@NotNull Player platformPlayer, @NotNull Location from, @NotNull Location to, @NotNull TeleportCause cause) {
+        if (!this.enabled() || !this.causes.contains(cause)) {
             return;
         }
         // 还没完成进服处理, 或者还在进服保护期内, 这时的传送多半是其他插件把玩家送到出生点
-        BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(event.getPlayer());
+        BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(platformPlayer);
         if (player == null || System.currentTimeMillis() - player.connection().connectedAt() < super.config.joinGraceSeconds() * 1000L) {
             return;
         }
-        Location from = event.getFrom();
-        Location to = event.getTo();
         if (from.getWorld() == to.getWorld() && from.distanceSquared(to) < MIN_DISTANCE_SQUARED) {
             return;
         }

@@ -3,6 +3,7 @@ package net.momirealms.sparrow.teleport;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.kyori.adventure.text.Component;
+import net.momirealms.sparrow.feature.back.BackFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerListener;
@@ -131,11 +132,17 @@ public final class TeleportService implements PlayerListener {
                 if (reason != null) return CompletableFuture.completedFuture(this.reject(player, reason));
                 Location destination = teleport.location().resolve();
                 if (destination == null) return CompletableFuture.completedFuture(TeleportResult.INVALID);
+                Location from = VersionHelper.hasFoliaPatch ? player.getLocation() : null;
                 CompletableFuture<Boolean> moved = VersionHelper.hasPaperPatch
                         ? player.teleportAsync(destination, TeleportCause.PLUGIN)
                         : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
                 return moved.thenApply(success -> {
                     if (!success) return TeleportResult.FAILED;
+                    // Folia 的异步传送通过成功回调补录返回点, 先于到达后处理器执行
+                    if (from != null) {
+                        BackFeature back = this.plugin.featureManager().feature(BackFeature.ID, BackFeature.class);
+                        back.recordTeleport(player, from, destination, TeleportCause.PLUGIN);
+                    }
                     BukkitSparrowPlayer arrived = this.plugin.playerManager().getPlayer(player);
                     if (arrived != null) this.arrived(arrived, teleport);
                     return TeleportResult.LOCAL_SUCCESS;
