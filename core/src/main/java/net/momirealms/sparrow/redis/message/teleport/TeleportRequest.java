@@ -4,6 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.Teleport;
 import net.momirealms.sparrow.teleport.TeleportDestination;
+import net.momirealms.sparrow.teleport.TeleportDimensions;
 import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
@@ -47,6 +48,9 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
             default -> throw new IllegalArgumentException("Unknown teleport destination");
         };
         this.teleport = new Teleport(player, type < 0 ? null : TeleportType.values()[type], super.targetServer, destination, self);
+        if (type >= 0) {
+            this.teleport.dimensions(new TeleportDimensions(buffer.readDouble(), buffer.readDouble(), buffer.readDouble()));
+        }
     }
 
     @Override
@@ -68,6 +72,12 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
                 buffer.writeByte(OF_PLAYER);
                 buffer.writeUUID(target.player());
             }
+        }
+        if (type != null) {
+            TeleportDimensions dimensions = this.teleport.dimensions();
+            buffer.writeDouble(dimensions.width());
+            buffer.writeDouble(dimensions.height());
+            buffer.writeDouble(dimensions.depth());
         }
     }
 

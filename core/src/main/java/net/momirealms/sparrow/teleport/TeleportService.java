@@ -85,7 +85,11 @@ public final class TeleportService implements PlayerListener {
             denial = denial.thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(reason) : processor.before(sparrow, teleport));
         }
         return denial
-                .thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(this.reject(player, reason)) : this.transfer(player, teleport))
+                .thenCompose(reason -> {
+                    if (reason != null) return CompletableFuture.completedFuture(this.reject(player, reason));
+                    teleport.dimensions(TeleportDimensions.from(sparrow.nmsPlayer()));
+                    return this.transfer(player, teleport);
+                })
                 .thenApply(result -> {
                     for (TeleportProcessor.Pre processor : processors) {
                         processor.finished(teleport, result);

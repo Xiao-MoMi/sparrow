@@ -12,6 +12,7 @@ public final class Teleport {
     private final String server;
     private final TeleportDestination destination;
     private final boolean self;
+    private TeleportDimensions dimensions; // 有类型的传送在出发前处理完成后采集, 直接传送为 null
     private WorldLocation location; // 落点阶段开始时由落点所在的服务器算出, 在此之前为 null
 
     public Teleport(@NotNull UUID player, @Nullable TeleportType type, @NotNull String server, @NotNull TeleportDestination destination, boolean self) {
@@ -44,6 +45,16 @@ public final class Teleport {
 
     public boolean self() {
         return this.self;
+    }
+
+    // 有类型的传送在落点阶段及之后可用
+    @NotNull
+    public TeleportDimensions dimensions() {
+        return this.dimensions;
+    }
+
+    public void dimensions(@NotNull TeleportDimensions dimensions) {
+        this.dimensions = dimensions;
     }
 
     // 落点阶段开始时由落点所在的服务器调用, 之后落点处理器检查和改写的都是算出的这个位置. 算不出落点时返回 false
