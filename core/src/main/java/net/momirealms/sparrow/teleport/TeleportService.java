@@ -127,25 +127,27 @@ public final class TeleportService implements PlayerListener {
     private CompletableFuture<TeleportResult> transfer(Player player, Teleport teleport) {
         String server = teleport.server();
         if (ServerConfig.serverId().equals(server)) {
-            if (!teleport.locate()) return CompletableFuture.completedFuture(TeleportResult.INVALID);
-            return this.destination(teleport).thenCompose(reason -> {
-                if (reason != null) return CompletableFuture.completedFuture(this.reject(player, reason));
-                Location destination = teleport.location().resolve();
-                if (destination == null) return CompletableFuture.completedFuture(TeleportResult.INVALID);
-                Location from = VersionHelper.hasFoliaPatch ? player.getLocation() : null;
-                CompletableFuture<Boolean> moved = VersionHelper.hasPaperPatch
-                        ? player.teleportAsync(destination, TeleportCause.PLUGIN)
-                        : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
-                return moved.thenApply(success -> {
-                    if (!success) return TeleportResult.FAILED;
-                    // Folia 的异步传送通过成功回调补录返回点, 先于到达后处理器执行
-                    if (from != null) {
-                        BackFeature back = this.plugin.featureManager().feature(BackFeature.ID, BackFeature.class);
-                        back.recordTeleport(player, from, destination, TeleportCause.PLUGIN);
-                    }
-                    BukkitSparrowPlayer arrived = this.plugin.playerManager().getPlayer(player);
-                    if (arrived != null) this.arrived(arrived, teleport);
-                    return TeleportResult.LOCAL_SUCCESS;
+            return teleport.locate().thenCompose(located -> {
+                if (!located) return CompletableFuture.completedFuture(TeleportResult.INVALID);
+                return this.destination(teleport).thenCompose(reason -> {
+                    if (reason != null) return CompletableFuture.completedFuture(this.reject(player, reason));
+                    Location destination = teleport.location().resolve();
+                    if (destination == null) return CompletableFuture.completedFuture(TeleportResult.INVALID);
+                    Location from = VersionHelper.hasFoliaPatch ? player.getLocation() : null;
+                    CompletableFuture<Boolean> moved = VersionHelper.hasPaperPatch
+                            ? player.teleportAsync(destination, TeleportCause.PLUGIN)
+                            : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
+                    return moved.thenApply(success -> {
+                        if (!success) return TeleportResult.FAILED;
+                        // Folia 的异步传送通过成功回调补录返回点, 先于到达后处理器执行
+                        if (from != null) {
+                            BackFeature back = this.plugin.featureManager().feature(BackFeature.ID, BackFeature.class);
+                            back.recordTeleport(player, from, destination, TeleportCause.PLUGIN);
+                        }
+                        BukkitSparrowPlayer arrived = this.plugin.playerManager().getPlayer(player);
+                        if (arrived != null) this.arrived(arrived, teleport);
+                        return TeleportResult.LOCAL_SUCCESS;
+                    });
                 });
             });
         }
@@ -173,12 +175,14 @@ public final class TeleportService implements PlayerListener {
      */
     @NotNull
     public CompletableFuture<TeleportResponse> prepare(@NotNull Teleport teleport) {
-        if (!teleport.locate()) return CompletableFuture.completedFuture(new TeleportResponse(false, null));
-        return this.destination(teleport).thenApply(reason -> {
-            if (reason != null) return new TeleportResponse(false, reason);
-            if (teleport.location().resolve() == null) return new TeleportResponse(false, null);
-            this.arrivals.put(teleport.player(), new Arrival(teleport, false));
-            return new TeleportResponse(true, null);
+        return teleport.locate().thenCompose(located -> {
+            if (!located) return CompletableFuture.completedFuture(new TeleportResponse(false, null));
+            return this.destination(teleport).thenApply(reason -> {
+                if (reason != null) return new TeleportResponse(false, reason);
+                if (teleport.location().resolve() == null) return new TeleportResponse(false, null);
+                this.arrivals.put(teleport.player(), new Arrival(teleport, false));
+                return new TeleportResponse(true, null);
+            });
         });
     }
 

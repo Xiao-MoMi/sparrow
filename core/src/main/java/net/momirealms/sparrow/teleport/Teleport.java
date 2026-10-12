@@ -5,6 +5,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class Teleport {
     private final UUID player;
@@ -57,12 +58,14 @@ public final class Teleport {
         this.dimensions = dimensions;
     }
 
-    // 落点阶段开始时由落点所在的服务器调用, 之后落点处理器检查和改写的都是算出的这个位置. 算不出落点时返回 false
-    boolean locate() {
-        WorldLocation location = this.destination.resolve();
-        if (location == null) return false;
-        this.location = location;
-        return true;
+    // 落点解析完成后才交给落点处理器检查和改写, 算不出落点时以 false 完成
+    @NotNull
+    CompletableFuture<Boolean> locate() {
+        return this.destination.resolve().thenApply(location -> {
+            if (location == null) return false;
+            this.location = location;
+            return true;
+        });
     }
 
     // 只在落点阶段及之后可用
