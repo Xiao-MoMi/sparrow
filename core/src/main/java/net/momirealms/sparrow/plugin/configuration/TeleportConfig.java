@@ -58,6 +58,7 @@ public final class TeleportConfig {
         ConfigDefinition defaults = new ConfigDefinition();
         defaults.groups.put("death-back", this.withoutNullOptions(this.groupSerializer.serialize(TeleportGroup.createDeathBack())));
         defaults.groups.put("instant", this.withoutNullOptions(this.groupSerializer.serialize(TeleportGroup.createInstant())));
+        defaults.groups.put("rtp", this.withoutNullOptions(this.groupSerializer.serialize(TeleportGroup.createRtp())));
         return defaults;
     }
 

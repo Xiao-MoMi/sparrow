@@ -11,6 +11,7 @@ import net.momirealms.sparrow.feature.highlight.HighlightSettings;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceSettings;
 import net.momirealms.sparrow.feature.playerlimit.PlayerLimitSettings;
 import net.momirealms.sparrow.feature.patrol.PatrolSettings;
+import net.momirealms.sparrow.feature.rtp.RtpSettings;
 import net.momirealms.sparrow.feature.server.ServerSettings;
 import net.momirealms.sparrow.feature.spawn.SpawnSettings;
 import net.momirealms.sparrow.feature.tpa.TpaSettings;
@@ -187,6 +188,16 @@ public final class FeaturesConfig {
         @Comment(lang = "zh", value = "使用 /tpa 请求传送到其他玩家身边, 使用 /tpa-here 请求对方来到自己身边, 支持跨服.")
         private TpaSettings tpa = new TpaSettings();
 
+        @BlankLineBefore
+        @Comment("Random teleportation within command-specified server, world and area. Paper and Folia only; ignored on Spigot.")
+        @Comment(lang = "zh", value = "按命令指定的服务器, 世界和范围随机传送. 仅支持 Paper 和 Folia, Spigot 上此配置不生效.")
+        private RtpSettings rtp = new RtpSettings();
+
+        @NotNull
+        public RtpSettings rtp() {
+            return this.rtp;
+        }
+
         @NotNull
         public HomeSettings home() {
             return this.home;
@@ -281,6 +292,7 @@ public final class FeaturesConfig {
                 case "warp" -> this.warp;
                 case "home" -> this.home;
                 case "tpa" -> this.tpa;
+                case "rtp" -> this.rtp;
                 default -> throw new IllegalArgumentException("Unknown feature: " + id);
             };
         }

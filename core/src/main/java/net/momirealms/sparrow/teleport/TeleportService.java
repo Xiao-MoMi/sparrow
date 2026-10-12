@@ -116,6 +116,7 @@ public final class TeleportService implements PlayerListener {
             case BED -> features.bed().teleportGroup();
             case SPAWN -> features.spawn().teleportGroup();
             case TPA -> features.tpa().teleportGroup();
+            case RTP -> features.rtp().teleportGroup();
         });
     }
 

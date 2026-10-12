@@ -69,6 +69,18 @@ argument.parse.failure.flag.no_flag_started: '<color:#FFB6CB>无法识别选项�
 argument.parse.failure.flag.no_permission: '<color:#FFB6CB>你没有权限使用选项 <color:#F2F4FF><arg:0></color></color>'
 argument.parse.failure.flag.unknown: '<color:#FFB6CB>未知选项：<color:#F2F4FF><arg:0></color></color>'
 
+argument.parse.failure.server-offline: '<color:#FFB6CB>服务器 <arg:0> 不在线.</color>'
+argument.parse.failure.server-world: '<color:#FFB6CB>服务器 <arg:1> 中不存在世界 <arg:0>.</color>'
+
+# command.rtp
+command.rtp.success: '<color:#C9F2C7>已传送到随机位置.</color>'
+command.rtp.invalid-area: '<color:#FFB6CB>中心坐标和半径必须为有限数值. min-radius 不能小于 0, max-radius 必须大于 min-radius, min-y 不能大于 max-y.</color>'
+command.rtp.invalid: '<color:#FFB6CB>目标世界已不可用.</color>'
+command.rtp.server-offline: '<color:#FFB6CB>服务器 <arg:0> 不在线.</color>'
+command.rtp.timeout: '<color:#FFB6CB>请求等待超时, 未能确认传送结果.</color>'
+teleport.rejected.rtp-unsupported: '<color:#FFB6CB>目标服务器不支持随机传送.</color>'
+teleport.rejected.rtp-disabled: '<color:#FFB6CB>目标服务器未启用随机传送.</color>'
+
 # command.actionbar
 command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送 ActionBar</color>'
 command.actionbar.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你发送 ActionBar</color>'

@@ -6,6 +6,7 @@ import net.momirealms.sparrow.teleport.Teleport;
 import net.momirealms.sparrow.teleport.TeleportDestination;
 import net.momirealms.sparrow.teleport.TeleportDimensions;
 import net.momirealms.sparrow.teleport.TeleportType;
+import net.momirealms.sparrow.teleport.search.RandomTeleportArea;
 import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
@@ -23,6 +24,7 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
 
     private static final byte FIXED = 0;     // 落点来源的种类
     private static final byte OF_PLAYER = 1;
+    private static final byte RTP = 2;
 
     private final Teleport teleport;
 
@@ -45,6 +47,15 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
                     buffer.readFloat()
             ));
             case OF_PLAYER -> new TeleportDestination.OfPlayer(buffer.readUUID());
+            case RTP -> new TeleportDestination.RTP(new RandomTeleportArea(
+                    ByteBufHelper.readUtf8(buffer, 255),
+                    buffer.readDouble(),
+                    buffer.readDouble(),
+                    buffer.readDouble(),
+                    buffer.readDouble(),
+                    buffer.readBoolean() ? buffer.readInt() : null,
+                    buffer.readBoolean() ? buffer.readInt() : null
+            ));
             default -> throw new IllegalArgumentException("Unknown teleport destination");
         };
         this.teleport = new Teleport(player, type < 0 ? null : TeleportType.values()[type], super.targetServer, destination, self);
@@ -71,6 +82,21 @@ public final class TeleportRequest extends TwoWayRequestMessage<FriendlyByteBuf,
             case TeleportDestination.OfPlayer target -> {
                 buffer.writeByte(OF_PLAYER);
                 buffer.writeUUID(target.player());
+            }
+            case TeleportDestination.RTP random -> {
+                RandomTeleportArea area = random.area();
+                buffer.writeByte(RTP);
+                ByteBufHelper.writeUtf8(buffer, area.world(), 255);
+                buffer.writeDouble(area.centerX()).writeDouble(area.centerZ());
+                buffer.writeDouble(area.minRadius()).writeDouble(area.maxRadius());
+                buffer.writeBoolean(area.minY() != null);
+                if (area.minY() != null) {
+                    buffer.writeInt(area.minY());
+                }
+                buffer.writeBoolean(area.maxY() != null);
+                if (area.maxY() != null) {
+                    buffer.writeInt(area.maxY());
+                }
             }
         }
         if (type != null) {

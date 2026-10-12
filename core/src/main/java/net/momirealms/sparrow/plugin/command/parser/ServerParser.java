@@ -18,9 +18,15 @@ import java.util.function.Predicate;
 
 public final class ServerParser<C> implements ArgumentParser<C, String>, SuggestionProvider<C> {
     private final Predicate<String> filter;
+    private final boolean includeCurrent;
 
     public ServerParser(@NotNull Predicate<String> filter) {
+        this(filter, false);
+    }
+
+    public ServerParser(@NotNull Predicate<String> filter, boolean includeCurrent) {
         this.filter = filter;
+        this.includeCurrent = includeCurrent;
     }
 
     @NotNull
@@ -34,10 +40,14 @@ public final class ServerParser<C> implements ArgumentParser<C, String>, Suggest
     public CompletableFuture<? extends Iterable<? extends Suggestion>> suggestionsFuture(@NotNull CommandContext<C> context, @NotNull CommandInput input) {
         String prefix = input.peekString();
         List<Suggestion> result = new ArrayList<>();
+        String current = ServerConfig.serverId();
+        if (this.includeCurrent && current.regionMatches(true, 0, prefix, 0, prefix.length()) && this.filter.test(current)) {
+            result.add(Suggestion.suggestion(current));
+        }
         List<ServerStatus> servers = SparrowPlugin.instance().serverDirectory().getServers();
         for (int i = 0, size = servers.size(); i < size; i++) {
             String server = servers.get(i).serverId();
-            if (!server.equals(ServerConfig.serverId()) && server.regionMatches(true, 0, prefix, 0, prefix.length()) && this.filter.test(server)) {
+            if (!server.equals(current) && server.regionMatches(true, 0, prefix, 0, prefix.length()) && this.filter.test(server)) {
                 result.add(Suggestion.suggestion(server));
             }
         }

@@ -16,6 +16,8 @@ import net.momirealms.sparrow.redis.proxy.DisconnectRequest;
 import net.momirealms.sparrow.redis.proxy.DisconnectResponse;
 import net.momirealms.sparrow.redis.message.teleport.TeleportRequest;
 import net.momirealms.sparrow.redis.message.teleport.TeleportResponse;
+import net.momirealms.sparrow.redis.message.world.WorldListRequest;
+import net.momirealms.sparrow.redis.message.world.WorldListResponse;
 import net.momirealms.sparrow.redis.message.server.ServerChangedMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
@@ -50,6 +52,8 @@ public final class MessageBrokerManager {
         this.broker.registry().register(ServerChangedMessage.ID, ServerChangedMessage.CODEC);
         this.broker.registry().register(TeleportRequest.ID, TeleportRequest.CODEC);
         this.broker.registry().register(TeleportResponse.ID, TeleportResponse.CODEC);
+        this.broker.registry().register(WorldListRequest.ID, WorldListRequest.CODEC);
+        this.broker.registry().register(WorldListResponse.ID, WorldListResponse.CODEC);
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
         this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);
         this.broker.registry().register(MuteMessage.ID, MuteMessage.CODEC);

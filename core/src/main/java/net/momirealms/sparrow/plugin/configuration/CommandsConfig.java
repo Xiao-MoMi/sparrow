@@ -719,6 +719,14 @@ public final class CommandsConfig {
                 DependencyVersions.PROJECT_ID + ".command.edit-warp"
         );
 
+        // rtp 模块
+        @BlankLineBefore
+        CommandConfig rtp = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " rtp", "/rtp"),
+                DependencyVersions.PROJECT_ID + ".command.rtp"
+        );
+
         // tpa 模块
         @BlankLineBefore
         CommandConfig tpa = new CommandConfig(
@@ -861,6 +869,7 @@ public final class CommandsConfig {
                 case "warp-list" -> this.warpList;
                 case "edit-warp" -> this.editWarp;
                 case "tpa" -> this.tpa;
+                case "rtp" -> this.rtp;
                 case "tpa-here" -> this.tpaHere;
                 case "tpa-accept" -> this.tpaAccept;
                 case "tpa-deny" -> this.tpaDeny;

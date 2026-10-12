@@ -3,6 +3,7 @@ package net.momirealms.sparrow.teleport;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.teleport.search.RandomTeleportArea;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,6 +28,15 @@ public sealed interface TeleportDestination {
         @Override
         public CompletableFuture<Result> resolve(@NotNull DestinationContext context) {
             return context.resolvePoint(this.location);
+        }
+    }
+
+    record RTP(@NotNull RandomTeleportArea area) implements TeleportDestination {
+
+        @NotNull
+        @Override
+        public CompletableFuture<Result> resolve(@NotNull DestinationContext context) {
+            return context.resolveRandom(this.area);
         }
     }
 

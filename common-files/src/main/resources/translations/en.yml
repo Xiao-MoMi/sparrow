@@ -69,6 +69,18 @@ argument.parse.failure.flag.no_flag_started: '<color:#FFB6CB>Unrecognized flag: 
 argument.parse.failure.flag.no_permission: '<color:#FFB6CB>You do not have permission to use flag <color:#F2F4FF><arg:0></color></color>'
 argument.parse.failure.flag.unknown: '<color:#FFB6CB>Unknown flag: <color:#F2F4FF><arg:0></color></color>'
 
+argument.parse.failure.server-offline: '<color:#FFB6CB>Server <arg:0> is offline.</color>'
+argument.parse.failure.server-world: '<color:#FFB6CB>World <arg:0> does not exist on server <arg:1>.</color>'
+
+# command.rtp
+command.rtp.success: '<color:#C9F2C7>Teleported you to a random destination.</color>'
+command.rtp.invalid-area: '<color:#FFB6CB>Use finite center coordinates and radii. min-radius must be non-negative and smaller than max-radius; min-y must not exceed max-y.</color>'
+command.rtp.invalid: '<color:#FFB6CB>The destination world is no longer available.</color>'
+command.rtp.server-offline: '<color:#FFB6CB>Server <arg:0> is offline.</color>'
+command.rtp.timeout: '<color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
+teleport.rejected.rtp-unsupported: '<color:#FFB6CB>The destination server does not support random teleportation.</color>'
+teleport.rejected.rtp-disabled: '<color:#FFB6CB>Random teleportation is disabled on the destination server.</color>'
+
 # command.actionbar
 command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent an action bar to <color:#C7BCE7><arg:0></color></color>'
 command.actionbar.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent an action bar to you</color>'

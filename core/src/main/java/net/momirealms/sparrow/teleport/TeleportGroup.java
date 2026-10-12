@@ -145,6 +145,16 @@ public final class TeleportGroup {
         return group;
     }
 
+    @NotNull
+    public static TeleportGroup createRtp() {
+        TeleportGroup group = new TeleportGroup();
+        group.preProcessor = List.of(new CooldownProcessor("rtp"), new WarmupProcessor());
+        group.search = new TeleportSearchOptions.Random();
+        group.candidateRule = List.of(new SafeLocationRule());
+        group.postProcessor = List.of(new SoundProcessor());
+        return group;
+    }
+
     public void validate() {
         this.search.validate();
         for (TeleportProcessor processor : this.preProcessor) processor.validate();

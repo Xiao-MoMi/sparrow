@@ -14,6 +14,7 @@ import net.momirealms.sparrow.feature.highlight.HighlightFeature;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
 import net.momirealms.sparrow.feature.playerlimit.PlayerLimitFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
+import net.momirealms.sparrow.feature.rtp.RtpFeature;
 import net.momirealms.sparrow.feature.server.ServerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -21,6 +22,7 @@ import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
 import net.momirealms.sparrow.util.ExceptionCollector;
+import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -62,6 +64,9 @@ public final class FeatureManager {
         this.features.put(WarpFeature.ID, new WarpFeature(plugin));
         this.features.put(HomeFeature.ID, new HomeFeature(plugin));
         this.features.put(TpaFeature.ID, new TpaFeature(plugin));
+        if (VersionHelper.hasPaperPatch) {
+            this.features.put(RtpFeature.ID, new RtpFeature());
+        }
     }
 
     // 模块命令只在插件启用时注册一次, 此后命令树不再变化, 模块开关只决定这些命令是否可见

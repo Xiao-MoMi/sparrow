@@ -2,6 +2,7 @@ package net.momirealms.sparrow.teleport;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.momirealms.sparrow.feature.rtp.RtpFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -12,12 +13,16 @@ import net.momirealms.sparrow.teleport.processor.RequestContext;
 import net.momirealms.sparrow.teleport.processor.SafeLocationRule;
 import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
 import net.momirealms.sparrow.teleport.search.NearbyTeleportSearch;
+import net.momirealms.sparrow.teleport.search.RandomTeleportArea;
+import net.momirealms.sparrow.teleport.search.RandomTeleportSearch;
 import net.momirealms.sparrow.teleport.search.SearchChunks;
 import net.momirealms.sparrow.teleport.search.TeleportSearchOptions;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -72,14 +77,49 @@ public final class DestinationContext {
                                 });
                             });
                 });
-        resolving.whenComplete((result, error) -> {
-            if (error != null) {
-                this.completion.completeExceptionally(error);
-            } else {
-                this.completion.complete(result);
-            }
-        });
+        resolving.whenComplete(this::complete);
         return this.completion;
+    }
+
+    CompletableFuture<Result> resolveRandom(RandomTeleportArea area) {
+        CompletableFuture<Result> resolving = CompletableFuture.completedFuture(area)
+                .thenCompose(input -> {
+                    if (!VersionHelper.hasPaperPatch) return CompletableFuture.completedFuture(new Result(null, MessageConstants.TELEPORT_REJECTED_RTP_UNSUPPORTED));
+                    if (!this.plugin.featureManager().feature(RtpFeature.ID, RtpFeature.class).enabled()) {
+                        return CompletableFuture.completedFuture(new Result(null, MessageConstants.TELEPORT_REJECTED_RTP_DISABLED));
+                    }
+                    input.validate();
+                    World world = Bukkit.getWorld(input.world());
+                    if (world == null) return CompletableFuture.completedFuture(new Result(null, null));
+                    if (!(this.group.search() instanceof TeleportSearchOptions.Random options)) {
+                        return CompletableFuture.failedFuture(new IllegalArgumentException("RTP destination requires the random search strategy"));
+                    }
+                    return this.plugin.playerLookup().resolvePlayer(this.player)
+                            .thenCompose(found -> {
+                                SparrowPlayer player = found.orElseThrow();
+                                RequestContext request = new RequestContext(player, this.self, world.getName(), null);
+                                return this.checkRequest(request)
+                                        .thenCompose(reason -> {
+                                            if (reason != null) return CompletableFuture.completedFuture(new Result(null, reason));
+                                            return this.track(() -> {
+                                                ServerLevel level = ((CraftWorld) world).getHandle();
+                                                RandomTeleportSearch search = new RandomTeleportSearch(level, player, this.dimensions, options, this.group.candidateRule());
+                                                return search.find(input);
+                                            })
+                                                    .thenApply(location -> new Result(location, location == null ? MessageConstants.TELEPORT_REJECTED_UNSAFE : null));
+                                        });
+                            });
+                });
+        resolving.whenComplete(this::complete);
+        return this.completion;
+    }
+
+    private void complete(Result result, Throwable error) {
+        if (error != null) {
+            this.completion.completeExceptionally(error);
+        } else {
+            this.completion.complete(result);
+        }
     }
 
     private CompletableFuture<Component> checkRequest(RequestContext context) {
