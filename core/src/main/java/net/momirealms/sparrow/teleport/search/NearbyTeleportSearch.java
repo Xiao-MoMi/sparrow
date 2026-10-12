@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport;
+package net.momirealms.sparrow.teleport.search;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.kyori.adventure.text.Component;
@@ -8,8 +8,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.border.WorldBorder;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.rule.CandidateChecks;
-import net.momirealms.sparrow.teleport.rule.CandidateContext;
+import net.momirealms.sparrow.teleport.TeleportDimensions;
+import net.momirealms.sparrow.teleport.processor.CandidateChecks;
+import net.momirealms.sparrow.teleport.processor.CandidateContext;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -23,7 +25,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public final class TeleportSearch {
+public final class NearbyTeleportSearch {
     private static final CompletableFuture<Void> EVALUATED = CompletableFuture.completedFuture(null);
 
     private final TeleportDimensions dimensions;
@@ -41,7 +43,7 @@ public final class TeleportSearch {
      * @param maxChecks 本次搜索可检查的候选总数
      * @param rules 按顺序检查的候选规则, 搜索期间<strong>不得修改列表</strong>
      */
-    public TeleportSearch(
+    public NearbyTeleportSearch(
             @NotNull ServerLevel world,
             @NotNull SparrowPlayer player,
             @NotNull TeleportDimensions dimensions,
@@ -60,7 +62,7 @@ public final class TeleportSearch {
 
     /**
      * 检查原点, 失败后依次搜索附近区域和原点所在列的可用高度.
-     * <p>每个 TeleportSearch 实例<strong>只能调用一次</strong>.
+     * <p>每个 NearbyTeleportSearch 实例<strong>只能调用一次</strong>.
      *
      * @return 搜索结果的 Future, 找不到落点时以 null 完成. 取消后停止后续扫描, 已提交的区块加载自行结束
      */

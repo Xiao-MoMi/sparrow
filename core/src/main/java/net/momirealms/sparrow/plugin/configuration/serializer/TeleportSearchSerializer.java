@@ -1,6 +1,6 @@
 package net.momirealms.sparrow.plugin.configuration.serializer;
 
-import net.momirealms.sparrow.teleport.TeleportSearchOptions;
+import net.momirealms.sparrow.teleport.search.TeleportSearchOptions;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;
 import net.momirealms.sparrow.yaml.serializer.NodeSerializer;
@@ -28,6 +28,7 @@ public final class TeleportSearchSerializer {
         Class<? extends TeleportSearchOptions> implementation = switch (String.valueOf(type)) {
             case "direct" -> TeleportSearchOptions.Direct.class;
             case "nearby" -> TeleportSearchOptions.Nearby.class;
+            case "random" -> TeleportSearchOptions.Random.class;
             default -> throw new IllegalArgumentException("Unknown teleport search type: " + type);
         };
         YamlDocument document = this.yaml.createDocument();
@@ -40,6 +41,7 @@ public final class TeleportSearchSerializer {
         String type = switch (search) {
             case TeleportSearchOptions.Direct ignored -> "direct";
             case TeleportSearchOptions.Nearby ignored -> "nearby";
+            case TeleportSearchOptions.Random ignored -> "random";
         };
         NodeSerializer<TeleportSearchOptions> serializer = (NodeSerializer<TeleportSearchOptions>) this.yaml.serializers().register(search.getClass());
         Map<Object, Object> options = new LinkedHashMap<>();

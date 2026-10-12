@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.rule;
+package net.momirealms.sparrow.teleport.processor;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.CollisionGetter;

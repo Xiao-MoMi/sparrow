@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.rule;
+package net.momirealms.sparrow.teleport.processor;
 
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.util.WorldLocation;

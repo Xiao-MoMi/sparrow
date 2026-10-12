@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.processor;
+package net.momirealms.sparrow.teleport.processor.warmup;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.kyori.adventure.text.Component;

@@ -1,11 +1,13 @@
 package net.momirealms.sparrow.teleport;
 
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
-import net.momirealms.sparrow.teleport.processor.GeneratedChunkProcessor;
+import net.momirealms.sparrow.teleport.processor.GeneratedChunkRule;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
+import net.momirealms.sparrow.teleport.processor.SafeLocationRule;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
-import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
-import net.momirealms.sparrow.teleport.rule.SafeLocationRule;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
+import net.momirealms.sparrow.teleport.processor.warmup.WarmupProcessor;
+import net.momirealms.sparrow.teleport.search.TeleportSearchOptions;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -129,7 +131,7 @@ public final class TeleportGroup {
     public static TeleportGroup createDeathBack() {
         TeleportGroup group = new TeleportGroup();
         group.preProcessor = List.of(new CooldownProcessor("death-back"), new WarmupProcessor());
-        group.requestRule = List.of(new GeneratedChunkProcessor());
+        group.requestRule = List.of(new GeneratedChunkRule());
         group.search = new TeleportSearchOptions.Nearby();
         group.candidateRule = List.of(new SafeLocationRule());
         group.postProcessor = List.of(new InvulnerabilityProcessor(), new SoundProcessor());

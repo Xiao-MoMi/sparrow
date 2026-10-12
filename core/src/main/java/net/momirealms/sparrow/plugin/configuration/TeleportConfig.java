@@ -5,8 +5,8 @@ import net.momirealms.sparrow.plugin.configuration.serializer.TeleportProcessorS
 import net.momirealms.sparrow.plugin.configuration.serializer.TeleportSearchSerializer;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.teleport.TeleportGroup;
-import net.momirealms.sparrow.teleport.TeleportProcessor;
-import net.momirealms.sparrow.teleport.TeleportSearchOptions;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
+import net.momirealms.sparrow.teleport.search.TeleportSearchOptions;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;

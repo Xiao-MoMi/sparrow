@@ -7,7 +7,6 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.teleport.Teleport;
-import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.TeleportResult;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;

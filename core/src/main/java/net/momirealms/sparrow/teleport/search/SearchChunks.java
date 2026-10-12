@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport;
+package net.momirealms.sparrow.teleport.search;
 
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
@@ -20,8 +20,10 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.teleport.TeleportDimensions;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.CraftChunk;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,7 +31,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-final class SearchChunks implements CollisionGetter {
+@ApiStatus.Internal
+public final class SearchChunks implements CollisionGetter {
     private static final CompletableFuture<Boolean> READY = CompletableFuture.completedFuture(true);
     private static final CompletableFuture<Boolean> UNAVAILABLE = CompletableFuture.completedFuture(false);
 
@@ -37,13 +40,14 @@ final class SearchChunks implements CollisionGetter {
     private final boolean generate; // 是否允许生成新地形
     private final Long2ObjectOpenHashMap<CompletableFuture<LevelChunk>> chunks = new Long2ObjectOpenHashMap<>(); // 搜索期间复用加载任务和已完成的区块引用
 
-    SearchChunks(ServerLevel world, boolean generate) {
+    public SearchChunks(@NotNull ServerLevel world, boolean generate) {
         this.world = world;
         this.generate = generate;
     }
 
     // 碰撞查询覆盖检测体积及外围一格, 包含相邻方块伸出的形状
-    CompletableFuture<Boolean> prepare(TeleportDimensions dimensions, double x, double z) {
+    @NotNull
+    public CompletableFuture<Boolean> prepare(@NotNull TeleportDimensions dimensions, double x, double z) {
         int minX = Mth.floor(x - dimensions.width() / 2 - 1.0E-7) - 1;
         int maxX = Mth.floor(x + dimensions.width() / 2 + 1.0E-7) + 1;
         int minZ = Mth.floor(z - dimensions.depth() / 2 - 1.0E-7) - 1;

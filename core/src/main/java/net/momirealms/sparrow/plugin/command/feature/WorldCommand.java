@@ -2,14 +2,14 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
-import net.momirealms.sparrow.util.WorldUtils;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.teleport.TeleportResult;
-import net.momirealms.sparrow.teleport.WorldTeleportSearch;
+import net.momirealms.sparrow.teleport.search.WorldTeleportSearch;
+import net.momirealms.sparrow.util.WorldUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;

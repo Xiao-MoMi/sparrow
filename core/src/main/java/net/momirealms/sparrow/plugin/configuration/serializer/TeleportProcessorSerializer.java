@@ -1,14 +1,14 @@
 package net.momirealms.sparrow.plugin.configuration.serializer;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
-import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
-import net.momirealms.sparrow.teleport.processor.GeneratedChunkProcessor;
+import net.momirealms.sparrow.teleport.processor.GeneratedChunkRule;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
+import net.momirealms.sparrow.teleport.processor.SafeLocationRule;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
-import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
-import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
-import net.momirealms.sparrow.teleport.rule.SafeLocationRule;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
+import net.momirealms.sparrow.teleport.processor.WorldBlacklistRule;
+import net.momirealms.sparrow.teleport.processor.warmup.WarmupProcessor;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;
@@ -32,8 +32,8 @@ public final class TeleportProcessorSerializer {
         this.sparrowYaml = sparrowYaml;
         this.register(CooldownProcessor.TYPE, CooldownProcessor.class);
         this.register(WarmupProcessor.TYPE, WarmupProcessor.class);
-        this.register(WorldBlacklistProcessor.TYPE, WorldBlacklistProcessor.class);
-        this.register(GeneratedChunkProcessor.TYPE, GeneratedChunkProcessor.class);
+        this.register(WorldBlacklistRule.TYPE, WorldBlacklistRule.class);
+        this.register(GeneratedChunkRule.TYPE, GeneratedChunkRule.class);
         this.register(SafeLocationRule.TYPE, SafeLocationRule.class);
         this.register(SoundProcessor.TYPE, SoundProcessor.class);
         this.register(InvulnerabilityProcessor.TYPE, InvulnerabilityProcessor.class);

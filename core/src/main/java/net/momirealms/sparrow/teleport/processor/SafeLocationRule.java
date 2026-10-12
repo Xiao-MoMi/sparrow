@@ -1,8 +1,7 @@
-package net.momirealms.sparrow.teleport.rule;
+package net.momirealms.sparrow.teleport.processor;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.WorldLocation;

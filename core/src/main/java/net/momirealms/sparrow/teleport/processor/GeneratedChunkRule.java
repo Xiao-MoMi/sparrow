@@ -6,8 +6,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.TeleportProcessor;
-import net.momirealms.sparrow.teleport.rule.RequestContext;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -18,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-public final class GeneratedChunkProcessor implements TeleportProcessor.RequestRule {
+public final class GeneratedChunkRule implements TeleportProcessor.RequestRule {
     public static final SparrowKey TYPE = SparrowKey.sparrow("generated-chunk");
 
     @NotNull

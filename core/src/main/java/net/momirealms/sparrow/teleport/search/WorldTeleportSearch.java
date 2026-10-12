@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport;
+package net.momirealms.sparrow.teleport.search;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;

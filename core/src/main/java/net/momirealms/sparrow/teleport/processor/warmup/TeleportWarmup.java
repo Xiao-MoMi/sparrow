@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.processor;
+package net.momirealms.sparrow.teleport.processor.warmup;
 
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;

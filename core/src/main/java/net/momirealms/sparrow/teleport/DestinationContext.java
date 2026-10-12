@@ -6,10 +6,14 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.TeleportDestination.Result;
-import net.momirealms.sparrow.teleport.rule.CandidateChecks;
-import net.momirealms.sparrow.teleport.rule.CandidateContext;
-import net.momirealms.sparrow.teleport.rule.RequestContext;
-import net.momirealms.sparrow.teleport.rule.SafeLocationRule;
+import net.momirealms.sparrow.teleport.processor.CandidateChecks;
+import net.momirealms.sparrow.teleport.processor.CandidateContext;
+import net.momirealms.sparrow.teleport.processor.RequestContext;
+import net.momirealms.sparrow.teleport.processor.SafeLocationRule;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
+import net.momirealms.sparrow.teleport.search.NearbyTeleportSearch;
+import net.momirealms.sparrow.teleport.search.SearchChunks;
+import net.momirealms.sparrow.teleport.search.TeleportSearchOptions;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -48,6 +52,9 @@ public final class DestinationContext {
                 .thenCompose(point -> {
                     Location location = point.resolve();
                     if (location == null) return CompletableFuture.completedFuture(new Result(null, null));
+                    if (this.group.search() instanceof TeleportSearchOptions.Random) {
+                        return CompletableFuture.failedFuture(new IllegalArgumentException("random search requires a random area destination"));
+                    }
                     if (this.group.search() instanceof TeleportSearchOptions.Direct && this.group.requestRule().isEmpty() && this.group.candidateRule().isEmpty()) {
                         return CompletableFuture.completedFuture(new Result(point, null));
                     }
@@ -60,6 +67,7 @@ public final class DestinationContext {
                                     return this.track(() -> switch (this.group.search()) {
                                         case TeleportSearchOptions.Direct ignored -> this.checkPoint(player, location, point, false);
                                         case TeleportSearchOptions.Nearby options -> this.searchNearby(player, location, point, options);
+                                        case TeleportSearchOptions.Random ignored -> throw new IllegalArgumentException("random search requires a random area destination");
                                     });
                                 });
                             });
@@ -87,7 +95,7 @@ public final class DestinationContext {
 
     private CompletableFuture<Result> searchNearby(SparrowPlayer player, Location location, WorldLocation origin, TeleportSearchOptions.Nearby options) {
         ServerLevel world = ((CraftWorld) location.getWorld()).getHandle();
-        TeleportSearch search = new TeleportSearch(world, player, this.dimensions, options.allowNetherRoof(), options.maxChecks(), this.group.candidateRule());
+        NearbyTeleportSearch search = new NearbyTeleportSearch(world, player, this.dimensions, options.allowNetherRoof(), options.maxChecks(), this.group.candidateRule());
         return this.track(() -> search.find(origin, options.horizontalRadius(), options.verticalRadius()))
                 .thenCompose(found -> {
                     if (found != null) return CompletableFuture.completedFuture(new Result(found, null));
