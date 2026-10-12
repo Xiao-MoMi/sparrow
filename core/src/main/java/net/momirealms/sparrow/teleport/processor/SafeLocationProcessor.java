@@ -42,7 +42,8 @@ public final class SafeLocationProcessor implements TeleportProcessor.Target {
         if (location == null) return PASS;
         ServerLevel world = ((CraftWorld) location.getWorld()).getHandle();
         TeleportSearch search = new TeleportSearch(world, teleport.dimensions(), this.allowNetherRoof, this.maxChecks);
-        return search.find(origin, this.nearby.horizontalRadius, this.nearby.verticalRadius).thenApply(found -> {
+        CompletableFuture<WorldLocation> searching = search.find(origin, this.nearby.horizontalRadius, this.nearby.verticalRadius);
+        CompletableFuture<Component> result = searching.thenApply(found -> {
             if (found != null) {
                 teleport.location(found);
                 return null;
@@ -52,6 +53,10 @@ public final class SafeLocationProcessor implements TeleportProcessor.Target {
             teleport.location(new WorldLocation(origin.world(), origin.x(), y, origin.z(), origin.yaw(), origin.pitch()));
             return null;
         });
+        result.whenComplete((reason, error) -> {
+            if (result.isCancelled()) searching.cancel(false);
+        });
+        return result;
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)

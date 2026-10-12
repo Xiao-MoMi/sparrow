@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.PriorityQueue;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
@@ -21,47 +22,75 @@ public final class TeleportSearch {
     private final TeleportDimensions dimensions;
     private final SearchChunks chunks;
     private final Executor executor;
-    private final int maxY;
+    private final int maxY; // 检测体积顶部允许达到的高度上界
     private final int maxChecks;
     private final BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
+    private final CompletableFuture<WorldLocation> completion = new CompletableFuture<>(); // 本次搜索的结果和取消状态
     private int checks;
 
-    // 同一实例的查询按顺序调用, 共用检查预算和区块缓存
+    /**
+     * 创建使用指定玩家检测体积的安全落点搜索器.
+     *
+     * @param maxChecks 本次搜索可检查的候选总数
+     */
     public TeleportSearch(@NotNull ServerLevel world, @NotNull TeleportDimensions dimensions, boolean allowNetherRoof, int maxChecks) {
         this.dimensions = dimensions;
         this.chunks = new SearchChunks(world, false);
+        // Paper 和 Folia 在工作线程扫描, Spigot 在主线程扫描
         this.executor = VersionHelper.hasPaperPatch ? SparrowPlugin.instance().scheduler().async() : SparrowPlugin.instance().scheduler().platform();
         this.maxY = TeleportSafety.getMaxY(world, allowNetherRoof);
         this.maxChecks = maxChecks;
     }
 
+    /**
+     * 检查原点, 失败后依次搜索附近区域和原点所在列的可用高度.
+     * <p>每个 TeleportSearch 实例<strong>只能调用一次</strong>.
+     *
+     * @return 搜索结果的 Future, 找不到落点时以 null 完成. 取消后停止后续扫描, 已提交的区块加载自行结束
+     */
     @NotNull
     public CompletableFuture<@Nullable WorldLocation> find(@NotNull WorldLocation origin, int horizontalRadius, int verticalRadius) {
-        return this.check(origin)
-                .thenCompose(found -> found != null ? CompletableFuture.completedFuture(found) : this.nearby(origin, horizontalRadius, verticalRadius))
-                .thenCompose(found -> found != null ? CompletableFuture.completedFuture(found) : this.vertical(origin));
+        CompletableFuture<WorldLocation> searching = CompletableFuture.completedFuture(origin)
+                .thenComposeAsync(this::checkLocation, this.executor)
+                .thenCompose(found -> {
+                    if (found != null) return CompletableFuture.completedFuture(found);
+                    return this.nearby(origin, horizontalRadius, verticalRadius);
+                })
+                .thenCompose(found -> {
+                    if (found != null) return CompletableFuture.completedFuture(found);
+                    return this.vertical(origin);
+                });
+
+        searching.whenComplete((found, error) -> {
+            if (error != null) {
+                this.completion.completeExceptionally(error);
+            } else {
+                this.completion.complete(found);
+            }
+        });
+        return this.completion;
     }
 
-    @NotNull
-    public CompletableFuture<@Nullable WorldLocation> check(@NotNull WorldLocation location) {
-        return CompletableFuture.completedFuture(location).thenComposeAsync(this::checkLocation, this.executor);
-    }
-
+    // 按输入坐标原样检测, 原点也占用一次检查预算
     private CompletableFuture<WorldLocation> checkLocation(WorldLocation location) {
+        if (this.completion.isDone()) return CompletableFuture.failedFuture(new CancellationException());
         if (this.isExhausted()) return CompletableFuture.completedFuture(null);
         this.checks++;
         if (!this.inside(location.x(), location.y(), location.z())) return CompletableFuture.completedFuture(null);
-        return this.prepare(location.x(), location.z()).thenApplyAsync(available -> {
-            if (!available || this.isAirAroundFeet(location.x(), Mth.floor(location.y()), location.z())) return null;
-            return TeleportSafety.isSafe(this.chunks, this.dimensions, location.x(), location.y(), location.z(), this.maxY, this.position) ? location : null;
-        }, this.executor);
+        return this.prepare(location.x(), location.z())
+                .thenApplyAsync(available -> {
+                    if (this.completion.isDone()) throw new CancellationException();
+                    if (!available || this.isAirAroundFeet(location.x(), Mth.floor(location.y()), location.z())) return null;
+                    return TeleportSafety.isSafe(this.chunks, this.dimensions, location.x(), location.y(), location.z(), this.maxY, this.position) ? location : null;
+                }, this.executor);
     }
 
-    @NotNull
-    public CompletableFuture<@Nullable WorldLocation> nearby(@NotNull WorldLocation origin, int horizontalRadius, int verticalRadius) {
+    // 附近候选取方块中心, 高度范围按玩家脚底坐标计算
+    private CompletableFuture<WorldLocation> nearby(WorldLocation origin, int horizontalRadius, int verticalRadius) {
         WorldBorder border = this.chunks.getWorldBorder();
         double halfWidth = this.dimensions.width() / 2;
         double halfDepth = this.dimensions.depth() / 2;
+        // 候选中心留出检测体积所需的空间, 使整个体积位于世界边界内
         int minX = Mth.ceil(Math.max((double) Mth.floor(origin.x()) - horizontalRadius, border.getMinX() + halfWidth - 0.5));
         int maxX = Mth.floor(Math.min((double) Mth.floor(origin.x()) + horizontalRadius, border.getMaxX() - halfWidth - 0.5));
         int minZ = Mth.ceil(Math.max((double) Mth.floor(origin.z()) - horizontalRadius, border.getMinZ() + halfDepth - 0.5));
@@ -72,8 +101,8 @@ public final class TeleportSearch {
                 .thenComposeAsync(this::scan, this.executor);
     }
 
-    @NotNull
-    public CompletableFuture<@Nullable WorldLocation> vertical(@NotNull WorldLocation origin) {
+    // 保留原点的 X/Z 精确坐标, 沿整列可用高度搜索
+    private CompletableFuture<WorldLocation> vertical(WorldLocation origin) {
         if (!this.insideHorizontal(origin.x(), origin.z())) return CompletableFuture.completedFuture(null);
         int x = Mth.floor(origin.x());
         int z = Mth.floor(origin.z());
@@ -81,17 +110,22 @@ public final class TeleportSearch {
                 .thenComposeAsync(this::scan, this.executor);
     }
 
+    // 按评分检查候选, 等待区块后沿用当前队列和剩余预算
     private CompletableFuture<WorldLocation> scan(Candidates candidates) {
-        while (!this.isExhausted() && !candidates.queue.isEmpty()) {
+        while (!this.completion.isDone() && !this.isExhausted() && !candidates.queue.isEmpty()) {
             Candidate next = candidates.queue.poll();
+            // 队首评分是剩余候选的下界, 同分候选仍需比较实际落脚高度
             if (candidates.best != null && next.score() > candidates.bestScore) break;
             candidates.expand(next);
+            // 快速排除和区块不可用的候选同样计入预算
             this.checks++;
             double x = candidates.x(next.x());
             double z = candidates.z(next.z());
             CompletableFuture<Boolean> ready = this.prepare(x, z);
             if (!ready.isDone()) {
+                // 区块完成回调可能来自加载线程, 继续扫描前回到选定的执行器
                 return ready.thenComposeAsync(available -> {
+                    if (this.completion.isDone()) return CompletableFuture.failedFuture(new CancellationException());
                     if (available) this.evaluate(candidates, next, x, z);
                     return this.scan(candidates);
                 }, this.executor);
@@ -103,6 +137,7 @@ public final class TeleportSearch {
         return CompletableFuture.completedFuture(candidates.best);
     }
 
+    // 为检测体积及外围一格准备区块, 碰撞形状计算可能访问相邻方块
     private CompletableFuture<Boolean> prepare(double x, double z) {
         int minX = Mth.floor(x - this.dimensions.width() / 2 - 1.0E-7) - 1;
         int maxX = Mth.floor(x + this.dimensions.width() / 2 + 1.0E-7) + 1;
@@ -120,8 +155,10 @@ public final class TeleportSearch {
         return this.chunks.isAir(minX, y - 2, minZ, maxX, y + 2, maxZ);
     }
 
+    // 比较候选的实际落脚点, 评分相同时保留较高的位置
     private void evaluate(Candidates candidates, Candidate candidate, double x, double z) {
         if (this.isAirAroundFeet(x, candidate.y(), z)) return;
+        // 站立面可位于方块内部, 评分和安全检测使用碰撞面对应的脚底高度
         double y = TeleportSafety.getStandingY(this.chunks, this.dimensions, x, candidate.y(), z);
         if (y >= candidate.y() + 1.0 || y < candidates.minY || y > candidates.maxY) return;
         double score = candidates.score(x, y, z);
@@ -144,15 +181,12 @@ public final class TeleportSearch {
                 && z - halfDepth >= border.getMinZ() && z + halfDepth <= border.getMaxZ();
     }
 
-    public int checks() {
-        return this.checks;
-    }
-
-    public boolean isExhausted() {
+    private boolean isExhausted() {
         return this.checks >= this.maxChecks;
     }
 
     private static final class Candidates {
+        // 下界评分相同时先看高处, X/Z 固定其余同分候选的遍历顺序
         private static final Comparator<Candidate> ORDER = Comparator.comparingDouble(Candidate::score)
                 .thenComparing(Comparator.comparingInt(Candidate::y).reversed())
                 .thenComparingInt(Candidate::x)
@@ -207,6 +241,7 @@ public final class TeleportSearch {
             double dx = x - this.origin.x();
             double dy = y - this.origin.y();
             double dz = z - this.origin.z();
+            // 下降的垂直距离平方按两倍权重计分, 降低地下落点的优先级
             return dx * dx + dz * dz + dy * dy * (dy < 0 ? 2 : 1);
         }
 

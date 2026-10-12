@@ -61,11 +61,16 @@ public final class Teleport {
     // 落点解析完成后才交给落点处理器检查和改写, 算不出落点时以 false 完成
     @NotNull
     CompletableFuture<Boolean> locate() {
-        return this.destination.resolve().thenApply(location -> {
+        CompletableFuture<WorldLocation> resolved = this.destination.resolve();
+        CompletableFuture<Boolean> located = resolved.thenApply(location -> {
             if (location == null) return false;
             this.location = location;
             return true;
         });
+        located.whenComplete((result, error) -> {
+            if (located.isCancelled()) resolved.cancel(false);
+        });
+        return located;
     }
 
     // 只在落点阶段及之后可用

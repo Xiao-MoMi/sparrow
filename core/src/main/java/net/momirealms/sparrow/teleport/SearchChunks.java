@@ -33,14 +33,15 @@ final class SearchChunks implements CollisionGetter {
     private static final CompletableFuture<Boolean> UNAVAILABLE = CompletableFuture.completedFuture(false);
 
     private final ServerLevel world;
-    private final boolean generate;
-    private final Long2ObjectOpenHashMap<CompletableFuture<LevelChunk>> chunks = new Long2ObjectOpenHashMap<>(); // 搜索期间保留区块对象, 供方块与碰撞查询直接读取
+    private final boolean generate; // 是否允许生成新地形
+    private final Long2ObjectOpenHashMap<CompletableFuture<LevelChunk>> chunks = new Long2ObjectOpenHashMap<>(); // 搜索期间复用加载任务和已完成的区块引用
 
     SearchChunks(ServerLevel world, boolean generate) {
         this.world = world;
         this.generate = generate;
     }
 
+    // 准备方块坐标闭区间覆盖的区块, 正常完成值表示全部区块是否可用, 加载异常沿 Future 返回
     CompletableFuture<Boolean> prepare(int minBlockX, int minBlockZ, int maxBlockX, int maxBlockZ) {
         int minX = minBlockX >> 4;
         int maxX = maxBlockX >> 4;
@@ -50,6 +51,7 @@ final class SearchChunks implements CollisionGetter {
         boolean available = true;
         for (int chunkX = minX; chunkX <= maxX; chunkX++) {
             for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
+                // 低 32 位存区块 X, 高 32 位存区块 Z, 负坐标按位保留
                 long key = (chunkX & 0xffffffffL) | ((long) chunkZ << 32);
                 CompletableFuture<LevelChunk> chunk = this.chunks.get(key);
                 if (chunk == null) {
@@ -79,6 +81,7 @@ final class SearchChunks implements CollisionGetter {
         return available;
     }
 
+    // 优先复用已加载的完整区块, 其余按平台支持的方式加载
     private CompletableFuture<LevelChunk> load(int x, int z) {
         LevelChunk loaded = getLoaded(this.world, x, z);
         if (loaded != null) return CompletableFuture.completedFuture(loaded);
@@ -106,6 +109,7 @@ final class SearchChunks implements CollisionGetter {
                     SparrowPlugin.instance().scheduler().platform()
             );
         }
+        // Spigot 在主线程取得 EMPTY 阶段结果, 接受完整区块及其包装
         return CompletableFuture.supplyAsync(() -> {
             ChunkAccess chunk = this.world.getChunkSource().getChunk(x, z, ChunkStatus.EMPTY, true);
             if (chunk instanceof ImposterProtoChunk wrapper) return wrapper.getWrapped();
@@ -118,6 +122,7 @@ final class SearchChunks implements CollisionGetter {
         return VersionHelper.hasPaperPatch ? world.getChunkSource().getChunkAtIfLoadedImmediately(x, z) : world.getChunkSource().getChunkNow(x, z);
     }
 
+    // 查询范围须已成功 prepare, 高度裁剪到世界范围后检查闭区间内是否全为空气
     boolean isAir(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         minY = Math.max(minY, this.getMinY());
         maxY = Math.min(maxY, this.getMinY() + this.getHeight() - 1);
@@ -126,6 +131,7 @@ final class SearchChunks implements CollisionGetter {
             for (int chunkZ = minZ >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
                 LevelChunk chunk = this.getChunkForCollisions(chunkX, chunkZ);
                 for (int sectionY = minY >> 4; sectionY <= maxY >> 4; sectionY++) {
+                    // 整节全空气可直接跳过, 部分重叠的区块节只检查与查询范围的交集
                     LevelChunkSection section = chunk.getSections()[sectionY - firstSection];
                     if (section.hasOnlyAir()) continue;
                     int fromX = Math.max(minX, chunkX << 4);
@@ -162,6 +168,7 @@ final class SearchChunks implements CollisionGetter {
         return this.world.getWorldBorder();
     }
 
+    // 读取缓存中的完整区块, 缓存缺失, 加载未完成或区块不可用时返回 null.
     @Nullable
     @Override
     public LevelChunk getChunkForCollisions(int x, int z) {
@@ -169,6 +176,7 @@ final class SearchChunks implements CollisionGetter {
         return chunk == null ? null : chunk.getNow(null);
     }
 
+    // 读取已准备区块中的方块状态, 对应范围的 {@code prepare} <strong>必须已成功完成</strong>.
     @Override
     public BlockState getBlockState(BlockPos position) {
         return this.getChunkForCollisions(position.getX() >> 4, position.getZ() >> 4).getBlockState(position);
@@ -200,6 +208,7 @@ final class SearchChunks implements CollisionGetter {
         return this.getChunkForCollisions(position.getX() >> 4, position.getZ() >> 4).getBlockEntities().get(position);
     }
 
+    // 落点检测只考虑方块碰撞
     @NotNull
     @Override
     public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, AABB bounds) {

@@ -29,11 +29,14 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Supplier;
 
 public final class TeleportService implements PlayerListener {
+    private static final int PREPARATION_TIMEOUT_SECONDS = 10;
     private static final TeleportGroup DIRECT = new TeleportGroup(); // 直接传送使用的空分组
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
@@ -50,7 +53,7 @@ public final class TeleportService implements PlayerListener {
     /**
      * 让玩家依次经过所属传送分组的处理器, 全部放行后送到目标位置.
      *
-     * @return 传送结果, 落点预留或代理切服请求等待超过 5 秒时以 {@link TimeoutException} 异常完成
+     * @return 传送结果, 落点准备超过 10 秒或代理切服等待超过 5 秒时以 {@link TimeoutException} 异常完成
      */
     @NotNull
     public CompletableFuture<TeleportResult> teleport(
@@ -66,7 +69,7 @@ public final class TeleportService implements PlayerListener {
     /**
      * 让玩家依次经过所属传送分组的处理器, 全部放行后送到落点. 落点由它所在的服务器在放行后算出.
      *
-     * @return 传送结果, 落点预留或代理切服请求等待超过 5 秒时以 {@link TimeoutException} 异常完成
+     * @return 传送结果, 落点准备超过 10 秒或代理切服等待超过 5 秒时以 {@link TimeoutException} 异常完成
      */
     @NotNull
     public CompletableFuture<TeleportResult> teleport(
@@ -83,7 +86,10 @@ public final class TeleportService implements PlayerListener {
         // 出发前处理器逐个执行, 前一个放行后才轮到下一个
         CompletableFuture<Component> denial = TeleportProcessor.PASS;
         for (TeleportProcessor.Pre processor : processors) {
-            denial = denial.thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(reason) : processor.before(sparrow, teleport));
+            denial = denial.thenCompose(reason -> {
+                if (reason != null) return CompletableFuture.completedFuture(reason);
+                return processor.before(sparrow, teleport);
+            });
         }
         return denial
                 .thenCompose(reason -> {
@@ -116,7 +122,7 @@ public final class TeleportService implements PlayerListener {
     /**
      * 不经过任何处理器, 直接把玩家送到指定服务器上的位置.
      *
-     * @return 传送结果, 落点预留或代理切服请求等待超过 5 秒时以 {@link TimeoutException} 异常完成
+     * @return 传送结果, 落点准备超过 10 秒或代理切服等待超过 5 秒时以 {@link TimeoutException} 异常完成
      */
     @NotNull
     public CompletableFuture<TeleportResult> transfer(@NotNull Player player, @NotNull String server, @NotNull WorldLocation location) {
@@ -127,36 +133,35 @@ public final class TeleportService implements PlayerListener {
     private CompletableFuture<TeleportResult> transfer(Player player, Teleport teleport) {
         String server = teleport.server();
         if (ServerConfig.serverId().equals(server)) {
-            return teleport.locate().thenCompose(located -> {
-                if (!located) return CompletableFuture.completedFuture(TeleportResult.INVALID);
-                return this.destination(teleport).thenCompose(reason -> {
-                    if (reason != null) return CompletableFuture.completedFuture(this.reject(player, reason));
-                    Location destination = teleport.location().resolve();
-                    if (destination == null) return CompletableFuture.completedFuture(TeleportResult.INVALID);
-                    Location from = VersionHelper.hasFoliaPatch ? player.getLocation() : null;
-                    CompletableFuture<Boolean> moved = VersionHelper.hasPaperPatch
-                            ? player.teleportAsync(destination, TeleportCause.PLUGIN)
-                            : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
-                    return moved.thenApply(success -> {
-                        if (!success) return TeleportResult.FAILED;
-                        // Folia 的异步传送通过成功回调补录返回点, 先于到达后处理器执行
-                        if (from != null) {
-                            BackFeature back = this.plugin.featureManager().feature(BackFeature.ID, BackFeature.class);
-                            back.recordTeleport(player, from, destination, TeleportCause.PLUGIN);
-                        }
-                        BukkitSparrowPlayer arrived = this.plugin.playerManager().getPlayer(player);
-                        if (arrived != null) this.arrived(arrived, teleport);
-                        return TeleportResult.LOCAL_SUCCESS;
+            return this.prepareDestination(teleport)
+                    .thenCompose(response -> {
+                        if (response.denial() != null) return CompletableFuture.completedFuture(this.reject(player, response.denial()));
+                        if (!response.accepted()) return CompletableFuture.completedFuture(TeleportResult.INVALID);
+                        Location destination = teleport.location().resolve();
+                        if (destination == null) return CompletableFuture.completedFuture(TeleportResult.INVALID);
+                        Location from = VersionHelper.hasFoliaPatch ? player.getLocation() : null;
+                        CompletableFuture<Boolean> moved = VersionHelper.hasPaperPatch
+                                ? player.teleportAsync(destination, TeleportCause.PLUGIN)
+                                : CompletableFuture.supplyAsync(() -> player.teleport(destination, TeleportCause.PLUGIN), this.plugin.scheduler().platform());
+                        return moved.thenApply(success -> {
+                            if (!success) return TeleportResult.FAILED;
+                            // Folia 的异步传送通过成功回调补录返回点, 先于到达后处理器执行
+                            if (from != null) {
+                                BackFeature back = this.plugin.featureManager().feature(BackFeature.ID, BackFeature.class);
+                                back.recordTeleport(player, from, destination, TeleportCause.PLUGIN);
+                            }
+                            BukkitSparrowPlayer arrived = this.plugin.playerManager().getPlayer(player);
+                            if (arrived != null) this.arrived(arrived, teleport);
+                            return TeleportResult.LOCAL_SUCCESS;
+                        });
                     });
-                });
-            });
         }
         if (!this.plugin.serverDirectory().isOnline(server)) {
             return CompletableFuture.completedFuture(TeleportResult.SERVER_OFFLINE);
         }
         return this.plugin.messageBrokerManager().broker()
                 .publishTwoWay(new TeleportRequest(teleport), server)
-                .orTimeout(5, TimeUnit.SECONDS)
+                .orTimeout(PREPARATION_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .thenCompose(response -> {
                     Component denial = response.denial();
                     if (denial != null) return CompletableFuture.completedFuture(this.reject(player, denial));
@@ -175,29 +180,63 @@ public final class TeleportService implements PlayerListener {
      */
     @NotNull
     public CompletableFuture<TeleportResponse> prepare(@NotNull Teleport teleport) {
-        return teleport.locate().thenCompose(located -> {
-            if (!located) return CompletableFuture.completedFuture(new TeleportResponse(false, null));
-            return this.destination(teleport).thenApply(reason -> {
-                if (reason != null) return new TeleportResponse(false, reason);
-                if (teleport.location().resolve() == null) return new TeleportResponse(false, null);
-                this.arrivals.put(teleport.player(), new Arrival(teleport, false));
-                return new TeleportResponse(true, null);
-            });
+        return this.prepareDestination(teleport)
+                .thenApply(response -> {
+                    if (!response.accepted()) return response;
+                    if (teleport.location().resolve() == null) return new TeleportResponse(false, null);
+                    this.arrivals.put(teleport.player(), new Arrival(teleport, false));
+                    return response;
+                });
+    }
+
+    private CompletableFuture<TeleportResponse> prepareDestination(Teleport teleport) {
+        CompletableFuture<TeleportResponse> completion = new CompletableFuture<>();
+        completion.orTimeout(PREPARATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+
+        CompletableFuture<TeleportResponse> preparation = CompletableFuture.completedFuture(teleport)
+                .thenCompose(value -> this.runPreparationStage(completion, value::locate))
+                .thenCompose(located -> {
+                    if (!located) return CompletableFuture.completedFuture(new TeleportResponse(false, null));
+                    return this.runTargetProcessors(teleport, completion)
+                            .thenApply(reason -> new TeleportResponse(reason == null, reason));
+                });
+
+        preparation.whenComplete((response, error) -> {
+            if (error != null) {
+                completion.completeExceptionally(error);
+            } else {
+                completion.complete(response);
+            }
         });
+        return completion;
+    }
+
+    // 准备超时后取消当前阶段, 搜索在候选循环和区块回调中响应取消
+    private <T> CompletableFuture<T> runPreparationStage(CompletableFuture<?> completion, Supplier<CompletableFuture<T>> action) {
+        if (completion.isDone()) return CompletableFuture.failedFuture(new CancellationException());
+        CompletableFuture<T> stage = action.get();
+        completion.whenComplete((response, error) -> {
+            if (error != null) stage.cancel(false);
+        });
+        return stage;
     }
 
     // 落点处理器逐个执行, 结果的含义与出发前处理器相同
-    private CompletableFuture<Component> destination(Teleport teleport) {
+    private CompletableFuture<Component> runTargetProcessors(Teleport teleport, CompletableFuture<?> completion) {
         List<TeleportProcessor.Target> processors = this.group(teleport.type()).targetProcessor();
         if (processors.isEmpty()) return TeleportProcessor.PASS;
-        return this.plugin.playerLookup().resolvePlayer(teleport.player()).thenCompose(found -> {
-            SparrowPlayer player = found.orElseThrow();
-            CompletableFuture<Component> denial = TeleportProcessor.PASS;
-            for (TeleportProcessor.Target processor : processors) {
-                denial = denial.thenCompose(reason -> reason != null ? CompletableFuture.completedFuture(reason) : processor.destination(player, teleport));
-            }
-            return denial;
-        });
+        return this.plugin.playerLookup().resolvePlayer(teleport.player())
+                .thenCompose(found -> {
+                    SparrowPlayer player = found.orElseThrow();
+                    CompletableFuture<Component> denial = TeleportProcessor.PASS;
+                    for (TeleportProcessor.Target processor : processors) {
+                        denial = denial.thenCompose(reason -> {
+                            if (reason != null) return CompletableFuture.completedFuture(reason);
+                            return this.runPreparationStage(completion, () -> processor.destination(player, teleport));
+                        });
+                    }
+                    return denial;
+                });
     }
 
     private void arrived(BukkitSparrowPlayer player, Teleport teleport) {
