@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.teleport;
 
+import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -11,16 +12,21 @@ import java.util.concurrent.CompletableFuture;
 
 public sealed interface TeleportDestination {
 
-    // 在落点所在的服务器上调用, 算不出落点时以 null 完成
+    // 在目标服完成准入, 选点和候选校验, 返回最终位置或拒绝原因
     @NotNull
-    CompletableFuture<@Nullable WorldLocation> resolve();
+    CompletableFuture<Result> resolve(@NotNull DestinationContext context);
+
+    record Result(@Nullable WorldLocation location, @Nullable Component denial) {
+    }
+
+
 
     record Fixed(@NotNull WorldLocation location) implements TeleportDestination {
 
         @NotNull
         @Override
-        public CompletableFuture<WorldLocation> resolve() {
-            return CompletableFuture.completedFuture(this.location);
+        public CompletableFuture<Result> resolve(@NotNull DestinationContext context) {
+            return context.resolvePoint(this.location);
         }
     }
 
@@ -29,9 +35,11 @@ public sealed interface TeleportDestination {
 
         @NotNull
         @Override
-        public CompletableFuture<@Nullable WorldLocation> resolve() {
+        public CompletableFuture<Result> resolve(@NotNull DestinationContext context) {
             BukkitSparrowPlayer player = SparrowPlugin.instance().playerManager().getPlayer(this.player);
-            return CompletableFuture.completedFuture(player == null ? null : WorldLocation.from(player.platformPlayer().getLocation()));
+            return player == null
+                    ? CompletableFuture.completedFuture(new Result(null, null))
+                    : context.resolvePoint(WorldLocation.from(player.platformPlayer().getLocation()));
         }
     }
 }

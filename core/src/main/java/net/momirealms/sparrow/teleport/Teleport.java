@@ -14,7 +14,7 @@ public final class Teleport {
     private final TeleportDestination destination;
     private final boolean self;
     private TeleportDimensions dimensions; // 有类型的传送在出发前处理完成后采集, 直接传送为 null
-    private WorldLocation location; // 落点阶段开始时由落点所在的服务器算出, 在此之前为 null
+    private WorldLocation location; // 目标解析成功后保存的最终位置, 在此之前为 null
 
     public Teleport(@NotNull UUID player, @Nullable TeleportType type, @NotNull String server, @NotNull TeleportDestination destination, boolean self) {
         this.player = player;
@@ -58,14 +58,13 @@ public final class Teleport {
         this.dimensions = dimensions;
     }
 
-    // 落点解析完成后才交给落点处理器检查和改写, 算不出落点时以 false 完成
+    // 只保存通过规则的最终位置, 后续传送和到达处理使用同一坐标
     @NotNull
-    CompletableFuture<Boolean> locate() {
-        CompletableFuture<WorldLocation> resolved = this.destination.resolve();
-        CompletableFuture<Boolean> located = resolved.thenApply(location -> {
-            if (location == null) return false;
-            this.location = location;
-            return true;
+    CompletableFuture<TeleportDestination.Result> locate(DestinationContext context) {
+        CompletableFuture<TeleportDestination.Result> resolved = this.destination.resolve(context);
+        CompletableFuture<TeleportDestination.Result> located = resolved.thenApply(result -> {
+            if (result.location() != null) this.location = result.location();
+            return result;
         });
         located.whenComplete((result, error) -> {
             if (located.isCancelled()) resolved.cancel(false);
@@ -77,9 +76,5 @@ public final class Teleport {
     @NotNull
     public WorldLocation location() {
         return this.location;
-    }
-
-    public void location(@NotNull WorldLocation location) {
-        this.location = location;
     }
 }

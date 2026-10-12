@@ -1,15 +1,14 @@
 package net.momirealms.sparrow.plugin.configuration.serializer;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
-import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
 import net.momirealms.sparrow.teleport.processor.GeneratedChunkProcessor;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
-import net.momirealms.sparrow.teleport.processor.SafeLocationProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
 import net.momirealms.sparrow.teleport.processor.WorldBlacklistProcessor;
+import net.momirealms.sparrow.teleport.rule.SafeLocationRule;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import net.momirealms.sparrow.yaml.YamlDocument;
@@ -28,7 +27,6 @@ public final class TeleportProcessorSerializer {
 
     private final SparrowYaml sparrowYaml;
     private final ConcurrentChainedObject2ObjectHashTable<SparrowKey, Class<? extends TeleportProcessor>> types = new ConcurrentChainedObject2ObjectHashTable<>();
-    private int issues; // 上次取走之后被忽略的处理器数量
 
     public TeleportProcessorSerializer(@NotNull SparrowYaml sparrowYaml) {
         this.sparrowYaml = sparrowYaml;
@@ -36,7 +34,7 @@ public final class TeleportProcessorSerializer {
         this.register(WarmupProcessor.TYPE, WarmupProcessor.class);
         this.register(WorldBlacklistProcessor.TYPE, WorldBlacklistProcessor.class);
         this.register(GeneratedChunkProcessor.TYPE, GeneratedChunkProcessor.class);
-        this.register(SafeLocationProcessor.TYPE, SafeLocationProcessor.class);
+        this.register(SafeLocationRule.TYPE, SafeLocationRule.class);
         this.register(SoundProcessor.TYPE, SoundProcessor.class);
         this.register(InvulnerabilityProcessor.TYPE, InvulnerabilityProcessor.class);
     }
@@ -48,20 +46,13 @@ public final class TeleportProcessorSerializer {
         }
     }
 
-    // 读取某个阶段的处理器列表. 写错的项不进入列表, 只在控制台警告并计入问题数量
+    // 读取某个阶段的处理器列表, 配置错误交由所属分组处理
     @NotNull
     public <T extends TeleportProcessor> NodeSerializer<List<T>> serializer(@NotNull Class<T> stage) {
         return NodeSerializers.OBJECT_LIST.xmap(
                 entries -> {
                     List<T> processors = new ArrayList<>(entries.size());
-                    for (Object entry : entries) {
-                        try {
-                            processors.add(this.read(stage, entry));
-                        } catch (RuntimeException exception) {
-                            this.issues++;
-                            SparrowPlugin.instance().logger().warn("Ignored teleport processor " + entry + " in teleport.yml: " + exception.getMessage());
-                        }
-                    }
+                    for (Object entry : entries) processors.add(this.read(stage, entry));
                     return List.copyOf(processors);
                 },
                 processors -> {
@@ -72,12 +63,6 @@ public final class TeleportProcessorSerializer {
                     return entries;
                 }
         );
-    }
-
-    public int takeIssues() {
-        int issues = this.issues;
-        this.issues = 0;
-        return issues;
     }
 
     // 按 processor-type 读成对应的处理器, 其余的键是这个处理器自己的选项
@@ -92,9 +77,7 @@ public final class TeleportProcessorSerializer {
         // 选项放进一份空文档, 交给处理器自己的序列化器读取
         YamlDocument document = this.sparrowYaml.createDocument();
         options.forEach(document::setSubNode);
-        T processor = stage.cast(this.sparrowYaml.serializers().register(processorType).deserialize(document));
-        processor.validate();
-        return processor;
+        return stage.cast(this.sparrowYaml.serializers().register(processorType).deserialize(document));
     }
 
     @SuppressWarnings("unchecked")

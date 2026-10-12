@@ -1,11 +1,15 @@
 package net.momirealms.sparrow.teleport;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
+import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.border.WorldBorder;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.teleport.rule.CandidateChecks;
+import net.momirealms.sparrow.teleport.rule.CandidateContext;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -13,33 +17,45 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public final class TeleportSearch {
+    private static final CompletableFuture<Void> EVALUATED = CompletableFuture.completedFuture(null);
+
     private final TeleportDimensions dimensions;
     private final SearchChunks chunks;
     private final Executor executor;
     private final int maxY; // 检测体积顶部允许达到的高度上界
     private final int maxChecks;
-    private final BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
+    private final CandidateChecks rules;
     private final CompletableFuture<WorldLocation> completion = new CompletableFuture<>(); // 本次搜索的结果和取消状态
     private int checks;
 
     /**
-     * 创建使用指定玩家检测体积的安全落点搜索器.
+     * 创建使用指定玩家检测体积和候选规则的落点搜索器.
      *
      * @param maxChecks 本次搜索可检查的候选总数
+     * @param rules 按顺序检查的候选规则, 搜索期间<strong>不得修改列表</strong>
      */
-    public TeleportSearch(@NotNull ServerLevel world, @NotNull TeleportDimensions dimensions, boolean allowNetherRoof, int maxChecks) {
+    public TeleportSearch(
+            @NotNull ServerLevel world,
+            @NotNull SparrowPlayer player,
+            @NotNull TeleportDimensions dimensions,
+            boolean allowNetherRoof,
+            int maxChecks,
+            @NotNull List<TeleportProcessor.CandidateRule> rules
+    ) {
         this.dimensions = dimensions;
         this.chunks = new SearchChunks(world, false);
         // Paper 和 Folia 在工作线程扫描, Spigot 在主线程扫描
         this.executor = VersionHelper.hasPaperPatch ? SparrowPlugin.instance().scheduler().async() : SparrowPlugin.instance().scheduler().platform();
         this.maxY = TeleportSafety.getMaxY(world, allowNetherRoof);
         this.maxChecks = maxChecks;
+        this.rules = new CandidateChecks(new CandidateContext(player, dimensions, this.chunks, this.maxY), rules, this.completion);
     }
 
     /**
@@ -77,11 +93,13 @@ public final class TeleportSearch {
         if (this.isExhausted()) return CompletableFuture.completedFuture(null);
         this.checks++;
         if (!this.inside(location.x(), location.y(), location.z())) return CompletableFuture.completedFuture(null);
-        return this.prepare(location.x(), location.z())
-                .thenApplyAsync(available -> {
-                    if (this.completion.isDone()) throw new CancellationException();
-                    if (!available || this.isAirAroundFeet(location.x(), Mth.floor(location.y()), location.z())) return null;
-                    return TeleportSafety.isSafe(this.chunks, this.dimensions, location.x(), location.y(), location.z(), this.maxY, this.position) ? location : null;
+        return this.chunks.prepare(this.dimensions, location.x(), location.z())
+                .thenComposeAsync(available -> {
+                    if (this.completion.isDone()) return CompletableFuture.failedFuture(new CancellationException());
+                    if (!available || this.isAirAroundFeet(location.x(), Mth.floor(location.y()), location.z())) return CompletableFuture.completedFuture(null);
+                    CompletableFuture<Component> checked = this.rules.check(location);
+                    if (checked.isDone()) return CompletableFuture.completedFuture(checked.getNow(null) == null ? location : null);
+                    return checked.thenApplyAsync(reason -> reason == null ? location : null, this.executor);
                 }, this.executor);
     }
 
@@ -121,29 +139,24 @@ public final class TeleportSearch {
             this.checks++;
             double x = candidates.x(next.x());
             double z = candidates.z(next.z());
-            CompletableFuture<Boolean> ready = this.prepare(x, z);
+            CompletableFuture<Boolean> ready = this.chunks.prepare(this.dimensions, x, z);
             if (!ready.isDone()) {
                 // 区块完成回调可能来自加载线程, 继续扫描前回到选定的执行器
                 return ready.thenComposeAsync(available -> {
                     if (this.completion.isDone()) return CompletableFuture.failedFuture(new CancellationException());
-                    if (available) this.evaluate(candidates, next, x, z);
-                    return this.scan(candidates);
+                    if (!available) return this.scan(candidates);
+                    return this.evaluate(candidates, next, x, z)
+                            .thenCompose(ignored -> this.scan(candidates));
                 }, this.executor);
             }
-            if (ready.getNow(false)) {
-                this.evaluate(candidates, next, x, z);
+            if (!ready.getNow(false)) continue;
+            CompletableFuture<Void> evaluated = this.evaluate(candidates, next, x, z);
+            if (!evaluated.isDone()) {
+                return evaluated.thenComposeAsync(ignored -> this.scan(candidates), this.executor);
             }
+            evaluated.getNow(null);
         }
         return CompletableFuture.completedFuture(candidates.best);
-    }
-
-    // 为检测体积及外围一格准备区块, 碰撞形状计算可能访问相邻方块
-    private CompletableFuture<Boolean> prepare(double x, double z) {
-        int minX = Mth.floor(x - this.dimensions.width() / 2 - 1.0E-7) - 1;
-        int maxX = Mth.floor(x + this.dimensions.width() / 2 + 1.0E-7) + 1;
-        int minZ = Mth.floor(z - this.dimensions.depth() / 2 - 1.0E-7) - 1;
-        int maxZ = Mth.floor(z + this.dimensions.depth() / 2 + 1.0E-7) + 1;
-        return this.chunks.prepare(minX, minZ, maxX, maxZ);
     }
 
     private boolean isAirAroundFeet(double x, int y, double z) {
@@ -155,18 +168,30 @@ public final class TeleportSearch {
         return this.chunks.isAir(minX, y - 2, minZ, maxX, y + 2, maxZ);
     }
 
-    // 比较候选的实际落脚点, 评分相同时保留较高的位置
-    private void evaluate(Candidates candidates, Candidate candidate, double x, double z) {
-        if (this.isAirAroundFeet(x, candidate.y(), z)) return;
+    // 候选通过全部规则后才更新最佳落点, 评分相同时保留较高的位置
+    private CompletableFuture<Void> evaluate(Candidates candidates, Candidate candidate, double x, double z) {
+        if (this.isAirAroundFeet(x, candidate.y(), z)) return EVALUATED;
         // 站立面可位于方块内部, 评分和安全检测使用碰撞面对应的脚底高度
         double y = TeleportSafety.getStandingY(this.chunks, this.dimensions, x, candidate.y(), z);
-        if (y >= candidate.y() + 1.0 || y < candidates.minY || y > candidates.maxY) return;
+        if (y >= candidate.y() + 1.0 || y < candidates.minY || y > candidates.maxY) return EVALUATED;
         double score = candidates.score(x, y, z);
-        if (score > candidates.bestScore) return;
-        if (score == candidates.bestScore && y <= candidates.best.y()) return;
-        if (!TeleportSafety.isSafe(this.chunks, this.dimensions, x, y, z, this.maxY, this.position)) return;
-        candidates.best = new WorldLocation(candidates.origin.world(), x, y, z, candidates.origin.yaw(), candidates.origin.pitch());
-        candidates.bestScore = score;
+        if (score > candidates.bestScore) return EVALUATED;
+        if (score == candidates.bestScore && y <= candidates.best.y()) return EVALUATED;
+        WorldLocation location = new WorldLocation(candidates.origin.world(), x, y, z, candidates.origin.yaw(), candidates.origin.pitch());
+        CompletableFuture<Component> checked = this.rules.check(location);
+        if (checked.isDone()) {
+            if (checked.getNow(null) == null) {
+                candidates.best = location;
+                candidates.bestScore = score;
+            }
+            return EVALUATED;
+        }
+        return checked.thenAcceptAsync(reason -> {
+            if (reason == null) {
+                candidates.best = location;
+                candidates.bestScore = score;
+            }
+        }, this.executor);
     }
 
     private boolean inside(double x, double y, double z) {

@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.CollisionGetter;
@@ -39,6 +40,15 @@ final class SearchChunks implements CollisionGetter {
     SearchChunks(ServerLevel world, boolean generate) {
         this.world = world;
         this.generate = generate;
+    }
+
+    // 碰撞查询覆盖检测体积及外围一格, 包含相邻方块伸出的形状
+    CompletableFuture<Boolean> prepare(TeleportDimensions dimensions, double x, double z) {
+        int minX = Mth.floor(x - dimensions.width() / 2 - 1.0E-7) - 1;
+        int maxX = Mth.floor(x + dimensions.width() / 2 + 1.0E-7) + 1;
+        int minZ = Mth.floor(z - dimensions.depth() / 2 - 1.0E-7) - 1;
+        int maxZ = Mth.floor(z + dimensions.depth() / 2 + 1.0E-7) + 1;
+        return this.prepare(minX, minZ, maxX, maxZ);
     }
 
     // 准备方块坐标闭区间覆盖的区块, 正常完成值表示全部区块是否可用, 加载异常沿 Future 返回

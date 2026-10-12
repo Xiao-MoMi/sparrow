@@ -5,10 +5,9 @@ import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.Teleport;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
+import net.momirealms.sparrow.teleport.rule.RequestContext;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -19,13 +18,14 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-public final class GeneratedChunkProcessor implements TeleportProcessor.Target {
+public final class GeneratedChunkProcessor implements TeleportProcessor.RequestRule {
     public static final SparrowKey TYPE = SparrowKey.sparrow("generated-chunk");
 
     @NotNull
     @Override
-    public CompletableFuture<Component> destination(@NotNull SparrowPlayer player, @NotNull Teleport teleport) {
-        Location location = teleport.location().resolve();
+    public CompletableFuture<Component> check(@NotNull RequestContext context) {
+        if (context.origin() == null) throw new IllegalArgumentException("generated-chunk requires an original point");
+        Location location = context.origin().resolve();
         if (location == null) return PASS;
         ServerChunkCache chunks = ((CraftWorld) location.getWorld()).getHandle().getChunkSource();
         int x = location.getBlockX() >> 4;

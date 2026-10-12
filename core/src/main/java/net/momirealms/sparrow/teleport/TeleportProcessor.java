@@ -2,7 +2,9 @@ package net.momirealms.sparrow.teleport;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.teleport.rule.CandidateContext;
+import net.momirealms.sparrow.teleport.rule.RequestContext;
+import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -11,7 +13,7 @@ import java.util.concurrent.CompletableFuture;
 public interface TeleportProcessor {
     CompletableFuture<Component> PASS = CompletableFuture.completedFuture(null);
 
-    // 读取配置后调用. 选项不合法时抛出 IllegalArgumentException, 这一项会被忽略并在控制台警告
+    // 读取配置后调用, 选项不合法时抛出 IllegalArgumentException
     default void validate() {
     }
 
@@ -26,11 +28,23 @@ public interface TeleportProcessor {
         }
     }
 
-    interface Target extends TeleportProcessor {
+    interface RequestRule extends TeleportProcessor {
 
-        // 落点所在的服务器在预留落点前调用, 玩家此时可能还在别的服务器上. 结果的含义与出发前相同, 可以用 teleport.location(...) 改写落点
+        // 在目标服搜索前检查一次, null 放行, 非 null 拒绝整个请求. 上下文只读
         @NotNull
-        CompletableFuture<@Nullable Component> destination(@NotNull SparrowPlayer player, @NotNull Teleport teleport);
+        CompletableFuture<@Nullable Component> check(@NotNull RequestContext context);
+    }
+
+    interface CandidateRule extends TeleportProcessor {
+
+        /**
+         * 判断候选落点是否允许使用, 同一次搜索可对不同候选重复调用.
+         * <p>规则<strong>只读取上下文和坐标</strong>, 拒绝原因由调用方处理, 规则不发送消息或修改传送状态.
+         *
+         * @return 结果 Future, 以 null 完成时放行, 非 null 表示拒绝当前候选. 异常结束搜索, 搜索取消时可取消此 Future
+         */
+        @NotNull
+        CompletableFuture<@Nullable Component> check(@NotNull CandidateContext context, @NotNull WorldLocation location);
     }
 
     interface Post extends TeleportProcessor {

@@ -3,9 +3,9 @@ package net.momirealms.sparrow.teleport;
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
 import net.momirealms.sparrow.teleport.processor.GeneratedChunkProcessor;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
-import net.momirealms.sparrow.teleport.processor.SafeLocationProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
 import net.momirealms.sparrow.teleport.processor.WarmupProcessor;
+import net.momirealms.sparrow.teleport.rule.SafeLocationRule;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -59,40 +59,46 @@ public final class TeleportGroup {
 
     @BlankLineBefore
     @Comment({
-            "Processors that run on the destination server before the landing spot is reserved. The player may still be on another server.",
-            "They run from top to bottom. Each one may reject the teleport or move the landing spot.",
-            "   generated-chunk - rejects destinations whose chunk has not been generated.",
-            "   safe-location - checks the requested position, then searches nearby, then vertically at the original X/Z.",
-            "     Place it after processors that change the destination. It also applies when teleporting another player.",
-            "     Uses the player's current bounding box. Standing heights above 5 blocks use a 0.6 x 2 x 0.6 detection box.",
-            "     nearby.horizontal-radius, nearby.vertical-radius: nearby search distances in blocks. Both must be at least 0.",
-            "     max-checks: positive limit shared by all search stages, including the requested position.",
-            "     allow-nether-roof: whether the search may go above the dimension's logical height in worlds with a ceiling.",
-            "     force-on-failure: use the requested position if no safe location is found. false cancels the teleport.",
-            "     fallback-min-y: minimum Y for forced teleports, also kept at least one block above the world's minimum height.",
-            "   world-blacklist - rejects teleports into the listed worlds.",
-            "     worlds: names of the worlds that players cannot teleport into.",
-            "     bypass-permission: players with this permission may enter anyway. Leave empty to let nobody through.",
-            "         Checking it for a player who is still on another server requires LuckPerms."
+            "Rules checked once on the destination server before searching. A rejection ends the request.",
+            "generated-chunk checks whether the original destination chunk has been generated.",
+            "world-blacklist uses worlds and bypass-permission to control entry into destination worlds."
     })
     @Comment(lang = "zh", value = {
-            "落点处理器, 在落点所在的服务器上、预留落点之前执行. 此时玩家可能还在别的服务器上.",
-            "从上到下依次执行, 每一个都可以拒绝传送或改写落点.",
-            "   generated-chunk - 目标坐标所在区块未生成时拒绝传送.",
-            "   safe-location - 先检查原位置, 再搜索附近, 最后在原 X/Z 上垂直搜索.",
-            "     放在会改写落点的处理器之后. 代其他玩家发起传送时同样执行.",
-            "     使用玩家当前检测体积. 缩放后的站立高度超过 5 格时, 按 0.6 x 2 x 0.6 的体积检查.",
-            "     nearby.horizontal-radius, nearby.vertical-radius: 附近搜索的水平和垂直距离, 单位为格, 均须大于等于 0.",
-            "     max-checks: 所有搜索阶段共用的检查次数上限, 包含原位置检查, 必须大于 0.",
-            "     allow-nether-roof: 有顶层的维度是否允许搜索超过维度逻辑高度的位置.",
-            "     force-on-failure: 找不到安全位置时是否强制传送到原位置. false 表示取消传送.",
-            "     fallback-min-y: 强制传送的最低 Y, 同时至少高于世界最低高度一格.",
-            "   world-blacklist - 拒绝传送进入列出的世界.",
-            "     worlds: 禁止传送进入的世界名称.",
-            "     bypass-permission: 拥有此权限的玩家仍然可以进入. 留空表示任何人都不能进入.",
-            "         玩家还在别的服务器上时, 检查这个权限需要安装 LuckPerms."
+            "请求规则, 在目标服搜索前执行一次, 拒绝后结束整个请求.",
+            "generated-chunk 检查原始目标区块是否已生成.",
+            "world-blacklist 通过 worlds 和 bypass-permission 控制是否允许进入目标世界."
     })
-    private List<TeleportProcessor.Target> targetProcessor = List.of();
+    private List<TeleportProcessor.RequestRule> requestRule = List.of();
+
+    @BlankLineBefore
+    @Comment({
+            "Selection strategy. direct uses the requested position; nearby checks it, then searches nearby and vertically.",
+            "nearby options: nearby.horizontal-radius, nearby.vertical-radius, max-checks, allow-nether-roof.",
+            "force-on-failure defaults to false. A forced fallback skips only safe-location and still checks other candidate rules.",
+            "fallback-min-y defaults to -63 and is also kept above the world's minimum height. Timeout never triggers fallback."
+    })
+    @Comment(lang = "zh", value = {
+            "选点策略. direct 使用请求位置, nearby 依次检查原点, 附近区域和原 X/Z 的垂直位置.",
+            "nearby 选项为 nearby.horizontal-radius, nearby.vertical-radius, max-checks, allow-nether-roof.",
+            "force-on-failure 默认为 false. 强制回退仅跳过 safe-location, 其他候选规则仍然执行.",
+            "fallback-min-y 默认为 -63, 同时高于世界最低高度. 超时不会触发回退."
+    })
+    private TeleportSearchOptions search = new TeleportSearchOptions.Direct();
+
+    @BlankLineBefore
+    @Comment({
+            "Rules checked for each candidate, in order. Only a candidate passing every rule can be selected.",
+            "safe-location checks support, collisions, hazards and the player's eye position using the current detection size.",
+            "Other plugins may register candidate rules, such as a claim restriction. Rule errors end the search.",
+            "An empty list trusts the selected position. Rules never move it."
+    })
+    @Comment(lang = "zh", value = {
+            "候选规则, 按顺序检查每个位置, 全部放行后才能选中.",
+            "safe-location 按玩家当前检测体积检查支撑, 碰撞, 危险方块和眼部位置.",
+            "其他插件可以注册候选规则, 例如领地限制. 规则异常会结束搜索.",
+            "列表为空时信任选定位置. 规则不会修改坐标."
+    })
+    private List<TeleportProcessor.CandidateRule> candidateRule = List.of();
 
     @BlankLineBefore
     @Comment({
@@ -123,7 +129,9 @@ public final class TeleportGroup {
     public static TeleportGroup createDeathBack() {
         TeleportGroup group = new TeleportGroup();
         group.preProcessor = List.of(new CooldownProcessor("death-back"), new WarmupProcessor());
-        group.targetProcessor = List.of(new GeneratedChunkProcessor(), new SafeLocationProcessor());
+        group.requestRule = List.of(new GeneratedChunkProcessor());
+        group.search = new TeleportSearchOptions.Nearby();
+        group.candidateRule = List.of(new SafeLocationRule());
         group.postProcessor = List.of(new InvulnerabilityProcessor(), new SoundProcessor());
         return group;
     }
@@ -135,14 +143,32 @@ public final class TeleportGroup {
         return group;
     }
 
+    public void validate() {
+        this.search.validate();
+        for (TeleportProcessor processor : this.preProcessor) processor.validate();
+        for (TeleportProcessor processor : this.requestRule) processor.validate();
+        for (TeleportProcessor processor : this.candidateRule) processor.validate();
+        for (TeleportProcessor processor : this.postProcessor) processor.validate();
+    }
+
     @NotNull
     public List<TeleportProcessor.Pre> preProcessor() {
         return this.preProcessor;
     }
 
     @NotNull
-    public List<TeleportProcessor.Target> targetProcessor() {
-        return this.targetProcessor;
+    public List<TeleportProcessor.RequestRule> requestRule() {
+        return this.requestRule;
+    }
+
+    @NotNull
+    public TeleportSearchOptions search() {
+        return this.search;
+    }
+
+    @NotNull
+    public List<TeleportProcessor.CandidateRule> candidateRule() {
+        return this.candidateRule;
     }
 
     @NotNull
