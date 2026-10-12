@@ -23,6 +23,7 @@ public final class TeleportSearch {
     private final Executor executor;
     private final int maxY;
     private final int maxChecks;
+    private final BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
     private int checks;
 
     // 同一实例的查询按顺序调用, 共用检查预算和区块缓存
@@ -43,13 +44,17 @@ public final class TeleportSearch {
 
     @NotNull
     public CompletableFuture<@Nullable WorldLocation> check(@NotNull WorldLocation location) {
+        return CompletableFuture.completedFuture(location).thenComposeAsync(this::checkLocation, this.executor);
+    }
+
+    private CompletableFuture<WorldLocation> checkLocation(WorldLocation location) {
         if (this.isExhausted()) return CompletableFuture.completedFuture(null);
         this.checks++;
         if (!this.inside(location.x(), location.y(), location.z())) return CompletableFuture.completedFuture(null);
-        return this.prepare(location.x(), location.z()).thenApplyAsync(
-                available -> available && TeleportSafety.isSafe(this.chunks, this.dimensions, location.x(), location.y(), location.z(), this.maxY) ? location : null,
-                this.executor
-        );
+        return this.prepare(location.x(), location.z()).thenApplyAsync(available -> {
+            if (!available || this.isAirAroundFeet(location.x(), Mth.floor(location.y()), location.z())) return null;
+            return TeleportSafety.isSafe(this.chunks, this.dimensions, location.x(), location.y(), location.z(), this.maxY, this.position) ? location : null;
+        }, this.executor);
     }
 
     @NotNull
@@ -76,7 +81,6 @@ public final class TeleportSearch {
                 .thenComposeAsync(this::scan, this.executor);
     }
 
-    // 已完成加载的候选在循环里处理, 只有等待新区块时才接续异步阶段
     private CompletableFuture<WorldLocation> scan(Candidates candidates) {
         while (!this.isExhausted() && !candidates.queue.isEmpty()) {
             Candidate next = candidates.queue.poll();
@@ -87,13 +91,12 @@ public final class TeleportSearch {
             double z = candidates.z(next.z());
             CompletableFuture<Boolean> ready = this.prepare(x, z);
             if (!ready.isDone()) {
-                // 区块加载可以在区域线程完成, 后续碰撞判定和扫描继续使用搜索执行器
                 return ready.thenComposeAsync(available -> {
                     if (available) this.evaluate(candidates, next, x, z);
                     return this.scan(candidates);
                 }, this.executor);
             }
-            if (ready.join()) {
+            if (ready.getNow(false)) {
                 this.evaluate(candidates, next, x, z);
             }
         }
@@ -108,13 +111,23 @@ public final class TeleportSearch {
         return this.chunks.prepare(minX, minZ, maxX, maxZ);
     }
 
+    private boolean isAirAroundFeet(double x, int y, double z) {
+        int minX = Mth.floor(x - this.dimensions.width() / 2 - 1.0E-7) - 1;
+        int maxX = Mth.floor(x + this.dimensions.width() / 2 + 1.0E-7) + 1;
+        int minZ = Mth.floor(z - this.dimensions.depth() / 2 - 1.0E-7) - 1;
+        int maxZ = Mth.floor(z + this.dimensions.depth() / 2 + 1.0E-7) + 1;
+        // 覆盖站立面探测和脚底支撑查询的方块范围, 包含相邻方块伸出的碰撞形状
+        return this.chunks.isAir(minX, y - 2, minZ, maxX, y + 2, maxZ);
+    }
+
     private void evaluate(Candidates candidates, Candidate candidate, double x, double z) {
+        if (this.isAirAroundFeet(x, candidate.y(), z)) return;
         double y = TeleportSafety.getStandingY(this.chunks, this.dimensions, x, candidate.y(), z);
         if (y >= candidate.y() + 1.0 || y < candidates.minY || y > candidates.maxY) return;
         double score = candidates.score(x, y, z);
         if (score > candidates.bestScore) return;
         if (score == candidates.bestScore && y <= candidates.best.y()) return;
-        if (!TeleportSafety.isSafe(this.chunks, this.dimensions, x, y, z, this.maxY)) return;
+        if (!TeleportSafety.isSafe(this.chunks, this.dimensions, x, y, z, this.maxY, this.position)) return;
         candidates.best = new WorldLocation(candidates.origin.world(), x, y, z, candidates.origin.yaw(), candidates.origin.pitch());
         candidates.bestScore = score;
     }

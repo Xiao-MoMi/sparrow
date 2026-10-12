@@ -158,6 +158,7 @@ public interface MessageConstants {
     TranslatableComponent TELEPORT_CANCELLED_DAMAGED = Component.translatable("teleport.cancelled.damaged");
     TranslatableComponent TELEPORT_REJECTED_WORLD = Component.translatable("teleport.rejected.world");
     TranslatableComponent TELEPORT_REJECTED_UNSAFE = Component.translatable("teleport.rejected.unsafe");
+    TranslatableComponent TELEPORT_REJECTED_UNGENERATED = Component.translatable("teleport.rejected.ungenerated");
     TranslatableComponent COMMAND_BED_SUCCESS = Component.translatable("command.bed.success");
     TranslatableComponent COMMAND_BED_SUCCESS_SELF = Component.translatable("command.bed.success-self");
     TranslatableComponent COMMAND_BED_MISSING = Component.translatable("command.bed.missing");

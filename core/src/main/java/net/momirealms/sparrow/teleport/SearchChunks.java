@@ -13,6 +13,7 @@ import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ImposterProtoChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
@@ -28,6 +29,9 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 final class SearchChunks implements CollisionGetter {
+    private static final CompletableFuture<Boolean> READY = CompletableFuture.completedFuture(true);
+    private static final CompletableFuture<Boolean> UNAVAILABLE = CompletableFuture.completedFuture(false);
+
     private final ServerLevel world;
     private final boolean generate;
     private final Long2ObjectOpenHashMap<CompletableFuture<LevelChunk>> chunks = new Long2ObjectOpenHashMap<>(); // 搜索期间保留区块对象, 供方块与碰撞查询直接读取
@@ -42,8 +46,8 @@ final class SearchChunks implements CollisionGetter {
         int maxX = maxBlockX >> 4;
         int minZ = minBlockZ >> 4;
         int maxZ = maxBlockZ >> 4;
-        List<CompletableFuture<LevelChunk>> required = new ArrayList<>();
-        boolean ready = true;
+        List<CompletableFuture<LevelChunk>> pending = null;
+        boolean available = true;
         for (int chunkX = minX; chunkX <= maxX; chunkX++) {
             for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
                 long key = (chunkX & 0xffffffffL) | ((long) chunkZ << 32);
@@ -52,13 +56,19 @@ final class SearchChunks implements CollisionGetter {
                     chunk = this.load(chunkX, chunkZ);
                     this.chunks.put(key, chunk);
                 }
-                required.add(chunk);
-                ready &= chunk.isDone();
+                if (!chunk.isDone() || chunk.isCompletedExceptionally()) {
+                    if (pending == null) pending = new ArrayList<>();
+                    pending.add(chunk);
+                } else {
+                    available &= chunk.getNow(null) != null;
+                }
             }
         }
-        if (ready) return CompletableFuture.completedFuture(required).thenApply(this::available);
+        if (pending == null) return available ? READY : UNAVAILABLE;
+        List<CompletableFuture<LevelChunk>> required = pending;
+        boolean present = available;
         return CompletableFuture.allOf(required.toArray(CompletableFuture[]::new))
-                .thenApply(ignored -> this.available(required));
+                .thenApply(ignored -> present && this.available(required));
     }
 
     private boolean available(List<CompletableFuture<LevelChunk>> required) {
@@ -70,9 +80,9 @@ final class SearchChunks implements CollisionGetter {
     }
 
     private CompletableFuture<LevelChunk> load(int x, int z) {
+        LevelChunk loaded = getLoaded(this.world, x, z);
+        if (loaded != null) return CompletableFuture.completedFuture(loaded);
         if (VersionHelper.hasPaperPatch) {
-            LevelChunk loaded = this.world.getChunkSource().getChunkAtIfLoadedImmediately(x, z);
-            if (loaded != null) return CompletableFuture.completedFuture(loaded);
             return this.world.getWorld().getChunkAtAsync(x, z, this.generate)
                     .thenApply(chunk -> chunk == null ? null : (LevelChunk) ((CraftChunk) chunk).getHandle(ChunkStatus.FULL));
         }
@@ -96,14 +106,45 @@ final class SearchChunks implements CollisionGetter {
                     SparrowPlugin.instance().scheduler().platform()
             );
         }
-        // Spigot 在平台线程加载磁盘区块, EMPTY 阶段不会生成地形, 已保存的完整区块会返回 LevelChunk 或其包装
         return CompletableFuture.supplyAsync(() -> {
-            LevelChunk loaded = this.world.getChunkSource().getChunkNow(x, z);
-            if (loaded != null) return loaded;
             ChunkAccess chunk = this.world.getChunkSource().getChunk(x, z, ChunkStatus.EMPTY, true);
             if (chunk instanceof ImposterProtoChunk wrapper) return wrapper.getWrapped();
             return chunk instanceof LevelChunk full ? full : null;
         }, SparrowPlugin.instance().scheduler().platform());
+    }
+
+    @Nullable
+    private static LevelChunk getLoaded(ServerLevel world, int x, int z) {
+        return VersionHelper.hasPaperPatch ? world.getChunkSource().getChunkAtIfLoadedImmediately(x, z) : world.getChunkSource().getChunkNow(x, z);
+    }
+
+    boolean isAir(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        minY = Math.max(minY, this.getMinY());
+        maxY = Math.min(maxY, this.getMinY() + this.getHeight() - 1);
+        int firstSection = this.getMinY() >> 4;
+        for (int chunkX = minX >> 4; chunkX <= maxX >> 4; chunkX++) {
+            for (int chunkZ = minZ >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
+                LevelChunk chunk = this.getChunkForCollisions(chunkX, chunkZ);
+                for (int sectionY = minY >> 4; sectionY <= maxY >> 4; sectionY++) {
+                    LevelChunkSection section = chunk.getSections()[sectionY - firstSection];
+                    if (section.hasOnlyAir()) continue;
+                    int fromX = Math.max(minX, chunkX << 4);
+                    int toX = Math.min(maxX, (chunkX << 4) + 15);
+                    int fromZ = Math.max(minZ, chunkZ << 4);
+                    int toZ = Math.min(maxZ, (chunkZ << 4) + 15);
+                    int fromY = Math.max(minY, sectionY << 4);
+                    int toY = Math.min(maxY, (sectionY << 4) + 15);
+                    for (int x = fromX; x <= toX; x++) {
+                        for (int z = fromZ; z <= toZ; z++) {
+                            for (int y = fromY; y <= toY; y++) {
+                                if (!section.getBlockState(x & 15, y & 15, z & 15).isAir()) return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     @Override

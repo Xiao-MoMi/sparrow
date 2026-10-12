@@ -19,6 +19,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.momirealms.sparrow.teleport.TeleportDimensions;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 public final class TeleportSafety {
@@ -42,14 +43,27 @@ public final class TeleportSafety {
     }
 
     public static boolean isSafe(@NotNull CollisionGetter world, @NotNull TeleportDimensions dimensions, double x, double y, double z, int maxY) {
+        return isSafe(world, dimensions, x, y, z, maxY, new BlockPos.MutableBlockPos());
+    }
+
+    @ApiStatus.Internal
+    public static boolean isSafe(
+            @NotNull CollisionGetter world,
+            @NotNull TeleportDimensions dimensions,
+            double x,
+            double y,
+            double z,
+            int maxY,
+            @NotNull BlockPos.MutableBlockPos position
+    ) {
         double halfWidth = dimensions.width() / 2;
         double halfDepth = dimensions.depth() / 2;
         AABB bounds = new AABB(x - halfWidth, y, z - halfDepth, x + halfWidth, y + dimensions.height(), z + halfDepth);
-        if (!isSafe(world, bounds, maxY)) return false;
+        if (!isSafe(world, bounds, maxY, position)) return false;
         double eyeY = y + dimensions.eyeHeight();
-        BlockPos eyes = BlockPos.containing(x, eyeY, z);
-        FluidState fluid = world.getFluidState(eyes);
-        return !fluid.is(FluidTags.WATER) || eyeY > eyes.getY() + fluid.getHeight(world, eyes);
+        position.set(Mth.floor(x), Mth.floor(eyeY), Mth.floor(z));
+        FluidState fluid = world.getFluidState(position);
+        return !fluid.is(FluidTags.WATER) || eyeY > position.getY() + fluid.getHeight(world, position);
     }
 
     // 从候选格顶面向下探测一格, 返回检测体积脚下最高支撑面的 Y, 无支撑时返回候选格底面
@@ -72,27 +86,29 @@ public final class TeleportSafety {
         return Math.max(y, top + movement);
     }
 
-    private static boolean isSafe(CollisionGetter world, AABB bounds, int maxY) {
+    private static boolean isSafe(CollisionGetter world, AABB bounds, int maxY, BlockPos.MutableBlockPos position) {
         if (bounds.minY < world.getMinY() || bounds.maxY > maxY) return false;
         WorldBorder border = world.getWorldBorder();
         if (bounds.minX < border.getMinX() || bounds.maxX > border.getMaxX() || bounds.minZ < border.getMinZ() || bounds.maxZ > border.getMaxZ()) return false;
         // 使用原版容差处理贴合的地板和天花板, 身体必须完全处于方块碰撞形状之外
         AABB body = bounds.deflate(COLLISION_EPSILON);
+        position.set(Mth.floor((body.minX + body.maxX) / 2), Mth.floor((body.minY + body.maxY) / 2), Mth.floor((body.minZ + body.maxZ) / 2));
+        if (world.getBlockState(position).isCollisionShapeFullBlock(world, position)
+                && body.intersects(position.getX(), position.getY(), position.getZ(), position.getX() + 1.0, position.getY() + 1.0, position.getZ() + 1.0)) return false;
         if (world.getBlockCollisions(null, body).iterator().hasNext()) return false;
         // 脚底向下探测一个薄层, 半砖, 楼梯和栅栏都按实际碰撞面提供支撑
         AABB support = new AABB(body.minX, bounds.minY - SUPPORT_DEPTH, body.minZ, body.maxX, bounds.minY, body.maxZ);
         if (!world.getBlockCollisions(null, support).iterator().hasNext()) return false;
-        return !hasHazards(world, body, support);
+        return !hasHazards(world, body, support, position);
     }
 
-    private static boolean hasHazards(CollisionGetter world, AABB body, AABB support) {
+    private static boolean hasHazards(CollisionGetter world, AABB body, AABB support, BlockPos.MutableBlockPos position) {
         int minX = Mth.floor(body.minX);
         int maxX = Mth.floor(body.maxX);
         int minY = Mth.floor(support.minY);
         int maxY = Mth.floor(body.maxY);
         int minZ = Mth.floor(body.minZ);
         int maxZ = Mth.floor(body.maxZ);
-        BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
         for (int x = minX; x <= maxX; x++) {
             for (int z = minZ; z <= maxZ; z++) {
                 for (int y = minY; y <= maxY; y++) {

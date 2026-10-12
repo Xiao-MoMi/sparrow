@@ -4,6 +4,7 @@ import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObj
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.TeleportProcessor;
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
+import net.momirealms.sparrow.teleport.processor.GeneratedChunkProcessor;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
 import net.momirealms.sparrow.teleport.processor.SafeLocationProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
@@ -34,6 +35,7 @@ public final class TeleportProcessorSerializer {
         this.register(CooldownProcessor.TYPE, CooldownProcessor.class);
         this.register(WarmupProcessor.TYPE, WarmupProcessor.class);
         this.register(WorldBlacklistProcessor.TYPE, WorldBlacklistProcessor.class);
+        this.register(GeneratedChunkProcessor.TYPE, GeneratedChunkProcessor.class);
         this.register(SafeLocationProcessor.TYPE, SafeLocationProcessor.class);
         this.register(SoundProcessor.TYPE, SoundProcessor.class);
         this.register(InvulnerabilityProcessor.TYPE, InvulnerabilityProcessor.class);

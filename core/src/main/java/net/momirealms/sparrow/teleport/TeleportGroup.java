@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.teleport;
 
 import net.momirealms.sparrow.teleport.processor.CooldownProcessor;
+import net.momirealms.sparrow.teleport.processor.GeneratedChunkProcessor;
 import net.momirealms.sparrow.teleport.processor.InvulnerabilityProcessor;
 import net.momirealms.sparrow.teleport.processor.SafeLocationProcessor;
 import net.momirealms.sparrow.teleport.processor.SoundProcessor;
@@ -60,6 +61,7 @@ public final class TeleportGroup {
     @Comment({
             "Processors that run on the destination server before the landing spot is reserved. The player may still be on another server.",
             "They run from top to bottom. Each one may reject the teleport or move the landing spot.",
+            "   generated-chunk - rejects destinations whose chunk has not been generated.",
             "   safe-location - checks the requested position, then searches nearby, then vertically at the original X/Z.",
             "     Place it after processors that change the destination. It also applies when teleporting another player.",
             "     Uses the player's current bounding box. Standing heights above 5 blocks use a 0.6 x 2 x 0.6 detection box.",
@@ -76,6 +78,7 @@ public final class TeleportGroup {
     @Comment(lang = "zh", value = {
             "落点处理器, 在落点所在的服务器上、预留落点之前执行. 此时玩家可能还在别的服务器上.",
             "从上到下依次执行, 每一个都可以拒绝传送或改写落点.",
+            "   generated-chunk - 目标坐标所在区块未生成时拒绝传送.",
             "   safe-location - 先检查原位置, 再搜索附近, 最后在原 X/Z 上垂直搜索.",
             "     放在会改写落点的处理器之后. 代其他玩家发起传送时同样执行.",
             "     使用玩家当前检测体积. 缩放后的站立高度超过 5 格时, 按 0.6 x 2 x 0.6 的体积检查.",
@@ -120,7 +123,7 @@ public final class TeleportGroup {
     public static TeleportGroup createDeathBack() {
         TeleportGroup group = new TeleportGroup();
         group.preProcessor = List.of(new CooldownProcessor("death-back"), new WarmupProcessor());
-        group.targetProcessor = List.of(new SafeLocationProcessor());
+        group.targetProcessor = List.of(new GeneratedChunkProcessor(), new SafeLocationProcessor());
         group.postProcessor = List.of(new InvulnerabilityProcessor(), new SoundProcessor());
         return group;
     }
