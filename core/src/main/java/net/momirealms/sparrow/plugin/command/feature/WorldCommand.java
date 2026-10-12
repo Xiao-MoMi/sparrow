@@ -7,10 +7,11 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.util.EntityUtils;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
+import net.momirealms.sparrow.teleport.TeleportResult;
+import net.momirealms.sparrow.teleport.WorldTeleportSearch;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.block.Block;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -23,6 +24,7 @@ import org.jspecify.annotations.NonNull;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public final class WorldCommand extends BukkitCommandFeature {
 
@@ -57,39 +59,30 @@ public final class WorldCommand extends BukkitCommandFeature {
         }
         World selected = context.getOrDefault("world", null);
         for (Player player : players) {
-            this.plugin().scheduler().platform().run(() -> {
-                World target = selected != null ? selected : WorldUtils.next(player.getWorld());
-                if (target == null) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_WORLD_EMPTY);
-                    return;
-                }
-                Location destination = WorldUtils.destination(player.getLocation(), target);
-                int height = (int) Math.ceil(player.getHeight());
-                int space = 0;
-                while (destination.getY() < target.getMaxHeight()) {
-                    Block block = destination.getBlock();
-                    space = block.isPassable() && !block.isLiquid() ? space + 1 : 0;
-                    if (space >= height) {
-                        break;
-                    }
-                    destination.add(0, 1, 0);
-                }
-                if (space < height) {
+            World target = selected != null ? selected : WorldUtils.next(player.getWorld());
+            if (target == null) {
+                this.handleFeedback(context, MessageConstants.COMMAND_WORLD_EMPTY);
+                continue;
+            }
+            Location origin = WorldUtils.destination(player.getLocation(), target);
+            WorldTeleportSearch search = new WorldTeleportSearch(origin, (int) Math.ceil(player.getHeight()));
+            search.find().thenCompose(destination -> {
+                if (destination == null) {
                     this.handleFeedback(context, MessageConstants.COMMAND_WORLD_NO_SPACE, Component.text(target.getName()));
-                    return;
+                    return CompletableFuture.<TeleportResult>completedFuture(null);
                 }
-                destination.subtract(0, height - 1, 0);
-                EntityUtils.teleport(player, destination).whenComplete((success, error) -> {
-                    if (error != null) {
-                        this.plugin().logger().warn("Failed to change world for " + player.getName(), error);
-                    }
-                    boolean self = player == context.sender();
-                    TranslatableComponent message = error == null && success
-                            ? (self ? MessageConstants.COMMAND_WORLD_SUCCESS_SELF : MessageConstants.COMMAND_WORLD_SUCCESS)
-                            : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
-                    this.handleFeedback(context, message, Component.text(player.getName()), Component.text(target.getName()));
-                });
-            }, () -> {}, player);
+                return this.plugin().teleportService().transfer(player, ServerConfig.serverId(), destination);
+            }).whenComplete((result, error) -> {
+                if (error == null && result == null) return;
+                if (error != null) {
+                    this.plugin().logger().warn("Failed to change world for " + player.getName(), error);
+                }
+                boolean self = player == context.sender();
+                TranslatableComponent message = error == null && result == TeleportResult.LOCAL_SUCCESS
+                        ? (self ? MessageConstants.COMMAND_WORLD_SUCCESS_SELF : MessageConstants.COMMAND_WORLD_SUCCESS)
+                        : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE);
+                this.handleFeedback(context, message, Component.text(player.getName()), Component.text(target.getName()));
+            });
         }
     }
 

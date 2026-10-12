@@ -5,7 +5,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.border.WorldBorder;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.util.TeleportSafety;
+import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -13,10 +15,12 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Comparator;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public final class TeleportSearch {
     private final TeleportDimensions dimensions;
     private final SearchChunks chunks;
+    private final Executor executor;
     private final int maxY;
     private final int maxChecks;
     private int checks;
@@ -24,7 +28,8 @@ public final class TeleportSearch {
     // 同一实例的查询按顺序调用, 共用检查预算和区块缓存
     public TeleportSearch(@NotNull ServerLevel world, @NotNull TeleportDimensions dimensions, boolean allowNetherRoof, int maxChecks) {
         this.dimensions = dimensions;
-        this.chunks = new SearchChunks(world, dimensions);
+        this.chunks = new SearchChunks(world, false);
+        this.executor = VersionHelper.hasPaperPatch ? SparrowPlugin.instance().scheduler().async() : SparrowPlugin.instance().scheduler().platform();
         this.maxY = TeleportSafety.getMaxY(world, allowNetherRoof);
         this.maxChecks = maxChecks;
     }
@@ -41,8 +46,9 @@ public final class TeleportSearch {
         if (this.isExhausted()) return CompletableFuture.completedFuture(null);
         this.checks++;
         if (!this.inside(location.x(), location.y(), location.z())) return CompletableFuture.completedFuture(null);
-        return this.chunks.prepare(location.x(), location.z()).thenApply(available ->
-                available && TeleportSafety.isSafe(this.chunks, this.dimensions, location.x(), location.y(), location.z(), this.maxY) ? location : null
+        return this.prepare(location.x(), location.z()).thenApplyAsync(
+                available -> available && TeleportSafety.isSafe(this.chunks, this.dimensions, location.x(), location.y(), location.z(), this.maxY) ? location : null,
+                this.executor
         );
     }
 
@@ -57,7 +63,8 @@ public final class TeleportSearch {
         int maxZ = Mth.floor(Math.min((double) Mth.floor(origin.z()) + horizontalRadius, border.getMaxZ() - halfDepth - 0.5));
         double minY = Math.max(this.chunks.getMinY(), origin.y() - verticalRadius);
         double maxY = Math.min(this.maxY - this.dimensions.height(), origin.y() + verticalRadius);
-        return CompletableFuture.completedFuture(new Candidates(origin, minX, maxX, minZ, maxZ, minY, maxY, false)).thenCompose(this::scan);
+        return CompletableFuture.completedFuture(new Candidates(origin, minX, maxX, minZ, maxZ, minY, maxY, false))
+                .thenComposeAsync(this::scan, this.executor);
     }
 
     @NotNull
@@ -65,7 +72,8 @@ public final class TeleportSearch {
         if (!this.insideHorizontal(origin.x(), origin.z())) return CompletableFuture.completedFuture(null);
         int x = Mth.floor(origin.x());
         int z = Mth.floor(origin.z());
-        return CompletableFuture.completedFuture(new Candidates(origin, x, x, z, z, this.chunks.getMinY(), this.maxY - this.dimensions.height(), true)).thenCompose(this::scan);
+        return CompletableFuture.completedFuture(new Candidates(origin, x, x, z, z, this.chunks.getMinY(), this.maxY - this.dimensions.height(), true))
+                .thenComposeAsync(this::scan, this.executor);
     }
 
     // 已完成加载的候选在循环里处理, 只有等待新区块时才接续异步阶段
@@ -77,18 +85,27 @@ public final class TeleportSearch {
             this.checks++;
             double x = candidates.x(next.x());
             double z = candidates.z(next.z());
-            CompletableFuture<Boolean> ready = this.chunks.prepare(x, z);
+            CompletableFuture<Boolean> ready = this.prepare(x, z);
             if (!ready.isDone()) {
-                return ready.thenCompose(available -> {
+                // 区块加载可以在区域线程完成, 后续碰撞判定和扫描继续使用搜索执行器
+                return ready.thenComposeAsync(available -> {
                     if (available) this.evaluate(candidates, next, x, z);
                     return this.scan(candidates);
-                });
+                }, this.executor);
             }
             if (ready.join()) {
                 this.evaluate(candidates, next, x, z);
             }
         }
         return CompletableFuture.completedFuture(candidates.best);
+    }
+
+    private CompletableFuture<Boolean> prepare(double x, double z) {
+        int minX = Mth.floor(x - this.dimensions.width() / 2 - 1.0E-7) - 1;
+        int maxX = Mth.floor(x + this.dimensions.width() / 2 + 1.0E-7) + 1;
+        int minZ = Mth.floor(z - this.dimensions.depth() / 2 - 1.0E-7) - 1;
+        int maxZ = Mth.floor(z + this.dimensions.depth() / 2 + 1.0E-7) + 1;
+        return this.chunks.prepare(minX, minZ, maxX, maxZ);
     }
 
     private void evaluate(Candidates candidates, Candidate candidate, double x, double z) {

@@ -3,8 +3,9 @@ package net.momirealms.sparrow.teleport;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.Mth;
+import net.minecraft.server.level.TicketType;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,19 +29,19 @@ import java.util.concurrent.CompletableFuture;
 
 final class SearchChunks implements CollisionGetter {
     private final ServerLevel world;
-    private final TeleportDimensions dimensions;
+    private final boolean generate;
     private final Long2ObjectOpenHashMap<CompletableFuture<LevelChunk>> chunks = new Long2ObjectOpenHashMap<>(); // 搜索期间保留区块对象, 供方块与碰撞查询直接读取
 
-    SearchChunks(ServerLevel world, TeleportDimensions dimensions) {
+    SearchChunks(ServerLevel world, boolean generate) {
         this.world = world;
-        this.dimensions = dimensions;
+        this.generate = generate;
     }
 
-    CompletableFuture<Boolean> prepare(double x, double z) {
-        int minX = (Mth.floor(x - this.dimensions.width() / 2 - 1.0E-7) - 1) >> 4;
-        int maxX = (Mth.floor(x + this.dimensions.width() / 2 + 1.0E-7) + 1) >> 4;
-        int minZ = (Mth.floor(z - this.dimensions.depth() / 2 - 1.0E-7) - 1) >> 4;
-        int maxZ = (Mth.floor(z + this.dimensions.depth() / 2 + 1.0E-7) + 1) >> 4;
+    CompletableFuture<Boolean> prepare(int minBlockX, int minBlockZ, int maxBlockX, int maxBlockZ) {
+        int minX = minBlockX >> 4;
+        int maxX = maxBlockX >> 4;
+        int minZ = minBlockZ >> 4;
+        int maxZ = maxBlockZ >> 4;
         List<CompletableFuture<LevelChunk>> required = new ArrayList<>();
         boolean ready = true;
         for (int chunkX = minX; chunkX <= maxX; chunkX++) {
@@ -63,21 +64,45 @@ final class SearchChunks implements CollisionGetter {
     private boolean available(List<CompletableFuture<LevelChunk>> required) {
         boolean available = true;
         for (int i = 0, size = required.size(); i < size; i++) {
-            available &= required.get(i).join() != null;
+            available &= required.get(i).getNow(null) != null;
         }
         return available;
     }
 
     private CompletableFuture<LevelChunk> load(int x, int z) {
         if (VersionHelper.hasPaperPatch) {
-            return this.world.getWorld().getChunkAtAsync(x, z, false)
+            LevelChunk loaded = this.world.getChunkSource().getChunkAtIfLoadedImmediately(x, z);
+            if (loaded != null) return CompletableFuture.completedFuture(loaded);
+            return this.world.getWorld().getChunkAtAsync(x, z, this.generate)
                     .thenApply(chunk -> chunk == null ? null : (LevelChunk) ((CraftChunk) chunk).getHandle(ChunkStatus.FULL));
+        }
+        if (this.generate) {
+            // 原版 UNKNOWN 票据会在生成结束前过期, 每次加载单独持有票据, 完成后释放
+            TicketType<?> ticket = new TicketType<>(TicketType.NO_TIMEOUT, TicketType.FLAG_LOADING);
+            ChunkPos position = new ChunkPos(x, z);
+            return CompletableFuture.runAsync(
+                    () -> this.world.getChunkSource().addTicketWithRadius(ticket, position, 0),
+                    SparrowPlugin.instance().scheduler().platform()
+            ).thenComposeAsync(
+                    // 主线程调用 getChunkFuture 会等待区块, 因此从工作线程发起
+                    ignored -> this.world.getChunkSource().getChunkFuture(x, z, ChunkStatus.FULL, true),
+                    SparrowPlugin.instance().scheduler().async()
+            ).thenApply(result -> {
+                ChunkAccess chunk = result.orElse(null);
+                if (chunk == null) throw new IllegalStateException("Failed to load destination chunk " + x + "," + z + ": " + result.getError());
+                return (LevelChunk) chunk;
+            }).whenCompleteAsync(
+                    (chunk, error) -> this.world.getChunkSource().removeTicketWithRadius(ticket, position, 0),
+                    SparrowPlugin.instance().scheduler().platform()
+            );
         }
         // Spigot 在平台线程加载磁盘区块, EMPTY 阶段不会生成地形, 已保存的完整区块会返回 LevelChunk 或其包装
         return CompletableFuture.supplyAsync(() -> {
+            LevelChunk loaded = this.world.getChunkSource().getChunkNow(x, z);
+            if (loaded != null) return loaded;
             ChunkAccess chunk = this.world.getChunkSource().getChunk(x, z, ChunkStatus.EMPTY, true);
             if (chunk instanceof ImposterProtoChunk wrapper) return wrapper.getWrapped();
-            return chunk instanceof LevelChunk loaded ? loaded : null;
+            return chunk instanceof LevelChunk full ? full : null;
         }, SparrowPlugin.instance().scheduler().platform());
     }
 
@@ -130,7 +155,8 @@ final class SearchChunks implements CollisionGetter {
     @Nullable
     @Override
     public BlockEntity getBlockEntity(BlockPos position) {
-        return this.getChunkForCollisions(position.getX() >> 4, position.getZ() >> 4).getBlockEntity(position);
+        // 只读取已实例化的方块实体, 搜索过程不解析待加载 NBT 或注册实体
+        return this.getChunkForCollisions(position.getX() >> 4, position.getZ() >> 4).getBlockEntities().get(position);
     }
 
     @NotNull
