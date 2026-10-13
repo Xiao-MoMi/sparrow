@@ -6,7 +6,6 @@ import net.momirealms.sparrow.feature.tpa.command.TpaCommand;
 import net.momirealms.sparrow.feature.tpa.command.TpaReplyCommand;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
-import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +27,6 @@ public final class TpaFeature extends Feature<TpaSettings> {
     public void loadConfig() {
         TpaSettings settings = this.plugin.configurationManager().featuresConfig().config().tpa();
         if (settings.expireSeconds() < 1) throw new IllegalArgumentException("tpa.expire-seconds must be at least 1");
-        TeleportConfig.group(settings.teleportGroup());
         super.config = settings;
     }
 

@@ -3,7 +3,6 @@ package net.momirealms.sparrow.feature.tpa;
 import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
-import org.jetbrains.annotations.NotNull;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
 public final class TpaSettings implements FeatureSettings {
@@ -20,10 +19,6 @@ public final class TpaSettings implements FeatureSettings {
     @Comment("Seconds a player cannot send another request to someone who denied them. 0 disables it, sparrow.bypass.tpa-cooldown skips it.")
     @Comment(lang = "zh", value = "被某位玩家拒绝后, 多少秒内不能再向他发起请求. 0 表示不限制, sparrow.bypass.tpa-cooldown 可跳过.")
     private int denyCooldownSeconds = 120;
-
-    @Comment("Teleport group from teleport.yml used after a request is accepted. Leave empty to use the default group.")
-    @Comment(lang = "zh", value = "请求被接受后的传送使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
-    private String teleportGroup = "default";
 
     @Override
     public boolean enabled() {
@@ -45,10 +40,5 @@ public final class TpaSettings implements FeatureSettings {
 
     public int denyCooldownSeconds() {
         return this.denyCooldownSeconds;
-    }
-
-    @NotNull
-    public String teleportGroup() {
-        return this.teleportGroup;
     }
 }

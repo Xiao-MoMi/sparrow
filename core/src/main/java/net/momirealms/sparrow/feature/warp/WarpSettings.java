@@ -25,10 +25,6 @@ public final class WarpSettings implements FeatureSettings {
     @Comment(lang = "zh", value = "按 Tab 补全时最多显示多少个名称.")
     private int suggestionLimit = 100;
 
-    @Comment("Teleport group from teleport.yml used by /warp. Leave empty to use the default group.")
-    @Comment(lang = "zh", value = "/warp 使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
-    private String teleportGroup = "default";
-
     @Override
     public boolean enabled() {
         return this.enabled;
@@ -54,10 +50,5 @@ public final class WarpSettings implements FeatureSettings {
 
     public int suggestionLimit() {
         return this.suggestionLimit;
-    }
-
-    @NotNull
-    public String teleportGroup() {
-        return this.teleportGroup;
     }
 }

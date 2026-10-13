@@ -8,7 +8,6 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -49,8 +48,6 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
     public void loadConfig() {
         BackSettings settings = this.plugin.configurationManager().featuresConfig().config().back();
         this.causes = parseCauses(settings.teleportCauses());
-        TeleportConfig.group(settings.teleportGroup());
-        TeleportConfig.group(settings.deathTeleportGroup());
         super.config = settings;
     }
 

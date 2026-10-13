@@ -13,7 +13,6 @@ public class ConfigurationManager {
     private final CommandsConfig commandsConfig;
     private final PluginConfig pluginConfig;
     private final ServerConfig serverConfig;
-    private final TeleportConfig teleportConfig;
     private final FeaturesConfig featuresConfig;
 
     public ConfigurationManager(Plugin plugin) {
@@ -29,27 +28,18 @@ public class ConfigurationManager {
         this.pluginConfig = new PluginConfig(plugin, this.sparrowYaml);
         this.serverConfig = new ServerConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.commandsConfig = new CommandsConfig(plugin.dataFolderPath(), this.sparrowYaml);
-        this.teleportConfig = new TeleportConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.featuresConfig = new FeaturesConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.pluginConfig.reload();
         this.serverConfig.reload();
     }
 
-    // teleport.yml 留到启用时才第一次读取, 其他插件可以先在 onLoad 里注册自己的处理器类型
-    public void onEnable() {
-        this.teleportConfig.reload();
-    }
-
     /**
      * 重新加载允许运行时更新的配置快照.
      */
-    public int reload() {
-        int issues = 0;
+    public void reload() {
         this.pluginConfig.reload();
         this.serverConfig.reload();
-        issues += this.teleportConfig.reload();
         this.featuresConfig.reload();
-        return issues;
     }
 
     @NotNull
@@ -59,11 +49,6 @@ public class ConfigurationManager {
 
     public CommandsConfig commandsConfig() {
         return this.commandsConfig;
-    }
-
-    @NotNull
-    public TeleportConfig teleportConfig() {
-        return this.teleportConfig;
     }
 
     @NotNull

@@ -2,8 +2,6 @@ package net.momirealms.sparrow.teleport.processor;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.teleport.Teleport;
-import net.momirealms.sparrow.teleport.TeleportResult;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,24 +13,6 @@ public interface TeleportProcessor {
 
     // 读取配置后调用, 选项不合法时抛出 IllegalArgumentException
     default void validate() {
-    }
-
-    interface Pre extends TeleportProcessor {
-
-        // 出发前在玩家所在的服务器上调用. 结果为 null 时放行, 否则中止传送并把结果提示给玩家, 空组件表示不提示
-        @NotNull
-        CompletableFuture<@Nullable Component> before(@NotNull BukkitSparrowPlayer player, @NotNull Teleport teleport);
-
-        // 传送有了结果后调用. 跨服成功时玩家已经离开本服
-        default void finished(@NotNull Teleport teleport, @NotNull TeleportResult result) {
-        }
-    }
-
-    interface RequestRule extends TeleportProcessor {
-
-        // 在目标服搜索前检查一次, null 放行, 非 null 拒绝整个请求. 上下文只读
-        @NotNull
-        CompletableFuture<@Nullable Component> check(@NotNull RequestContext context);
     }
 
     interface CandidateRule extends TeleportProcessor {

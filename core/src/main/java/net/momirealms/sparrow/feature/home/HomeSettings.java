@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.feature.home;
 
 import net.momirealms.sparrow.feature.FeatureSettings;
-import net.momirealms.sparrow.plugin.configuration.TeleportConfig;
 import org.jetbrains.annotations.NotNull;
 import java.util.regex.Pattern;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
@@ -23,10 +22,6 @@ public final class HomeSettings implements FeatureSettings {
     @Comment(lang = "zh", value = "名称规则, 最长 32 个字符. 始终禁止空白、点号和以 - 开头.")
     private String namePattern = "[\\p{L}\\p{N}_][\\p{L}\\p{N}_-]*";
     private int suggestionLimit = 100;
-
-    @Comment("Teleport group from teleport.yml used by /home. Leave empty to use the default group.")
-    @Comment(lang = "zh", value = "/home 使用的传送分组, 在 teleport.yml 中定义. 留空时使用 default 分组.")
-    private String teleportGroup = "default";
 
     @Override
     public boolean enabled() {
@@ -58,14 +53,8 @@ public final class HomeSettings implements FeatureSettings {
 
     public void validate() {
         Pattern.compile(this.namePattern);
-        TeleportConfig.group(this.teleportGroup);
         if (this.suggestionLimit < 1 || this.maxHomes < 0 || !this.validName(this.defaultName)) {
             throw new IllegalArgumentException("Invalid home settings: check limits, timings and default-name");
         }
-    }
-
-    @NotNull
-    public String teleportGroup() {
-        return this.teleportGroup;
     }
 }

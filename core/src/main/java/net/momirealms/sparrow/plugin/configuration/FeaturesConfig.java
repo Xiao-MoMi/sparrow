@@ -164,8 +164,8 @@ public final class FeaturesConfig {
         private BackSettings back = new BackSettings();
 
         @BlankLineBefore
-        @Comment("Return to beds with /bed, with configurable warmup and cooldown. Teleporting other players is immediate and does not use cooldowns.")
-        @Comment(lang = "zh", value = "使用 /bed 回到床边, 可设置预热与冷却. 传送其他玩家时立即执行, 不检查或记录冷却.")
+        @Comment("Return to beds with /bed.")
+        @Comment(lang = "zh", value = "使用 /bed 回到床边.")
         private BedSettings bed = new BedSettings();
 
         @BlankLineBefore
