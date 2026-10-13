@@ -5,7 +5,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 
 public final class Teleport {
     private final UUID player;
@@ -58,23 +57,13 @@ public final class Teleport {
         this.dimensions = dimensions;
     }
 
-    // 只保存通过规则的最终位置, 后续传送和到达处理使用同一坐标
-    @NotNull
-    CompletableFuture<TeleportDestination.Result> locate(DestinationContext context) {
-        CompletableFuture<TeleportDestination.Result> resolved = this.destination.resolve(context);
-        CompletableFuture<TeleportDestination.Result> located = resolved.thenApply(result -> {
-            if (result.location() != null) this.location = result.location();
-            return result;
-        });
-        located.whenComplete((result, error) -> {
-            if (located.isCancelled()) resolved.cancel(false);
-        });
-        return located;
-    }
-
     // 只在落点阶段及之后可用
     @NotNull
     public WorldLocation location() {
         return this.location;
+    }
+
+    void location(@NotNull WorldLocation location) {
+        this.location = location;
     }
 }

@@ -29,14 +29,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.function.Supplier;
 
 public final class TeleportService implements PlayerListener {
-    private static final int PREPARATION_TIMEOUT_SECONDS = 10;
+    private static final int REMOTE_PREPARATION_TIMEOUT_SECONDS = 10;
     private static final TeleportGroup DIRECT = new TeleportGroup(); // 直接传送使用的空分组
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
@@ -162,7 +160,7 @@ public final class TeleportService implements PlayerListener {
         }
         return this.plugin.messageBrokerManager().broker()
                 .publishTwoWay(new TeleportRequest(teleport), server)
-                .orTimeout(PREPARATION_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .orTimeout(REMOTE_PREPARATION_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .thenCompose(response -> {
                     Component denial = response.denial();
                     if (denial != null) return CompletableFuture.completedFuture(this.reject(player, denial));
@@ -190,31 +188,14 @@ public final class TeleportService implements PlayerListener {
                 });
     }
 
-    private CompletableFuture<TeleportDestination.Result> prepareDestination(Teleport teleport) {
-        CompletableFuture<TeleportDestination.Result> completion = new CompletableFuture<>();
-        completion.orTimeout(PREPARATION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-
-        CompletableFuture<TeleportDestination.Result> preparation = CompletableFuture.completedFuture(teleport)
-                .thenCompose(value -> this.runPreparationStage(completion, () -> value.locate(new DestinationContext(value, this.group(value.type())))));
-
-        preparation.whenComplete((response, error) -> {
-            if (error != null) {
-                completion.completeExceptionally(error);
-            } else {
-                completion.complete(response);
-            }
-        });
-        return completion;
-    }
-
-    // 准备超时后取消当前阶段, 搜索在候选循环和区块回调中响应取消
-    private <T> CompletableFuture<T> runPreparationStage(CompletableFuture<?> completion, Supplier<CompletableFuture<T>> action) {
-        if (completion.isDone()) return CompletableFuture.failedFuture(new CancellationException());
-        CompletableFuture<T> stage = action.get();
-        completion.whenComplete((response, error) -> {
-            if (error != null) stage.cancel(false);
-        });
-        return stage;
+    // 接受解析器的成功结果后保存最终位置, 本服传送和跨服到达使用同一坐标
+    private CompletableFuture<DestinationResolver.Result> prepareDestination(Teleport teleport) {
+        return CompletableFuture.completedFuture(teleport)
+                .thenCompose(value -> new DestinationResolver(value, this.group(value.type())).resolve())
+                .thenApply(result -> {
+                    if (result.location() != null) teleport.location(result.location());
+                    return result;
+                });
     }
 
     private void arrived(BukkitSparrowPlayer player, Teleport teleport) {

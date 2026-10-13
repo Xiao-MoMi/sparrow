@@ -112,13 +112,17 @@ public final class RandomTeleportSearch {
                 continue;
             }
             Column column = new Column(x, z, this.minFeetY, this.maxFeetY, !this.ceiling);
-            return this.searchColumn(column)
-                    .thenComposeAsync(result -> {
+            // 列扫描正常完成时仍在工作线程, 就地衔接附近搜索
+            CompletableFuture<WorldLocation> found = this.searchColumn(column)
+                    .thenCompose(result -> {
                         if (result == ColumnResult.FOUND) return CompletableFuture.completedFuture(column.location);
                         if (result == ColumnResult.BLOCKED) return this.nearby(column, new NearbyColumns(this.options.horizontalRadius()));
                         return NOT_FOUND;
-                    }, this.executor)
-                    .thenComposeAsync(found -> found == null ? this.attempt() : CompletableFuture.completedFuture(found), this.executor);
+                    });
+            if (!found.isDone()) {
+                return found.thenComposeAsync(location -> location == null ? this.attempt() : CompletableFuture.completedFuture(location), this.executor);
+            }
+            if (found.getNow(null) != null) return found;
         }
         return NOT_FOUND;
     }
@@ -135,31 +139,39 @@ public final class RandomTeleportSearch {
             double minY = Math.max(this.minFeetY, origin.location.y() - this.options.verticalRadius());
             double maxY = Math.min(this.maxFeetY, origin.location.y() + this.options.verticalRadius());
             Column column = new Column(x, z, minY, maxY, !this.ceiling);
-            return this.searchColumn(column)
-                    .thenComposeAsync(result -> {
-                        if (result == ColumnResult.FOUND) return CompletableFuture.completedFuture(column.location);
-                        if (result == ColumnResult.REJECTED) return NOT_FOUND;
-                        return this.nearby(origin, columns);
-                    }, this.executor);
+            CompletableFuture<ColumnResult> searched = this.searchColumn(column);
+            if (!searched.isDone()) {
+                return searched.thenComposeAsync(result -> {
+                    if (result == ColumnResult.FOUND) return CompletableFuture.completedFuture(column.location);
+                    if (result == ColumnResult.REJECTED) return NOT_FOUND;
+                    return this.nearby(origin, columns);
+                }, this.executor);
+            }
+            ColumnResult result = searched.getNow(null);
+            if (result == ColumnResult.FOUND) return CompletableFuture.completedFuture(column.location);
+            if (result == ColumnResult.REJECTED) return NOT_FOUND;
         }
         return NOT_FOUND;
     }
 
     private CompletableFuture<ColumnResult> searchColumn(Column column) {
         if (!this.canCheck()) return MISS;
-        return this.chunks.prepare(column.x, column.z, column.x, column.z)
-                .thenComposeAsync(available -> {
-                    if (!this.canCheck() || !available) return MISS;
-                    // 高度图跳过上方空气, 下界仍需从逻辑顶层以下穿过岩体寻找空腔
-                    int surface = this.chunks.getChunkForCollisions(column.x >> 4, column.z >> 4)
-                            .getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.x & 15, column.z & 15);
-                    column.y = this.ceiling ? this.maxY - 1 : Math.min(surface, this.maxY - 1);
-                    if (surface < Math.max(this.chunks.getMinY(), Mth.floor(column.minY) - 1)) {
-                        this.checks++;
-                        return MISS;
-                    }
-                    return this.scanColumn(column);
-                }, this.executor);
+        CompletableFuture<Boolean> ready = this.chunks.prepare(column.x, column.z, column.x, column.z);
+        if (ready.isDone()) return this.scanPreparedColumn(column, ready.getNow(false));
+        return ready.thenComposeAsync(available -> this.scanPreparedColumn(column, available), this.executor);
+    }
+
+    private CompletableFuture<ColumnResult> scanPreparedColumn(Column column, boolean available) {
+        if (!this.canCheck() || !available) return MISS;
+        // 高度图跳过上方空气, 下界仍需从逻辑顶层以下穿过岩体寻找空腔
+        int surface = this.chunks.getChunkForCollisions(column.x >> 4, column.z >> 4)
+                .getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.x & 15, column.z & 15);
+        column.y = this.ceiling ? this.maxY - 1 : Math.min(surface, this.maxY - 1);
+        if (surface < Math.max(this.chunks.getMinY(), Mth.floor(column.minY) - 1)) {
+            this.checks++;
+            return MISS;
+        }
+        return this.scanColumn(column);
     }
 
     private CompletableFuture<ColumnResult> scanColumn(Column column) {
@@ -176,12 +188,20 @@ public final class RandomTeleportSearch {
             }
             if (!column.open) continue;
             // 只有可能提供支撑的列才准备完整碰撞范围, 同一候选不重复扣检查次数
-            return this.chunks.prepare(this.dimensions, column.x + 0.5, column.z + 0.5)
-                    .thenComposeAsync(available -> {
-                        if (this.completion.isDone() || !available) return MISS;
-                        return this.inspectFloor(column, y, state);
-                    }, this.executor)
-                    .thenComposeAsync(result -> result == ColumnResult.SKIP ? this.scanColumn(column) : CompletableFuture.completedFuture(result), this.executor);
+            CompletableFuture<Boolean> ready = this.chunks.prepare(this.dimensions, column.x + 0.5, column.z + 0.5);
+            if (!ready.isDone()) {
+                return ready.thenComposeAsync(available -> {
+                    if (this.completion.isDone() || !available) return MISS;
+                    return this.inspectFloor(column, y, state);
+                }, this.executor)
+                        .thenComposeAsync(result -> result == ColumnResult.SKIP ? this.scanColumn(column) : CompletableFuture.completedFuture(result), this.executor);
+            }
+            if (this.completion.isDone() || !ready.getNow(false)) return MISS;
+            CompletableFuture<ColumnResult> inspected = this.inspectFloor(column, y, state);
+            if (!inspected.isDone()) {
+                return inspected.thenComposeAsync(result -> result == ColumnResult.SKIP ? this.scanColumn(column) : CompletableFuture.completedFuture(result), this.executor);
+            }
+            if (inspected.getNow(null) != ColumnResult.SKIP) return inspected;
         }
         return MISS;
     }
@@ -277,7 +297,7 @@ public final class RandomTeleportSearch {
 
         private NearbyColumns(int radius) {
             this.radius = radius;
-            this.visited.add(ChunkPos.asLong(0, 0));
+            this.visited.add(0L);
             this.expand(0, 0);
         }
 
@@ -296,7 +316,7 @@ public final class RandomTeleportSearch {
 
         private void offer(int x, int z) {
             if (Math.abs((long) x) > this.radius || Math.abs((long) z) > this.radius) return;
-            if (this.visited.add(ChunkPos.asLong(x, z))) {
+            if (this.visited.add((x & 0xffffffffL) | ((long) z << 32))) {
                 this.queue.add(new Offset(x, z));
             }
         }

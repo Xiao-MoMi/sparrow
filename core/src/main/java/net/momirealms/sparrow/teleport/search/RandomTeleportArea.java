@@ -1,6 +1,5 @@
 package net.momirealms.sparrow.teleport.search;
 
-import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -68,7 +67,9 @@ public record RandomTeleportArea(
                 long count = rectangle.size();
                 if (index < count) {
                     long width = (long) rectangle.maxX - rectangle.minX + 1;
-                    return ChunkPos.asLong((int) (rectangle.minX + index % width), (int) (rectangle.minZ + index / width));
+                    int x = (int) (rectangle.minX + index % width);
+                    int z = (int) (rectangle.minZ + index / width);
+                    return (x & 0xffffffffL) | ((long) z << 32);
                 }
                 index -= count;
             }
