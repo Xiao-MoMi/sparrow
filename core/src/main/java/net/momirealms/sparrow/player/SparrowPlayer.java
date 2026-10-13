@@ -19,19 +19,10 @@ public interface SparrowPlayer {
     @NotNull
     String name();
 
-    /**
-     * 根据本服当前游戏会话判断是否在线.
-     */
     boolean isOnlineLocally();
 
-    /**
-     * 根据代理在线目录判断是否在任一子服在线.
-     */
     boolean isOnlineGlobally();
 
-    /**
-     * 返回代理目录中的当前所在服, 没有在线记录时返回 null.
-     */
     @Nullable
     String getCurrentServerId();
 

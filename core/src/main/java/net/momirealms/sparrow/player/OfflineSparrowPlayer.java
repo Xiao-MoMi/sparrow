@@ -41,21 +41,21 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
         return SparrowPlugin.instance().playerDirectory().find(this.uniqueId) != null;
     }
 
-    @Override
     @Nullable
+    @Override
     public String getCurrentServerId() {
         PlayerPresence presence = SparrowPlugin.instance().playerDirectory().find(this.uniqueId);
         return presence == null ? null : presence.server();
     }
 
-    @Override
     @NotNull
+    @Override
     public CompletableFuture<Boolean> checkPermission(@NotNull String permission) {
         return SparrowPlugin.instance().compatibilityManager().checkPermission(this.uniqueId, permission);
     }
 
-    @Override
     @NotNull
+    @Override
     public CompletableFuture<Optional<PlayerData>> loadData() {
         return SparrowPlugin.instance().dataStorage().loadPlayer(this.uniqueId);
     }

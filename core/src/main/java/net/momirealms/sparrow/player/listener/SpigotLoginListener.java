@@ -1,9 +1,10 @@
-package net.momirealms.sparrow.player;
+package net.momirealms.sparrow.player.listener;
 
 import io.netty.channel.ChannelHandler;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerLoginPacketListenerImplProxy;
+import net.momirealms.sparrow.util.TriConsumer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -11,12 +12,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.jetbrains.annotations.NotNull;
 
-@SuppressWarnings("all")
-final class SpigotLoginListener implements Listener {
-    private final PlayerManager manager;
+import java.util.UUID;
 
-    SpigotLoginListener(@NotNull PlayerManager manager) {
-        this.manager = manager;
+@SuppressWarnings("all")
+public final class SpigotLoginListener implements Listener {
+    private final TriConsumer<ChannelHandler, UUID, String> register;
+
+    public SpigotLoginListener(@NotNull TriConsumer<ChannelHandler, UUID, String> register) {
+        this.register = register;
     }
 
     @SuppressWarnings("deprecation")
@@ -29,6 +32,6 @@ final class SpigotLoginListener implements Listener {
         Object handle = CraftPlayerProxy.INSTANCE.getHandle(player);
         Object listener = ServerPlayerProxy.INSTANCE.getTransferCookieConnection(handle);
         ChannelHandler connection = (ChannelHandler) ServerLoginPacketListenerImplProxy.INSTANCE.getConnection(listener);
-        this.manager.registerConnection(connection, player.getUniqueId(), player.getName());
+        this.register.accept(connection, player.getUniqueId(), player.getName());
     }
 }

@@ -8,6 +8,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import net.momirealms.sparrow.locale.LogConstants;
+import net.momirealms.sparrow.player.listener.PaperLoginListener;
+import net.momirealms.sparrow.player.listener.SpigotLoginListener;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
@@ -46,7 +48,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
 
     public void onEnable() {
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
-        Listener loginListener = VersionHelper.hasPaperPatch ? new PaperLoginListener(this) : new SpigotLoginListener(this);
+        Listener loginListener = VersionHelper.hasPaperPatch ? new PaperLoginListener(this::registerConnection) : new SpigotLoginListener(this::registerConnection);
         javaPlugin.getServer().getPluginManager().registerEvents(loginListener, javaPlugin);
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
     }
