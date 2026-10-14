@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.redis.message.player;
+package net.momirealms.sparrow.redis.message;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.FriendlyByteBuf;

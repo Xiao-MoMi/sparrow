@@ -2,8 +2,8 @@ package net.momirealms.sparrow.plugin.command.parser;
 
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.redis.message.world.WorldListRequest;
-import net.momirealms.sparrow.redis.message.world.WorldListResponse;
+import net.momirealms.sparrow.redis.message.WorldListRequest;
+import net.momirealms.sparrow.redis.message.WorldListResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.incendo.cloud.caption.Caption;

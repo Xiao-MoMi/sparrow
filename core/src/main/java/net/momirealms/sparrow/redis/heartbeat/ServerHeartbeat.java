@@ -5,7 +5,7 @@ import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
-import net.momirealms.sparrow.redis.message.server.ServerChangedMessage;
+import net.momirealms.sparrow.redis.message.ServerChangedMessage;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.redis.message.server;
+package net.momirealms.sparrow.redis.message;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.cluster.ServerDirectory;

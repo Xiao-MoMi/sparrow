@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.redis.message.world;
+package net.momirealms.sparrow.redis.message;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
