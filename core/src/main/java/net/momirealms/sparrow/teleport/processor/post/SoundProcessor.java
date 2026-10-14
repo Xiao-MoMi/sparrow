@@ -1,8 +1,9 @@
-package net.momirealms.sparrow.teleport.processor;
+package net.momirealms.sparrow.teleport.processor.post;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
 import net.momirealms.sparrow.teleport.Teleport;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;

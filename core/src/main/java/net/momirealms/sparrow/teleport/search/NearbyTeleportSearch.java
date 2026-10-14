@@ -9,8 +9,6 @@ import net.minecraft.world.level.border.WorldBorder;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.TeleportDimensions;
-import net.momirealms.sparrow.teleport.processor.CandidateChecks;
-import net.momirealms.sparrow.teleport.processor.CandidateContext;
 import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.VersionHelper;

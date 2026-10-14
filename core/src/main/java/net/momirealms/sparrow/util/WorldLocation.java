@@ -2,6 +2,7 @@ package net.momirealms.sparrow.util;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -20,6 +21,32 @@ public record WorldLocation(@NotNull String world, double x, double y, double z,
                 location.getYaw(),
                 location.getPitch()
         );
+    }
+
+    @NotNull
+    public static WorldLocation fromNbt(@NotNull CompoundTag tag) {
+        String world = tag.getString("world", null);
+        double x = tag.getDouble("x", Double.NaN);
+        double y = tag.getDouble("y", Double.NaN);
+        double z = tag.getDouble("z", Double.NaN);
+        float yaw = tag.getFloat("yaw", Float.NaN);
+        float pitch = tag.getFloat("pitch", Float.NaN);
+        if (world == null || !Double.isFinite(x) || !Double.isFinite(y) || !Double.isFinite(z) || !Float.isFinite(yaw) || !Float.isFinite(pitch)) {
+            throw new IllegalArgumentException("Teleport location requires a world and finite coordinates and rotation");
+        }
+        return new WorldLocation(world, x, y, z, yaw, pitch);
+    }
+
+    @NotNull
+    public CompoundTag toNbt() {
+        CompoundTag tag = new CompoundTag();
+        tag.putString("world", this.world);
+        tag.putDouble("x", this.x);
+        tag.putDouble("y", this.y);
+        tag.putDouble("z", this.z);
+        tag.putFloat("yaw", this.yaw);
+        tag.putFloat("pitch", this.pitch);
+        return tag;
     }
 
     @NotNull

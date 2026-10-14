@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.processor;
+package net.momirealms.sparrow.teleport.search;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.CollisionGetter;
@@ -33,16 +33,19 @@ public final class CandidateContext {
     }
 
     @NotNull
-    CollisionGetter blocks() {
+    @ApiStatus.Internal
+    public CollisionGetter blocks() {
         return this.blocks;
     }
 
-    int maxY() {
+    @ApiStatus.Internal
+    public int maxY() {
         return this.maxY;
     }
 
     @NotNull
-    BlockPos.MutableBlockPos position() {
+    @ApiStatus.Internal
+    public BlockPos.MutableBlockPos position() {
         return this.position;
     }
 }

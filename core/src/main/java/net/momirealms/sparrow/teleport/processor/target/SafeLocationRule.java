@@ -1,7 +1,9 @@
-package net.momirealms.sparrow.teleport.processor;
+package net.momirealms.sparrow.teleport.processor.target;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
+import net.momirealms.sparrow.teleport.search.CandidateContext;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.WorldLocation;

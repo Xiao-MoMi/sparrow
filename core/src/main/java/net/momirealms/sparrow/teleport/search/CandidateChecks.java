@@ -1,7 +1,9 @@
-package net.momirealms.sparrow.teleport.processor;
+package net.momirealms.sparrow.teleport.search;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
+import net.momirealms.sparrow.teleport.processor.target.SafeLocationRule;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.ApiStatus;
