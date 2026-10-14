@@ -1,8 +1,10 @@
 package net.momirealms.sparrow.util;
 
-import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
+import net.momirealms.sparrow.teleport.Teleport;
+import net.momirealms.sparrow.teleport.TeleportPreparationResult;
 import net.momirealms.sparrow.teleport.TeleportResult;
+import net.momirealms.sparrow.teleport.position.Fixed;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -20,9 +22,16 @@ public final class EntityUtils {
     public static CompletableFuture<Boolean> teleport(@NotNull Entity entity, @NotNull Location location) {
         if (VersionHelper.hasFoliaPatch) {
             if (entity instanceof Player player) {
-                return SparrowPlugin.instance().teleportService()
-                        .transfer(player, ServerConfig.serverId(), WorldLocation.from(location))
-                        .thenApply(result -> result == TeleportResult.LOCAL_SUCCESS);
+                return Teleport.builder()
+                        .server(ServerConfig.serverId())
+                        .position(new Fixed(WorldLocation.from(location)))
+                        .commit(player)
+                        .result()
+                        .thenCompose(result -> switch (result) {
+                            case TeleportPreparationResult.Success success -> success.accept();
+                            case TeleportPreparationResult.Fail fail -> CompletableFuture.completedFuture(new TeleportResult.Fail(fail.reason()));
+                        })
+                        .thenApply(result -> result instanceof TeleportResult.Success);
             }
             return entity.teleportAsync(location, TeleportCause.PLUGIN);
         }

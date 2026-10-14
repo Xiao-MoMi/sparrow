@@ -6,7 +6,7 @@ import net.minecraft.world.phys.AABB;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import org.jetbrains.annotations.ApiStatus;
+import net.momirealms.sparrow.util.Dimensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,15 +56,7 @@ public final class TeleportContext {
         if (!(this.tag.get(DIMENSIONS) instanceof CompoundTag dimensions)) {
             throw new IllegalStateException("Teleport context does not contain player dimensions");
         }
-        double width = dimensions.getDouble("width", Double.NaN);
-        double height = dimensions.getDouble("height", Double.NaN);
-        double depth = dimensions.getDouble("depth", Double.NaN);
-        double eyeHeight = dimensions.getDouble("eye_height", Double.NaN);
-        if (!Double.isFinite(width) || !Double.isFinite(height) || !Double.isFinite(depth) || !Double.isFinite(eyeHeight)
-                || width <= 0 || height <= 0 || depth <= 0 || eyeHeight < 0) {
-            throw new IllegalArgumentException("Teleport dimensions must be finite and positive, with a non-negative eye height");
-        }
-        return new Dimensions(width, height, depth, eyeHeight);
+        return Dimensions.fromNbt(dimensions);
     }
 
     void bindPlayer(@NotNull BukkitSparrowPlayer player) {
@@ -87,15 +79,6 @@ public final class TeleportContext {
             depth = bounds.getZsize();
             eyeHeight = nmsPlayer.getEyeHeight();
         }
-        CompoundTag dimensions = new CompoundTag();
-        dimensions.putDouble("width", width);
-        dimensions.putDouble("height", height);
-        dimensions.putDouble("depth", depth);
-        dimensions.putDouble("eye_height", eyeHeight);
-        this.tag.put(DIMENSIONS, dimensions);
-    }
-
-    @ApiStatus.Internal
-    public record Dimensions(double width, double height, double depth, double eyeHeight) {
+        this.tag.put(DIMENSIONS, new Dimensions(width, height, depth, eyeHeight).toNbt());
     }
 }

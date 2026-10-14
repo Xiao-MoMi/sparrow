@@ -151,6 +151,14 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_EDIT_WARP_RENAMED = Component.translatable("command.edit-warp.renamed");
     TranslatableComponent COMMAND_EDIT_WARP_DESCRIPTION = Component.translatable("command.edit-warp.description");
     TranslatableComponent COMMAND_EDIT_WARP_DESCRIPTION_TOO_LONG = Component.translatable("command.edit-warp.description-too-long");
+    TranslatableComponent TELEPORT_CANCELLED = Component.translatable("teleport.cancelled");
+    TranslatableComponent TELEPORT_REPLACED = Component.translatable("teleport.replaced");
+    TranslatableComponent TELEPORT_BUSY = Component.translatable("teleport.busy");
+    TranslatableComponent TELEPORT_UNAVAILABLE = Component.translatable("teleport.unavailable");
+    TranslatableComponent TELEPORT_DISABLED = Component.translatable("teleport.disabled");
+    TranslatableComponent TELEPORT_FAILED = Component.translatable("teleport.failed");
+    TranslatableComponent TELEPORT_EXPIRED = Component.translatable("teleport.expired");
+    TranslatableComponent TELEPORT_EXECUTION_TIMEOUT = Component.translatable("teleport.execution-timeout");
     TranslatableComponent TELEPORT_REJECTED_WORLD = Component.translatable("teleport.rejected.world");
     TranslatableComponent TELEPORT_REJECTED_INVALID = Component.translatable("teleport.rejected.invalid");
     TranslatableComponent TELEPORT_REJECTED_PLAYER = Component.translatable("teleport.rejected.player");

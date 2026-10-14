@@ -1,22 +1,13 @@
 package net.momirealms.sparrow.feature.bed;
 
-import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.teleport.TeleportResult;
-import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.util.WorldLocation;
-import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jspecify.annotations.NonNull;
 
 public final class BedCommand extends BukkitCommandFeature {
@@ -36,44 +27,7 @@ public final class BedCommand extends BukkitCommandFeature {
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        Player player = context.getOrDefault("player", context.sender() instanceof Player sender ? sender : null);
-        if (player == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
-            return;
-        }
-        this.teleport(context, player, player.getRespawnLocation());
-    }
-
-    // 床被拆除或被挡住时重生点为 null
-    private void teleport(CommandContext<CommandSender> context, Player player, @Nullable Location destination) {
-        if (destination == null) {
-            this.handleFeedback(
-                    context,
-                    (player == context.sender() ? MessageConstants.COMMAND_BED_MISSING_SELF : MessageConstants.COMMAND_BED_MISSING),
-                    Component.text(player.getName())
-            );
-            return;
-        }
-        String name = player.getName();
-        boolean self = player == context.sender();
-        this.plugin().teleportService()
-                .teleport(player, TeleportType.BED, ServerConfig.serverId(), WorldLocation.from(destination), self)
-                .whenComplete((result, error) -> {
-                    if (error != null) {
-                        this.plugin().logger().warn("Failed to teleport " + name + " to the bed", error);
-                    }
-                    // 被拒绝的原因由传送服务提示给玩家本人.
-                    if (result == TeleportResult.REJECTED && self) {
-                        return;
-                    }
-                    this.handleFeedback(
-                            context,
-                            error == null && result == TeleportResult.LOCAL_SUCCESS
-                                    ? (self ? MessageConstants.COMMAND_BED_SUCCESS_SELF : MessageConstants.COMMAND_BED_SUCCESS)
-                                            : (self ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE),
-                            Component.text(name)
-                    );
-                });
+        // TODO 接入新的传送配置与处理器后实现
     }
 
     @Override

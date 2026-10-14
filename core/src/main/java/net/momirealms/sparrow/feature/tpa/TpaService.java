@@ -11,8 +11,6 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.teleport.TeleportDestination;
-import net.momirealms.sparrow.teleport.TeleportType;
 import org.incendo.cloud.suggestion.Suggestion;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,9 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 public final class TpaService {
     private static final CompletableFuture<Long> NO_WAIT = CompletableFuture.completedFuture(0L);
@@ -264,30 +260,8 @@ public final class TpaService {
         });
     }
 
-    // 把玩家送到另一位玩家此刻所在的位置, 结果提示给被传送的玩家
     private void teleport(BukkitSparrowPlayer player, UUID destination, Component destinationName, String server) {
-        this.plugin.teleportService()
-                .teleport(player.platformPlayer(), TeleportType.TPA, server, new TeleportDestination.OfPlayer(destination), true)
-                .thenAccept(result -> {
-                    switch (result) {
-                        case LOCAL_SUCCESS -> player.sendMessage(MessageConstants.COMMAND_TPA_TELEPORT_SUCCESS, destinationName);
-                        case SERVER_OFFLINE -> player.sendMessage(MessageConstants.COMMAND_TPA_TELEPORT_SERVER_OFFLINE, destinationName, Component.text(server));
-                        case INVALID -> player.sendMessage(MessageConstants.COMMAND_TPA_TELEPORT_INVALID, destinationName);
-                        case FAILED -> player.sendMessage(MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-                        case REMOTE_SUCCESS, REJECTED -> {
-                        }
-                    }
-                })
-                .exceptionally(error -> {
-                    Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-                    if (cause instanceof TimeoutException) {
-                        player.sendMessage(MessageConstants.COMMAND_TPA_TELEPORT_TIMEOUT);
-                    } else {
-                        this.plugin.logger().warn("Failed to teleport " + player.name() + " for a tpa request", cause);
-                        player.sendMessage(MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-                    }
-                    return null;
-                });
+        // TODO 重构 TPA 接受流程并接入传送 API
     }
 
     // 点击后替玩家执行回应这位发起者的命令

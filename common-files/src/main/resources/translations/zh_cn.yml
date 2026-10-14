@@ -73,13 +73,13 @@ argument.parse.failure.server-offline: '<color:#FFB6CB>服务器 <arg:0> 不在�
 argument.parse.failure.server-world: '<color:#FFB6CB>服务器 <arg:1> 中不存在世界 <arg:0>.</color>'
 
 # command.rtp
-command.rtp.success: '<color:#C9F2C7>已传送到随机位置.</color>'
-command.rtp.invalid-area: '<color:#FFB6CB>中心坐标和半径必须为有限数值. min-radius 不能小于 0, max-radius 必须大于 min-radius, min-y 不能大于 max-y.</color>'
-command.rtp.invalid: '<color:#FFB6CB>目标世界已不可用.</color>'
-command.rtp.server-offline: '<color:#FFB6CB>服务器 <arg:0> 不在线.</color>'
-command.rtp.timeout: '<color:#FFB6CB>请求等待超时, 未能确认传送结果.</color>'
-teleport.rejected.rtp-unsupported: '<color:#FFB6CB>目标服务器不支持随机传送.</color>'
-teleport.rejected.rtp-disabled: '<color:#FFB6CB>目标服务器未启用随机传送.</color>'
+command.rtp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到随机位置.</color>'
+command.rtp.invalid-area: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>随机传送失败了，原因是：搜索范围参数不符合要求。中心坐标和半径必须为有限数值. min-radius 不能小于 0, max-radius 必须大于 min-radius, min-y 不能大于 max-y.</color>'
+command.rtp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标世界已不可用.</color>'
+command.rtp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：服务器 <arg:0> 不在线.</color>'
+command.rtp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：请求等待超时，无法确认传送结果。</color>'
+teleport.rejected.rtp-unsupported: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标服务器不支持随机传送。</color>'
+teleport.rejected.rtp-disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标服务器未启用随机传送。</color>'
 
 # command.actionbar
 command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送 ActionBar</color>'
@@ -90,13 +90,13 @@ command.anvil.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 command.anvil.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开铁砧</color>'
 
 # command.back
-command.back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>上一个位置所在的世界已不存在</color>'
+command.back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：上一个位置所在的世界已不存在</color>'
 command.back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 没有可以返回的位置</color>'
 command.back.none-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有可以返回的位置</color>'
-command.back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>服务器 <color:#F2F4FF><arg:1></color> 不在线, 无法返回</color>'
+command.back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：服务器 <color:#F2F4FF><arg:1></color> 不在线, 无法返回</color>'
 command.back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 送回上一个位置</color>'
 command.back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已送你回到上一个位置</color>'
-command.back.timeout: '<color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
+command.back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：请求等待超时，无法确认传送结果。</color>'
 
 # command.ban
 command.ban.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>封禁原因不能超过 <color:#F2F4FF><arg:0></color> 个字符</color>'
@@ -148,9 +148,9 @@ command.player-info.uuid: '<color:#AAAAAA>UUID: </color><color:#FFFFFF><arg:0></
 
 # command.spawn
 command.spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已返回 Spawn</color>'
-command.spawn.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Spawn 所在服务器 <color:#C7BCE7><arg:0></color> 不在线</color>'
-command.spawn.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Spawn 的世界或位置不可用, 请联系管理员重新设置</color>'
-command.spawn.timeout: '<color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
+command.spawn.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：Spawn 所在服务器 <color:#C7BCE7><arg:0></color> 不在线</color>'
+command.spawn.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：Spawn 的世界或位置不可用, 请联系管理员重新设置</color>'
+command.spawn.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：请求等待超时，无法确认传送结果。</color>'
 command.spawn.not-set: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>尚未设置 Spawn</color>'
 command.spawn.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>保存 Spawn 失败, 请查看控制台</color>'
 command.set-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将当前位置设为全服 Spawn, 所在服务器 <color:#C7BCE7><arg:0></color></color>'
@@ -205,13 +205,13 @@ command.custom-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>$
 command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已删除 warp <color:#C7BCE7><arg:0></color></color>'
 
 # command.death-back
-command.death-back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>服务器 <color:#C7BCE7><arg:1></color> 不在线, 无法返回死亡位置</color>'
-command.death-back.timeout: '<color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
+command.death-back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：服务器 <color:#C7BCE7><arg:1></color> 不在线, 无法返回死亡位置</color>'
+command.death-back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：请求等待超时，无法确认传送结果。</color>'
 command.death-back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 送回上次死亡位置</color>'
 command.death-back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已送你回到上次死亡位置</color>'
 command.death-back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> 没有已记录的死亡位置</color>'
 command.death-back.none-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有已记录的死亡位置</color>'
-command.death-back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>上次死亡位置所在的世界已不存在</color>'
+command.death-back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：上次死亡位置所在的世界已不存在</color>'
 
 # command.demo
 command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示演示版提示</color>'
@@ -570,13 +570,13 @@ command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 command.totem-animation.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你播放图腾动画</color>'
 
 # command.tp-offline
-command.tp-offline.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标世界或坐标无效, 未修改出生位置或执行传送.</color>'
-command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 尚未保存下线位置.</color>'
-command.tp-offline.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>服务器 <color:#F2F4FF><arg:2></color> 的心跳不存在, 无法传送.</color>'
+command.tp-offline.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标世界或坐标无效。</color>'
+command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：玩家 <color:#F2F4FF><arg:0></color> 尚未保存下线位置.</color>'
+command.tp-offline.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：服务器 <color:#F2F4FF><arg:2></color> 的心跳不存在, 无法传送.</color>'
 command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
 command.tp-offline.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你传送到 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
-command.tp-offline.timeout: '<color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
-command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>找不到玩家 <color:#F2F4FF><arg:0></color> 的数据库记录.</color>'
+command.tp-offline.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
+command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：找不到玩家 <color:#F2F4FF><arg:0></color> 的数据库记录.</color>'
 
 # command.tpa
 command.tpa.accepted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> 接受了你的传送请求</color>'
@@ -596,10 +596,10 @@ command.tpa.pending: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name
 command.tpa.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> 请求传送到你身边 <arg:1> <arg:2></color>'
 command.tpa.self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>不能向自己发送传送请求</color>'
 command.tpa.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送传送请求, <color:#C7BCE7><arg:1></color> 秒内有效</color>'
-command.tpa.teleport.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 已经不在原来的服务器, 传送已取消</color>'
-command.tpa.teleport.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 所在的服务器 <color:#F2F4FF><arg:1></color> 不在线</color>'
+command.tpa.teleport.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：<color:#F2F4FF><arg:0></color> 已经不在原来的服务器, 传送已取消</color>'
+command.tpa.teleport.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：<color:#F2F4FF><arg:0></color> 所在的服务器 <color:#F2F4FF><arg:1></color> 不在线</color>'
 command.tpa.teleport.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到 <color:#C7BCE7><arg:0></color> 身边</color>'
-command.tpa.teleport.timeout: '<color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
+command.tpa.teleport.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：请求等待超时，无法确认传送结果。</color>'
 
 # command.tpa-accept
 command.tpa-accept.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 已经不在线, 请求已作废</color>'
@@ -627,9 +627,9 @@ command.walk-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 # command.home
 command.home.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>已传送到 Home <arg:0></color>'
 command.home.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Home <arg:0> 不存在</color>'
-command.home.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Home <arg:0> 所在的服务器 <arg:1> 不在线</color>'
-command.home.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Home <arg:0> 所在的世界已不存在</color>'
-command.home.timeout: '<color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
+command.home.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>传送失败了，原因是：Home <arg:0> 所在的服务器 <arg:1> 不在线</color>'
+command.home.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>传送失败了，原因是：Home <arg:0> 所在的世界已不存在</color>'
+command.home.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：请求等待超时，无法确认传送结果。</color>'
 command.home.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Home 名称 <arg:0> 无效, 最长 <arg:2> 个字符, 需符合配置的名称规则, 禁止空白、点号和以 - 开头</color>'
 command.home.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>无法访问 Home 数据, 详情见控制台</color>'
 command.home.owner-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>控制台执行此命令时需要指定玩家</color>'
@@ -654,13 +654,13 @@ command.edit-home.relocated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proj
 command.edit-home.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>该所有者已存在名为 <arg:0> 的 Home, 请使用其他名称</color>'
 
 # command.warp
-command.warp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#C7BCE7><arg:1></color> 所在的世界已不存在</color>'
+command.warp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：warp <color:#C7BCE7><arg:1></color> 所在的世界已不存在</color>'
 command.warp.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp 名称 <color:#F2F4FF><arg:0></color> 无效, 最多 <arg:1> 个字, 只能使用文字、数字、_ 和 -</color>'
-command.warp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#C7BCE7><arg:1></color> 所在的服务器 <color:#F2F4FF><arg:2></color> 不在线</color>'
+command.warp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：warp <color:#C7BCE7><arg:1></color> 所在的服务器 <color:#F2F4FF><arg:2></color> 不在线</color>'
 command.warp.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无法保存 warp <color:#C7BCE7><arg:0></color>, 详情见控制台</color>'
 command.warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到 warp <color:#C7BCE7><arg:1></color></color>'
 command.warp.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到 warp <color:#C7BCE7><arg:1></color></color>'
-command.warp.timeout: '<color:#FFB6CB>请求等待超时，未能确认传送结果。</color>'
+command.warp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：请求等待超时，无法确认传送结果。</color>'
 command.warp.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>warp <color:#F2F4FF><arg:0></color> 不存在</color>'
 
 # command.warp-list
@@ -672,8 +672,8 @@ command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${projec
 command.workbench.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你打开工作台</color>'
 
 # command.world
-command.world.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有其他已加载世界可供切换。</color>'
-command.world.no_space: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>世界 <color:#F2F4FF><arg:0></color> 的目标位置上方没有足够空间。</color>'
+command.world.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：没有其他已加载世界可供切换。</color>'
+command.world.no_space: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：世界 <color:#F2F4FF><arg:0></color> 的目标位置上方没有足够空间。</color>'
 command.world.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送至 <color:#C7BCE7><arg:1></color>。</color>'
 command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你传送至 <color:#C7BCE7><arg:1></color>.</color>'
 
@@ -811,14 +811,19 @@ maintenance.boss_bar: '<color:#FFE3A3>服务器维护中</color>'
 maintenance.kick: '<color:#FFB6CB>服务器正在维护，请稍后再来</color>'
 
 # teleport
-teleport.cancelled.damaged: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你受到了伤害, 传送已取消</color>'
-teleport.cancelled.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你移动了, 传送已取消</color>'
-teleport.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送冷却中, 还需等待 <color:#F2F4FF><arg:0></color> 秒</color>'
-teleport.processing: '<color:#FFE3A3>正在传送…</color>'
-teleport.rejected.unsafe: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到安全落点, 传送已取消</color>'
-teleport.rejected.ungenerated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>目标位置已失效, 所在区块尚未生成</color>'
-teleport.rejected.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>不能传送到这个世界</color>'
-teleport.warmup: '<color:#FFE3A3><color:#F2F4FF><arg:0></color> 秒后传送, 请不要移动</color>'
+teleport.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送已取消。</color>'
+teleport.replaced: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>这次传送已被新的请求替换。</color>'
+teleport.busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：已有传送正在执行。</color>'
+teleport.unavailable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：玩家已离开本次连接。</color>'
+teleport.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：传送服务不可用。</color>'
+teleport.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因暂无法确认。</color>'
+teleport.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：准备结果已过期。</color>'
+teleport.execution-timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：等待执行结果超时，无法确认是否已到达目标位置。</color>'
+teleport.rejected.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标世界或坐标无效。</color>'
+teleport.rejected.player: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标玩家已不在选定的服务器上。</color>'
+teleport.rejected.unsafe: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：未找到安全落点。</color>'
+teleport.rejected.ungenerated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标区块尚未生成，位置已失效。</color>'
+teleport.rejected.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：目标世界不允许传送。</color>'
 
 command.server.connecting-self: '<color:#FFE3A3>正在前往 <arg:0>……</color>'
 command.server.player-offline: '<color:#FFB6CB>玩家 <arg:0> 已不在线。</color>'

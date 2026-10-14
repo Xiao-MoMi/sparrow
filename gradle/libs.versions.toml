@@ -5,8 +5,7 @@ config-version = "3"
 commands-config-version = "14"
 features-config-version = "14"
 server-config-version = "1"
-teleport-config-version = "3"
-lang-version = "46"
+lang-version = "47"
 proxy-config-version = "1"
 
 # Database

@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.feature.tpa.command;
 
 import net.momirealms.sparrow.feature.tpa.TpaFeature;
-import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
@@ -36,14 +35,7 @@ public final class TpaReplyCommand extends BukkitCommandFeature {
     }
 
     private void execute(CommandContext<Player> context) {
-        BukkitSparrowPlayer player = this.plugin().playerManager().getPlayer(context.sender());
-        if (player == null) return;
-        String requester = context.getOrDefault("player", null);
-        if (this.accept) {
-            this.feature.service().accept(player, requester);
-        } else {
-            this.feature.service().deny(player, requester);
-        }
+        // TODO 重构 TPA 请求流程并接入传送 API
     }
 
     @NotNull

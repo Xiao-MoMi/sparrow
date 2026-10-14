@@ -1,6 +1,11 @@
 package net.momirealms.sparrow.redis;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.teleport.message.TeleportPrepareRequest;
+import net.momirealms.sparrow.teleport.message.TeleportPrepareResponse;
+import net.momirealms.sparrow.teleport.message.TeleportExecuteRequest;
+import net.momirealms.sparrow.teleport.message.TeleportExecuteResponse;
+import net.momirealms.sparrow.teleport.message.TeleportCancelMessage;
 import net.momirealms.sparrow.redis.proxy.ConnectRequest;
 import net.momirealms.sparrow.redis.proxy.ConnectResponse;
 import net.momirealms.sparrow.feature.ban.BanMessage;
@@ -57,6 +62,11 @@ public final class MessageBrokerManager {
         this.broker.registry().register(SpawnMessage.ID, SpawnMessage.CODEC);
         this.broker.registry().register(HomeChangedMessage.ID, HomeChangedMessage.CODEC);
         this.broker.registry().register(TpaMessage.ID, TpaMessage.CODEC);
+        this.broker.registry().register(TeleportPrepareRequest.ID, TeleportPrepareRequest.CODEC);
+        this.broker.registry().register(TeleportPrepareResponse.ID, TeleportPrepareResponse.CODEC);
+        this.broker.registry().register(TeleportExecuteRequest.ID, TeleportExecuteRequest.CODEC);
+        this.broker.registry().register(TeleportExecuteResponse.ID, TeleportExecuteResponse.CODEC);
+        this.broker.registry().register(TeleportCancelMessage.ID, TeleportCancelMessage.CODEC);
         // Redis Pub/Sub Proxy 代理频道.
         this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":proxy").getBytes(StandardCharsets.UTF_8))

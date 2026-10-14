@@ -6,6 +6,7 @@ import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.PlayerLookup;
 import net.momirealms.sparrow.cluster.PlayerDirectory;
 import net.momirealms.sparrow.feature.FeatureManager;
+import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
@@ -76,6 +77,7 @@ public class SparrowPlugin implements Plugin {
     private final PlayerManager playerManager;
     private final PlayerLookup playerLookup;
     private final PlayerDirectory playerDirectory;
+    private final TeleportService teleportService;
 
     private CommandManager commandManager;
     private TranslationManager translationManager;
@@ -112,6 +114,7 @@ public class SparrowPlugin implements Plugin {
         this.playerManager = new PlayerManager();
         this.playerLookup = new PlayerLookup();
         this.playerDirectory = new PlayerDirectory();
+        this.teleportService = new TeleportService();
 
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }
@@ -199,6 +202,7 @@ public class SparrowPlugin implements Plugin {
         this.featureManager = new FeatureManager(this);
         this.messageBrokerManager.onEnable();
         this.featureManager.onEnable();
+        this.teleportService.onEnable();
         // 延迟初始化事件
         this.isInitializing = true;
         this.initASMProxies(); // Proxy 类测试, 仅 dev 模式下生效
@@ -215,6 +219,7 @@ public class SparrowPlugin implements Plugin {
     public void onPluginDisable() {
         if (this.serverHeartbeat != null) this.serverHeartbeat.shutdown();
         if (this.serverDirectory != null) this.serverDirectory.shutdown();
+        if (this.teleportService != null) this.teleportService.shutdown();
         if (this.featureManager != null) this.featureManager.onDisable();
         if (this.playerDirectory != null) this.playerDirectory.shutdown();
         if (this.playerManager != null) this.playerManager.shutdown();
@@ -601,6 +606,12 @@ public class SparrowPlugin implements Plugin {
     @NotNull
     public CommandManager commandManager() {
         return this.commandManager;
+    }
+
+    @Override
+    @NotNull
+    public TeleportService teleportService() {
+        return this.teleportService;
     }
 
     @Override

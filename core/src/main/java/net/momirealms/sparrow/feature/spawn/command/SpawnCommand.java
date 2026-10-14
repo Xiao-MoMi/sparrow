@@ -1,10 +1,7 @@
 package net.momirealms.sparrow.feature.spawn.command;
 
-import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.feature.spawn.Spawn;
 import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.teleport.TeleportType;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
@@ -20,9 +17,6 @@ import org.incendo.cloud.permission.PermissionResult;
 import org.incendo.cloud.permission.PredicatePermission;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
-
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.TimeoutException;
 
 public final class SpawnCommand extends BukkitCommandFeature {
     private final SpawnFeature feature;
@@ -70,38 +64,7 @@ public final class SpawnCommand extends BukkitCommandFeature {
     }
 
     private void execute(@NotNull CommandContext<Player> context) {
-        Spawn spawn = this.feature.spawn();
-        if (spawn == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_NOT_SET);
-            return;
-        }
-        Player player = context.sender();
-        this.plugin().teleportService()
-                .teleport(player, TeleportType.SPAWN, spawn.server(), spawn.location(), true)
-                .thenAccept(result -> {
-                    switch (result) {
-                        case LOCAL_SUCCESS -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_SUCCESS);
-                        case SERVER_OFFLINE -> this.handleFeedback(
-                                context,
-                                MessageConstants.COMMAND_SPAWN_SERVER_OFFLINE,
-                                Component.text(spawn.server())
-                        );
-                        case INVALID -> this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_INVALID);
-                        case FAILED -> this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-                        case REMOTE_SUCCESS, REJECTED -> {
-                        }
-                    }
-                })
-                .exceptionally(error -> {
-                    Throwable cause = error instanceof CompletionException ? error.getCause() : error;
-                    if (cause instanceof TimeoutException) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_SPAWN_TIMEOUT);
-                    } else {
-                        this.plugin().logger().warn("Failed to send " + player.getName() + " to spawn", error);
-                        this.handleFeedback(context, MessageConstants.COMMAND_TELEPORT_FAILURE_SELF);
-                    }
-                    return null;
-                });
+        // TODO 接入新的传送配置与处理器后实现
     }
 
     @NotNull

@@ -16,16 +16,19 @@ public final class ConnectRequest extends TwoWayRequestMessage<FriendlyByteBuf, 
     public static final MessageCodec<FriendlyByteBuf, ConnectRequest> CODEC = RedisMessage.codec(ConnectRequest::write, ConnectRequest::new);
 
     private final UUID player;
+    private final String expectedSourceServer;
     private final String destination;
 
-    public ConnectRequest(@NotNull UUID player, @NotNull String destination) {
+    public ConnectRequest(@NotNull UUID player, @NotNull String expectedSourceServer, @NotNull String destination) {
         this.player = player;
+        this.expectedSourceServer = expectedSourceServer;
         this.destination = destination;
     }
 
     private ConnectRequest(FriendlyByteBuf buffer) {
         super(buffer);
         this.player = new UUID(buffer.readLong(), buffer.readLong());
+        this.expectedSourceServer = ByteBufHelper.readUtf8(buffer, 255);
         this.destination = ByteBufHelper.readUtf8(buffer, 255);
     }
 
@@ -33,6 +36,7 @@ public final class ConnectRequest extends TwoWayRequestMessage<FriendlyByteBuf, 
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
         buffer.writeLong(this.player.getMostSignificantBits()).writeLong(this.player.getLeastSignificantBits());
+        ByteBufHelper.writeUtf8(buffer, this.expectedSourceServer, 255);
         ByteBufHelper.writeUtf8(buffer, this.destination, 255);
     }
 

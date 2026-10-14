@@ -31,6 +31,7 @@ import net.minecraft.world.item.component.DeathProtection;
 import net.momirealms.sparrow.proxy.bukkit.util.CraftChatMessageProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.redis.proxy.ConnectRequest;
 import net.momirealms.sparrow.redis.proxy.ConnectResponse;
 import net.momirealms.sparrow.redis.proxy.ConnectResult;
@@ -110,7 +111,7 @@ public final class BukkitSparrowPlayer extends OfflineSparrowPlayer {
     @NotNull
     public CompletableFuture<ConnectResult> connect(@NotNull String server) {
         return SparrowPlugin.instance().messageBrokerManager().proxyBroker()
-                .publishTwoWay(new ConnectRequest(this.uniqueId(), server), "proxy")
+                .publishTwoWay(new ConnectRequest(this.uniqueId(), ServerConfig.serverId(), server), "proxy")
                 .orTimeout(5, TimeUnit.SECONDS)
                 .thenApply(ConnectResponse::result);
     }

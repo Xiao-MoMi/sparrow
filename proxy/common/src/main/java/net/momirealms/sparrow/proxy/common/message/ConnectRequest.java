@@ -19,11 +19,13 @@ public final class ConnectRequest extends TwoWayRequestMessage<ByteBuf, ConnectR
 
     private final ProxyPlayerManager players = SparrowProxy.instance().playerManager();
     private final UUID player;
+    private final String expectedSourceServer;
     private final String destination;
 
     private ConnectRequest(ByteBuf buffer) {
         super(buffer);
         this.player = new UUID(buffer.readLong(), buffer.readLong());
+        this.expectedSourceServer = ByteBufHelper.readUtf8(buffer, 255);
         this.destination = ByteBufHelper.readUtf8(buffer, 255);
     }
 
@@ -31,6 +33,7 @@ public final class ConnectRequest extends TwoWayRequestMessage<ByteBuf, ConnectR
     protected void write(ByteBuf buffer) {
         super.write(buffer);
         buffer.writeLong(this.player.getMostSignificantBits()).writeLong(this.player.getLeastSignificantBits());
+        ByteBufHelper.writeUtf8(buffer, this.expectedSourceServer, 255);
         ByteBufHelper.writeUtf8(buffer, this.destination, 255);
     }
 
@@ -43,6 +46,6 @@ public final class ConnectRequest extends TwoWayRequestMessage<ByteBuf, ConnectR
     @Override
     @NotNull
     protected CompletableFuture<ConnectResponse> handleRequest() {
-        return this.players.connect(this.player, this.sourceServer(), this.destination).thenApply(ConnectResponse::new);
+        return this.players.connect(this.player, this.expectedSourceServer, this.destination).thenApply(ConnectResponse::new);
     }
 }

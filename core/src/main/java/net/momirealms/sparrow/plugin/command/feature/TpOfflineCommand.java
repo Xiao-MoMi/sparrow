@@ -8,6 +8,10 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
+import net.momirealms.sparrow.teleport.Teleport;
+import net.momirealms.sparrow.teleport.TeleportPreparationResult;
+import net.momirealms.sparrow.teleport.TeleportResult;
+import net.momirealms.sparrow.teleport.position.Fixed;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -68,29 +72,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                         return CompletableFuture.completedFuture(null);
                     }
                     List<CompletableFuture<Void>> transfers = targets.stream()
-                            .map(player ->
-                                    this.plugin().teleportService()
-                                            .transfer(player, data.lastLogoutServer(), data.lastLogoutLocation())
-                                            .thenAccept(result -> {
-                                                TranslatableComponent message = switch (result) {
-                                                    case LOCAL_SUCCESS -> player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS;
-                                                    case REMOTE_SUCCESS -> player == context.sender() ? null : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS;
-                                                    case SERVER_OFFLINE -> MessageConstants.COMMAND_TP_OFFLINE_SERVER_OFFLINE;
-                                                    case INVALID -> MessageConstants.COMMAND_TP_OFFLINE_INVALID;
-                                                    case FAILED -> player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE;
-                                                    case REJECTED -> null;
-                                                };
-                                                if (message != null) {
-                                                    this.handleFeedback(
-                                                            context,
-                                                            message,
-                                                            Component.text(player.getName()),
-                                                            Component.text(name),
-                                                            Component.text(data.lastLogoutServer())
-                                                    );
-                                                }
-                                            })
-                            )
+                            .map(player -> this.teleport(context, player, name, data))
                             .toList();
                     return CompletableFuture.allOf(transfers.toArray(CompletableFuture[]::new));
                 })
@@ -108,6 +90,52 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                                     Component.text(player.getName())
                             );
                         }
+                    }
+                    return null;
+                });
+    }
+
+    private CompletableFuture<Void> teleport(CommandContext<CommandSender> context, Player player, String name, PlayerData data) {
+        return Teleport.builder()
+                .server(data.lastLogoutServer())
+                .position(new Fixed(data.lastLogoutLocation()))
+                .commit(player)
+                .result()
+                .thenCompose(result ->
+                        switch (result) {
+                            case TeleportPreparationResult.Success success -> success.accept();
+                            case TeleportPreparationResult.Fail fail -> CompletableFuture.completedFuture(new TeleportResult.Fail(fail.reason()));
+                        }
+                )
+                .thenAccept(result -> {
+                    if (result instanceof TeleportResult.Fail fail) {
+                        if (MessageConstants.TELEPORT_REPLACED.equals(fail.reason())) return;
+                        if (!context.flags().hasFlag("silent")) {
+                            Component reason = fail.reason();
+                            String key = reason instanceof TranslatableComponent translated ? translated.key() : MessageConstants.TELEPORT_FAILED.key();
+                            this.commandManager.handleCommandFeedback(context.sender(), key, reason);
+                        }
+                        return;
+                    }
+                    this.handleFeedback(
+                            context,
+                            player == context.sender() ? MessageConstants.COMMAND_TP_OFFLINE_SUCCESS_SELF : MessageConstants.COMMAND_TP_OFFLINE_SUCCESS,
+                            Component.text(player.getName()),
+                            Component.text(name),
+                            Component.text(data.lastLogoutServer())
+                    );
+                })
+                .exceptionally(error -> {
+                    Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+                    if (cause instanceof TimeoutException) {
+                        this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_TIMEOUT);
+                    } else {
+                        this.plugin().logger().warn("Failed to teleport " + player.getName() + " to the saved location of " + name, cause);
+                        this.handleFeedback(
+                                context,
+                                player == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE,
+                                Component.text(player.getName())
+                        );
                     }
                     return null;
                 });

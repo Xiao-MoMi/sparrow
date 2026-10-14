@@ -1,11 +1,14 @@
 package net.momirealms.sparrow.teleport;
 
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.SparrowPlayer;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.position.Fixed;
 import net.momirealms.sparrow.teleport.position.TeleportPosition;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
 import net.momirealms.sparrow.teleport.processor.post.PostProcessor;
 import net.momirealms.sparrow.util.WorldLocation;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -83,9 +86,27 @@ public final class Teleport {
     }
 
     @NotNull
-    CompletionStage<String> resolveServer() {
+    public TeleportSubmission commit(@NotNull Player player) {
+        return SparrowPlugin.instance().teleportService().submit(this, player);
+    }
+
+    @NotNull
+    public TeleportSubmission commit(@NotNull SparrowPlayer player) {
+        return SparrowPlugin.instance().teleportService().submit(this, player);
+    }
+
+    public void commitForget(@NotNull Player player) {
+        SparrowPlugin.instance().teleportService().forget(this.commit(player), player.getUniqueId());
+    }
+
+    public void commitForget(@NotNull SparrowPlayer player) {
+        SparrowPlugin.instance().teleportService().forget(this.commit(player), player.uniqueId());
+    }
+
+    @NotNull
+    Supplier<CompletionStage<String>> getServer() {
         if (this.server == null) throw new IllegalStateException("Teleport server is not specified");
-        return this.server.get();
+        return this.server;
     }
 
     @NotNull

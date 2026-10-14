@@ -20,7 +20,7 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.TeleportContext.Dimensions;
+import net.momirealms.sparrow.util.Dimensions;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.CraftChunk;
 import org.jetbrains.annotations.ApiStatus;
