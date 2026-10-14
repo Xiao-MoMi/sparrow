@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface PostProcessor extends TeleportCodec {
     TeleportCodecRegistry<PostProcessor> TYPES = new TeleportCodecRegistry<>() {{
-        this.register(PlayerSound.TYPE, PlayerSound::fromNbt);
+        this.register(PlaySound.TYPE, PlaySound::fromNbt);
         this.register(Invulnerability.TYPE, Invulnerability::fromNbt);
     }};
 

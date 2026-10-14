@@ -13,15 +13,15 @@ import org.jetbrains.annotations.NotNull;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 
-public record PlayerSound(@NotNull Sound sound) implements PostProcessor {
+public record PlaySound(@NotNull Sound sound) implements PostProcessor {
     public static final SparrowKey TYPE = SparrowKey.sparrow("sound");
 
-    public PlayerSound() {
+    public PlaySound() {
         this(Sound.sound(Key.key("entity.enderman.teleport"), Sound.Source.MASTER, 1.0F, 1.0F));
     }
 
     @NotNull
-    public static PlayerSound fromNbt(@NotNull CompoundTag tag) {
+    public static PlaySound fromNbt(@NotNull CompoundTag tag) {
         Sound sound = Sound.sound()
                 .type(Key.key(tag.getString("key")))
                 .source(Sound.Source.valueOf(tag.getString("source")))
@@ -29,7 +29,7 @@ public record PlayerSound(@NotNull Sound sound) implements PostProcessor {
                 .pitch(tag.getFloat("pitch"))
                 .seed(tag.containsKey("seed") ? OptionalLong.of(tag.getLong("seed")) : OptionalLong.empty())
                 .build();
-        return new PlayerSound(sound);
+        return new PlaySound(sound);
     }
 
     @NotNull
