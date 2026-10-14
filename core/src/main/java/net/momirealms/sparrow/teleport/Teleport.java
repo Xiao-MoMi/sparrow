@@ -15,69 +15,69 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.function.Supplier;
 
-public final class TeleportBuilder {
+public final class Teleport {
     private @Nullable Supplier<CompletionStage<String>> server;
     private @Nullable TeleportPosition position;
     private @Nullable TeleportContext context;
     private final List<PositionProcessor> targetProcessors = new ArrayList<>();
     private final List<PostProcessor> postProcessors = new ArrayList<>();
 
-    private TeleportBuilder() {
+    private Teleport() {
     }
 
     @NotNull
-    public static TeleportBuilder builder() {
-        return new TeleportBuilder();
+    public static Teleport builder() {
+        return new Teleport();
     }
 
     @NotNull
-    public TeleportBuilder server(@NotNull String server) {
+    public Teleport server(@NotNull String server) {
         this.server = () -> CompletableFuture.completedFuture(server);
         return this;
     }
 
     @NotNull
-    public TeleportBuilder server(@NotNull Supplier<String> server) {
+    public Teleport server(@NotNull Supplier<String> server) {
         this.server = () -> CompletableFuture.completedFuture(server.get());
         return this;
     }
 
     @NotNull
-    public TeleportBuilder server(@NotNull CompletionStage<String> server) {
+    public Teleport server(@NotNull CompletionStage<String> server) {
         this.server = () -> server;
         return this;
     }
 
     @NotNull
-    public TeleportBuilder position(@NotNull String world, double x, double y, double z) {
+    public Teleport position(@NotNull String world, double x, double y, double z) {
         return this.position(world, x, y, z, 0.0F, 0.0F);
     }
 
     @NotNull
-    public TeleportBuilder position(@NotNull String world, double x, double y, double z, float yaw, float pitch) {
+    public Teleport position(@NotNull String world, double x, double y, double z, float yaw, float pitch) {
         return this.position(new Fixed(new WorldLocation(world, x, y, z, yaw, pitch)));
     }
 
     @NotNull
-    public TeleportBuilder position(@NotNull TeleportPosition position) {
+    public Teleport position(@NotNull TeleportPosition position) {
         this.position = position;
         return this;
     }
 
     @NotNull
-    public TeleportBuilder context(@NotNull TeleportContext context) {
+    public Teleport context(@NotNull TeleportContext context) {
         this.context = context;
         return this;
     }
 
     @NotNull
-    public TeleportBuilder targetProcessor(@NotNull PositionProcessor processor) {
+    public Teleport targetProcessor(@NotNull PositionProcessor processor) {
         this.targetProcessors.add(processor);
         return this;
     }
 
     @NotNull
-    public TeleportBuilder postProcessor(@NotNull PostProcessor processor) {
+    public Teleport postProcessor(@NotNull PostProcessor processor) {
         this.postProcessors.add(processor);
         return this;
     }
@@ -97,8 +97,7 @@ public final class TeleportBuilder {
     @NotNull
     TeleportContext createContext(@NotNull BukkitSparrowPlayer player) {
         TeleportContext current = this.context == null ? new TeleportContext() : this.context;
-        current.bindPlayer(player.uniqueId(), player.name());
-        current.put(TeleportContext.DIMENSIONS, TeleportDimensions.from(player.nmsPlayer()).toNbt());
+        current.bindPlayer(player);
         return current;
     }
 

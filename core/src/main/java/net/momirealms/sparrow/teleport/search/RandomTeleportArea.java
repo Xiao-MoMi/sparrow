@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.teleport.search;
 
+import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,6 +15,36 @@ public record RandomTeleportArea(
         @Nullable Integer minY,
         @Nullable Integer maxY
 ) {
+
+    @NotNull
+    public static RandomTeleportArea fromNbt(@NotNull CompoundTag tag) {
+        String world = tag.getString("world", null);
+        if (world == null) throw new IllegalArgumentException("RTP area requires a world");
+        RandomTeleportArea area = new RandomTeleportArea(
+                world,
+                tag.getDouble("center_x", Double.NaN),
+                tag.getDouble("center_z", Double.NaN),
+                tag.getDouble("min_radius", Double.NaN),
+                tag.getDouble("max_radius", Double.NaN),
+                tag.containsKey("min_y") ? tag.getInt("min_y") : null,
+                tag.containsKey("max_y") ? tag.getInt("max_y") : null
+        );
+        area.validate();
+        return area;
+    }
+
+    @NotNull
+    public CompoundTag toNbt() {
+        CompoundTag tag = new CompoundTag();
+        tag.putString("world", this.world);
+        tag.putDouble("center_x", this.centerX);
+        tag.putDouble("center_z", this.centerZ);
+        tag.putDouble("min_radius", this.minRadius);
+        tag.putDouble("max_radius", this.maxRadius);
+        if (this.minY != null) tag.putInt("min_y", this.minY);
+        if (this.maxY != null) tag.putInt("max_y", this.maxY);
+        return tag;
+    }
 
     public void validate() {
         if (!Double.isFinite(this.centerX) || !Double.isFinite(this.centerZ)) throw new IllegalArgumentException("RTP center must be finite");

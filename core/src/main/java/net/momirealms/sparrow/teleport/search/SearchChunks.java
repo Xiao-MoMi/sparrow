@@ -20,7 +20,7 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.TeleportDimensions;
+import net.momirealms.sparrow.teleport.TeleportContext.Dimensions;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.CraftChunk;
 import org.jetbrains.annotations.ApiStatus;
@@ -47,7 +47,7 @@ public final class SearchChunks implements CollisionGetter {
 
     // 碰撞查询覆盖检测体积及外围一格, 包含相邻方块伸出的形状
     @NotNull
-    public CompletableFuture<Boolean> prepare(@NotNull TeleportDimensions dimensions, double x, double z) {
+    public CompletableFuture<Boolean> prepare(@NotNull Dimensions dimensions, double x, double z) {
         int minX = Mth.floor(x - dimensions.width() / 2 - 1.0E-7) - 1;
         int maxX = Mth.floor(x + dimensions.width() / 2 + 1.0E-7) + 1;
         int minZ = Mth.floor(z - dimensions.depth() / 2 - 1.0E-7) - 1;

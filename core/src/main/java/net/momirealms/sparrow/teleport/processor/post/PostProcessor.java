@@ -9,7 +9,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public interface PostProcessor extends TeleportCodec {
-    TeleportCodecRegistry<PostProcessor> TYPES = new TeleportCodecRegistry<>();
+    TeleportCodecRegistry<PostProcessor> TYPES = new TeleportCodecRegistry<>() {{
+        this.register(PlayerSound.TYPE, PlayerSound::fromNbt);
+        this.register(Invulnerability.TYPE, Invulnerability::fromNbt);
+    }};
 
     @NotNull
     CompletableFuture<Void> process(@NotNull Player player, @NotNull TeleportContext context);

@@ -10,7 +10,11 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public interface PositionProcessor extends TeleportCodec {
-    TeleportCodecRegistry<PositionProcessor> TYPES = new TeleportCodecRegistry<>();
+    TeleportCodecRegistry<PositionProcessor> TYPES = new TeleportCodecRegistry<>() {{
+        this.register(FindSafeLocation.TYPE, FindSafeLocation::fromNbt);
+        this.register(GeneratedChunk.TYPE, GeneratedChunk::fromNbt);
+        this.register(WorldBlacklist.TYPE, WorldBlacklist::fromNbt);
+    }};
 
     @NotNull
     CompletableFuture<Result> process(@NotNull TeleportContext context, @NotNull WorldLocation location);

@@ -14,11 +14,12 @@ import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.TeleportDimensions;
-import net.momirealms.sparrow.teleport.processor.target.SafeLocationRule;
-import net.momirealms.sparrow.teleport.processor.TeleportProcessor;
+import net.momirealms.sparrow.teleport.TeleportContext.Dimensions;
+import net.momirealms.sparrow.teleport.TeleportContext;
+import net.momirealms.sparrow.teleport.position.RTPPos;
+import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
+import net.momirealms.sparrow.teleport.processor.target.PositionProcessorChain;
 import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -27,7 +28,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -41,15 +41,15 @@ public final class RandomTeleportSearch {
     private static final CompletableFuture<ColumnResult> SKIP = CompletableFuture.completedFuture(ColumnResult.SKIP);
     private static final CompletableFuture<ColumnResult> BLOCKED = CompletableFuture.completedFuture(ColumnResult.BLOCKED);
 
-    private final TeleportDimensions dimensions;
-    private final TeleportSearchOptions.Random options;
+    private final Dimensions dimensions;
+    private final RTPPos options;
+    private final TeleportContext context;
     private final SearchChunks chunks;
     private final CollisionGetter leaflessBlocks;
     private final boolean ceiling;
     private final int maxY;
     private final Executor executor = SparrowPlugin.instance().scheduler().async();
     private final CompletableFuture<WorldLocation> completion = new CompletableFuture<>(); // 每个实例只执行一次搜索
-    private final CandidateChecks rules;
     private final BlockPos.MutableBlockPos position = new BlockPos.MutableBlockPos();
     private final LongOpenHashSet attempted = new LongOpenHashSet();
     private RandomTeleportArea area;
@@ -61,25 +61,24 @@ public final class RandomTeleportSearch {
 
     public RandomTeleportSearch(
             @NotNull ServerLevel world,
-            @NotNull SparrowPlayer player,
-            @NotNull TeleportDimensions dimensions,
-            @NotNull TeleportSearchOptions.Random options,
-            @NotNull List<TeleportProcessor.CandidateRule> rules
+            @NotNull TeleportContext context,
+            @NotNull Dimensions dimensions,
+            @NotNull RTPPos options
     ) {
         this.dimensions = dimensions;
         this.options = options;
+        this.context = context;
         this.chunks = new SearchChunks(world, true);
         this.leaflessBlocks = new LeafIgnoringCollisionGetter(this.chunks);
         this.ceiling = world.dimensionType().hasCeiling() && !options.allowNetherRoof();
         this.maxY = TeleportSafety.getMaxY(world, options.allowNetherRoof());
-        this.rules = new CandidateChecks(new CandidateContext(player, dimensions, this.chunks, this.maxY), rules, this.completion);
     }
 
     @NotNull
-    public CompletableFuture<@Nullable WorldLocation> find(@NotNull RandomTeleportArea area) {
+    public CompletableFuture<@Nullable WorldLocation> find() {
         if (!VersionHelper.hasPaperPatch) return CompletableFuture.failedFuture(new UnsupportedOperationException("RTP requires Paper or Folia"));
         this.completion.orTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS);
-        CompletableFuture<WorldLocation> searching = CompletableFuture.completedFuture(area)
+        CompletableFuture<WorldLocation> searching = CompletableFuture.completedFuture(this.options.area())
                 .thenComposeAsync(input -> {
                     input.validate();
                     this.area = input;
@@ -217,12 +216,24 @@ public final class RandomTeleportSearch {
         column.location = new WorldLocation(this.area.world(), x, y, z, 0, 0);
         // 站立高度可能在无支撑时返回格底, 最终支撑也必须来自非树叶方块
         if (!this.hasNonLeafSupport(x, y, z)) return BLOCKED;
-        return this.rules.check(column.location)
-                .thenApply(reason -> {
-                    if (reason == null) return ColumnResult.FOUND;
-                    // 物理问题在附近补救, 业务规则拒绝则交回外层重抽
-                    return this.rules.rejectedRule() instanceof SafeLocationRule ? ColumnResult.BLOCKED : ColumnResult.REJECTED;
-                });
+        if (!TeleportSafety.isSafe(this.chunks, this.dimensions, x, y, z, this.maxY, this.position)) return BLOCKED;
+        if (this.options.processors().isEmpty()) return CompletableFuture.completedFuture(ColumnResult.FOUND);
+        CompletableFuture<PositionProcessor.Result> checked = new PositionProcessorChain(this.context, column.location, this.options.processors()).process();
+        if (!checked.isDone()) {
+            this.completion.whenComplete((found, error) -> {
+                if (error != null) checked.cancel(false);
+            });
+        }
+        return checked.thenApply(result -> {
+            if (result instanceof PositionProcessor.Result.Reject) return ColumnResult.REJECTED;
+            if (result instanceof PositionProcessor.Result.Relocate changed) {
+                WorldLocation location = changed.location();
+                if (!location.world().equals(this.area.world()) || location.y() < this.minFeetY || location.y() > this.maxFeetY
+                        || !Double.isFinite(location.y()) || !this.inside(location.x(), location.z())) return ColumnResult.REJECTED;
+                column.location = location;
+            }
+            return ColumnResult.FOUND;
+        });
     }
 
     private boolean hasNonLeafSupport(double x, double y, double z) {
@@ -250,8 +261,10 @@ public final class RandomTeleportSearch {
     }
 
     private boolean inside(int blockX, int blockZ) {
-        double x = blockX + 0.5;
-        double z = blockZ + 0.5;
+        return this.inside(blockX + 0.5, blockZ + 0.5);
+    }
+
+    private boolean inside(double x, double z) {
         if (!this.area.contains(x, z)) return false;
         WorldBorder border = this.chunks.getWorldBorder();
         double halfWidth = this.dimensions.width() / 2;

@@ -12,6 +12,8 @@ import java.util.concurrent.CompletableFuture;
 public interface TeleportPosition extends TeleportCodec {
     TeleportCodecRegistry<TeleportPosition> TYPES = new TeleportCodecRegistry<>() {{
         this.register(Fixed.TYPE, Fixed::fromNbt);
+        this.register(PlayerPos.TYPE, PlayerPos::fromNbt);
+        this.register(RTPPos.TYPE, RTPPos::fromNbt);
     }};
 
     @NotNull

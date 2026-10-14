@@ -152,6 +152,8 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_EDIT_WARP_DESCRIPTION = Component.translatable("command.edit-warp.description");
     TranslatableComponent COMMAND_EDIT_WARP_DESCRIPTION_TOO_LONG = Component.translatable("command.edit-warp.description-too-long");
     TranslatableComponent TELEPORT_REJECTED_WORLD = Component.translatable("teleport.rejected.world");
+    TranslatableComponent TELEPORT_REJECTED_INVALID = Component.translatable("teleport.rejected.invalid");
+    TranslatableComponent TELEPORT_REJECTED_PLAYER = Component.translatable("teleport.rejected.player");
     TranslatableComponent TELEPORT_REJECTED_UNSAFE = Component.translatable("teleport.rejected.unsafe");
     TranslatableComponent TELEPORT_REJECTED_UNGENERATED = Component.translatable("teleport.rejected.ungenerated");
     TranslatableComponent TELEPORT_REJECTED_RTP_UNSUPPORTED = Component.translatable("teleport.rejected.rtp-unsupported");

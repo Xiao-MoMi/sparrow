@@ -18,7 +18,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.momirealms.sparrow.teleport.TeleportDimensions;
+import net.momirealms.sparrow.teleport.TeleportContext.Dimensions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,7 +30,7 @@ public final class TeleportSafety {
     }
 
     // 调用方需预先加载检测体积及相邻一格覆盖的区块, 碰撞形状可能延伸到所属方块之外
-    public static boolean isSafe(@NotNull ServerLevel world, @NotNull TeleportDimensions dimensions, double x, double y, double z, boolean allowNetherRoof) {
+    public static boolean isSafe(@NotNull ServerLevel world, @NotNull Dimensions dimensions, double x, double y, double z, boolean allowNetherRoof) {
         return isSafe(world, dimensions, x, y, z, getMaxY(world, allowNetherRoof));
     }
 
@@ -42,14 +42,14 @@ public final class TeleportSafety {
         return maxY;
     }
 
-    public static boolean isSafe(@NotNull CollisionGetter world, @NotNull TeleportDimensions dimensions, double x, double y, double z, int maxY) {
+    public static boolean isSafe(@NotNull CollisionGetter world, @NotNull Dimensions dimensions, double x, double y, double z, int maxY) {
         return isSafe(world, dimensions, x, y, z, maxY, new BlockPos.MutableBlockPos());
     }
 
     @ApiStatus.Internal
     public static boolean isSafe(
             @NotNull CollisionGetter world,
-            @NotNull TeleportDimensions dimensions,
+            @NotNull Dimensions dimensions,
             double x,
             double y,
             double z,
@@ -67,7 +67,7 @@ public final class TeleportSafety {
     }
 
     // 从候选格顶面向下探测一格, 返回检测体积脚下最高支撑面的 Y, 无支撑时返回候选格底面
-    public static double getStandingY(@NotNull CollisionGetter world, @NotNull TeleportDimensions dimensions, double x, int y, double z) {
+    public static double getStandingY(@NotNull CollisionGetter world, @NotNull Dimensions dimensions, double x, int y, double z) {
         double halfWidth = dimensions.width() / 2;
         double halfDepth = dimensions.depth() / 2;
         double top = y + 1.0 - COLLISION_EPSILON;
