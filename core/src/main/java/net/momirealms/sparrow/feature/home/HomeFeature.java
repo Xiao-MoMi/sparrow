@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -30,7 +32,7 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
     private final SparrowPlugin plugin;
     private volatile HomeService service;
     private final List<PlaceholderExpansion> placeholders = new ArrayList<>(3);
-    private final Cache<String, CompletableFuture<HomeSnapshot>> suggestions = Caffeine.newBuilder()
+    private final Cache<String, CompletableFuture<Optional<UUID>>> suggestions = Caffeine.newBuilder()
             .maximumSize(128)
             .expireAfterWrite(Duration.ofSeconds(5))
             .build();
@@ -68,11 +70,11 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         HomeService service = new HomeService();
         this.service = service;
         for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
-            this.plugin.scheduler().platform().run(() -> {
-                        if (this.service == service) {
-                            this.onJoin(player);
-                        }
-                    }, () -> {}, player.platformPlayer());
+            service.snapshot(player.uniqueId()).whenComplete((snapshot, error) -> {
+                if (error != null) {
+                    this.plugin.logger().warn("Failed to load homes for owner " + player.uniqueId(), error);
+                }
+            });
         }
         if (this.plugin.compatibilityManager().hasPlaceholderAPI()) {
             PlaceholderExpansion[] placeholders = {new HomesCountPlaceholder(), new MaxHomesPlaceholder(), new HomesListPlaceholder()};
@@ -126,13 +128,15 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         if (!sender.hasPermission(permission + ".other")) {
             return CompletableFuture.completedFuture(List.of());
         }
-        // 他人补全短暂保留查询结果, 让同步补全在下次按 Tab 时能取得异步结果.
-        CompletableFuture<HomeSnapshot> loading = this.suggestions.get(owner, name ->
-                this.plugin.playerLookup().resolvePlayer(name).thenCompose(found ->
-                                found.isPresent()
-                                ? service.snapshot(found.get().uniqueId())
-                                : CompletableFuture.completedFuture(new HomeSnapshot(List.of()))
-                        ));
+        // 只复用名称解析结果, Home 快照每次通过数据入口读取并参与失效.
+        CompletableFuture<Optional<UUID>> resolved = this.suggestions.get(
+                owner,
+                name -> this.plugin.playerLookup().resolvePlayer(name).thenApply(found -> found.map(player -> player.uniqueId()))
+        );
+        CompletableFuture<HomeSnapshot> loading = resolved.thenCompose(found -> {
+            if (found.isEmpty()) return CompletableFuture.completedFuture(new HomeSnapshot(List.of()));
+            return service.snapshot(found.get());
+        });
         CompletableFuture<List<Suggestion>> result = loading.thenApply(snapshot -> snapshot.complete(prefix, super.config.suggestionLimit())
                 .stream()
                 .map(name -> Suggestion.suggestion(owner + "." + name))
@@ -145,29 +149,6 @@ public final class HomeFeature extends Feature<HomeSettings> implements PlayerLi
         HomeService service = this.service;
         if (service != null) {
             service.preload(event.getUniqueId());
-        }
-    }
-
-    @Override
-    public void onJoin(@NotNull BukkitSparrowPlayer player) {
-        HomeService service = this.service;
-        if (service != null && this.plugin.playerManager().getPlayer(player.uniqueId()) == player) {
-            service.join(player);
-        }
-    }
-
-    @Override
-    public void onQuit(@NotNull BukkitSparrowPlayer player) {
-        HomeService service = this.service;
-        if (service != null) {
-            service.quit(player);
-        }
-    }
-
-    void accept(@NotNull HomeChangedMessage message) {
-        HomeService service = this.service;
-        if (service != null) {
-            service.accept(message);
         }
     }
 

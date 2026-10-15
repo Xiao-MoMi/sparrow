@@ -3,9 +3,8 @@ package net.momirealms.sparrow.feature.home;
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.HomeStore;
-import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.data.HomeDataAccess;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.util.UUIDUtils;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
@@ -20,43 +19,31 @@ import java.util.function.UnaryOperator;
 
 public final class HomeService implements AutoCloseable {
     private final HomeStore store;
-    private final String serverId;
-    private final HomeCache cache = new HomeCache();
+    private final HomeDataAccess data = new HomeDataAccess();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, CompletableFuture<Void>> writes = new ConcurrentChainedObject2ObjectHashTable<>();
     private volatile boolean closed;
 
     public HomeService() {
         SparrowPlugin plugin = SparrowPlugin.instance();
         this.store = plugin.dataStorage().homeStore();
-        this.serverId = ServerConfig.serverId();
     }
 
     void preload(@NotNull UUID owner) {
-        this.cache.preload(owner).join();
+        this.data.read(owner).join();
     }
 
-    public void join(@NotNull BukkitSparrowPlayer player) {
-        this.cache.join(player);
-    }
-
-    public void quit(@NotNull BukkitSparrowPlayer player) {
-        this.cache.quit(player);
-    }
-
-    // 在线玩家复用完整快照; 离线查询只返回本次结果, 不留下常驻缓存.
     @NotNull
     public CompletableFuture<HomeSnapshot> snapshot(@NotNull UUID owner) {
         if (this.closed) {
             return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
         }
-        CompletableFuture<HomeSnapshot> snapshot = this.cache.read(owner);
-        return snapshot == null ? this.store.loadByOwner(owner).thenApply(HomeSnapshot::new) : snapshot;
+        return this.data.read(owner);
     }
 
-    // 同步展示复用最近的快照, 数据有变更时按需刷新; 首次加载完成前返回 null.
+    // 同步展示复用最近成功的快照, 在线刷新完成前继续返回旧值.
     @Nullable
     public HomeSnapshot cachedSnapshot(@NotNull UUID owner) {
-        return this.cache.cachedSnapshot(owner);
+        return this.data.readCacheOrNull(owner);
     }
 
     @NotNull
@@ -64,13 +51,13 @@ public final class HomeService implements AutoCloseable {
         if (this.closed) {
             return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
         }
-        return this.store.findByName(owner, name);
+        return this.data.read(owner).thenApply(snapshot -> Optional.ofNullable(snapshot.get(name)));
     }
 
     // 刷新期间沿用旧快照, 下次补全即可取得新结果.
     @NotNull
     public List<String> complete(@NotNull UUID owner, @NotNull String input, int limit) {
-        HomeSnapshot snapshot = this.cache.cachedSnapshot(owner);
+        HomeSnapshot snapshot = this.data.readCacheOrNull(owner);
         return snapshot == null ? List.of() : snapshot.complete(input, limit);
     }
 
@@ -184,7 +171,7 @@ public final class HomeService implements AutoCloseable {
         if (this.closed) {
             return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
         }
-        return this.store.create(home).thenApply(this::saved);
+        return this.data.create(home);
     }
 
     @NotNull
@@ -192,14 +179,7 @@ public final class HomeService implements AutoCloseable {
         if (this.closed) {
             return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
         }
-        return this.store.update(home).thenApply(this::saved);
-    }
-
-    private HomeStore.SaveResult saved(HomeStore.SaveResult result) {
-        if (result.status() == HomeStore.Status.SUCCESS) {
-            this.committed(HomeChangedMessage.invalidateOwner(this.serverId, result.home().owner()));
-        }
-        return result;
+        return this.data.update(home);
     }
 
     @NotNull
@@ -207,40 +187,13 @@ public final class HomeService implements AutoCloseable {
         if (this.closed) {
             return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
         }
-        return this.store.delete(owner, id).thenApply(deleted -> {
-            if (deleted) {
-                this.committed(HomeChangedMessage.invalidateOwner(this.serverId, owner));
-            }
-            return deleted;
-        });
+        return this.data.delete(owner, id);
     }
 
     @NotNull
     public CompletableFuture<Long> deleteAll(@NotNull HomeStore.Filter filter) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.store.deleteAll(filter).thenApply(deleted -> {
-            this.committed(
-                    filter.owner() == null ? HomeChangedMessage.invalidateAll(this.serverId) : HomeChangedMessage.invalidateOwner(
-                            this.serverId,
-                            filter.owner()
-                    )
-            );
-            return deleted;
-        });
-    }
-
-    private void committed(HomeChangedMessage message) {
-        this.cache.invalidate(message.owner());
-        SparrowPlugin.instance().messageBrokerManager().publishOneWay(message, "");
-    }
-
-    public void accept(@NotNull HomeChangedMessage message) {
-        if (this.serverId.equals(message.origin())) {
-            return;
-        }
-        this.cache.invalidate(message.owner());
+        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
+        return this.data.deleteAll(filter);
     }
 
     @Override
@@ -248,7 +201,7 @@ public final class HomeService implements AutoCloseable {
         synchronized (this) {
             this.closed = true;
         }
-        this.cache.close();
+        this.data.close();
     }
 
     public enum Status {

@@ -3,7 +3,6 @@ package net.momirealms.sparrow.redis;
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.data.message.DataCacheInvalidationMessage;
 import net.momirealms.sparrow.feature.ban.BanMessage;
-import net.momirealms.sparrow.feature.home.HomeChangedMessage;
 import net.momirealms.sparrow.feature.mute.MuteMessage;
 import net.momirealms.sparrow.feature.spawn.SpawnMessage;
 import net.momirealms.sparrow.feature.tpa.TpaMessage;
@@ -51,7 +50,6 @@ public final class MessageBrokerManager {
         this.broker.registry().register(MuteMessage.ID, MuteMessage.CODEC);
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
         this.broker.registry().register(SpawnMessage.ID, SpawnMessage.CODEC);
-        this.broker.registry().register(HomeChangedMessage.ID, HomeChangedMessage.CODEC);
         this.broker.registry().register(TpaMessage.ID, TpaMessage.CODEC);
         this.broker.registry().register(TeleportPrepareRequest.ID, TeleportPrepareRequest.CODEC);
         this.broker.registry().register(TeleportPrepareResponse.ID, TeleportPrepareResponse.CODEC);
