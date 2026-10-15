@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.redis;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.data.message.DataCacheInvalidationMessage;
 import net.momirealms.sparrow.feature.ban.BanMessage;
 import net.momirealms.sparrow.feature.home.HomeChangedMessage;
 import net.momirealms.sparrow.feature.mute.MuteMessage;
@@ -57,6 +58,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(TeleportExecuteRequest.ID, TeleportExecuteRequest.CODEC);
         this.broker.registry().register(TeleportExecuteResponse.ID, TeleportExecuteResponse.CODEC);
         this.broker.registry().register(TeleportCancelMessage.ID, TeleportCancelMessage.CODEC);
+        this.broker.registry().register(DataCacheInvalidationMessage.ID, DataCacheInvalidationMessage.CODEC);
         // Redis Pub/Sub Proxy 代理频道.
         this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":proxy").getBytes(StandardCharsets.UTF_8))

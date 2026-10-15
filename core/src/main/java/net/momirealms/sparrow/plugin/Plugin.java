@@ -4,6 +4,7 @@ import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.data.DataAccess;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.player.PlayerLookup;
 import net.momirealms.sparrow.cluster.PlayerDirectory;
@@ -18,6 +19,7 @@ import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.redis.MessageBrokerManager;
 import net.momirealms.sparrow.redis.heartbeat.ServerHeartbeat;
 import net.momirealms.sparrow.cluster.ServerDirectory;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.InputStream;
@@ -61,6 +63,9 @@ public interface Plugin {
     DependencyManager dependencyManager();
 
     DataStorage dataStorage();
+
+    @NotNull
+    DataAccess dataAccess();
 
     RedisConnector redisConnector();
 

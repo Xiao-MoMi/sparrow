@@ -61,6 +61,7 @@ public final class BukkitSparrowPlayer extends OfflineSparrowPlayer {
     private final PlayerConnection connection;
     private final Player platformPlayer;
     private final ServerPlayer nmsPlayer;
+    private volatile boolean quitting; // 退出回调开始前发布, 供跨线程读取会话状态
 
     BukkitSparrowPlayer(@NotNull PlayerConnection connection, @NotNull Player platformPlayer) {
         super(connection.uniqueId(), connection.name());
@@ -87,6 +88,14 @@ public final class BukkitSparrowPlayer extends OfflineSparrowPlayer {
     @NotNull
     public PlayerConnection connection() {
         return this.connection;
+    }
+
+    void markQuitting() {
+        this.quitting = true;
+    }
+
+    public boolean quitting() {
+        return this.quitting;
     }
 
     @NotNull

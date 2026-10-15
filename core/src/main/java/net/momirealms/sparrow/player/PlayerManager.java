@@ -114,6 +114,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         Player player = event.getPlayer();
         BukkitSparrowPlayer leaving = this.getPlayer(player);
         if (leaving != null) {
+            leaving.markQuitting();
             for (PlayerListener listener : this.listeners) {
                 listener.onQuit(leaving);
             }

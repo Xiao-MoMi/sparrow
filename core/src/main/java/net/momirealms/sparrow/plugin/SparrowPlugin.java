@@ -11,6 +11,7 @@ import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.data.DataAccess;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
@@ -69,6 +70,7 @@ public class SparrowPlugin implements Plugin {
     private final DependencyManager dependencyManager;
     private final ConfigurationManager configurationManager;
     private final DataStorage dataStorage;
+    private final DataAccess dataAccess;
     private final RedisConnector redisConnector;
     private final MessageBrokerManager messageBrokerManager;
     private final ServerHeartbeat serverHeartbeat;
@@ -104,6 +106,7 @@ public class SparrowPlugin implements Plugin {
         this.applyDependencies();
         this.setupProxy();
         this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async(), this.logger);
+        this.dataAccess = new DataAccess();
         this.redisConnector = new RedisConnector(PluginConfig.redis(), this.logger);
         this.messageBrokerManager = new MessageBrokerManager(this);
         this.serverHeartbeat = new ServerHeartbeat();
@@ -153,6 +156,7 @@ public class SparrowPlugin implements Plugin {
             this.compatibilityManager.onLoad(); // 集成插件管理器
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
+            this.dataAccess.close();
             this.serverHeartbeat.shutdown();
             this.serverDirectory.shutdown();
             this.messageBrokerManager.onDisable();
@@ -190,6 +194,7 @@ public class SparrowPlugin implements Plugin {
             return;
         }
         this.playerManager.onEnable();
+        this.dataAccess.onEnable();
         this.playerDirectory.onEnable();
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
@@ -223,6 +228,7 @@ public class SparrowPlugin implements Plugin {
         if (this.featureManager != null) this.featureManager.onDisable();
         if (this.playerDirectory != null) this.playerDirectory.shutdown();
         if (this.playerManager != null) this.playerManager.shutdown();
+        if (this.dataAccess != null) this.dataAccess.close();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
         if (this.messageBrokerManager != null) this.messageBrokerManager.onDisable();
@@ -549,6 +555,12 @@ public class SparrowPlugin implements Plugin {
     @Override
     public DataStorage dataStorage() {
         return this.dataStorage;
+    }
+
+    @NotNull
+    @Override
+    public DataAccess dataAccess() {
+        return this.dataAccess;
     }
 
     @Override
