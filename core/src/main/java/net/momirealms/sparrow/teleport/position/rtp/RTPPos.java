@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.position;
+package net.momirealms.sparrow.teleport.position.rtp;
 
 import net.momirealms.sparrow.feature.rtp.RtpFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
@@ -6,12 +6,11 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.TeleportContext;
+import net.momirealms.sparrow.teleport.position.TeleportPosition;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
-import net.momirealms.sparrow.teleport.search.RandomTeleportArea;
-import net.momirealms.sparrow.teleport.search.RandomTeleportSearch;
+import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
-import net.momirealms.sparrow.util.SparrowKey;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;

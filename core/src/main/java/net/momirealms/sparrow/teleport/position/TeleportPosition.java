@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.teleport.TeleportContext;
 import net.momirealms.sparrow.teleport.codec.TeleportCodec;
 import net.momirealms.sparrow.teleport.codec.TeleportCodecRegistry;
+import net.momirealms.sparrow.teleport.position.rtp.RTPPos;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 

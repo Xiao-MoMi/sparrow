@@ -8,9 +8,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-/**
- * 由本服会话、代理目录或持久化记录确认过的玩家.
- */
 public interface SparrowPlayer {
 
     @NotNull

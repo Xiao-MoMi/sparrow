@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.util;
+package net.momirealms.sparrow.teleport.search;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,6 +18,7 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.momirealms.sparrow.util.Dimensions;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,11 +59,14 @@ public final class TeleportSafety {
         double halfWidth = dimensions.width() / 2;
         double halfDepth = dimensions.depth() / 2;
         AABB bounds = new AABB(x - halfWidth, y, z - halfDepth, x + halfWidth, y + dimensions.height(), z + halfDepth);
-        if (!isSafe(world, bounds, maxY, position)) return false;
-        double eyeY = y + dimensions.eyeHeight();
-        position.set(Mth.floor(x), Mth.floor(eyeY), Mth.floor(z));
-        FluidState fluid = world.getFluidState(position);
-        return !fluid.is(FluidTags.WATER) || eyeY > position.getY() + fluid.getHeight(world, position);
+        if (!isWithinBounds(world, bounds, maxY)) return false;
+        // 身体与支撑面共用原版容差, 接触检查复用同一组检测体积
+        AABB body = getBodyBounds(bounds);
+        if (hasBodyCollision(world, body, position)) return false;
+        AABB support = getSupportBounds(bounds, body);
+        if (!hasSupport(world, support)) return false;
+        if (hasHazards(world, body, support, position)) return false;
+        return !isEyeInWater(world, x, y + dimensions.eyeHeight(), z, position);
     }
 
     // 从候选格顶面向下探测一格, 返回检测体积脚下最高支撑面的 Y, 无支撑时返回候选格底面
@@ -85,23 +89,51 @@ public final class TeleportSafety {
         return Math.max(y, top + movement);
     }
 
-    private static boolean isSafe(CollisionGetter world, AABB bounds, int maxY, BlockPos.MutableBlockPos position) {
+    @ApiStatus.Internal
+    public static boolean isWithinBounds(@NotNull CollisionGetter world, @NotNull AABB bounds, int maxY) {
         if (bounds.minY < world.getMinY() || bounds.maxY > maxY) return false;
         WorldBorder border = world.getWorldBorder();
         if (bounds.minX < border.getMinX() || bounds.maxX > border.getMaxX() || bounds.minZ < border.getMinZ() || bounds.maxZ > border.getMaxZ()) return false;
-        // 使用原版容差处理贴合的地板和天花板, 身体必须完全处于方块碰撞形状之外
-        AABB body = bounds.deflate(COLLISION_EPSILON);
-        position.set(Mth.floor((body.minX + body.maxX) / 2), Mth.floor((body.minY + body.maxY) / 2), Mth.floor((body.minZ + body.maxZ) / 2));
-        if (world.getBlockState(position).isCollisionShapeFullBlock(world, position)
-                && body.intersects(position.getX(), position.getY(), position.getZ(), position.getX() + 1.0, position.getY() + 1.0, position.getZ() + 1.0)) return false;
-        if (world.getBlockCollisions(null, body).iterator().hasNext()) return false;
-        // 脚底向下探测一个薄层, 半砖, 楼梯和栅栏都按实际碰撞面提供支撑
-        AABB support = new AABB(body.minX, bounds.minY - SUPPORT_DEPTH, body.minZ, body.maxX, bounds.minY, body.maxZ);
-        if (!world.getBlockCollisions(null, support).iterator().hasNext()) return false;
-        return !hasHazards(world, body, support, position);
+        return true;
     }
 
-    private static boolean hasHazards(CollisionGetter world, AABB body, AABB support, BlockPos.MutableBlockPos position) {
+    @NotNull
+    @ApiStatus.Internal
+    public static AABB getBodyBounds(@NotNull AABB bounds) {
+        return bounds.deflate(COLLISION_EPSILON);
+    }
+
+    // body 由 getBodyBounds 生成, 包含贴合地板和天花板所需的容差
+    @ApiStatus.Internal
+    public static boolean hasBodyCollision(@NotNull CollisionGetter world, @NotNull AABB body, @NotNull BlockPos.MutableBlockPos position) {
+        position.set(Mth.floor((body.minX + body.maxX) / 2), Mth.floor((body.minY + body.maxY) / 2), Mth.floor((body.minZ + body.maxZ) / 2));
+        if (world.getBlockState(position).isCollisionShapeFullBlock(world, position)
+                && body.intersects(position.getX(), position.getY(), position.getZ(), position.getX() + 1.0, position.getY() + 1.0, position.getZ() + 1.0)) return true;
+        return world.getBlockCollisions(null, body).iterator().hasNext();
+    }
+
+    // bounds 保留原始脚底高度, body 提供经过容差收缩的水平范围
+    @NotNull
+    @ApiStatus.Internal
+    public static AABB getSupportBounds(@NotNull AABB bounds, @NotNull AABB body) {
+        return new AABB(body.minX, bounds.minY - SUPPORT_DEPTH, body.minZ, body.maxX, bounds.minY, body.maxZ);
+    }
+
+    @ApiStatus.Internal
+    public static boolean hasSupport(@NotNull CollisionGetter world, @NotNull AABB support) {
+        return world.getBlockCollisions(null, support).iterator().hasNext();
+    }
+
+    @ApiStatus.Internal
+    public static boolean isEyeInWater(@NotNull CollisionGetter world, double x, double eyeY, double z, @NotNull BlockPos.MutableBlockPos position) {
+        position.set(Mth.floor(x), Mth.floor(eyeY), Mth.floor(z));
+        FluidState fluid = world.getFluidState(position);
+        return fluid.is(FluidTags.WATER) && eyeY <= position.getY() + fluid.getHeight(world, position);
+    }
+
+    // 危险方块和流体共用一次方块遍历, 每次读取的状态供两项检查复用
+    @ApiStatus.Internal
+    public static boolean hasHazards(@NotNull CollisionGetter world, @NotNull AABB body, @NotNull AABB support, @NotNull BlockPos.MutableBlockPos position) {
         int minX = Mth.floor(body.minX);
         int maxX = Mth.floor(body.maxX);
         int minY = Mth.floor(support.minY);
@@ -113,17 +145,38 @@ public final class TeleportSafety {
                 for (int y = minY; y <= maxY; y++) {
                     position.set(x, y, z);
                     BlockState state = world.getBlockState(position);
-                    if (isHazardous(state)) {
-                        if (body.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0)) return true;
-                        if (Shapes.joinIsNotEmpty(state.getCollisionShape(world, position).move(position), Shapes.create(support), BooleanOp.AND)) return true;
-                    }
-                    FluidState fluid = state.getFluidState();
-                    // 水允许接触身体, 其他流体按实际液面检查交叠
-                    if (!fluid.isEmpty() && !fluid.is(FluidTags.WATER) && body.intersects(x, y, z, x + 1.0, y + fluid.getHeight(world, position), z + 1.0)) return true;
+                    if (touchesHazardousBlock(world, state, body, support, position)) return true;
+                    if (touchesUnsafeFluid(world, state.getFluidState(), body, position)) return true;
                 }
             }
         }
         return false;
+    }
+
+    @ApiStatus.Internal
+    public static boolean touchesHazardousBlock(
+            @NotNull CollisionGetter world,
+            @NotNull BlockState state,
+            @NotNull AABB body,
+            @NotNull AABB support,
+            @NotNull BlockPos position
+    ) {
+        if (!isHazardous(state)) return false;
+        int x = position.getX();
+        int y = position.getY();
+        int z = position.getZ();
+        if (body.intersects(x, y, z, x + 1.0, y + 1.0, z + 1.0)) return true;
+        return Shapes.joinIsNotEmpty(state.getCollisionShape(world, position).move(position), Shapes.create(support), BooleanOp.AND);
+    }
+
+    // 水允许接触身体, 其他流体按实际液面检查交叠
+    @ApiStatus.Internal
+    public static boolean touchesUnsafeFluid(@NotNull CollisionGetter world, @NotNull FluidState fluid, @NotNull AABB body, @NotNull BlockPos position) {
+        if (fluid.isEmpty() || fluid.is(FluidTags.WATER)) return false;
+        int x = position.getX();
+        int y = position.getY();
+        int z = position.getZ();
+        return body.intersects(x, y, z, x + 1.0, y + fluid.getHeight(world, position), z + 1.0);
     }
 
     private static boolean isHazardous(BlockState state) {

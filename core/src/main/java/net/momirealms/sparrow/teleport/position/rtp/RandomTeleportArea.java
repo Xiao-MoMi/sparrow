@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.search;
+package net.momirealms.sparrow.teleport.position.rtp;
 
 import net.momirealms.sparrow.nbt.CompoundTag;
 import org.jetbrains.annotations.NotNull;

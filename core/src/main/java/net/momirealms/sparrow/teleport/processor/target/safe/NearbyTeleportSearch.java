@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.teleport.search;
+package net.momirealms.sparrow.teleport.processor.target.safe;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
@@ -6,8 +6,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.border.WorldBorder;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.teleport.search.SearchChunks;
+import net.momirealms.sparrow.teleport.search.TeleportSafety;
 import net.momirealms.sparrow.util.Dimensions;
-import net.momirealms.sparrow.util.TeleportSafety;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;

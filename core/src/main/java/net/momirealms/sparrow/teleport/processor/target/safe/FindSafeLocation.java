@@ -1,9 +1,9 @@
-package net.momirealms.sparrow.teleport.processor.target;
+package net.momirealms.sparrow.teleport.processor.target.safe;
 
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.teleport.TeleportContext;
-import net.momirealms.sparrow.teleport.search.NearbyTeleportSearch;
+import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
 import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;

@@ -1,13 +1,16 @@
-package net.momirealms.sparrow.teleport.search;
+package net.momirealms.sparrow.teleport.position.rtp;
 
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -15,12 +18,12 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.util.Dimensions;
 import net.momirealms.sparrow.teleport.TeleportContext;
-import net.momirealms.sparrow.teleport.position.RTPPos;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessorChain;
-import net.momirealms.sparrow.util.TeleportSafety;
+import net.momirealms.sparrow.teleport.search.SearchChunks;
+import net.momirealms.sparrow.teleport.search.TeleportSafety;
+import net.momirealms.sparrow.util.Dimensions;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.ApiStatus;
@@ -28,6 +31,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -334,5 +338,66 @@ public final class RandomTeleportSearch {
     }
 
     private record Offset(int x, int z) {
+    }
+
+    private record LeafIgnoringCollisionGetter(@NotNull CollisionGetter delegate) implements CollisionGetter {
+
+        @Nullable
+        @Override
+        public BlockGetter getChunkForCollisions(int x, int z) {
+            // 原版碰撞迭代器会从区块读取方块, 这里也必须经过树叶转换
+            return this.delegate.getChunkForCollisions(x, z) == null ? null : this;
+        }
+
+        @Override
+        public BlockState getBlockState(BlockPos position) {
+            BlockState state = this.delegate.getBlockState(position);
+            return state.getBlock() instanceof LeavesBlock ? state.getFluidState().createLegacyBlock() : state;
+        }
+
+        @Nullable
+        @Override
+        public BlockState getBlockStateIfLoaded(BlockPos position) {
+            BlockState state = this.delegate.getBlockStateIfLoaded(position);
+            return state != null && state.getBlock() instanceof LeavesBlock ? state.getFluidState().createLegacyBlock() : state;
+        }
+
+        @Override
+        public FluidState getFluidState(BlockPos position) {
+            return this.delegate.getFluidState(position);
+        }
+
+        @Nullable
+        @Override
+        public FluidState getFluidIfLoaded(BlockPos position) {
+            return this.delegate.getFluidIfLoaded(position);
+        }
+
+        @Nullable
+        @Override
+        public BlockEntity getBlockEntity(BlockPos position) {
+            return this.delegate.getBlockEntity(position);
+        }
+
+        @Override
+        public WorldBorder getWorldBorder() {
+            return this.delegate.getWorldBorder();
+        }
+
+        @Override
+        public int getMinY() {
+            return this.delegate.getMinY();
+        }
+
+        @Override
+        public int getHeight() {
+            return this.delegate.getHeight();
+        }
+
+        @NotNull
+        @Override
+        public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, AABB bounds) {
+            return this.delegate.getEntityCollisions(entity, bounds);
+        }
     }
 }

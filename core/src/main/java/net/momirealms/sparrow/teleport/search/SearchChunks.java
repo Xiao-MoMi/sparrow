@@ -56,7 +56,8 @@ public final class SearchChunks implements CollisionGetter {
     }
 
     // 准备方块坐标闭区间覆盖的区块, 正常完成值表示全部区块是否可用, 加载异常沿 Future 返回
-    CompletableFuture<Boolean> prepare(int minBlockX, int minBlockZ, int maxBlockX, int maxBlockZ) {
+    @NotNull
+    public CompletableFuture<Boolean> prepare(int minBlockX, int minBlockZ, int maxBlockX, int maxBlockZ) {
         int minX = minBlockX >> 4;
         int maxX = maxBlockX >> 4;
         int minZ = minBlockZ >> 4;
@@ -137,7 +138,7 @@ public final class SearchChunks implements CollisionGetter {
     }
 
     // 查询范围须已成功 prepare, 高度裁剪到世界范围后检查闭区间内是否全为空气
-    boolean isAir(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    public boolean isAir(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         minY = Math.max(minY, this.getMinY());
         maxY = Math.min(maxY, this.getMinY() + this.getHeight() - 1);
         int firstSection = this.getMinY() >> 4;
