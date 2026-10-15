@@ -57,6 +57,6 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
     @NotNull
     @Override
     public CompletableFuture<Optional<PlayerData>> loadData() {
-        return SparrowPlugin.instance().dataStorage().loadPlayer(this.uniqueId);
+        return SparrowPlugin.instance().dataAccess().players().read(this.uniqueId);
     }
 }

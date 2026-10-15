@@ -76,7 +76,7 @@ public final class BanCommand extends BukkitCommandFeature {
                                 .thenAccept(result -> this.sendResult(context, result));
                     }
                     // 在线玩家进服时已经写入当前 IP, 数据库中的记录就是最近一次登录的 IP
-                    return this.plugin().dataStorage().loadPlayer(target.uuid())
+                    return this.plugin().dataAccess().players().read(target.uuid())
                             .thenCompose(data -> {
                                 String ip = data.map(PlayerData::lastLoginIp).orElse(null);
                                 if (ip == null) {

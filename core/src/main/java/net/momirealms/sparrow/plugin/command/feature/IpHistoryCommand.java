@@ -59,7 +59,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
             // 输入是 UUID 时直接读取数据, 否则先按名字解析出 UUID
             UUID uuid = UUIDUtils.parse(input);
             CompletableFuture<Optional<PlayerData>> loading = uuid != null
-                    ? this.plugin().dataStorage().loadPlayer(uuid)
+                    ? this.plugin().dataAccess().players().read(uuid)
                     : this.plugin().playerLookup().resolvePlayer(input)
                             .thenCompose(found -> found.isEmpty()
                             ? CompletableFuture.completedFuture(Optional.empty())

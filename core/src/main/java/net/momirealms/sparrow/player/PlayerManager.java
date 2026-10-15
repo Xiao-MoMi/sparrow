@@ -8,6 +8,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import net.momirealms.sparrow.locale.LogConstants;
+import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.listener.PaperLoginListener;
 import net.momirealms.sparrow.player.listener.SpigotLoginListener;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -16,6 +17,7 @@ import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
+import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -30,7 +32,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -70,11 +71,25 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         }
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
         for (PlayerListener listener : this.listeners) {
             if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
             listener.onPreLogin(event);
+        }
+        if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+        // 现有回调全部放行后完成登录写入与预加载, 等待发生在异步登录线程.
+        try {
+            this.plugin.dataAccess().players()
+                    .prepareLogin(event.getUniqueId(), event.getName(), IpRange.address(event.getAddress()), System.currentTimeMillis())
+                    .join();
+        } catch (RuntimeException exception) {
+            event.disallow(
+                    AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                    AdventureHelper.componentToLegacy(this.plugin.translationManager().render(MessageConstants.COMMAND_DATABASE_FAILED, null))
+            );
+            this.plugin.logger().warn("Failed to prepare player data for " + event.getName(), exception);
         }
     }
 
@@ -90,16 +105,6 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
             this.offlinePlayers.invalidate(connection.uniqueId());
             return connection;
         });
-        // 登录刷新名字、时间和 IP, 下线位置由 Quit 事件保存.
-        String name = player.getName();
-        InetSocketAddress address = player.getAddress();
-        long ip = address == null ? IpRange.NONE : IpRange.address(address.getAddress());
-        this.plugin.dataStorage().saveLogin(player.getUniqueId(), name, ip, System.currentTimeMillis())
-                .whenComplete((ignored, failure) -> {
-                    if (failure != null) {
-                        this.plugin.logger().warn(LogConstants.PLAYER_SAVE_FAILED, failure, name);
-                    }
-                });
         // 本插件的进服处理全部完成后再通知
         BukkitSparrowPlayer joined = this.getPlayer(player);
         if (joined != null) {
@@ -120,7 +125,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
             }
         }
         String name = player.getName();
-        this.plugin.dataStorage()
+        this.plugin.dataAccess().players()
                 .saveLogout(
                         player.getUniqueId(),
                         name,

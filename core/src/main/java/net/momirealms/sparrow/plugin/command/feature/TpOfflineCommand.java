@@ -60,7 +60,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
         }
         String name = context.get("player");
         this.plugin().dataStorage().lookupUser(name)
-                .thenCompose(found -> found.map(this.plugin().dataStorage()::loadPlayer).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())))
+                .thenCompose(found -> found.map(this.plugin().dataAccess().players()::read).orElseGet(() -> CompletableFuture.completedFuture(Optional.empty())))
                 .thenCompose(found -> {
                     if (found.isEmpty()) {
                         this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_UNKNOWN, Component.text(name));

@@ -22,11 +22,13 @@ import java.util.function.Function;
 public final class DataAccess implements PlayerListener, AutoCloseable {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Map<SparrowKey, CachedData<?, ?>> caches = new HashMap<>();
+    private PlayerDataAccess players;
     private boolean listening;
     private boolean closed;
 
-    // 接入玩家生命周期
+    // 准备玩家档案入口并接入玩家生命周期.
     public synchronized void onEnable() {
+        this.players = new PlayerDataAccess();
         this.plugin.playerManager().registerListener(this);
         this.listening = true;
     }
@@ -101,5 +103,10 @@ public final class DataAccess implements PlayerListener, AutoCloseable {
             cache.close();
         }
         this.caches.clear();
+    }
+
+    @NotNull
+    public PlayerDataAccess players() {
+        return this.players;
     }
 }

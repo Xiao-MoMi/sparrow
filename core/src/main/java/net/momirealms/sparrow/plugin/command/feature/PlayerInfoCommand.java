@@ -53,7 +53,7 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
         String input = context.get("player");
         UUID uuid = UUIDUtils.parse(input);
         CompletableFuture<Optional<PlayerData>> loading = uuid != null
-                ? this.plugin().dataStorage().loadPlayer(uuid)
+                ? this.plugin().dataAccess().players().read(uuid)
                 : this.plugin().playerLookup().resolvePlayer(input)
                         .thenCompose(found -> found.isEmpty()
                                 ? CompletableFuture.completedFuture(Optional.empty())

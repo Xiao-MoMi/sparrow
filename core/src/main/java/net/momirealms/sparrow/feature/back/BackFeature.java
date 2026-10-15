@@ -108,7 +108,7 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
         UUID uniqueId = player.getUniqueId();
         String name = player.getName();
         WorldLocation location = WorldLocation.from(player.getLocation());
-        CompletableFuture<Void> write = this.plugin.dataStorage().saveDeath(uniqueId, name, System.currentTimeMillis(), ServerConfig.serverId(), location);
+        CompletableFuture<Void> write = this.plugin.dataAccess().players().saveDeath(uniqueId, name, System.currentTimeMillis(), ServerConfig.serverId(), location);
         this.deathWrites.put(uniqueId, write);
         write.whenComplete((ignored, failure) -> {
             this.deathWrites.remove(uniqueId, write);
@@ -127,8 +127,8 @@ public final class BackFeature extends Feature<BackSettings> implements Listener
     public CompletableFuture<Optional<PlayerData>> loadDeath(@NotNull UUID player) {
         CompletableFuture<Void> write = this.deathWrites.get(player);
         CompletableFuture<Void> ready = write == null ? CompletableFuture.completedFuture(null) : write;
-        return ready.thenCompose(ignored -> this.plugin.dataStorage()
-                .loadPlayer(player)
+        return ready.thenCompose(ignored -> this.plugin.dataAccess().players()
+                .read(player)
                 .whenComplete((found, failure) -> {
                     if (failure != null) {
                         this.plugin.logger().warn("Failed to load death location for " + player, failure);
