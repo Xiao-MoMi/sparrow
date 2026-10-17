@@ -2,6 +2,7 @@ package net.momirealms.sparrow.server;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.SetArgs;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import io.netty.buffer.ByteBuf;
@@ -16,6 +17,7 @@ import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.server.message.ServerChangedMessage;
 import net.momirealms.sparrow.server.message.ServerHeartbeatMessage;
+import net.momirealms.sparrow.server.message.ServerProbeRequest;
 import net.momirealms.sparrow.util.LazyReference;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
@@ -29,20 +31,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 @ApiStatus.Internal
 public final class ServerRegistry {
     private static final long IDENTITY_TTL_MILLIS = 5000; // ID 占用的有效期
+    private static final long PROBE_TIMEOUT_SECONDS = 5;
     private static final String IDENTITY_PREFIX = "sparrow:server:identity:";
     private static final byte[] SNAPSHOTS_KEY = "sparrow:server:snapshots".getBytes(StandardCharsets.UTF_8); // 完整快照无过期时间, 供初始化读取
+    private static final String TAKEOVER_SCRIPT = """
+            local current = redis.call('GET', KEYS[1])
+            if not current or current == ARGV[1] then
+                redis.call('SET', KEYS[1], ARGV[2], 'PX', ARGV[3])
+                return 1
+            end
+            return 0
+            """;
 
-    private final SparrowPlugin plugin = SparrowPlugin.instance();
-    private final String serverId = ServerConfig.serverId();
-    private final byte[] identityKey = (IDENTITY_PREFIX + this.serverId).getBytes(StandardCharsets.UTF_8);
-    private final byte[] instanceId = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
-    private final LazyReference<RedisAsyncCommands<byte[], byte[]>> commands = LazyReference.oneTime(() -> this.plugin.redisConnector().connection().async());
+    public final SparrowPlugin plugin = SparrowPlugin.instance();
+    public final String serverId = ServerConfig.serverId();
+    public final byte[] identityKey = (IDENTITY_PREFIX + this.serverId).getBytes(StandardCharsets.UTF_8);
+    public final byte[] instanceId = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
+    public final LazyReference<RedisAsyncCommands<byte[], byte[]>> commands = LazyReference.oneTime(() -> this.plugin.redisConnector().connection().async());
 
     private @Nullable ServerStatus lastPublishedStatus; // 最近一次提交发布的状态, null 表示尚未提交启动通知
     private boolean claimed;
@@ -54,15 +67,39 @@ public final class ServerRegistry {
     private boolean closed; // 注销完成后停止接收并清空缓存
 
     void onLoad() {
-        String result = this.commands.get()
-                .set(this.identityKey, this.instanceId, SetArgs.Builder.nx().px(IDENTITY_TTL_MILLIS))
+        byte[] observedInstanceId = this.commands.get()
+                .setGet(this.identityKey, this.instanceId, SetArgs.Builder.nx().px(IDENTITY_TTL_MILLIS))
                 .toCompletableFuture()
                 .join();
-        if (!"OK".equals(result)) {
+        if (observedInstanceId != null && !this.claimStaleIdentity(observedInstanceId)) {
             this.plugin.logger().error(LogConstants.SERVER_ID_DUPLICATE, this.serverId);
             throw new IllegalStateException("Server ID " + this.serverId + " is already registered in Redis");
         }
         this.claimed = true;
+    }
+
+    private boolean claimStaleIdentity(@NotNull byte[] observedInstanceId) {
+        try {
+            this.plugin.messageBrokerManager().broker()
+                    .publishTwoWay(new ServerProbeRequest(observedInstanceId), this.serverId)
+                    .orTimeout(PROBE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                    .join();
+            return false;
+        } catch (CompletionException exception) {
+            if (!(exception.getCause() instanceof TimeoutException)) throw exception;
+        }
+        // 超时后仅接管原实例或已过期的身份, 不覆盖等待期间取得 ID 的新实例.
+        return this.commands.get()
+                .<Long>eval(
+                        TAKEOVER_SCRIPT,
+                        ScriptOutputType.INTEGER,
+                        new byte[][]{this.identityKey},
+                        observedInstanceId,
+                        this.instanceId,
+                        Long.toString(IDENTITY_TTL_MILLIS).getBytes(StandardCharsets.UTF_8)
+                )
+                .toCompletableFuture()
+                .join() == 1L;
     }
 
     // 用 Redis 完整快照重建数据, 并按顺序合并读取期间收到的消息.
