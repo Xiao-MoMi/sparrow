@@ -153,6 +153,7 @@ public final class PlayerCache {
         private static final OnlineView EMPTY = new OnlineView(List.of(), Map.of(), Map.of(), List.of()); // 首次名册发布前和管理器关闭后共享的空视图
 
         // 从同一批在线记录建立名字索引和排序候选.
+        @NotNull
         private static OnlineView of(Map<UUID, OnlineEntry> byUuid) {
             // 名字顺序在视图创建时确定, 查询和补全共享这批记录.
             List<OfflineSparrowPlayer> players = byUuid.values()
@@ -172,6 +173,7 @@ public final class PlayerCache {
             return new OnlineView(players, byName, byUuid, List.copyOf(suggestions));
         }
 
+        @NotNull
         private List<Suggestion> suggest(String prefix) {
             if (prefix.isEmpty()) return this.suggestions;
             int low = 0;
