@@ -13,9 +13,6 @@ public interface ServerPlayerProxy {
     @FieldGetter(name = "connection")
     Object getConnection(Object target);
 
-    @FieldGetter(name = "transferCookieConnection", activeIf = "!has_patch=paper")
-    Object getTransferCookieConnection(Object target);
-
     @MethodInvoker(name = "sendSystemMessage")
     void sendSystemMessage(Object target, @Type(name = "net.minecraft.network.chat.Component") Object message, boolean overlay);
 }

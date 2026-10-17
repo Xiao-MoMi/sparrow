@@ -3,8 +3,6 @@ package net.momirealms.sparrow.plugin;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import org.spigotmc.SpigotConfig;
 import net.momirealms.sparrow.player.PlayerManager;
-import net.momirealms.sparrow.player.PlayerLookup;
-import net.momirealms.sparrow.cluster.PlayerDirectory;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
@@ -28,8 +26,7 @@ import net.momirealms.sparrow.plugin.logger.filter.DisconnectLogFilter;
 import net.momirealms.sparrow.proxy.BukkitProxy;
 import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.redis.MessageBrokerManager;
-import net.momirealms.sparrow.redis.heartbeat.ServerHeartbeat;
-import net.momirealms.sparrow.cluster.ServerDirectory;
+import net.momirealms.sparrow.server.ServerManager;
 import net.momirealms.sparrow.ui.SparrowUI;
 import net.momirealms.sparrow.plugin.scheduler.BukkitSchedulerAdapter;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
@@ -73,12 +70,9 @@ public class SparrowPlugin implements Plugin {
     private final DataAccess dataAccess;
     private final RedisConnector redisConnector;
     private final MessageBrokerManager messageBrokerManager;
-    private final ServerHeartbeat serverHeartbeat;
-    private final ServerDirectory serverDirectory;
+    private final ServerManager serverManager;
     private final CompatibilityManager compatibilityManager;
     private final PlayerManager playerManager;
-    private final PlayerLookup playerLookup;
-    private final PlayerDirectory playerDirectory;
     private final TeleportService teleportService;
 
     private CommandManager commandManager;
@@ -109,14 +103,11 @@ public class SparrowPlugin implements Plugin {
         this.dataAccess = new DataAccess();
         this.redisConnector = new RedisConnector(PluginConfig.redis(), this.logger);
         this.messageBrokerManager = new MessageBrokerManager(this);
-        this.serverHeartbeat = new ServerHeartbeat();
-        this.serverDirectory = new ServerDirectory();
+        this.serverManager = new ServerManager();
         this.translationManager = new TranslationManagerImpl(this);
         this.translationManager.reload();
         this.compatibilityManager = new CompatibilityManager(this);
         this.playerManager = new PlayerManager();
-        this.playerLookup = new PlayerLookup();
-        this.playerDirectory = new PlayerDirectory();
         this.teleportService = new TeleportService();
 
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
@@ -132,7 +123,7 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginLoad() {
-        if (!SpigotConfig.bungee && !(VersionHelper.hasPaperPatch && GlobalConfiguration.get().proxies.velocity.enabled)) {
+        if (!SpigotConfig.bungee && !GlobalConfiguration.get().proxies.velocity.enabled) {
             this.logger.error(LogConstants.PROXY_REQUIRED);
             Bukkit.getServer().shutdown();
             return;
@@ -151,14 +142,12 @@ public class SparrowPlugin implements Plugin {
             this.redisConnector.initialize();
             this.messageBrokerManager.onLoad();
             this.dataStorage.initialize();
-            this.serverHeartbeat.onLoad();
-            this.serverDirectory.onLoad();
+            this.serverManager.onLoad();
             this.compatibilityManager.onLoad(); // 集成插件管理器
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
             this.dataAccess.close();
-            this.serverHeartbeat.shutdown();
-            this.serverDirectory.shutdown();
+            this.serverManager.shutdown();
             this.messageBrokerManager.onDisable();
             this.redisConnector.close();
             this.dataStorage.close();
@@ -193,9 +182,7 @@ public class SparrowPlugin implements Plugin {
             Bukkit.getPluginManager().disablePlugin(this.javaPlugin);
             return;
         }
-        this.playerManager.onEnable();
         this.dataAccess.onEnable();
-        this.playerDirectory.onEnable();
         SparrowUI.getInstance().setUp(this.javaPlugin);
         SparrowUI.getInstance().setExceptionHandler(this.logger::warn);
         // 命令管理器
@@ -205,28 +192,26 @@ public class SparrowPlugin implements Plugin {
         this.compatibilityManager.onEnable();
         // 模块管理器
         this.featureManager = new FeatureManager(this);
-        this.messageBrokerManager.onEnable();
+        this.playerManager.onEnable();
         this.featureManager.onEnable();
-        this.teleportService.onEnable();
+        this.serverManager.onEnable();
         // 延迟初始化事件
         this.isInitializing = true;
         this.initASMProxies(); // Proxy 类测试, 仅 dev 模式下生效
         this.scheduler.platform().runDelayed(this::onServerLoaded);
-        this.serverHeartbeat.onEnable();
     }
 
     public void onServerLoaded() {
+        this.serverManager.onServerLoaded();
         // 标记
         this.isInitializing = false;
     }
 
     @Override
     public void onPluginDisable() {
-        if (this.serverHeartbeat != null) this.serverHeartbeat.shutdown();
-        if (this.serverDirectory != null) this.serverDirectory.shutdown();
+        if (this.serverManager != null) this.serverManager.shutdown();
         if (this.teleportService != null) this.teleportService.shutdown();
         if (this.featureManager != null) this.featureManager.onDisable();
-        if (this.playerDirectory != null) this.playerDirectory.shutdown();
         if (this.playerManager != null) this.playerManager.shutdown();
         if (this.dataAccess != null) this.dataAccess.close();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
@@ -574,13 +559,9 @@ public class SparrowPlugin implements Plugin {
     }
 
     @Override
-    public ServerHeartbeat serverHeartbeat() {
-        return this.serverHeartbeat;
-    }
-
-    @Override
-    public ServerDirectory serverDirectory() {
-        return this.serverDirectory;
+    @NotNull
+    public ServerManager serverManager() {
+        return this.serverManager;
     }
 
     @Override
@@ -601,18 +582,6 @@ public class SparrowPlugin implements Plugin {
     @NotNull
     public PlayerManager playerManager() {
         return this.playerManager;
-    }
-
-    @Override
-    @NotNull
-    public PlayerLookup playerLookup() {
-        return this.playerLookup;
-    }
-
-    @Override
-    @NotNull
-    public PlayerDirectory playerDirectory() {
-        return this.playerDirectory;
     }
 
     @NotNull

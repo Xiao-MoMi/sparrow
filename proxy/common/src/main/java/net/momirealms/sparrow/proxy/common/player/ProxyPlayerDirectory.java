@@ -10,6 +10,7 @@ import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -36,7 +37,8 @@ public final class ProxyPlayerDirectory {
         writes.add(commands.del(ROSTER_KEY).toCompletableFuture());
         for (PlayerPresence player : this.plugin.playerManager().getPlayers()) {
             this.players.put(player.uuid(), player);
-            writes.add(commands.hset(ROSTER_KEY, key(player.uuid()), encode(player)).toCompletableFuture());
+            PlayerPresenceMessage message = new PlayerPresenceMessage(player.uuid(), player.name(), player.server(), player.locale());
+            writes.add(commands.hset(ROSTER_KEY, key(player.uuid()), encode(message)).toCompletableFuture());
         }
         writes.add(this.publish(new PlayerDirectoryResetMessage()));
         CompletableFuture.allOf(writes.toArray(CompletableFuture[]::new)).join();
@@ -59,10 +61,11 @@ public final class ProxyPlayerDirectory {
 
     private void update(PlayerPresence player) {
         if (player.equals(this.players.put(player.uuid(), player))) return;
+        PlayerPresenceMessage message = new PlayerPresenceMessage(player.uuid(), player.name(), player.server(), player.locale());
         CompletableFuture<Boolean> write = this.plugin.redisConnector().connection().async()
-                .hset(ROSTER_KEY, key(player.uuid()), encode(player))
+                .hset(ROSTER_KEY, key(player.uuid()), encode(message))
                 .toCompletableFuture();
-        this.report(CompletableFuture.allOf(write, this.publish(new PlayerPresenceMessage(player.uuid(), player))));
+        this.report(CompletableFuture.allOf(write, this.publish(message)));
     }
 
     public synchronized void disconnected(@NotNull UUID uuid) {
@@ -70,7 +73,7 @@ public final class ProxyPlayerDirectory {
         CompletableFuture<Long> write = this.plugin.redisConnector().connection().async()
                 .hdel(ROSTER_KEY, key(uuid))
                 .toCompletableFuture();
-        this.report(CompletableFuture.allOf(write, this.publish(new PlayerPresenceMessage(uuid, null))));
+        this.report(CompletableFuture.allOf(write, this.publish(new PlayerPresenceMessage(uuid))));
     }
 
     // 写入与通知在同一连接中提交, 并由目录锁维持玩家变更的顺序.
@@ -100,13 +103,17 @@ public final class ProxyPlayerDirectory {
     }
 
     private static byte[] key(UUID uuid) {
-        return uuid.toString().getBytes(StandardCharsets.UTF_8);
+        // 16 字节大端序, 高 64 位在前, 低 64 位在后.
+        return ByteBuffer.allocate(16)
+                .putLong(uuid.getMostSignificantBits())
+                .putLong(uuid.getLeastSignificantBits())
+                .array();
     }
 
-    private static byte[] encode(PlayerPresence player) {
+    private static byte[] encode(PlayerPresenceMessage message) {
         ByteBuf buffer = Unpooled.buffer();
         try {
-            player.write(buffer);
+            message.writeOnlineRecord(buffer);
             byte[] bytes = new byte[buffer.readableBytes()];
             buffer.readBytes(bytes);
             return bytes;

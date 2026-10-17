@@ -12,5 +12,4 @@ public interface ProxyPlatform {
 
     @NotNull
     ProxyLogger logger();
-
 }

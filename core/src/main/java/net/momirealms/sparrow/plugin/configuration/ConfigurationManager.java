@@ -9,13 +9,14 @@ import net.momirealms.sparrow.yaml.SparrowYaml;
 import org.jetbrains.annotations.NotNull;
 
 public class ConfigurationManager {
+    private final Plugin plugin;
     private final SparrowYaml sparrowYaml;
     private final CommandsConfig commandsConfig;
     private final PluginConfig pluginConfig;
     private final ServerConfig serverConfig;
-    private final FeaturesConfig featuresConfig;
 
     public ConfigurationManager(Plugin plugin) {
+        this.plugin = plugin;
         // 基础配置
         this.sparrowYaml = SparrowYaml.builder()
                 .setAllowDuplicateKeys(false)
@@ -28,7 +29,6 @@ public class ConfigurationManager {
         this.pluginConfig = new PluginConfig(plugin, this.sparrowYaml);
         this.serverConfig = new ServerConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.commandsConfig = new CommandsConfig(plugin.dataFolderPath(), this.sparrowYaml);
-        this.featuresConfig = new FeaturesConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.pluginConfig.reload();
         this.serverConfig.reload();
     }
@@ -39,7 +39,7 @@ public class ConfigurationManager {
     public void reload() {
         this.pluginConfig.reload();
         this.serverConfig.reload();
-        this.featuresConfig.reload();
+        this.plugin.serverManager().reload();
     }
 
     @NotNull
@@ -49,10 +49,5 @@ public class ConfigurationManager {
 
     public CommandsConfig commandsConfig() {
         return this.commandsConfig;
-    }
-
-    @NotNull
-    public FeaturesConfig featuresConfig() {
-        return this.featuresConfig;
     }
 }

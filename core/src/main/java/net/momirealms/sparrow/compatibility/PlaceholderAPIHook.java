@@ -1,13 +1,13 @@
-package net.momirealms.sparrow.compatibility.papi;
+package net.momirealms.sparrow.compatibility;
 
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public final class PlaceholderAPIUtils {
+public final class PlaceholderAPIHook {
 
-    private PlaceholderAPIUtils() {}
+    private PlaceholderAPIHook() {}
 
     @NotNull
     public static String parse(@Nullable Player player, @NotNull String text) {

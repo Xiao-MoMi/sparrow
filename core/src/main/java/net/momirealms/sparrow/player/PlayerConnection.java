@@ -40,11 +40,6 @@ public final class PlayerConnection {
         return this.name;
     }
 
-    /**
-     * 返回原版网络 Connection 对象, 以 Netty 的处理器类型暴露.
-     *
-     * @return 本次连接的原版 Connection
-     */
     @NotNull
     public ChannelHandler handle() {
         return this.handle;
@@ -73,6 +68,15 @@ public final class PlayerConnection {
     }
 
     /**
+     * 向客户端发送当前服务端协议的包 ID 和 payload, 不带长度、压缩或加密头.
+     *
+     * @param frame 已写入包 ID 和 payload 的可读缓冲
+     */
+    public void sendByteBuf(@NotNull ByteBuf frame) {
+        this.transfer(frame, true, true);
+    }
+
+    /**
      * 模拟客户端发送原版 NMS 数据包.
      *
      * @param packet 当前服务端版本的服务端方向 NMS Packet, <strong>必须匹配连接当前协议阶段</strong>
@@ -83,15 +87,6 @@ public final class PlayerConnection {
             throw new IllegalArgumentException("Expected an NMS packet");
         }
         this.transfer(packet, false, false);
-    }
-
-    /**
-     * 向客户端发送当前服务端协议的包 ID 和 payload, 不带长度、压缩或加密头.
-     *
-     * @param frame 已写入包 ID 和 payload 的可读缓冲
-     */
-    public void sendByteBuf(@NotNull ByteBuf frame) {
-        this.transfer(frame, true, true);
     }
 
     /**

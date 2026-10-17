@@ -6,8 +6,6 @@ import net.momirealms.sparrow.teleport.TeleportService;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.data.DataAccess;
 import net.momirealms.sparrow.player.PlayerManager;
-import net.momirealms.sparrow.player.PlayerLookup;
-import net.momirealms.sparrow.cluster.PlayerDirectory;
 import net.momirealms.sparrow.plugin.configuration.ConfigurationManager;
 import net.momirealms.sparrow.plugin.dependency.Dependency;
 import net.momirealms.sparrow.plugin.dependency.DependencyManager;
@@ -17,9 +15,7 @@ import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import net.momirealms.sparrow.plugin.scheduler.SchedulerAdapter;
 import net.momirealms.sparrow.redis.RedisConnector;
 import net.momirealms.sparrow.redis.MessageBrokerManager;
-import net.momirealms.sparrow.redis.heartbeat.ServerHeartbeat;
-import net.momirealms.sparrow.cluster.ServerDirectory;
-import org.jetbrains.annotations.NotNull;
+import net.momirealms.sparrow.server.ServerManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -64,16 +60,13 @@ public interface Plugin {
 
     DataStorage dataStorage();
 
-    @NotNull
     DataAccess dataAccess();
 
     RedisConnector redisConnector();
 
     MessageBrokerManager messageBrokerManager();
 
-    ServerHeartbeat serverHeartbeat();
-
-    ServerDirectory serverDirectory();
+    ServerManager serverManager();
 
     CompatibilityManager compatibilityManager();
 
@@ -82,10 +75,6 @@ public interface Plugin {
     TranslationManager translationManager();
 
     PlayerManager playerManager();
-
-    PlayerLookup playerLookup();
-
-    PlayerDirectory playerDirectory();
 
     TeleportService teleportService();
 

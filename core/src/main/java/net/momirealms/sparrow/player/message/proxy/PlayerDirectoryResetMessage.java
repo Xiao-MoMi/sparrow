@@ -1,7 +1,7 @@
-package net.momirealms.sparrow.redis.proxy;
+package net.momirealms.sparrow.player.message.proxy;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.momirealms.sparrow.cluster.PlayerDirectory;
+import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
@@ -13,16 +13,16 @@ public final class PlayerDirectoryResetMessage implements RedisMessage<FriendlyB
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "proxy_player_directory_reset");
     public static final MessageCodec<FriendlyByteBuf, PlayerDirectoryResetMessage> CODEC = RedisMessage.codec((message, buffer) -> {}, buffer -> new PlayerDirectoryResetMessage());
 
-    private final PlayerDirectory directory = SparrowPlugin.instance().playerDirectory();
+    private final PlayerManager playerManager = SparrowPlugin.instance().playerManager();
 
-    @Override
     @NotNull
+    @Override
     public MessageIdentifier identifier() {
         return ID;
     }
 
     @Override
     public void handle(@NotNull MessageBroker<FriendlyByteBuf> broker) {
-        this.directory.reload();
+        this.playerManager.playerCache.refreshFromRedis();
     }
 }

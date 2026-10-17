@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.redis.proxy;
+package net.momirealms.sparrow.player.message.proxy;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;

@@ -5,7 +5,12 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JavaOps;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
+import net.momirealms.sparrow.nbt.CompoundTag;
+import net.momirealms.sparrow.nbt.Tag;
+import net.momirealms.sparrow.nbt.codec.NBTOps;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.LinkedHashMap;
@@ -14,6 +19,18 @@ import java.util.Map;
 public final class ItemUtils {
 
     private ItemUtils() {}
+
+    @NotNull
+    public static CompoundTag toNbt(@NotNull ItemStack item) {
+        return (CompoundTag) ItemStack.CODEC.encodeStart(NbtOpsHolder.OPS, item)
+                .getOrThrow(message -> new IllegalStateException("Failed to encode item: " + message));
+    }
+
+    @NotNull
+    public static ItemStack fromNbt(@NotNull CompoundTag tag) {
+        return ItemStack.CODEC.parse(NbtOpsHolder.OPS, tag)
+                .getOrThrow(message -> new IllegalStateException("Failed to decode item: " + message));
+    }
 
     @NotNull
     @SuppressWarnings("unchecked")
@@ -29,5 +46,9 @@ public final class ItemUtils {
                 return data;
             });
         });
+    }
+
+    private static final class NbtOpsHolder {
+        private static final RegistryOps<Tag> OPS = RegistryOps.create(NBTOps.INSTANCE, MinecraftServer.getServer().registryAccess());
     }
 }

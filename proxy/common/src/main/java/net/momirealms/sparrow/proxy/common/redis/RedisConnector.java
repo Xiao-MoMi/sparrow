@@ -24,9 +24,6 @@ public final class RedisConnector implements AutoCloseable {
         this.options = options;
     }
 
-    /**
-     * 连接 Redis 并建立消息代理使用的订阅连接, 失败时释放已创建的客户端.
-     */
     public void initialize() {
         RedisURI uri = RedisURI.create(this.options.url());
         if (!this.options.password().isEmpty()) {
@@ -52,12 +49,6 @@ public final class RedisConnector implements AutoCloseable {
         }
     }
 
-    /**
-     * 返回以字节数组收发数据的 Redis 连接. 同步命令会阻塞当前线程.
-     *
-     * @return 已建立的 Redis 连接
-     * @throws IllegalStateException 连接尚未建立时
-     */
     @NotNull
     public StatefulRedisConnection<byte[], byte[]> connection() {
         if (this.connection == null) {

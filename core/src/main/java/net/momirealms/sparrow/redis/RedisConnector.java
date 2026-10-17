@@ -74,12 +74,6 @@ public final class RedisConnector implements AutoCloseable {
         throw new IllegalStateException("Redis server version " + reported + " is not supported, Redis " + MINIMUM_SERVER_VERSION + " or later is required");
     }
 
-    /**
-     * 返回以字节数组收发数据的 Redis 连接。同步命令会阻塞当前线程。
-     *
-     * @return 已建立的 Redis 连接
-     * @throws IllegalStateException 连接尚未建立时
-     */
     @NotNull
     public StatefulRedisConnection<byte[], byte[]> connection() {
         if (this.connection == null) throw new IllegalStateException("Redis is not initialized");

@@ -127,7 +127,7 @@ public final class AdventureHelper {
 
     /**
      * 将组件转换为 § 格式的旧版文本, RGB 颜色使用 Bukkit 可识别的 §x§r§r§g§g§b§b 格式.
-     * 用于只接受字符串的 Bukkit 接口, 例如 Spigot 的踢出和登录拒绝.
+     * 用于只接受字符串的 Bukkit 接口, 例如登录拒绝.
      *
      * @param component 需要转换的组件
      * @return 旧版格式文本, 点击和悬浮等交互内容会丢失
