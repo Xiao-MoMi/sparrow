@@ -9,6 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -70,6 +71,11 @@ public final class ServerManager {
     @NotNull
     public List<ServerStatus> getOnlineServersByTag(@NotNull String tag) {
         return this.registry.getOnlineServersByTag(tag);
+    }
+
+    @NotNull
+    public List<ServerStatus> getOnlineServersByTags(@NotNull Set<String> tags) {
+        return this.registry.getOnlineServersByTags(tags);
     }
 
     public boolean isOnline(@NotNull String serverId) {

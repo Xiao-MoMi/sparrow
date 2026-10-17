@@ -60,7 +60,7 @@ public abstract class AbstractCommandManager implements CommandManager {
     public TriConsumer<CommandSender, String, Component> defaultFeedbackConsumer() {
         return ((sender, node, component) -> {
             if (sender instanceof Player player) {
-                BukkitSparrowPlayer pluginPlayer = this.plugin.playerManager().getPlayer(player);
+                BukkitSparrowPlayer pluginPlayer = this.plugin.playerManager().getOnlinePlayer(player);
                 if (pluginPlayer != null) {
                     pluginPlayer.sendMessage(component);
                 }

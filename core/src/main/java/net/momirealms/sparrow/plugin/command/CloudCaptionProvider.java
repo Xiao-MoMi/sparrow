@@ -12,6 +12,8 @@ public final class CloudCaptionProvider<C> extends DelegatingCaptionProvider<C> 
             .putCaption(Caption.of("argument.parse.failure.duration"), "Invalid duration '{input}'. Units: y, mo, w, d, h, m, s; decimals and combinations work, e.g. 1.5h, 1mo2w")
             .putCaption(Caption.of("argument.parse.failure.url"), "Invalid URL '{input}'")
             .putCaption(Caption.of("argument.parse.failure.namedtextcolor"), "Unknown named color '{input}'")
+            .putCaption(Caption.of("argument.parse.failure.server-offline"), "No matching servers are online")
+            .putCaption(Caption.of("argument.parse.failure.server-world"), "World '{input}' does not exist on any matching online server")
             .build();
 
     @SuppressWarnings("unchecked")
