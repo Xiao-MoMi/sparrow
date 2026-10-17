@@ -13,6 +13,7 @@ public final class CloudCaptionProvider<C> extends DelegatingCaptionProvider<C> 
             .putCaption(Caption.of("argument.parse.failure.url"), "Invalid URL '{input}'")
             .putCaption(Caption.of("argument.parse.failure.namedtextcolor"), "Unknown named color '{input}'")
             .putCaption(Caption.of("argument.parse.failure.server-offline"), "No matching servers are online")
+            .putCaption(Caption.of("argument.parse.failure.server-unknown"), "Server '{input}' is not available among the matching online servers")
             .putCaption(Caption.of("argument.parse.failure.server-world"), "World '{input}' does not exist on any matching online server")
             .build();
 
