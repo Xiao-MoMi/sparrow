@@ -64,12 +64,13 @@ public final class ServerRegistry {
     }
 
     // 用 Redis 完整快照重建数据, 并按顺序合并读取期间收到的消息.
-    synchronized void refreshFromRedis() {
-        if (this.closed) return;
+    @NotNull
+    synchronized CompletableFuture<Void> refreshFromRedis() {
+        if (this.closed) return CompletableFuture.completedFuture(null);
         List<RedisMessage<FriendlyByteBuf>> changes = new ArrayList<>();
         this.loading = changes;
         // 读取全部
-        this.commands.get()
+        return this.commands.get()
                 .hgetall(SNAPSHOTS_KEY)
                 .toCompletableFuture()
                 .thenApply(fields -> {
@@ -88,14 +89,10 @@ public final class ServerRegistry {
                     });
                     return statuses;
                 })
-                .whenComplete((snapshot, error) -> {
+                .thenAccept(snapshot -> {
                     synchronized (this) {
                         if (this.closed) return;
                         this.loading = null;
-                        if (error != null) {
-                            this.plugin.logger().warn("Failed to load server snapshots", error);
-                            return;
-                        }
                         // Redis 快照提供完整状态的合并起点.
                         this.servers.clear();
                         this.servers.putAll(snapshot);

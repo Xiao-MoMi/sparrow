@@ -23,8 +23,8 @@ public final class ServerManager {
 
     public void onLoad() {
         this.registry.onLoad();
-        this.registry.refreshFromRedis();
         this.heartbeatTask = this.plugin.scheduler().asyncRepeating(this::heartbeat, 1, 1, TimeUnit.SECONDS);
+        this.registry.refreshFromRedis().join();
     }
 
     public void onEnable() {
