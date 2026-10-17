@@ -12,6 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.Set;
 
 public final class ServerConfig {
     private static final String CONFIG_FILE = "server.yml";
@@ -38,6 +39,7 @@ public final class ServerConfig {
             } else {
                 this.startupServerId = loaded.serverId;
             }
+            loaded.tags = Set.copyOf(loaded.tags);
             config = loaded;
         } catch (IOException exception) {
             throw new UncheckedIOException("Failed to load " + CONFIG_FILE, exception);
@@ -50,6 +52,11 @@ public final class ServerConfig {
     @NotNull
     public static String serverId() {
         return config.serverId;
+    }
+
+    @NotNull
+    public static Set<String> tags() {
+        return config.tags;
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -70,5 +77,9 @@ public final class ServerConfig {
                 "设置后尽量不要修改, 地标等数据会用它记录所属服务器."
         })
         String serverId = "";
+
+        @Comment("Tags used to group this server. Matching is case-sensitive.")
+        @Comment(lang = "zh", value = "服务器分组标签, 按原字符串匹配, 区分大小写.")
+        Set<String> tags = Set.of();
     }
 }
