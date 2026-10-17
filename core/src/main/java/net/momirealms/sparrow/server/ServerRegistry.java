@@ -27,6 +27,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -34,12 +35,13 @@ import java.util.concurrent.TimeUnit;
 @ApiStatus.Internal
 public final class ServerRegistry {
     private static final long IDENTITY_TTL_MILLIS = 5000; // ID 占用的有效期
-    private static final byte[] OCCUPIED = new byte[]{1};
     private static final String IDENTITY_PREFIX = "sparrow:server:identity:";
     private static final byte[] SNAPSHOTS_KEY = "sparrow:server:snapshots".getBytes(StandardCharsets.UTF_8); // 完整快照无过期时间, 供初始化读取
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final String serverId = ServerConfig.serverId();
+    private final byte[] identityKey = (IDENTITY_PREFIX + this.serverId).getBytes(StandardCharsets.UTF_8);
+    private final byte[] instanceId = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
     private final LazyReference<RedisAsyncCommands<byte[], byte[]>> commands = LazyReference.oneTime(() -> this.plugin.redisConnector().connection().async());
 
     private @Nullable ServerStatus lastPublishedStatus; // 最近一次提交发布的状态, null 表示尚未提交启动通知
@@ -53,7 +55,7 @@ public final class ServerRegistry {
 
     void onLoad() {
         String result = this.commands.get()
-                .set(identityKey(this.serverId), OCCUPIED, SetArgs.Builder.nx().px(IDENTITY_TTL_MILLIS))
+                .set(this.identityKey, this.instanceId, SetArgs.Builder.nx().px(IDENTITY_TTL_MILLIS))
                 .toCompletableFuture()
                 .join();
         if (!"OK".equals(result)) {
@@ -131,7 +133,8 @@ public final class ServerRegistry {
 
     @NotNull
     private CompletableFuture<Void> renewIdentity() {
-        return this.commands.get().set(identityKey(this.serverId), OCCUPIED, SetArgs.Builder.px(IDENTITY_TTL_MILLIS))
+        return this.commands.get()
+                .set(this.identityKey, this.instanceId, SetArgs.Builder.px(IDENTITY_TTL_MILLIS))
                 .toCompletableFuture()
                 .thenApply(ignored -> null);
     }
@@ -292,7 +295,7 @@ public final class ServerRegistry {
         }
         // 删除心跳 key.
         CompletableFuture<Object> releaseFuture = this.commands.get()
-                .del(identityKey(this.serverId))
+                .del(this.identityKey)
                 .toCompletableFuture()
                 .thenApply(ignored -> null);
         return CompletableFuture.allOf(removal, releaseFuture)
@@ -308,9 +311,5 @@ public final class ServerRegistry {
         this.loading = null;
         this.alive.invalidateAll();
         this.servers.clear();
-    }
-
-    private static byte[] identityKey(@NotNull String serverId) {
-        return (IDENTITY_PREFIX + serverId).getBytes(StandardCharsets.UTF_8);
     }
 }
