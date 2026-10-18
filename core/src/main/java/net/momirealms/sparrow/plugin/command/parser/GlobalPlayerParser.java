@@ -8,9 +8,9 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.server.level.ServerPlayer;
-import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import org.incendo.cloud.brigadier.parser.WrappedBrigadierParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.context.CommandInput;
@@ -21,8 +21,6 @@ import org.incendo.cloud.suggestion.Suggestion;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -88,17 +86,14 @@ public final class GlobalPlayerParser<C, T> implements ArgumentParser<C, T>, Sug
             return this.selector.suggestionsFuture(context, input);
         }
         if (!prefix.isEmpty()) {
-            return CompletableFuture.completedFuture(this.playerManager.playerCache.suggestGlobalPlayers(prefix));
+            return CompletableFuture.completedFuture(this.playerManager.registry.suggestGlobalPlayers(prefix));
         }
         return this.selector.suggestionsFuture(context, input).thenApply(selectors -> {
-            List<Suggestion> suggestions = new ArrayList<>();
-            if (this.playerManager.getGlobalOnlinePlayers().size() <= GLOBAL_SUGGESTION_THRESHOLD) {
-                suggestions.addAll(this.playerManager.playerCache.suggestGlobalPlayers(prefix));
+            List<Suggestion> suggestions;
+            if (this.playerManager.getGlobalOnlinePlayerCount() <= GLOBAL_SUGGESTION_THRESHOLD) {
+                suggestions = this.playerManager.registry.suggestGlobalPlayers(prefix);
             } else {
-                for (BukkitSparrowPlayer player : this.playerManager.getOnlinePlayers()) {
-                    suggestions.add(Suggestion.suggestion(player.name()));
-                }
-                suggestions.sort(Comparator.comparing(Suggestion::suggestion, String.CASE_INSENSITIVE_ORDER));
+                suggestions = this.playerManager.registry.suggestServerPlayers(ServerConfig.serverId(), prefix);
             }
             for (Suggestion suggestion : selectors) {
                 suggestions.add(suggestion);

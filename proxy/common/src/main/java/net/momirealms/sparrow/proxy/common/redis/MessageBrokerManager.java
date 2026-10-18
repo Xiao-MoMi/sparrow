@@ -8,8 +8,6 @@ import net.momirealms.sparrow.proxy.common.logger.ProxyLogger;
 import net.momirealms.sparrow.proxy.common.message.DisconnectMessage;
 import net.momirealms.sparrow.proxy.common.message.DisconnectRequest;
 import net.momirealms.sparrow.proxy.common.message.DisconnectResponse;
-import net.momirealms.sparrow.proxy.common.message.PlayerPresenceMessage;
-import net.momirealms.sparrow.proxy.common.message.PlayerDirectoryResetMessage;
 import net.momirealms.sparrow.redis.messagebroker.Logger;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +31,6 @@ public final class MessageBrokerManager {
         this.broker.registry().register(DisconnectMessage.ID, DisconnectMessage.CODEC);
         this.broker.registry().register(DisconnectRequest.ID, DisconnectRequest.CODEC);
         this.broker.registry().register(DisconnectResponse.ID, DisconnectResponse.CODEC);
-        this.broker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
-        this.broker.registry().register(PlayerDirectoryResetMessage.ID, PlayerDirectoryResetMessage.CODEC);
         this.broker.registry().register(ConnectRequest.ID, ConnectRequest.CODEC);
         this.broker.registry().register(ConnectResponse.ID, ConnectResponse.CODEC);
     }

@@ -21,6 +21,7 @@ public final class PlayerConnection {
     private final ChannelHandler handle;
     private final Channel channel;
     private final long connectedAt;
+    private boolean joined;
 
     PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name) {
         this.handle = handle;
@@ -52,6 +53,14 @@ public final class PlayerConnection {
 
     public long connectedAt() {
         return this.connectedAt;
+    }
+
+    boolean joined() {
+        return this.joined;
+    }
+
+    void joined(boolean joined) {
+        this.joined = joined;
     }
 
     /**

@@ -3,6 +3,7 @@ package net.momirealms.sparrow.player;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerPlayer;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Item;
@@ -30,6 +31,12 @@ public final class BukkitSparrowPlayer extends OfflineSparrowPlayer {
     @Override
     public Locale locale() {
         return this.nmsPlayer.adventure$locale;
+    }
+
+    @NotNull
+    @Override
+    public String getCurrentServerId() {
+        return ServerConfig.serverId();
     }
 
     public void dropItem(@NotNull ItemStack stack) {

@@ -3,7 +3,6 @@ package net.momirealms.sparrow.proxy.common;
 import net.momirealms.sparrow.proxy.common.config.ProxyConfig;
 import net.momirealms.sparrow.proxy.common.redis.MessageBrokerManager;
 import net.momirealms.sparrow.proxy.common.redis.RedisConnector;
-import net.momirealms.sparrow.proxy.common.player.ProxyPlayerDirectory;
 import net.momirealms.sparrow.proxy.common.player.ProxyPlayerManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,7 +13,6 @@ public final class SparrowProxy {
     private final ProxyPlayerManager playerManager;
     private RedisConnector redisConnector;
     private MessageBrokerManager messageBrokerManager;
-    private final ProxyPlayerDirectory playerDirectory = new ProxyPlayerDirectory(this);
 
     public SparrowProxy(@NotNull ProxyPlatform platform, @NotNull ProxyPlayerManager playerManager) {
         this.platform = platform;
@@ -32,15 +30,13 @@ public final class SparrowProxy {
         this.redisConnector = new RedisConnector(config.redis());
         this.redisConnector.initialize();
         this.messageBrokerManager = new MessageBrokerManager(this);
-        this.playerManager.enable(this.playerDirectory);
-        this.playerDirectory.initialize();
+        this.playerManager.enable();
         this.messageBrokerManager.subscribe();
         this.platform.logger().info("Connected to Redis");
     }
 
     public void disable() {
         this.playerManager.disable();
-        this.playerDirectory.shutdown();
         if (this.messageBrokerManager != null) this.messageBrokerManager.unsubscribe();
         if (this.redisConnector != null) this.redisConnector.close();
     }
@@ -63,10 +59,5 @@ public final class SparrowProxy {
     @NotNull
     public MessageBrokerManager messageBrokerManager() {
         return this.messageBrokerManager;
-    }
-
-    @NotNull
-    public ProxyPlayerDirectory playerDirectory() {
-        return this.playerDirectory;
     }
 }

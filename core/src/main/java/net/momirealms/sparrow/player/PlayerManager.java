@@ -13,7 +13,11 @@ import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
 import net.momirealms.sparrow.proxy.paper.connection.ReadablePlayerCookieConnectionProxy;
+import net.momirealms.sparrow.ui.SparrowUI;
 import net.momirealms.sparrow.ui.Subscription;
+import net.momirealms.sparrow.ui.network.packet.ConnectionState;
+import net.momirealms.sparrow.ui.network.packet.PacketFlow;
+import net.momirealms.sparrow.ui.network.packet.PacketType;
 import net.momirealms.sparrow.util.HandlerList;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -23,6 +27,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerLocaleChangeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -33,17 +38,46 @@ import java.util.concurrent.CompletableFuture;
 
 public final class PlayerManager implements Listener, ChannelFutureListener {
     public final SparrowPlugin plugin = SparrowPlugin.instance();
-    public final PlayerCache playerCache = new PlayerCache();
+    public final PlayerRegistry registry = new PlayerRegistry();
     private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>();
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, PlayerConnection> registrations = new ConcurrentChainedObject2ObjectHashTable<>(); // 每个 UUID 在本服当前登记名单的连接
     private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> localPlayers = new ConcurrentChainedObject2ObjectHashTable<>();
     private final HandlerList<PlayerPreLoginListener> preLoginListeners = new HandlerList<>();
     private final HandlerList<PlayerJoinListener> joinListeners = new HandlerList<>();
     private final HandlerList<PlayerQuitListener> quitListeners = new HandlerList<>();
 
+    public void onLoad() {
+        this.registry.load().join();
+    }
+
     public void onEnable() {
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
-        this.playerCache.refreshFromRedis();
+        SparrowUI.getInstance().networkManager().listenNMS(
+                new PacketType("minecraft:login_finished", ConnectionState.LOGIN, PacketFlow.CLIENTBOUND),
+                // 登记写入 Redis 后再放行 login_finished, proxy 收到 login_finished 才断开旧服, 因此切服时新服的登记先于旧服的 Quit.
+                (user, event, packet) -> {
+                    Channel channel = user.channel();
+                    // 连接已关闭时登记已被移除, 写出会自行失败
+                    PlayerConnection connection = this.connections.get(channel);
+                    if (connection == null) return;
+                    event.cancel();
+                    // 同一 UUID 的登记和关闭清理都在 compute 内提交脚本, Redis 按提交顺序执行
+                    this.registrations.compute(connection.uniqueId(), (uniqueId, previous) -> {
+                        this.registry.publishLogin(uniqueId, connection.name()).whenComplete((ignored, error) -> {
+                            if (error != null) {
+                                this.plugin.logger().warn("Failed to register " + connection.name() + " in player registry before login", error);
+                            }
+                            channel.eventLoop().execute(() -> {
+                                if (channel.isActive()) {
+                                    user.sendPacketSilently(packet);
+                                }
+                            });
+                        });
+                        return connection;
+                    });
+                }
+        );
     }
 
     // 根据 Player 查询本服在线 SparrowPlayer 玩家实例.
@@ -80,19 +114,25 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     public OfflineSparrowPlayer getGlobalOnlinePlayer(@NotNull UUID uniqueId) {
         BukkitSparrowPlayer onlinePlayer = this.getOnlinePlayer(uniqueId);
         if (onlinePlayer != null) return onlinePlayer;
-        return this.playerCache.getGlobalOnlinePlayer(uniqueId);
+        return this.registry.getGlobalOnlinePlayer(uniqueId);
     }
 
     // 根据 Name 查询全服在线 SparrowPlayer 玩家实例.
     public OfflineSparrowPlayer getGlobalOnlinePlayer(@NotNull String playerName) {
         BukkitSparrowPlayer onlinePlayer = this.getOnlinePlayer(playerName);
         if (onlinePlayer != null) return onlinePlayer;
-        return this.playerCache.getGlobalOnlinePlayer(playerName);
+        return this.registry.getGlobalOnlinePlayer(playerName);
     }
 
     // 收集全服在线玩家对象, 返回只读列表副本.
-    public Collection<OfflineSparrowPlayer> getGlobalOnlinePlayers() {
-        return this.playerCache.globalOnlinePlayers();
+    @NotNull
+    public List<OfflineSparrowPlayer> getGlobalOnlinePlayers() {
+        return this.registry.getGlobalOnlinePlayers();
+    }
+
+    // 获取全服在线玩家数量.
+    public int getGlobalOnlinePlayerCount() {
+        return this.registry.getGlobalOnlineCount();
     }
 
     // 按 UUID 优先查询在线玩家, 离线时异步读取数据库中的名字.
@@ -118,7 +158,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     SparrowPlayer getOrCreate(@NotNull UUID uniqueId, @NotNull String name) {
         BukkitSparrowPlayer current = this.localPlayers.get(uniqueId);
         if (current != null) return current;
-        OfflineSparrowPlayer cached = this.playerCache.getGlobalOnlinePlayer(uniqueId);
+        OfflineSparrowPlayer cached = this.registry.getGlobalOnlinePlayer(uniqueId);
         return cached != null ? cached : new OfflineSparrowPlayer(uniqueId, name);
     }
 
@@ -177,13 +217,23 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         ChannelHandler handle = (ChannelHandler) ServerCommonPacketListenerImplProxy.INSTANCE.getConnection(listener);
         // 同一 Channel 的 Join 和连接移除通过连接表的原子操作串行处理.
         this.connections.computeIfPresent((Channel) ConnectionProxy.INSTANCE.getChannel(handle), (channel, connection) -> {
+            connection.joined(true);
             this.localPlayers.put(connection.uniqueId(), new BukkitSparrowPlayer(connection, player));
             return connection;
         });
         BukkitSparrowPlayer joined = this.getOnlinePlayer(player);
         if (joined != null) {
+            this.registry.publishUpdate(joined.uniqueId(), joined.name(), joined.locale());
             this.joinListeners.dispatch(joinListener -> joinListener.onJoin(joined));
         }
+    }
+
+    // 事件早于 ServerPlayer 的语言字段更新, 新语言从事件中读取.
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onLocaleChange(@NotNull PlayerLocaleChangeEvent event) {
+        BukkitSparrowPlayer player = this.getOnlinePlayer(event.getPlayer());
+        if (player == null) return;
+        this.registry.publishUpdate(player.uniqueId(), player.name(), event.locale());
     }
 
     // 释放退出本服的玩家实例
@@ -194,6 +244,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         BukkitSparrowPlayer leaving = this.getOnlinePlayer(player);
         if (leaving == null) return;
         if (this.localPlayers.remove(player.getUniqueId(), leaving) == leaving) {
+            this.registry.publishQuit(leaving.uniqueId());
             this.quitListeners.dispatch(listener -> listener.onQuit(leaving));
         }
     }
@@ -211,22 +262,35 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @Override
     public void operationComplete(@NotNull ChannelFuture future) {
         Channel channel = future.channel();
-        this.connections.remove(channel);
+        PlayerConnection connection = this.connections.remove(channel);
         channel.closeFuture().removeListener(this);
+        if (connection == null) return;
+        // 同一 UUID 的新连接已经登记时保留它的记录; 登记了但没进入游戏的连接不会触发 Quit, 在这里删除名单记录.
+        this.registrations.compute(connection.uniqueId(), (uniqueId, current) -> {
+            if (current != connection) return current;
+            if (!connection.joined()) {
+                this.registry.publishQuit(uniqueId);
+            }
+            return null;
+        });
     }
 
+    // 关服时先于释放服务器身份调用, 删除本服的全服名单记录并等待完成.
+    public void closeRegistry() {
+        this.registry.shutdown().join();
+    }
 
-    // 结束当前管理器的生命周期, 关闭集群缓存, 清空本服玩家对象并解除连接关闭监听.
+    // 结束当前管理器的生命周期, 清空本服玩家对象并解除连接关闭监听.
     public void shutdown() {
         this.preLoginListeners.clear();
         this.joinListeners.clear();
         this.quitListeners.clear();
-        this.playerCache.shutdown();
         this.localPlayers.clear();
         for (Channel channel : this.connections.keys()) {
             this.connections.remove(channel);
             channel.closeFuture().removeListener(this);
         }
         this.connections.clear();
+        this.registrations.clear();
     }
 }

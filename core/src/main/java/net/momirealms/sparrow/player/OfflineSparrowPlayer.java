@@ -440,6 +440,6 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
     @Nullable
     @Override
     public String getCurrentServerId() {
-        return SparrowPlugin.instance().playerManager().playerCache.getCurrentServerId(this.uniqueId);
+        return SparrowPlugin.instance().playerManager().registry.getCurrentServerId(this.uniqueId);
     }
 }

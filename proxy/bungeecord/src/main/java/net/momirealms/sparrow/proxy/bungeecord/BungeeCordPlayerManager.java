@@ -6,22 +6,16 @@ import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.connection.Server;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.ServerSwitchEvent;
-import net.md_5.bungee.api.event.SettingsChangedEvent;
 import net.md_5.bungee.api.event.ServerConnectEvent;
 import net.md_5.bungee.api.event.ServerKickEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.chat.ComponentSerializer;
 import net.md_5.bungee.event.EventHandler;
-import net.momirealms.sparrow.proxy.common.player.PlayerPresence;
 import net.momirealms.sparrow.proxy.common.player.ProxyPlayerManager;
 import net.momirealms.sparrow.proxy.common.player.ConnectResult;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -43,7 +37,6 @@ public final class BungeeCordPlayerManager extends ProxyPlayerManager implements
 
     @EventHandler
     public void onServerConnected(ServerSwitchEvent event) {
-        this.directory.connected(event.getPlayer().getUniqueId());
         PendingConnection pending = this.connections.get(event.getPlayer().getUniqueId());
         if (pending != null) {
             boolean connected = event.getPlayer().getServer().getInfo().getName().equals(pending.server());
@@ -52,13 +45,7 @@ public final class BungeeCordPlayerManager extends ProxyPlayerManager implements
     }
 
     @EventHandler
-    public void onSettingsChanged(SettingsChangedEvent event) {
-        this.directory.locale(event.getPlayer().getUniqueId(), event.getPlayer().getLocale());
-    }
-
-    @EventHandler
     public void onDisconnect(PlayerDisconnectEvent event) {
-        this.directory.disconnected(event.getPlayer().getUniqueId());
         PendingConnection pending = this.connections.get(event.getPlayer().getUniqueId());
         if (pending != null) {
             pending.result().complete(ConnectResult.PLAYER_OFFLINE);
@@ -79,31 +66,6 @@ public final class BungeeCordPlayerManager extends ProxyPlayerManager implements
         for (PendingConnection pending : this.connections.values()) {
             pending.result().complete(ConnectResult.FAILED);
         }
-    }
-
-    @Override
-    @NotNull
-    public List<PlayerPresence> getPlayers() {
-        List<PlayerPresence> players = new ArrayList<>();
-        for (ProxiedPlayer player : this.plugin.getProxy().getPlayers()) {
-            PlayerPresence presence = this.findPlayer(player.getUniqueId());
-            if (presence != null) {
-                players.add(presence);
-            }
-        }
-        return players;
-    }
-
-    @Override
-    @Nullable
-    public PlayerPresence findPlayer(@NotNull UUID uuid) {
-        ProxiedPlayer player = this.plugin.getProxy().getPlayer(uuid);
-        if (player == null || !player.isConnected()) return null;
-        Server server = player.getServer();
-        if (server == null) return null;
-        // 首次连接子服时, 客户端可能尚未发送语言设置.
-        Locale locale = player.getLocale();
-        return new PlayerPresence(uuid, player.getName(), server.getInfo().getName(), locale == null ? Locale.ROOT : locale);
     }
 
     @Override
