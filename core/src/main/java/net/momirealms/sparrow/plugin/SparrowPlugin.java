@@ -143,10 +143,12 @@ public class SparrowPlugin implements Plugin {
             this.messageBrokerManager.onLoad();
             this.dataStorage.initialize();
             this.serverManager.onLoad();
+            this.playerManager.onLoad();
             this.compatibilityManager.onLoad(); // 集成插件管理器
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
             this.dataAccess.close();
+            this.playerManager.closeRegistry();
             this.serverManager.shutdown();
             this.messageBrokerManager.onDisable();
             this.redisConnector.close();
@@ -209,6 +211,7 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginDisable() {
+        if (this.playerManager != null) this.playerManager.closeRegistry();
         if (this.serverManager != null) this.serverManager.shutdown();
         if (this.teleportService != null) this.teleportService.shutdown();
         if (this.featureManager != null) this.featureManager.onDisable();

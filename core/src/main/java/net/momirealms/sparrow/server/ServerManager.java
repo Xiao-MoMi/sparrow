@@ -2,7 +2,6 @@ package net.momirealms.sparrow.server;
 
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -11,6 +10,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public final class ServerManager {
@@ -20,11 +22,12 @@ public final class ServerManager {
     public final long startedAt = System.currentTimeMillis();
 
     private final StatusRefreshListener statusRefreshListener = new StatusRefreshListener();
-    private @Nullable SchedulerTask heartbeatTask;
+    private final ScheduledExecutorService heartbeatExecutor = Executors.newSingleThreadScheduledExecutor(Thread.ofPlatform().name("sparrow-heartbeat").daemon(true).factory());
+    private @Nullable ScheduledFuture<?> heartbeatTask;
 
     public void onLoad() {
         this.registry.onLoad();
-        this.heartbeatTask = this.plugin.scheduler().asyncRepeating(this::heartbeat, 1, 1, TimeUnit.SECONDS);
+        this.heartbeatTask = this.heartbeatExecutor.scheduleAtFixedRate(this::heartbeat, 1, 1, TimeUnit.SECONDS);
         this.registry.refreshFromRedis().join();
     }
 
@@ -39,7 +42,7 @@ public final class ServerManager {
 
     public synchronized void reload() {
         if (this.registry.closing()) return;
-        this.plugin.scheduler().async().execute(this::heartbeat);
+        this.heartbeatExecutor.execute(this::heartbeat);
     }
 
     public synchronized void heartbeat() {
@@ -85,7 +88,8 @@ public final class ServerManager {
     public void shutdown() {
         CompletableFuture<Void> removal;
         synchronized (this) {
-            if (this.heartbeatTask != null) this.heartbeatTask.cancel();
+            if (this.heartbeatTask != null) this.heartbeatTask.cancel(false);
+            this.heartbeatExecutor.shutdown();
             removal = this.registry.shutdown();
         }
         removal.join();
