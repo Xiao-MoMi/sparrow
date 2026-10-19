@@ -3,13 +3,15 @@ package net.momirealms.sparrow.teleport;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.util.Dimensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class TeleportContext {
     public static final String PLAYER_UUID = "player_uuid"; // 被传送玩家的 UUID, 提交时写入
     public static final String PLAYER_NAME = "player_name"; // 被传送玩家的名字, 提交时写入
-    public static final String UNSAFE = "unsafe";           // 布尔标记, 调用方用它要求处理器跳过安全类检查, 由处理器自行读取
+    public static final String UNSAFE = "unsafe";           // 布尔标记, FindSafeLoc 搜索无结果时允许回退到输入原点
+    public static final String DIMENSIONS = "dimensions";   // 提交时采集的玩家碰撞箱尺寸和眼高
 
     private final CompoundTag tag;
 
@@ -46,8 +48,17 @@ public final class TeleportContext {
         return this.tag;
     }
 
+    @NotNull
+    public Dimensions getDimensions() {
+        if (!(this.tag.get(DIMENSIONS) instanceof CompoundTag dimensions)) {
+            throw new IllegalStateException("Teleport context does not contain player dimensions");
+        }
+        return Dimensions.fromNbt(dimensions);
+    }
+
     void bindPlayer(@NotNull BukkitSparrowPlayer player) {
         this.tag.putUUID(PLAYER_UUID, player.uniqueId());
         this.tag.putString(PLAYER_NAME, player.name());
+        this.tag.put(DIMENSIONS, Dimensions.from(player.nmsPlayer).toNbt());
     }
 }

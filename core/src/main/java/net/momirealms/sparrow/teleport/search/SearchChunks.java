@@ -14,7 +14,6 @@ import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ImposterProtoChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
-import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
@@ -23,31 +22,40 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.util.Dimensions;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.CraftChunk;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
-@ApiStatus.Internal
 public final class SearchChunks implements CollisionGetter {
-    private static final CompletableFuture<Boolean> READY = CompletableFuture.completedFuture(true);
-    private static final CompletableFuture<Boolean> UNAVAILABLE = CompletableFuture.completedFuture(false);
+    private static final CompletableFuture<Boolean> READY = CompletableFuture.completedFuture(true);        // 范围内区块均已可用
+    private static final CompletableFuture<Boolean> UNAVAILABLE = CompletableFuture.completedFuture(false); // 策略不允许取得范围内的全部区块
 
-    private final ServerLevel world;
-    private final boolean generate; // 是否允许生成新地形
-    private final Long2ObjectOpenHashMap<CompletableFuture<LevelChunk>> chunks = new Long2ObjectOpenHashMap<>(); // 搜索期间复用加载任务和已完成的区块引用
+    private final ServerLevel world; // 此缓存所属的目标世界
+    private final ChunkPolicy policy; // 本次搜索固定使用的加载与生成策略
+    private final Long2ObjectOpenHashMap<CompletableFuture<@Nullable LevelChunk>> chunks = new Long2ObjectOpenHashMap<>(); // 区块坐标 -> 加载任务, 正常结果为 null 表示未生成
 
-    public SearchChunks(@NotNull ServerLevel world, boolean generate) {
+    public SearchChunks(@NotNull ServerLevel world, @NotNull ChunkPolicy policy) {
         this.world = world;
-        this.generate = generate;
+        this.policy = policy;
     }
 
-    // 碰撞查询覆盖检测体积及外围一格, 包含相邻方块伸出的形状
+    /**
+     * 准备给定 X/Z 处检查方块碰撞所需的区块.
+     * 范围包含碰撞箱的水平投影及外围一格, 可读取相邻方块伸出的碰撞形状.
+     * 一个区块包含完整高度, 同一 X/Z 下检查不同 Y 可以复用这次准备结果.
+     *
+     * @param dimensions 用于确定水平检测范围的实体尺寸
+     * @param x 候选脚底中心的 X 坐标, 必须有限且位于世界坐标范围内
+     * @param z 候选脚底中心的 Z 坐标, 必须有限且位于世界坐标范围内
+     * @return 准备结果, true 表示所需区块均可用, false 表示有未生成区块且策略禁止生成, 异常完成表示加载失败
+     */
     @NotNull
     public CompletableFuture<Boolean> prepare(@NotNull Dimensions dimensions, double x, double z) {
+        // 碰撞遍历会将体积边界按容差取整, 再向外读取相邻一格.
         int minX = Mth.floor(x - dimensions.width() / 2 - 1.0E-7) - 1;
         int maxX = Mth.floor(x + dimensions.width() / 2 + 1.0E-7) + 1;
         int minZ = Mth.floor(z - dimensions.depth() / 2 - 1.0E-7) - 1;
@@ -55,20 +63,28 @@ public final class SearchChunks implements CollisionGetter {
         return this.prepare(minX, minZ, maxX, maxZ);
     }
 
-    // 准备方块坐标闭区间覆盖的区块, 正常完成值表示全部区块是否可用, 加载异常沿 Future 返回
+    /**
+     * 准备方块坐标闭区间覆盖的区块, 重叠范围会复用同一份加载任务和结果.
+     *
+     * @param minBlockX 范围最小 X, 必须不大于 maxBlockX
+     * @param minBlockZ 范围最小 Z, 必须不大于 maxBlockZ
+     * @param maxBlockX 范围最大 X
+     * @param maxBlockZ 范围最大 Z
+     * @return 准备结果, true 表示全部可用, false 表示有未生成区块且策略禁止生成, 异常完成表示加载失败
+     */
     @NotNull
     public CompletableFuture<Boolean> prepare(int minBlockX, int minBlockZ, int maxBlockX, int maxBlockZ) {
         int minX = minBlockX >> 4;
         int maxX = maxBlockX >> 4;
         int minZ = minBlockZ >> 4;
         int maxZ = maxBlockZ >> 4;
-        List<CompletableFuture<LevelChunk>> pending = null;
+        List<CompletableFuture<@Nullable LevelChunk>> pending = null;
         boolean available = true;
+        // 已完成的正常结果直接读取, 其余任务统一等待, 包括需要向上传播的异常结果.
         for (int chunkX = minX; chunkX <= maxX; chunkX++) {
             for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
-                // 低 32 位存区块 X, 高 32 位存区块 Z, 负坐标按位保留
-                long key = (chunkX & 0xffffffffL) | ((long) chunkZ << 32);
-                CompletableFuture<LevelChunk> chunk = this.chunks.get(key);
+                long key = ChunkPos.asLong(chunkX, chunkZ);
+                CompletableFuture<@Nullable LevelChunk> chunk = this.chunks.get(key);
                 if (chunk == null) {
                     chunk = this.load(chunkX, chunkZ);
                     this.chunks.put(key, chunk);
@@ -82,37 +98,46 @@ public final class SearchChunks implements CollisionGetter {
             }
         }
         if (pending == null) return available ? READY : UNAVAILABLE;
-        List<CompletableFuture<LevelChunk>> required = pending;
+        // allOf 保留加载异常, 只有全部任务正常完成后才判断是否存在未生成区块.
+        List<CompletableFuture<@Nullable LevelChunk>> required = pending;
         boolean present = available;
         return CompletableFuture.allOf(required.toArray(CompletableFuture[]::new))
                 .thenApply(ignored -> present && this.available(required));
     }
 
-    private boolean available(List<CompletableFuture<LevelChunk>> required) {
-        boolean available = true;
-        for (int i = 0, size = required.size(); i < size; i++) {
-            available &= required.get(i).getNow(null) != null;
+    // 检查一组已经正常完成的加载任务是否都取得了区块.
+    private boolean available(@NotNull List<CompletableFuture<@Nullable LevelChunk>> required) {
+        for (int index = 0, size = required.size(); index < size; index++) {
+            if (required.get(index).getNow(null) == null) return false;
         }
-        return available;
+        return true;
     }
 
-    // 优先复用已加载的完整区块, 其余按平台支持的方式加载
-    private CompletableFuture<LevelChunk> load(int x, int z) {
-        LevelChunk loaded = getLoaded(this.world, x, z);
+    /**
+     * 按平台支持的方式取得一个完整区块, 已加载区块直接返回.
+     * Paper 使用异步区块接口, Spigot 的区块源操作通过插件调度器切换到所需线程.
+     *
+     * @param x 区块 X 坐标
+     * @param z 区块 Z 坐标
+     * @return 加载任务, 正常结果为 null 表示未生成且策略禁止生成, 异常完成表示加载失败
+     */
+    @NotNull
+    private CompletableFuture<@Nullable LevelChunk> load(int x, int z) {
+        LevelChunk loaded = VersionHelper.hasPaperPatch ? this.world.getChunkSource().getChunkAtIfLoadedImmediately(x, z) : this.world.getChunkSource().getChunkNow(x, z);
         if (loaded != null) return CompletableFuture.completedFuture(loaded);
         if (VersionHelper.hasPaperPatch) {
-            return this.world.getWorld().getChunkAtAsync(x, z, this.generate)
+            return this.world.getWorld().getChunkAtAsync(x, z, this.policy == ChunkPolicy.ALLOW_GENERATION)
                     .thenApply(chunk -> chunk == null ? null : (LevelChunk) ((CraftChunk) chunk).getHandle(ChunkStatus.FULL));
         }
-        if (this.generate) {
-            // 原版 UNKNOWN 票据会在生成结束前过期, 每次加载单独持有票据, 完成后释放
-            TicketType<?> ticket = new TicketType<>(TicketType.NO_TIMEOUT, TicketType.FLAG_LOADING);
+        if (this.policy == ChunkPolicy.ALLOW_GENERATION) {
+            // Spigot 为每个加载任务持有独立且不过期的票据, 完成后在主线程释放.
+            TicketType ticket = new TicketType(TicketType.NO_TIMEOUT, TicketType.FLAG_LOADING);
             ChunkPos position = new ChunkPos(x, z);
             return CompletableFuture.runAsync(
                     () -> this.world.getChunkSource().addTicketWithRadius(ticket, position, 0),
                     SparrowPlugin.instance().scheduler().platform()
             ).thenComposeAsync(
-                    // 主线程调用 getChunkFuture 会等待区块, 因此从工作线程发起
+                    // 主线程中的 getChunkFuture 会等待区块, 工作线程入口会将请求投递给区块源.
                     ignored -> this.world.getChunkSource().getChunkFuture(x, z, ChunkStatus.FULL, true),
                     SparrowPlugin.instance().scheduler().async()
             ).thenApply(result -> {
@@ -124,48 +149,12 @@ public final class SearchChunks implements CollisionGetter {
                     SparrowPlugin.instance().scheduler().platform()
             );
         }
-        // Spigot 在主线程取得 EMPTY 阶段结果, 接受完整区块及其包装
+        // EMPTY 阶段可以读取磁盘中的已有地形, 未完成生成的区块不推进到 FULL.
         return CompletableFuture.supplyAsync(() -> {
             ChunkAccess chunk = this.world.getChunkSource().getChunk(x, z, ChunkStatus.EMPTY, true);
             if (chunk instanceof ImposterProtoChunk wrapper) return wrapper.getWrapped();
             return chunk instanceof LevelChunk full ? full : null;
         }, SparrowPlugin.instance().scheduler().platform());
-    }
-
-    @Nullable
-    private static LevelChunk getLoaded(ServerLevel world, int x, int z) {
-        return VersionHelper.hasPaperPatch ? world.getChunkSource().getChunkAtIfLoadedImmediately(x, z) : world.getChunkSource().getChunkNow(x, z);
-    }
-
-    // 查询范围须已成功 prepare, 高度裁剪到世界范围后检查闭区间内是否全为空气
-    public boolean isAir(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        minY = Math.max(minY, this.getMinY());
-        maxY = Math.min(maxY, this.getMinY() + this.getHeight() - 1);
-        int firstSection = this.getMinY() >> 4;
-        for (int chunkX = minX >> 4; chunkX <= maxX >> 4; chunkX++) {
-            for (int chunkZ = minZ >> 4; chunkZ <= maxZ >> 4; chunkZ++) {
-                LevelChunk chunk = this.getChunkForCollisions(chunkX, chunkZ);
-                for (int sectionY = minY >> 4; sectionY <= maxY >> 4; sectionY++) {
-                    // 整节全空气可直接跳过, 部分重叠的区块节只检查与查询范围的交集
-                    LevelChunkSection section = chunk.getSections()[sectionY - firstSection];
-                    if (section.hasOnlyAir()) continue;
-                    int fromX = Math.max(minX, chunkX << 4);
-                    int toX = Math.min(maxX, (chunkX << 4) + 15);
-                    int fromZ = Math.max(minZ, chunkZ << 4);
-                    int toZ = Math.min(maxZ, (chunkZ << 4) + 15);
-                    int fromY = Math.max(minY, sectionY << 4);
-                    int toY = Math.min(maxY, (sectionY << 4) + 15);
-                    for (int x = fromX; x <= toX; x++) {
-                        for (int z = fromZ; z <= toZ; z++) {
-                            for (int y = fromY; y <= toY; y++) {
-                                if (!section.getBlockState(x & 15, y & 15, z & 15).isAir()) return false;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return true;
     }
 
     @Override
@@ -178,55 +167,59 @@ public final class SearchChunks implements CollisionGetter {
         return this.world.getHeight();
     }
 
+    @NotNull
     @Override
     public WorldBorder getWorldBorder() {
         return this.world.getWorldBorder();
     }
 
-    // 读取缓存中的完整区块, 缓存缺失, 加载未完成或区块不可用时返回 null.
+    // 从缓存取得已经加载的完整区块, 不等待尚未完成的加载.
     @Nullable
     @Override
     public LevelChunk getChunkForCollisions(int x, int z) {
-        CompletableFuture<LevelChunk> chunk = this.chunks.get((x & 0xffffffffL) | ((long) z << 32));
+        CompletableFuture<@Nullable LevelChunk> chunk = this.chunks.get(ChunkPos.asLong(x, z));
         return chunk == null ? null : chunk.getNow(null);
     }
 
-    // 读取已准备区块中的方块状态, 对应范围的 {@code prepare} <strong>必须已成功完成</strong>.
+    // 读取已准备区块中的方块状态.
+    @NotNull
     @Override
-    public BlockState getBlockState(BlockPos position) {
+    public BlockState getBlockState(@NotNull BlockPos position) {
         return this.getChunkForCollisions(position.getX() >> 4, position.getZ() >> 4).getBlockState(position);
     }
 
     @Nullable
     @Override
-    public BlockState getBlockStateIfLoaded(BlockPos position) {
+    public BlockState getBlockStateIfLoaded(@NotNull BlockPos position) {
         LevelChunk chunk = this.getChunkForCollisions(position.getX() >> 4, position.getZ() >> 4);
         return chunk == null ? null : chunk.getBlockState(position);
     }
 
+    // 读取已准备区块中指定方块所包含的流体状态.
+    @NotNull
     @Override
-    public FluidState getFluidState(BlockPos position) {
+    public FluidState getFluidState(@NotNull BlockPos position) {
         return this.getBlockState(position).getFluidState();
     }
 
     @Nullable
     @Override
-    public FluidState getFluidIfLoaded(BlockPos position) {
+    public FluidState getFluidIfLoaded(@NotNull BlockPos position) {
         BlockState state = this.getBlockStateIfLoaded(position);
         return state == null ? null : state.getFluidState();
     }
 
+    // 读取已准备区块中已经实例化的方块实体.
     @Nullable
     @Override
-    public BlockEntity getBlockEntity(BlockPos position) {
-        // 只读取已实例化的方块实体, 搜索过程不解析待加载 NBT 或注册实体
+    public BlockEntity getBlockEntity(@NotNull BlockPos position) {
         return this.getChunkForCollisions(position.getX() >> 4, position.getZ() >> 4).getBlockEntities().get(position);
     }
 
-    // 落点检测只考虑方块碰撞
+    // 为方块碰撞查询提供空的实体碰撞集合, 此区块视图的检查范围仅包含地形.
     @NotNull
     @Override
-    public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, AABB bounds) {
+    public List<VoxelShape> getEntityCollisions(@Nullable Entity entity, @NotNull AABB bounds) {
         return List.of();
     }
 }
