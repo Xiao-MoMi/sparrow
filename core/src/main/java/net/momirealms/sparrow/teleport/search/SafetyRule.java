@@ -8,7 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public interface SafetyRule extends TeleportCodec {
-    TeleportCodecRegistry<SafetyRule> TYPES = new TeleportCodecRegistry<>();
+    TeleportCodecRegistry<SafetyRule> TYPES = new TeleportCodecRegistry<>() {{
+        this.register(PhysicalSafety.TYPE, PhysicalSafety::fromNbt);
+    }};
 
     /**
      * 检查当前候选是否满足此规则, 调用方在通过后继续检查列表中的下一条规则.
