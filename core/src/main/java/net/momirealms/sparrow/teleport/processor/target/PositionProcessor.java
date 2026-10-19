@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.teleport.TeleportContext;
 import net.momirealms.sparrow.teleport.codec.TeleportCodec;
 import net.momirealms.sparrow.teleport.codec.TeleportCodecRegistry;
+import net.momirealms.sparrow.teleport.processor.target.safe.FindSafeLoc;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,6 +14,7 @@ public interface PositionProcessor extends TeleportCodec {
     TeleportCodecRegistry<PositionProcessor> TYPES = new TeleportCodecRegistry<>() {{
         this.register(GeneratedChunk.TYPE, GeneratedChunk::fromNbt);
         this.register(WorldBlacklist.TYPE, WorldBlacklist::fromNbt);
+        this.register(FindSafeLoc.TYPE, FindSafeLoc::fromNbt);
     }};
 
     /**

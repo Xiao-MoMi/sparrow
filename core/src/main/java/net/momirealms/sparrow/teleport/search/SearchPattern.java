@@ -5,7 +5,6 @@ import net.momirealms.sparrow.teleport.codec.TeleportCodec;
 import net.momirealms.sparrow.teleport.codec.TeleportCodecRegistry;
 import net.momirealms.sparrow.util.SparrowKey;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public sealed interface SearchPattern extends TeleportCodec permits SearchPattern.Exact, SearchPattern.Nearby, SearchPattern.Column {
     TeleportCodecRegistry<SearchPattern> TYPES = new TeleportCodecRegistry<>() {{
@@ -25,9 +24,10 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
     }
 
     /**
-     * 创建附近搜索的构建器, 水平范围, 上下距离和顺序都需要显式设置.
+     * 创建附近搜索的构建器, 初始水平半径和上下距离均为 0, 顺序为 NEAR_FIRST.
+     * 范围可分别调整, 半径为 0 时仍会采用原点所在方块的水平中心.
      *
-     * @return 各配置项均处于未设置状态的构建器
+     * @return 带有上述初始配置的构建器
      */
     @NotNull
     static Nearby.Builder nearby() {
@@ -35,9 +35,10 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
     }
 
     /**
-     * 创建竖列搜索的构建器, 需要显式设置上下距离和顺序.
+     * 创建竖列搜索的构建器, 初始上下距离均为 0, 顺序为 NEAR_FIRST.
+     * 搜索始终保留输入原点的精确 X/Z, 上下范围可以分别调整.
      *
-     * @return 各配置项均处于未设置状态的构建器
+     * @return 带有上述初始配置的构建器
      */
     @NotNull
     static Column.Builder column() {
@@ -45,7 +46,9 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
     }
 
     /**
-     * 描述单个搜索模式内部优先检查哪些候选位置.
+     * 描述单个范围模式内的候选顺序.
+     * NEAR_FIRST 按相对输入原点的欧式距离选择结果, 各方向使用相同权重.
+     * 等距时优先较高的 Y, 然后依次选择较小的 X 和 Z; 有限预算下返回已检查到的最近合格位置.
      */
     enum SearchOrder {
         NEAR_FIRST // 优先检查靠近搜索起点的候选.
@@ -79,6 +82,8 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
     /**
      * 保存附近搜索的水平范围, 上下距离和检查顺序.
      * 上下距离以搜索起点的脚底高度为基准, 各方向都允许显式配置为 0.
+     * X/Z 各自以原点所在方块向两边扩展水平半径, 形成方形范围, 候选取方块的水平中心.
+     * 精确 Y 由碰撞面决定, 半砖等非整数站立面也会作为候选, 最终高度必须仍在上下范围内.
      *
      * @param horizontalRadius 水平搜索半径, 单位为方块, 必须非负
      * @param up 允许向上搜索的距离, 单位为方块, 必须非负
@@ -117,10 +122,10 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
         }
 
         public static final class Builder {
-            private int horizontalRadius;                           // 水平半径, 单位为方块, null 表示未设置
-            private int up;                                         // 向上距离, 单位为方块, null 表示未设置
-            private int down;                                       // 向下距离, 单位为方块, null 表示未设置
-            private SearchOrder order = SearchOrder.NEAR_FIRST;     // 优先检查顺序, null 表示未设置
+            private int horizontalRadius;                       // 水平半径, 单位为方块, 初始为 0
+            private int up;                                     // 向上距离, 单位为方块, 初始为 0
+            private int down;                                   // 向下距离, 单位为方块, 初始为 0
+            private SearchOrder order = SearchOrder.NEAR_FIRST; // 初始按距离由近到远检查
 
             private Builder() {
             }
@@ -158,7 +163,7 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
             /**
              * 指定附近候选的优先检查顺序.
              *
-             * @param order 检查顺序, <strong>必须显式设置</strong>
+             * @param order 检查顺序, 覆盖初始的 NEAR_FIRST
              * @return 此构建器
              */
             @NotNull
@@ -177,6 +182,7 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
     /**
      * 保存沿搜索起点 X/Z 检查不同高度的配置.
      * 上下距离以起点脚底高度为基准, 两个方向可以分别限制.
+     * 精确脚底高度按碰撞面取得, 结果仍需位于指定的高度区间内.
      *
      * <pre>{@code
      * SearchPattern pattern = SearchPattern.column()
@@ -221,9 +227,9 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
         }
 
         public static final class Builder {
-            private int up;                                     // 向上距离, 单位为方块, null 表示未设置
-            private int down;                                   // 向下距离, 单位为方块, null 表示未设置
-            private SearchOrder order = SearchOrder.NEAR_FIRST; // 优先检查顺序, null 表示未设置
+            private int up;                                     // 向上距离, 单位为方块, 初始为 0
+            private int down;                                   // 向下距离, 单位为方块, 初始为 0
+            private SearchOrder order = SearchOrder.NEAR_FIRST; // 初始按距离由近到远检查
 
             private Builder() {
             }
@@ -255,7 +261,7 @@ public sealed interface SearchPattern extends TeleportCodec permits SearchPatter
             /**
              * 指定竖向候选高度的优先检查顺序.
              *
-             * @param order 检查顺序, <strong>必须显式设置</strong>
+             * @param order 检查顺序, 覆盖初始的 NEAR_FIRST
              * @return 此构建器
              */
             @NotNull
