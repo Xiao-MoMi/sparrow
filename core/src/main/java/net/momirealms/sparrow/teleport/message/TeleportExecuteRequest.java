@@ -93,7 +93,7 @@ public final class TeleportExecuteRequest extends TwoWayRequestMessage<FriendlyB
     @Override
     protected CompletableFuture<TeleportExecuteResponse> handleRequest() {
         SparrowPlugin plugin = SparrowPlugin.instance();
-        return plugin.teleportService().execute(this).handle((result, error) -> {
+        return plugin.teleportService().acceptTeleportExecute(this).handle((result, error) -> {
             if (error != null) {
                 Throwable cause = error instanceof CompletionException ? error.getCause() : error;
                 plugin.logger().warn("Failed to execute teleport " + this.requestId + " from " + this.sourceServer(), cause);

@@ -195,6 +195,7 @@ public class SparrowPlugin implements Plugin {
         // 模块管理器
         this.featureManager = new FeatureManager(this);
         this.playerManager.onEnable();
+        this.teleportService.onEnable();
         this.featureManager.onEnable();
         this.serverManager.onEnable();
         // 延迟初始化事件

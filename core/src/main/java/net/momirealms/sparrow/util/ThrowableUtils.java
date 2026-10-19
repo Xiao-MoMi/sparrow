@@ -1,11 +1,20 @@
 package net.momirealms.sparrow.util;
 
-/**
- * 异常处理工具类, 提供绕过编译器受检异常检查的功能.
- */
+import java.util.concurrent.CompletionException;
+
 public final class ThrowableUtils {
 
     private ThrowableUtils() {}
+
+    /**
+     * 剥掉 CompletableFuture 回调里常见的 CompletionException 包装, 拿到真正的异常.
+     *
+     * @param error 回调收到的异常
+     * @return 原始异常
+     */
+    public static Throwable unwrap(Throwable error) {
+        return error instanceof CompletionException ? error.getCause() : error;
+    }
 
     /**
      * 执行一个可能抛出异常的提供者, 并通过 sneakyThrow 将任何捕获的异常作为非受检异常抛出.

@@ -102,7 +102,7 @@ public final class TeleportPrepareRequest extends TwoWayRequestMessage<FriendlyB
     @Override
     protected CompletableFuture<TeleportPrepareResponse> handleRequest() {
         SparrowPlugin plugin = SparrowPlugin.instance();
-        return plugin.teleportService().prepare(this).handle((result, error) -> {
+        return plugin.teleportService().acceptTeleportPrepare(this).handle((result, error) -> {
             if (error != null) {
                 Throwable cause = error instanceof CompletionException ? error.getCause() : error;
                 plugin.logger().warn("Failed to prepare teleport " + this.requestId + " from " + this.sourceServer(), cause);
