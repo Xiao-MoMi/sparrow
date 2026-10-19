@@ -15,14 +15,14 @@ import java.util.UUID;
 public final class TeleportReadyEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
 
-    private final UUID requestId;
-    private final UUID playerId;
-    private final String playerName;
-    private final String sourceServer;
-    private final String targetServer;
-    private final TeleportContext context;
-    private final WorldLocation location;
-    private @Nullable Component reason;
+    private final UUID requestId;           // 传送请求 ID
+    private final UUID playerId;            // 被传送玩家的 UUID
+    private final String playerName;        // 被传送玩家的名字
+    private final String sourceServer;      // 玩家当前所在的源服 ID
+    private final String targetServer;      // 本服 ID, 也就是目标服
+    private final TeleportContext context;  // 传送上下文, 监听器可以读写
+    private final WorldLocation location;   // 最终的目的地坐标
+    private @Nullable Component reason;     // 取消原因, 为 null 表示没有取消
 
     public TeleportReadyEvent(
             @NotNull UUID requestId,

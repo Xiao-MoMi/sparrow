@@ -1,20 +1,15 @@
 package net.momirealms.sparrow.teleport;
 
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.phys.AABB;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.Tag;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.util.Dimensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public final class TeleportContext {
-    public static final String PLAYER_UUID = "player_uuid";
-    public static final String PLAYER_NAME = "player_name";
-    public static final String UNSAFE = "unsafe";
-    public static final String DIMENSIONS = "dimensions";
+    public static final String PLAYER_UUID = "player_uuid"; // 被传送玩家的 UUID, 提交时写入
+    public static final String PLAYER_NAME = "player_name"; // 被传送玩家的名字, 提交时写入
+    public static final String UNSAFE = "unsafe";           // 布尔标记, 调用方用它要求处理器跳过安全类检查, 由处理器自行读取
 
     private final CompoundTag tag;
 
@@ -51,34 +46,8 @@ public final class TeleportContext {
         return this.tag;
     }
 
-    @NotNull
-    public Dimensions getDimensions() {
-        if (!(this.tag.get(DIMENSIONS) instanceof CompoundTag dimensions)) {
-            throw new IllegalStateException("Teleport context does not contain player dimensions");
-        }
-        return Dimensions.fromNbt(dimensions);
-    }
-
     void bindPlayer(@NotNull BukkitSparrowPlayer player) {
         this.tag.putUUID(PLAYER_UUID, player.uniqueId());
         this.tag.putString(PLAYER_NAME, player.name());
-        ServerPlayer nmsPlayer = player.nmsPlayer();
-        double width;
-        double height;
-        double depth;
-        double eyeHeight;
-        if (nmsPlayer.getDimensions(Pose.STANDING).height() > 5.0F) {
-            width = 0.6;
-            height = 2.0;
-            depth = 0.6;
-            eyeHeight = 1.62F;
-        } else {
-            AABB bounds = nmsPlayer.getBoundingBox();
-            width = bounds.getXsize();
-            height = bounds.getYsize();
-            depth = bounds.getZsize();
-            eyeHeight = nmsPlayer.getEyeHeight();
-        }
-        this.tag.put(DIMENSIONS, new Dimensions(width, height, depth, eyeHeight).toNbt());
     }
 }

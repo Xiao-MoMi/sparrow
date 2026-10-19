@@ -23,11 +23,11 @@ public final class TeleportPrepareResponse extends TwoWayResponseMessage<Friendl
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "teleport_prepare_response");
     public static final MessageCodec<FriendlyByteBuf, TeleportPrepareResponse> CODEC = RedisMessage.codec(TeleportPrepareResponse::write, TeleportPrepareResponse::new);
 
-    private final UUID requestId;
-    private final boolean successful;
-    private final @Nullable WorldLocation location;
-    private final @Nullable TeleportContext context;
-    private final @Nullable Component reason;
+    private final UUID requestId;                    // 传送请求 ID
+    private final boolean successful;                // 准备是否成功, 决定后面三个字段哪些有值
+    private final @Nullable WorldLocation location;  // 目的地坐标, 失败时为 null
+    private final @Nullable TeleportContext context; // 目标服处理过的上下文, 失败时为 null
+    private final @Nullable Component reason;        // 失败原因, 成功时为 null
 
     public TeleportPrepareResponse(@NotNull UUID requestId, @NotNull WorldLocation location, @NotNull TeleportContext context) {
         this.requestId = requestId;
@@ -91,6 +91,12 @@ public final class TeleportPrepareResponse extends TwoWayResponseMessage<Friendl
         return this.requestId;
     }
 
+    /**
+     * 返回准备是否成功.
+     * 成功时 {@link #location()} 和 {@link #context()} 有值, 失败时 {@link #reason()} 有值.
+     *
+     * @return 准备是否成功
+     */
     public boolean successful() {
         return this.successful;
     }

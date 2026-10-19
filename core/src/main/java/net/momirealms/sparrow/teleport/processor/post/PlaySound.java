@@ -53,7 +53,7 @@ public record PlaySound(@NotNull Sound sound) implements PostProcessor {
     @NotNull
     @Override
     public CompletableFuture<Void> process(@NotNull Player player, @NotNull TeleportContext context) {
-        BukkitSparrowPlayer current = SparrowPlugin.instance().playerManager().getPlayer(player);
+        BukkitSparrowPlayer current = SparrowPlugin.instance().playerManager().getOnlinePlayer(player);
         if (current == null) return CompletableFuture.failedFuture(new IllegalStateException("Teleport player is no longer on this server"));
         current.playSound(this.sound);
         return CompletableFuture.completedFuture(null);

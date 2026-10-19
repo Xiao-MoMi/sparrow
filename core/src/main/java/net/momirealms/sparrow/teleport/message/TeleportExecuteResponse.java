@@ -17,8 +17,8 @@ public final class TeleportExecuteResponse extends TwoWayResponseMessage<Friendl
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "teleport_execute_response");
     public static final MessageCodec<FriendlyByteBuf, TeleportExecuteResponse> CODEC = RedisMessage.codec(TeleportExecuteResponse::write, TeleportExecuteResponse::new);
 
-    private final UUID requestId;
-    private final TeleportResult result;
+    private final UUID requestId;        // 传送请求 ID
+    private final TeleportResult result; // 执行结果, 只会是 Success 或 Fail
 
     public TeleportExecuteResponse(@NotNull UUID requestId, @NotNull TeleportResult result) {
         this.requestId = requestId;
@@ -43,6 +43,7 @@ public final class TeleportExecuteResponse extends TwoWayResponseMessage<Friendl
                 buffer.writeBoolean(false);
                 buffer.writeUtf(AdventureHelper.componentToJson(fail.reason()));
             }
+            case TeleportResult.Aborted ignored -> throw new IllegalStateException("Teleport conditions are evaluated on the source server");
         }
     }
 

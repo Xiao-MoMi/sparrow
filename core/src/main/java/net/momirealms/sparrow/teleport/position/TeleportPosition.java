@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.teleport.TeleportContext;
 import net.momirealms.sparrow.teleport.codec.TeleportCodec;
 import net.momirealms.sparrow.teleport.codec.TeleportCodecRegistry;
-import net.momirealms.sparrow.teleport.position.rtp.RTPPos;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -14,9 +13,14 @@ public interface TeleportPosition extends TeleportCodec {
     TeleportCodecRegistry<TeleportPosition> TYPES = new TeleportCodecRegistry<>() {{
         this.register(Fixed.TYPE, Fixed::fromNbt);
         this.register(PlayerPos.TYPE, PlayerPos::fromNbt);
-        this.register(RTPPos.TYPE, RTPPos::fromNbt);
     }};
 
+    /**
+     * 在目标服上把位置解析成坐标.
+     *
+     * @param context 传送上下文
+     * @return 解析结果. 目的地找不到时以 Fail 完成, 比如目标玩家不在本服
+     */
     @NotNull
     CompletableFuture<Result> resolve(@NotNull TeleportContext context);
 

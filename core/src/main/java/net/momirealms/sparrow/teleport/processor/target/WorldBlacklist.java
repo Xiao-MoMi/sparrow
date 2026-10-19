@@ -56,8 +56,9 @@ public record WorldBlacklist(@NotNull List<String> worlds, @NotNull String bypas
     public CompletableFuture<Result> process(@NotNull TeleportContext context, @NotNull WorldLocation location) {
         if (!this.worlds.contains(location.world())) return CompletableFuture.completedFuture(Result.Accept.INSTANCE);
         if (this.bypassPermission.isEmpty()) return CompletableFuture.completedFuture(new Result.Reject(MessageConstants.TELEPORT_REJECTED_WORLD));
+        // 处理器跑在目标服上, 被传送的玩家这时还在源服, 按 UUID 异步查询权限
         return SparrowPlugin.instance().compatibilityManager()
-                .checkPermission(context.toNbt().getUUID(TeleportContext.PLAYER_UUID), this.bypassPermission)
+                .hasPermissionAsync(context.toNbt().getUUID(TeleportContext.PLAYER_UUID), this.bypassPermission)
                 .thenApply(bypass -> bypass ? Result.Accept.INSTANCE : new Result.Reject(MessageConstants.TELEPORT_REJECTED_WORLD));
     }
 }

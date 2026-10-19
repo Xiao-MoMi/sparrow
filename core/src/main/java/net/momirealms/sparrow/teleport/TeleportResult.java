@@ -10,4 +10,7 @@ public sealed interface TeleportResult {
 
     record Fail(@NotNull Component reason) implements TeleportResult {
     }
+
+    record Aborted(@NotNull Throwable cause) implements TeleportResult {
+    }
 }

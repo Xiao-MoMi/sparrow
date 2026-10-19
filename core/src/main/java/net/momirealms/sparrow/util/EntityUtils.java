@@ -2,7 +2,6 @@ package net.momirealms.sparrow.util;
 
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.teleport.Teleport;
-import net.momirealms.sparrow.teleport.TeleportPreparationResult;
 import net.momirealms.sparrow.teleport.TeleportResult;
 import net.momirealms.sparrow.teleport.position.Fixed;
 import org.bukkit.Location;
@@ -26,11 +25,6 @@ public final class EntityUtils {
                         .server(ServerConfig.serverId())
                         .position(new Fixed(WorldLocation.from(location)))
                         .commit(player)
-                        .result()
-                        .thenCompose(result -> switch (result) {
-                            case TeleportPreparationResult.Success success -> success.accept();
-                            case TeleportPreparationResult.Fail fail -> CompletableFuture.completedFuture(new TeleportResult.Fail(fail.reason()));
-                        })
                         .thenApply(result -> result instanceof TeleportResult.Success);
             }
             return entity.teleportAsync(location, TeleportCause.PLUGIN);

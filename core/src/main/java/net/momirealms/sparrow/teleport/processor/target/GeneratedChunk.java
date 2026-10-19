@@ -7,7 +7,6 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.teleport.TeleportContext;
 import net.momirealms.sparrow.util.SparrowKey;
-import net.momirealms.sparrow.util.VersionHelper;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.CraftWorld;
@@ -41,11 +40,13 @@ public record GeneratedChunk() implements PositionProcessor {
         Location resolved = location.resolve();
         if (resolved == null) return CompletableFuture.completedFuture(new Result.Reject(MessageConstants.TELEPORT_REJECTED_INVALID));
         ServerChunkCache chunks = ((CraftWorld) resolved.getWorld()).getHandle().getChunkSource();
+        // 方块坐标右移 4 位就是区块坐标
         int x = resolved.getBlockX() >> 4;
         int z = resolved.getBlockZ() >> 4;
-        boolean loaded = VersionHelper.hasPaperPatch ? chunks.getChunkAtIfLoadedImmediately(x, z) != null : chunks.getChunkNow(x, z) != null;
+        // 已经加载的区块一定生成完毕了
+        boolean loaded = chunks.getChunkAtIfLoadedImmediately(x, z) != null;
         if (loaded) return CompletableFuture.completedFuture(Result.Accept.INSTANCE);
-        // 异步读取区域文件中的保存状态, FULL 表示已完成生成
+        // 异步读取区域文件里保存的状态, FULL 表示已经生成完毕. 文件里没有这个区块, 就是从来没生成过
         return chunks.chunkMap.read(new ChunkPos(x, z))
                 .thenApply(data -> {
                     boolean generated = data.isPresent() && data.get().read("Status", ChunkStatus.CODEC).orElse(ChunkStatus.EMPTY) == ChunkStatus.FULL;

@@ -18,8 +18,8 @@ import java.util.concurrent.CompletableFuture;
 public final class PlayerPos implements TeleportPosition {
     public static final SparrowKey TYPE = SparrowKey.sparrow("player");
 
-    private final @Nullable UUID playerId;
-    private final @Nullable String playerName;
+    private final @Nullable UUID playerId;     // 目标玩家的 UUID, 用名字指定时为 null
+    private final @Nullable String playerName; // 目标玩家的名字, 用 UUID 指定时为 null
 
     public PlayerPos(@NotNull UUID playerId) {
         this.playerId = playerId;
@@ -67,14 +67,15 @@ public final class PlayerPos implements TeleportPosition {
         SparrowPlugin plugin = SparrowPlugin.instance();
         BukkitSparrowPlayer target;
         if (this.playerId != null) {
-            target = plugin.playerManager().getPlayer(this.playerId);
+            target = plugin.playerManager().getOnlinePlayer(this.playerId);
         } else {
             Player player = Bukkit.getPlayerExact(this.playerName);
-            target = player == null ? null : plugin.playerManager().getPlayer(player);
+            target = player == null ? null : plugin.playerManager().getOnlinePlayer(player);
         }
+        // 在异步线程上直接读坐标, 可能比对方最新的位置晚一点点, 对传送来说足够了
         Result result = target == null
                 ? new Result.Fail(MessageConstants.TELEPORT_REJECTED_PLAYER)
-                : new Result.Success(WorldLocation.from(target.platformPlayer().getLocation()));
+                : new Result.Success(WorldLocation.from(target.platformPlayer.getLocation()));
         return CompletableFuture.completedFuture(result);
     }
 }
