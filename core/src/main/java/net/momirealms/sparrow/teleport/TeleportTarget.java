@@ -23,6 +23,7 @@ import net.momirealms.sparrow.teleport.position.TeleportPosition;
 import net.momirealms.sparrow.teleport.processor.post.PostProcessor;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessorChain;
+import net.momirealms.sparrow.ui.Subscription;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.EventUtils;
 import net.momirealms.sparrow.util.ThrowableUtils;
@@ -33,7 +34,9 @@ import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -45,15 +48,17 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 final class TeleportTarget implements Listener {
+    private static final long LOCAL_EXECUTION_SECONDS = 15;
     private static final long ARRIVAL_SECONDS = 8; // 目标服等待玩家到达的秒数, 从收到执行请求时开始计时.
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final String serverId = ServerConfig.serverId();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, Arrival> arrivals = new ConcurrentChainedObject2ObjectHashTable<>();
+    private Subscription joinSubscription;
 
     void onEnable() {
         this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
-        this.plugin.playerManager().registerJoinListener(this::onJoin);
+        this.joinSubscription = this.plugin.playerManager().registerJoinListener(this::onJoin);
     }
 
     // 进行传送准备.
@@ -117,16 +122,47 @@ final class TeleportTarget implements Listener {
                 }, async);
     }
 
-    // 接受跨服传送请求, 登记玩家的到达, 然后发消息给代理把玩家切过来.
+    // 接受传送请求, 本地直接传, 非本地就登记玩家的到达, 然后发消息给代理把玩家切过来.
     @NotNull
     CompletableFuture<TeleportResult> acceptTeleportExecute(@NotNull TeleportExecuteRequest request) {
         UUID playerId = request.context().toNbt().getUUID(TeleportContext.PLAYER_UUID);
-        Arrival arrival = new Arrival(playerId, request.location(), request.context(), request.postProcessors());
+        BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(playerId);
+        Arrival arrival = player == null ? new Arrival(playerId, request.location(), request.context(), request.postProcessors()) : null;
         TeleportService service = this.plugin.teleportService();
         synchronized (service.stateLock()) {
             if (!service.running()) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_DISABLED));
-            if (this.arrivals.putIfAbsent(playerId, arrival) != null) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_BUSY));
+            if (arrival != null && this.arrivals.putIfAbsent(playerId, arrival) != null) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_BUSY));
         }
+        // 如果玩家在本地, 直接传送执行.
+        if (player != null) {
+            CompletableFuture<TeleportResult> result = new CompletableFuture<>();
+            CompletableFuture.completedFuture(request.location())
+                    .thenComposeAsync(location -> {
+                        Location target = location.resolve();
+                        if (target == null) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_REJECTED_INVALID));
+                        return player.platformPlayer.teleportAsync(target, TeleportCause.PLUGIN)
+                                .thenApply(moved -> moved ? new TeleportResult.Success() : new TeleportResult.Fail(MessageConstants.TELEPORT_FAILED));
+                    }, this.plugin.scheduler().async())
+                    .orTimeout(LOCAL_EXECUTION_SECONDS, TimeUnit.SECONDS)
+                    .whenComplete((outcome, error) -> {
+                        if (error != null) {
+                            Throwable cause = ThrowableUtils.unwrap(error);
+                            if (cause instanceof TimeoutException) {
+                                result.complete(new TeleportResult.Fail(MessageConstants.TELEPORT_EXECUTION_TIMEOUT));
+                            } else {
+                                result.completeExceptionally(cause);
+                            }
+                        } else if (outcome instanceof TeleportResult.Success) {
+                            if (result.complete(new TeleportResult.Success())) {
+                                this.runPost(player, request.context(), request.postProcessors());
+                            }
+                        } else {
+                            result.complete(outcome);
+                        }
+                    });
+            return result;
+        }
+        // 远程服务器
         arrival.start(request.sourceServer());
         return arrival.result;
     }
@@ -170,7 +206,7 @@ final class TeleportTarget implements Listener {
     }
 
     // 在异步线程上依次执行后处理器.
-    void runPost(BukkitSparrowPlayer player, TeleportContext context, List<PostProcessor> processors) {
+    private void runPost(BukkitSparrowPlayer player, TeleportContext context, List<PostProcessor> processors) {
         CompletableFuture.completedFuture(null)
                 .thenComposeAsync(ignored -> this.post(player, context, processors, 0), this.plugin.scheduler().async())
                 .exceptionally(error -> {
@@ -199,6 +235,11 @@ final class TeleportTarget implements Listener {
         for (int i = 0, size = arrivals.size(); i < size; i++) {
             arrivals.get(i).result.complete(new TeleportResult.Fail(MessageConstants.TELEPORT_DISABLED));
         }
+        if (this.joinSubscription != null) {
+            this.joinSubscription.close();
+            this.joinSubscription = null;
+        }
+        HandlerList.unregisterAll(this);
     }
 
     // 目标服上一次待到达的跨服传送. 代理确认切服成功, 并且玩家真的进了服才算到达.
@@ -264,7 +305,7 @@ final class TeleportTarget implements Listener {
                 if (!this.connected || this.arrived == null) return;
                 player = this.arrived;
             }
-            if (this.result.complete(new TeleportResult.Success())) {
+            if (result.complete(new TeleportResult.Success())) {
                 TeleportTarget.this.runPost(player, this.context, this.postProcessors);
             }
         }

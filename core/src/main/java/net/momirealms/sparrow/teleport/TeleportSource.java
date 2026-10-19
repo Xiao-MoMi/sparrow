@@ -13,8 +13,6 @@ import net.momirealms.sparrow.teleport.processor.post.PostProcessor;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
 import net.momirealms.sparrow.util.ThrowableUtils;
 import net.momirealms.sparrow.util.WorldLocation;
-import org.bukkit.Location;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,13 +21,10 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Supplier;
 
 final class TeleportSource {
-    private static final long LOCAL_EXECUTION_SECONDS = 15;
-
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final String serverId = ServerConfig.serverId();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, Submission> submissions = new ConcurrentChainedObject2ObjectHashTable<>();
@@ -274,41 +269,29 @@ final class TeleportSource {
             }
             if (busy) {
                 this.finish(new TeleportResult.Fail(MessageConstants.TELEPORT_BUSY), null);
-            } else if (this.server.equals(TeleportSource.this.serverId)) {
-                this.executeLocal();
             } else {
-                this.executeRemote();
+                this.execute();
             }
         }
 
-        // 本服执行. 在异步线程上调用 teleportAsync, 超过 LOCAL_EXECUTION_SECONDS 按执行超时失败; 成功后在本服跑后处理器.
-        private void executeLocal() {
-            CompletableFuture.completedFuture(this.location)
-                    .thenComposeAsync(location -> {
-                        // 把玩家移动到目的地.
-                        Location target = location.resolve();
-                        if (target == null) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_REJECTED_INVALID));
-                        return this.player.platformPlayer.teleportAsync(target, TeleportCause.PLUGIN)
-                                .thenApply(moved -> moved
-                                        ? new TeleportResult.Success()
-                                        : new TeleportResult.Fail(MessageConstants.TELEPORT_FAILED)
-                                );
-                    }, TeleportSource.this.plugin.scheduler().async())
-                    .orTimeout(LOCAL_EXECUTION_SECONDS, TimeUnit.SECONDS)
-                    // finish 返回 true 才说明成功是这一次给出的, 后处理器只在这时跑一次
-                    .whenComplete((outcome, error) -> {
-                        if (error != null) {
-                            this.fail(error, MessageConstants.TELEPORT_EXECUTION_TIMEOUT);
-                        } else if (this.finish(outcome, null) && outcome instanceof TeleportResult.Success) {
-                            TeleportSource.this.plugin.teleportService().target().runPost(this.player, this.context, this.postProcessors);
-                        }
-                    });
-        }
-
-        // 跨服执行. 把上下文, 坐标和后处理器发给目标服, 以目标服回复的结果结束传送.
-        private void executeRemote() {
+        private void execute() {
+            TeleportExecuteRequest request = new TeleportExecuteRequest(this.requestId, this.context, this.location, this.postProcessors);
+            request.setSourceServer(TeleportSource.this.serverId);
+            request.setTargetServer(this.server);
+            if (this.server.equals(TeleportSource.this.serverId)) {
+                TeleportSource.this.plugin.teleportService().target()
+                        .acceptTeleportExecute(request)
+                        .whenComplete((outcome, error) -> {
+                            if (error != null) {
+                                this.finish(null, ThrowableUtils.unwrap(error));
+                            } else {
+                                this.finish(outcome, null);
+                            }
+                        });
+                return;
+            }
             TeleportSource.this.plugin.messageBrokerManager().broker()
-                    .publishTwoWay(new TeleportExecuteRequest(this.requestId, this.context, this.location, this.postProcessors), this.server)
+                    .publishTwoWay(request, this.server)
                     .whenComplete((response, error) -> {
                         if (error != null) {
                             this.fail(error, MessageConstants.TELEPORT_TARGET_UNREACHABLE);
