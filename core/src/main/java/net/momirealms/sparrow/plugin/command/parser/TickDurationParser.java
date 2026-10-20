@@ -17,12 +17,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class TimeParser<C> implements ArgumentParser.FutureArgumentParser<C, Integer>, SuggestionProvider<C> {
+public final class TickDurationParser<C> implements ArgumentParser.FutureArgumentParser<C, Integer>, SuggestionProvider<C> {
     private static final Pattern PART = Pattern.compile("([0-9]+)([dhmst]?)");
 
     @NotNull
-    public static <C> ParserDescriptor<C, Integer> timeParser() {
-        return ParserDescriptor.of(new TimeParser<>(), Integer.class);
+    public static <C> ParserDescriptor<C, Integer> tickDurationParser() {
+        return ParserDescriptor.of(new TickDurationParser<>(), Integer.class);
     }
 
     @Override
@@ -34,13 +34,13 @@ public final class TimeParser<C> implements ArgumentParser.FutureArgumentParser<
         int end = 0;
         while (matcher.find()) {
             if (matcher.start() != end || (matcher.group(2).isEmpty() && (end != 0 || matcher.end() != value.length()))) {
-                return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
+                return ArgumentParseResult.failureFuture(new TickDurationParseException(value, context));
             }
             long amount;
             try {
                 amount = Long.parseLong(matcher.group(1));
             } catch (NumberFormatException exception) {
-                return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
+                return ArgumentParseResult.failureFuture(new TickDurationParseException(value, context));
             }
             int multiplier = switch (matcher.group(2)) {
                 case "d" -> 1728000;
@@ -50,13 +50,13 @@ public final class TimeParser<C> implements ArgumentParser.FutureArgumentParser<
                 default -> 1;
             };
             if (amount > (Integer.MAX_VALUE - ticks) / multiplier) {
-                return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
+                return ArgumentParseResult.failureFuture(new TickDurationParseException(value, context));
             }
             ticks += amount * multiplier;
             end = matcher.end();
         }
         if (end == 0 || end != value.length()) {
-            return ArgumentParseResult.failureFuture(new TimeParseException(value, context));
+            return ArgumentParseResult.failureFuture(new TickDurationParseException(value, context));
         }
         return ArgumentParseResult.successFuture((int) ticks);
     }
@@ -67,10 +67,10 @@ public final class TimeParser<C> implements ArgumentParser.FutureArgumentParser<
         return CompletableFuture.completedFuture(List.of("5s", "10s", "30s", "1m", "1m30s").stream().map(Suggestion::suggestion).toList());
     }
 
-    public static final class TimeParseException extends ParserException {
+    public static final class TickDurationParseException extends ParserException {
 
-        public TimeParseException(String input, CommandContext<?> context) {
-            super(TimeParser.class, context, Caption.of("argument.parse.failure.time"), CaptionVariable.of("input", input));
+        public TickDurationParseException(String input, CommandContext<?> context) {
+            super(TickDurationParser.class, context, Caption.of("argument.parse.failure.time"), CaptionVariable.of("input", input));
         }
     }
 }

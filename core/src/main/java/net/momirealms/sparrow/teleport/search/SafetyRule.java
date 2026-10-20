@@ -2,6 +2,7 @@ package net.momirealms.sparrow.teleport.search;
 
 import net.momirealms.sparrow.teleport.codec.TeleportCodec;
 import net.momirealms.sparrow.teleport.codec.TeleportCodecRegistry;
+import net.momirealms.sparrow.util.SparrowKey;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 
@@ -9,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 public interface SafetyRule extends TeleportCodec {
     TeleportCodecRegistry<SafetyRule> TYPES = new TeleportCodecRegistry<>() {{
-        this.register(PhysicalSafety.TYPE, PhysicalSafety::fromNbt);
+        this.register(SparrowKey.sparrow(PhysicalSafety.TYPE_ID), PhysicalSafety::fromNbt);
     }};
 
     /**

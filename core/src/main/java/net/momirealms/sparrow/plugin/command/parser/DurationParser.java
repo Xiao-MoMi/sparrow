@@ -17,7 +17,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-// 按现实时间解析的正时长, 写法见 DurationUtils.parsePositive
 public final class DurationParser<C> implements ArgumentParser<C, Duration>, SuggestionProvider<C> {
     private static final List<Suggestion> SUGGESTIONS = List.of("1h", "1d", "7d", "30d", "1y").stream().map(Suggestion::suggestion).toList();
 

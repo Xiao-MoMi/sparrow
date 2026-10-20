@@ -49,7 +49,8 @@ import java.util.concurrent.CompletableFuture;
  * @param allowNetherRoof 是否允许进入有顶世界的逻辑高度上方, 仍受世界实际高度限制
  */
 public record PhysicalSafety(@NotNull WaterPolicy water, boolean leafSupport, boolean allowNetherRoof) implements SafetyRule {
-    public static final SparrowKey TYPE = SparrowKey.sparrow("physical-safety"); // 内置物理安全规则的编解码类型
+    static final String TYPE_ID = "physical-safety"; // 编译期常量, 注册表读取它时无需先初始化 PhysicalSafety
+    public static final SparrowKey TYPE = SparrowKey.sparrow(TYPE_ID); // 内置物理安全规则的编解码类型
     private static final double COLLISION_EPSILON = 1.0E-7; // 身体边界的碰撞容差, 单位为方块
     private static final double SUPPORT_DEPTH = 1.0E-5;     // 脚底向下探测支撑的薄层厚度, 单位为方块
 

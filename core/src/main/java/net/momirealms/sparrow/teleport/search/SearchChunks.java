@@ -19,6 +19,7 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.proxy.minecraft.world.level.ChunkPosProxy;
 import net.momirealms.sparrow.util.Dimensions;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.CraftChunk;
@@ -28,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 public final class SearchChunks implements CollisionGetter {
     private static final CompletableFuture<Boolean> READY = CompletableFuture.completedFuture(true);        // 范围内区块均已可用
@@ -83,7 +83,7 @@ public final class SearchChunks implements CollisionGetter {
         // 已完成的正常结果直接读取, 其余任务统一等待, 包括需要向上传播的异常结果.
         for (int chunkX = minX; chunkX <= maxX; chunkX++) {
             for (int chunkZ = minZ; chunkZ <= maxZ; chunkZ++) {
-                long key = ChunkPos.asLong(chunkX, chunkZ);
+                long key = ChunkPosProxy.INSTANCE.asLong(chunkX, chunkZ);
                 CompletableFuture<@Nullable LevelChunk> chunk = this.chunks.get(key);
                 if (chunk == null) {
                     chunk = this.load(chunkX, chunkZ);
@@ -177,7 +177,7 @@ public final class SearchChunks implements CollisionGetter {
     @Nullable
     @Override
     public LevelChunk getChunkForCollisions(int x, int z) {
-        CompletableFuture<@Nullable LevelChunk> chunk = this.chunks.get(ChunkPos.asLong(x, z));
+        CompletableFuture<@Nullable LevelChunk> chunk = this.chunks.get(ChunkPosProxy.INSTANCE.asLong(x, z));
         return chunk == null ? null : chunk.getNow(null);
     }
 
