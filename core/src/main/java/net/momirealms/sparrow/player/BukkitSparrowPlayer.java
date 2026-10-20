@@ -3,7 +3,10 @@ package net.momirealms.sparrow.player;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.phys.Vec3;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
+import net.momirealms.sparrow.util.ServerLocation;
+import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Item;
@@ -65,5 +68,34 @@ public final class BukkitSparrowPlayer extends OfflineSparrowPlayer {
     public void sendDebugMarker(int x, int y, int z) {
         BlockPos position = new BlockPos(x, y, z);
         this.connection.sendPacket(new ClientboundGameTestHighlightPosPacket(position, position));
+    }
+
+    @NotNull
+    public WorldLocation getWorldLocation() {
+        ServerPlayer player = this.nmsPlayer;
+        Vec3 position = player.position();
+        return new WorldLocation(
+                player.level().getWorld().getName(),
+                position.x,
+                position.y,
+                position.z,
+                player.getBukkitYaw(),
+                player.getXRot()
+        );
+    }
+
+    @NotNull
+    public ServerLocation getServerLocation() {
+        ServerPlayer player = this.nmsPlayer;
+        Vec3 position = player.position();
+        return new ServerLocation(
+                this.getCurrentServerId(),
+                player.level().getWorld().getName(),
+                position.x,
+                position.y,
+                position.z,
+                player.getBukkitYaw(),
+                player.getXRot()
+        );
     }
 }
