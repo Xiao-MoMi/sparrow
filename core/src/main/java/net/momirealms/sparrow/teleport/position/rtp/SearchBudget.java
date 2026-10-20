@@ -43,6 +43,15 @@ final class SearchBudget {
     }
 
     /**
+     * 判断能否开始检查下一列, 供整轮搜索在取出附近坐标前检查预算.
+     *
+     * @return 还有检查额度, 尚未超时且未停止时为 true
+     */
+    boolean canCheck() {
+        return this.active() && this.checks < this.maxChecks;
+    }
+
+    /**
      * 判断已经开始的工作能否继续, 包括最后一次计数对应的规则链.
      * 是否还有额度开始下一项工作, 分别由 tryAttempt 和 tryCheck 判断.
      *

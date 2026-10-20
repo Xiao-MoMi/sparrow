@@ -2,7 +2,8 @@ package net.momirealms.sparrow.teleport.position.rtp;
 
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.ListTag;
-import net.momirealms.sparrow.teleport.codec.TeleportCodec;
+import net.momirealms.sparrow.teleport.TeleportContext;
+import net.momirealms.sparrow.teleport.position.TeleportPosition;
 import net.momirealms.sparrow.teleport.search.ChunkPolicy;
 import net.momirealms.sparrow.teleport.search.SafetyRule;
 import net.momirealms.sparrow.util.SparrowKey;
@@ -14,9 +15,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 /**
- * 保存一次 RTP 的多世界区域, 扫描选项, 安全规则和共享预算, 提供配置构建与参数编解码.
+ * 在目标服的指定区域内随机寻找落脚点, 逐条检查所选规则, 找到后作为传送目的地返回.
  * 区域和规则列表会复制为不可变列表, 同一份配置可以用于多次请求.
  * 每个世界对应一个 RtpArea, 同世界的多个矩形放入该区域的矩形列表, 高度范围由各矩形独立指定.
  *
@@ -34,6 +36,7 @@ import java.util.Set;
  *         .maxChecks(10_000)
  *         .timeout(Duration.ofSeconds(9))
  *         .build();
+ * // 将 settings 传给 Teleport.builder().position(settings).
  * }</pre>
  *
  * @param areas 非空的区域列表, 每个世界只出现一次, 所有世界属于同一个目标服务器
@@ -62,7 +65,7 @@ public record RTPPos(
         int maxAttempts,
         int maxChecks,
         @NotNull Duration timeout
-) implements TeleportCodec {
+) implements TeleportPosition {
     public static final SparrowKey TYPE = SparrowKey.sparrow("rtp"); // 随机目的地配置的类型标识
 
     public RTPPos {
@@ -140,6 +143,12 @@ public record RTPPos(
         tag.putInt("max_checks", this.maxChecks);
         tag.putLong("timeout_nanos", this.timeout.toNanos());
         return tag;
+    }
+
+    @NotNull
+    @Override
+    public CompletableFuture<Result> resolve(@NotNull TeleportContext context) {
+        return new RtpSearch(context, this).find();
     }
 
     public static final class Builder {
