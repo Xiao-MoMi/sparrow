@@ -18,27 +18,14 @@ public final class ServerConfig {
     private static final String CONFIG_FILE = "server.yml";
     private static volatile ConfigDefinition config;
 
-    private final Path configFilePath;
-    private final YamlMapper<ConfigDefinition> configMapper;
-    private String startupServerId;
-
     ServerConfig(@NotNull Path dataFolder, @NotNull SparrowYaml sparrowYaml) {
-        this.configFilePath = dataFolder.resolve(CONFIG_FILE);
-        this.configMapper = YamlMapperFactory.builder()
+        Path configFilePath = dataFolder.resolve(CONFIG_FILE);
+        YamlMapper<ConfigDefinition> configMapper = YamlMapperFactory.builder()
                 .sparrowYaml(sparrowYaml)
                 .build()
                 .create(ConfigDefinition.class, ConfigDefinition::new);
-    }
-
-    void reload() {
         try {
-            ConfigDefinition loaded = this.configMapper.load(this.configFilePath).value();
-            // 心跳和消息代理在启动时占用了身份, 运行期间沿用启动时的 server-id
-            if (this.startupServerId != null) {
-                loaded.serverId = this.startupServerId;
-            } else {
-                this.startupServerId = loaded.serverId;
-            }
+            ConfigDefinition loaded = configMapper.load(configFilePath).value();
             loaded.tags = Set.copyOf(loaded.tags);
             config = loaded;
         } catch (IOException exception) {
@@ -78,8 +65,8 @@ public final class ServerConfig {
         })
         String serverId = "";
 
-        @Comment("Tags used to group this server. Matching is case-sensitive.")
-        @Comment(lang = "zh", value = "服务器分组标签, 按原字符串匹配, 区分大小写.")
+        @Comment("Tags used to group this server. Matching is case-sensitive. Changes take effect after restart.")
+        @Comment(lang = "zh", value = "服务器分组标签, 按原字符串匹配, 区分大小写. 修改后重启服务器生效.")
         Set<String> tags = Set.of();
     }
 }

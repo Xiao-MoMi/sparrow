@@ -30,7 +30,6 @@ public class ConfigurationManager {
         this.serverConfig = new ServerConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.commandsConfig = new CommandsConfig(plugin.dataFolderPath(), this.sparrowYaml);
         this.pluginConfig.reload();
-        this.serverConfig.reload();
     }
 
     /**
@@ -38,7 +37,6 @@ public class ConfigurationManager {
      */
     public void reload() {
         this.pluginConfig.reload();
-        this.serverConfig.reload();
         this.plugin.serverManager().reload();
     }
 

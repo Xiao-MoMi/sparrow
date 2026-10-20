@@ -1,9 +1,10 @@
-package net.momirealms.sparrow.redis.message;
+package net.momirealms.sparrow.player.message;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.FriendlyByteBuf;
-import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
@@ -16,24 +17,20 @@ public final class BroadcastMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageCodec<FriendlyByteBuf, BroadcastMessage> CODEC = RedisMessage.codec(BroadcastMessage::write, BroadcastMessage::new);
 
     private final String message;
-    private final boolean legacy;
 
-    public BroadcastMessage(@NotNull String message, boolean legacy) {
+    public BroadcastMessage(@NotNull String message) {
         this.message = message;
-        this.legacy = legacy;
     }
 
     private BroadcastMessage(FriendlyByteBuf buffer) {
         super(buffer);
         this.message = buffer.readUtf();
-        this.legacy = buffer.readBoolean();
     }
 
     @Override
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
         buffer.writeUtf(this.message);
-        buffer.writeBoolean(this.legacy);
     }
 
     @Override
@@ -44,9 +41,8 @@ public final class BroadcastMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        SparrowPlugin plugin = SparrowPlugin.instance();
-        for (BukkitSparrowPlayer receiver : plugin.playerManager().getOnlinePlayers()) {
-            Component component = AdventureHelper.miniMessage(this.message, this.legacy, receiver.platformPlayer());
+        for (BukkitSparrowPlayer receiver : SparrowPlugin.instance().playerManager().getOnlinePlayers()) {
+            Component component = AdventureHelper.miniMessage().deserialize(this.message, MessageContext.of(receiver.platformPlayer));
             receiver.sendMessage(component);
         }
     }
