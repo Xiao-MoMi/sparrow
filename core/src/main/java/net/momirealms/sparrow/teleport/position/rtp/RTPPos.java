@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
  *         .rectangle(0, 0, 999, 999)
  *         .rectangle(1500, -500, 2499, 499, 60, 100)
  *         .build();
- * RTPPos settings = RTPPos.builder()
+ * TeleportPosition settings = TeleportPosition.rtpBuilder()
  *         .areas(area)
  *         .nearbyColumns(2, 4, 4)
  *         .rules(physical, land)

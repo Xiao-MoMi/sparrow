@@ -15,24 +15,24 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class PlayerPos implements TeleportPosition {
-    public static final SparrowKey TYPE = SparrowKey.sparrow("player");
+final class PlayerPos implements TeleportPosition {
+    static final SparrowKey TYPE = SparrowKey.sparrow("player");
 
     private final @Nullable UUID playerId;     // 目标玩家的 UUID, 用名字指定时为 null
     private final @Nullable String playerName; // 目标玩家的名字, 用 UUID 指定时为 null
 
-    public PlayerPos(@NotNull UUID playerId) {
+    PlayerPos(@NotNull UUID playerId) {
         this.playerId = playerId;
         this.playerName = null;
     }
 
-    public PlayerPos(@NotNull String playerName) {
+    PlayerPos(@NotNull String playerName) {
         this.playerId = null;
         this.playerName = playerName;
     }
 
     @NotNull
-    public static PlayerPos fromNbt(@NotNull CompoundTag tag) {
+    static PlayerPos fromNbt(@NotNull CompoundTag tag) {
         if (tag.containsKey("uuid")) {
             UUID playerId = tag.getUUID("uuid");
             if (playerId == null) throw new IllegalArgumentException("Player position requires a valid UUID");

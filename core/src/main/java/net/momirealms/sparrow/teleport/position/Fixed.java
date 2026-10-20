@@ -8,11 +8,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public record Fixed(@NotNull WorldLocation location) implements TeleportPosition {
-    public static final SparrowKey TYPE = SparrowKey.sparrow("fixed");
+record Fixed(@NotNull WorldLocation location) implements TeleportPosition {
+    static final SparrowKey TYPE = SparrowKey.sparrow("fixed");
 
     @NotNull
-    public static Fixed fromNbt(@NotNull CompoundTag tag) {
+    static Fixed fromNbt(@NotNull CompoundTag tag) {
         return new Fixed(WorldLocation.fromNbt(tag));
     }
 

@@ -31,7 +31,7 @@ final class TeleportSource {
     private final ConcurrentChainedObject2ObjectHashTable<UUID, Submission> executions = new ConcurrentChainedObject2ObjectHashTable<>();
 
     // 提交一次传送
-    TeleportSubmission submit(Teleport teleport, @Nullable BukkitSparrowPlayer player) {
+    TeleportSubmission commit(Teleport teleport, @Nullable BukkitSparrowPlayer player) {
         // 必填参数先取出来, 缺了就直接抛出
         Supplier<CompletionStage<String>> server = teleport.getServer();
         TeleportPosition position = teleport.getPosition();
@@ -164,7 +164,7 @@ final class TeleportSource {
 
         @NotNull
         @Override
-        public CompletableFuture<TeleportPreparationResult> prepared() {
+        public CompletableFuture<TeleportPreparationResult> preparationResult() {
             return this.prepared;
         }
 
@@ -374,12 +374,12 @@ final class TeleportSource {
      * 提交时就被拒绝的传送. 准备结果和最终结果在创建时就已经是 Fail.
      *
      * @param requestId 随机生成的请求 ID
-     * @param prepared 已经完成的准备结果
+     * @param preparationResult 已经完成的准备结果
      * @param result 已经完成的最终结果
      */
     private record Rejected(
             @NotNull UUID requestId,
-            @NotNull CompletableFuture<TeleportPreparationResult> prepared,
+            @NotNull CompletableFuture<TeleportPreparationResult> preparationResult,
             @NotNull CompletableFuture<TeleportResult> result
     ) implements TeleportSubmission {
 

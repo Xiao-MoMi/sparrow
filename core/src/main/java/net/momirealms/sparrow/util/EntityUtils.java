@@ -3,7 +3,7 @@ package net.momirealms.sparrow.util;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.teleport.Teleport;
 import net.momirealms.sparrow.teleport.TeleportResult;
-import net.momirealms.sparrow.teleport.position.Fixed;
+import net.momirealms.sparrow.teleport.position.TeleportPosition;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -23,8 +23,9 @@ public final class EntityUtils {
             if (entity instanceof Player player) {
                 return Teleport.builder()
                         .server(ServerConfig.serverId())
-                        .position(new Fixed(WorldLocation.from(location)))
+                        .position(TeleportPosition.ofPos(WorldLocation.from(location)))
                         .commit(player)
+                        .result()
                         .thenApply(result -> result instanceof TeleportResult.Success);
             }
             return entity.teleportAsync(location, TeleportCause.PLUGIN);

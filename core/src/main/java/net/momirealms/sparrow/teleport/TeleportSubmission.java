@@ -1,9 +1,12 @@
 package net.momirealms.sparrow.teleport;
 
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.util.ThrowableUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 public interface TeleportSubmission {
 
@@ -21,7 +24,7 @@ public interface TeleportSubmission {
      * @return 准备结果的 future
      */
     @NotNull
-    CompletableFuture<TeleportPreparationResult> prepared();
+    CompletableFuture<TeleportPreparationResult> preparationResult();
 
     /**
      * 返回传送的最终结果, 出现程序错误时以异常完成, 其余情况都以 {@link TeleportResult} 正常完成.
@@ -30,6 +33,49 @@ public interface TeleportSubmission {
      */
     @NotNull
     CompletableFuture<TeleportResult> result();
+
+    @NotNull
+    default TeleportSubmission onResult(@NotNull Consumer<TeleportResult> action) {
+        this.result().whenComplete((result, error) -> {
+            if (error == null) {
+                try {
+                    action.accept(result);
+                } catch (Throwable t) {
+                    SparrowPlugin.instance().logger().warn("Teleport " + this.requestId() + " onResult callback failed", t);
+                }
+            }
+        });
+        return this;
+    }
+
+    @NotNull
+    default TeleportSubmission onPrepared(@NotNull Consumer<TeleportPreparationResult.Success> action) {
+        this.preparationResult().whenComplete((prepared, error) -> {
+            if (error == null && prepared instanceof TeleportPreparationResult.Success success) {
+                try {
+                    action.accept(success);
+                } catch (Throwable t) {
+                    SparrowPlugin.instance().logger().warn("Teleport " + this.requestId() + " onPrepared callback failed", t);
+                }
+            }
+        });
+        return this;
+    }
+
+    @NotNull
+    default TeleportSubmission onError(@NotNull Consumer<Throwable> action) {
+        this.result().whenComplete((result, error) -> {
+            if (error != null) {
+                Throwable unwrap = ThrowableUtils.unwrap(error);
+                try {
+                    action.accept(unwrap);
+                } catch (Throwable t) {
+                    SparrowPlugin.instance().logger().warn("Teleport " + this.requestId() + " onError callback failed", t);
+                }
+            }
+        });
+        return this;
+    }
 
     /**
      * 在执行开始前取消传送, 最终结果为 {@code Fail(TELEPORT_CANCELLED)}.

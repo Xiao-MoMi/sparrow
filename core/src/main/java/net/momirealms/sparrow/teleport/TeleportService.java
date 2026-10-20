@@ -1,19 +1,16 @@
 package net.momirealms.sparrow.teleport;
 
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.teleport.message.TeleportExecuteRequest;
 import net.momirealms.sparrow.teleport.message.TeleportPrepareRequest;
 import net.momirealms.sparrow.teleport.position.TeleportPosition;
 import net.momirealms.sparrow.teleport.processor.post.Invulnerability;
 import net.momirealms.sparrow.ui.Subscription;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.Internal
@@ -31,22 +28,6 @@ public final class TeleportService {
         }
         this.target.onEnable();
         this.quitSubscription = this.plugin.playerManager().registerQuitListener(Invulnerability::clear);
-    }
-
-    // 提交传送请求
-    @NotNull
-    TeleportSubmission submit(@NotNull Teleport teleport, @NotNull Player player) {
-        return this.source.submit(teleport, this.plugin.playerManager().getOnlinePlayer(player));
-    }
-
-    @NotNull
-    TeleportSubmission submit(@NotNull Teleport teleport, @NotNull SparrowPlayer player) {
-        BukkitSparrowPlayer local = this.plugin.playerManager().getOnlinePlayer(player.uniqueId());
-        return this.source.submit(teleport, local == player ? local : null);
-    }
-
-    void forget(@NotNull TeleportSubmission submission, @NotNull UUID playerId) {
-        this.source.forget(submission, playerId);
     }
 
     // 处理传送请求消息
@@ -78,6 +59,11 @@ public final class TeleportService {
         for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
             Invulnerability.clear(player);
         }
+    }
+
+    @NotNull
+    TeleportSource source() {
+        return this.source;
     }
 
     @NotNull

@@ -3,11 +3,9 @@ package net.momirealms.sparrow.teleport;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.teleport.position.Fixed;
 import net.momirealms.sparrow.teleport.position.TeleportPosition;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
 import net.momirealms.sparrow.teleport.processor.post.PostProcessor;
-import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,11 +20,10 @@ import java.util.function.Supplier;
  * 传送的构建器, 也是整个传送 API 的入口.
  *
  * <p>用 {@link #builder()} 拿到构建器后, 设置目标服务器和目的地, 按需挂上处理器, 上下文和执行条件,
- * 最后选一种方式提交. 三种提交方式的区别在于调用方能拿到多少信息.
+ * 最后调用 commit 取得句柄, 或调用 commitForget 忽略业务结果.
  * <ul>
- *     <li>{@link #commit} 返回最终结果, 大多数调用方用它就够了.</li>
+ *     <li>{@link #commit} 返回 {@link TeleportSubmission}, 可以链式监听准备和最终结果, 或者在执行前取消.</li>
  *     <li>{@link #commitForget} 发起后不再理会结果, 只把程序异常打印到控制台.</li>
- *     <li>{@link #submit} 返回 {@link TeleportSubmission}, 可以额外观察准备结果, 或者在执行前取消.</li>
  * </ul>
  *
  * <pre>{@code
@@ -35,9 +32,8 @@ import java.util.function.Supplier;
  *         .position("world", 0.5, 64, 0.5)
  *         .postProcessor(new PlaySound())
  *         .commit(sparrowPlayer)
- *         .thenAccept(result -> {
- *             if (result instanceof TeleportResult.Fail fail) sparrowPlayer.sendMessage(fail.reason());
- *         });
+ *         .onResult(result -> result.ifFail(fail -> sparrowPlayer.sendMessage(fail.reason())))
+ *         .onError(error -> SparrowPlugin.instance().logger().warn("Teleport failed", error));
  * }</pre>
  *
  * <p><strong>一个构建器只提交一次.</strong> 提交时上下文对象和执行条件会直接交给这次传送使用.
@@ -98,7 +94,7 @@ public final class Teleport {
 
     @NotNull
     public Teleport position(@NotNull String world, double x, double y, double z, float yaw, float pitch) {
-        return this.position(new Fixed(new WorldLocation(world, x, y, z, yaw, pitch)));
+        return this.position(TeleportPosition.ofPos(world, x, y, z, yaw, pitch));
     }
 
     @NotNull
@@ -164,32 +160,16 @@ public final class Teleport {
     }
 
     /**
-     * 提交传送, 只关心最终结果.
-     *
-     * @param player 要传送的玩家, 不在本服在线时结果直接是 {@code Fail(TELEPORT_UNAVAILABLE)}
-     * @return 最终结果, 等同于 {@code submit(player).result()}
-     */
-    @NotNull
-    public CompletableFuture<TeleportResult> commit(@NotNull Player player) {
-        return this.submit(player).result();
-    }
-
-    @NotNull
-    public CompletableFuture<TeleportResult> commit(@NotNull SparrowPlayer player) {
-        return this.submit(player).result();
-    }
-
-    /**
      * 提交传送后不再理会结果. 业务上的失败, 比如目标服下线, 都静默结束.
      *
      * @param player 要传送的玩家
      */
     public void commitForget(@NotNull Player player) {
-        SparrowPlugin.instance().teleportService().forget(this.submit(player), player.getUniqueId());
+        SparrowPlugin.instance().teleportService().source().forget(this.commit(player), player.getUniqueId());
     }
 
     public void commitForget(@NotNull SparrowPlayer player) {
-        SparrowPlugin.instance().teleportService().forget(this.submit(player), player.uniqueId());
+        SparrowPlugin.instance().teleportService().source().forget(this.commit(player), player.uniqueId());
     }
 
     /**
@@ -200,13 +180,17 @@ public final class Teleport {
      * @throws IllegalStateException 没有设置目标服务器或目的地时
      */
     @NotNull
-    public TeleportSubmission submit(@NotNull Player player) {
-        return SparrowPlugin.instance().teleportService().submit(this, player);
+    public TeleportSubmission commit(@NotNull Player player) {
+        SparrowPlugin plugin = SparrowPlugin.instance();
+        BukkitSparrowPlayer local = plugin.playerManager().getOnlinePlayer(player);
+        return plugin.teleportService().source().commit(this, local);
     }
 
     @NotNull
-    public TeleportSubmission submit(@NotNull SparrowPlayer player) {
-        return SparrowPlugin.instance().teleportService().submit(this, player);
+    public TeleportSubmission commit(@NotNull SparrowPlayer player) {
+        SparrowPlugin plugin = SparrowPlugin.instance();
+        BukkitSparrowPlayer local = plugin.playerManager().getOnlinePlayer(player.uniqueId());
+        return plugin.teleportService().source().commit(this, local == player ? local : null);
     }
 
     @NotNull
