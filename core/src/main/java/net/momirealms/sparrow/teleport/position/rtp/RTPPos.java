@@ -37,6 +37,7 @@ import java.util.Set;
  * }</pre>
  *
  * @param areas 非空的区域列表, 每个世界只出现一次, 所有世界属于同一个目标服务器
+ * @param scanMode 列扫描方式, AUTO 根据当前目标世界选择地表或从上往下寻找空腔
  * @param ignoreLeaves 扫描时是否跳过树叶并继续寻找下方地面
  * @param stopAtFluid 扫描路径遇到流体时是否放弃当前列
  * @param nearbyRadius 附近列的水平半径, 单位为方块, 0 表示不搜索附近列
@@ -50,6 +51,7 @@ import java.util.Set;
  */
 public record RTPPos(
         @NotNull List<RtpArea> areas,
+        @NotNull ScanMode scanMode,
         boolean ignoreLeaves,
         boolean stopAtFluid,
         int nearbyRadius,
@@ -97,6 +99,7 @@ public record RTPPos(
         }
         return new RTPPos(
                 areas,
+                ScanMode.valueOf(tag.getString("scan_mode", "AUTO")),
                 tag.getBoolean("ignore_leaves", true),
                 tag.getBoolean("stop_at_fluid", true),
                 tag.getInt("nearby_radius", -1),
@@ -125,6 +128,7 @@ public record RTPPos(
             areas.add(this.areas.get(index).toNbt());
         }
         tag.put("areas", areas);
+        tag.putString("scan_mode", this.scanMode.name());
         tag.putBoolean("ignore_leaves", this.ignoreLeaves);
         tag.putBoolean("stop_at_fluid", this.stopAtFluid);
         tag.putInt("nearby_radius", this.nearbyRadius);
@@ -140,6 +144,7 @@ public record RTPPos(
 
     public static final class Builder {
         private @Nullable List<RtpArea> areas;     // 每个世界一项区域配置, null 表示未填写
+        private ScanMode scanMode = ScanMode.AUTO; // 默认按当前世界是否有顶选择扫描方式
         private boolean ignoreLeaves = true;      // 默认穿过树叶寻找地面
         private boolean stopAtFluid = true;       // 默认在扫描路径遇到流体时放弃当前列
         private @Nullable Integer nearbyRadius;  // 附近列水平半径, null 表示整组附近范围未填写
@@ -164,6 +169,19 @@ public record RTPPos(
         @NotNull
         public Builder areas(@NotNull RtpArea... areas) {
             this.areas = List.of(areas);
+            return this;
+        }
+
+        /**
+         * 指定从哪个方向寻找落脚面, 覆盖默认的 AUTO.
+         * AUTO 在普通世界找露天地表, 在下界这类有顶世界从逻辑顶层以下向下找空腔.
+         *
+         * @param scanMode 扫描方式, 对本次 RTP 的各个世界生效
+         * @return 此构建器
+         */
+        @NotNull
+        public Builder scanMode(@NotNull ScanMode scanMode) {
+            this.scanMode = scanMode;
             return this;
         }
 
@@ -283,6 +301,7 @@ public record RTPPos(
             if (this.timeout == null) throw new IllegalStateException("RTP timeout is not specified");
             return new RTPPos(
                     this.areas,
+                    this.scanMode,
                     this.ignoreLeaves,
                     this.stopAtFluid,
                     this.nearbyRadius,
@@ -295,5 +314,15 @@ public record RTPPos(
                     this.timeout
             );
         }
+    }
+
+    /**
+     * 决定一列从哪里开始寻找落脚面.
+     */
+    public enum ScanMode {
+        AUTO,             // 有顶世界选 CAVITY_TOP_DOWN, 其他世界选 SURFACE
+        SURFACE,          // 从地表上方往下找最上面的落脚面, 使用实际世界高度
+        CAVITY_TOP_DOWN,  // 从允许范围上端向下穿过岩层, 找到空腔后寻找其地板; 有顶世界还受逻辑顶层限制
+        CAVITY_BOTTOM_UP  // 从允许范围下端向上穿过岩层, 寻找第一段有地板的空腔
     }
 }
