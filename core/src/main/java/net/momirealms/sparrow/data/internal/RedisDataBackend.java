@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,27 +27,47 @@ import java.util.concurrent.TimeUnit;
 // 每个 key 一个 Hash, 字段 "" 保存 key 的版本, 同时表示这个 key 已从数据库装入
 final class RedisDataBackend<K, E, V> {
     private static final byte[] EMPTY = new byte[0];
-    private static final String READ = "return redis.call('HGETALL', KEYS[1])";
-    private static final String INITIALIZE = """
+    private static final int RENEW_BATCH_SIZE = 256;
+    private static final String EXPIRY = """
+            local function touch(entries, dirty, saving, ttl)
+                if ttl == '0' or redis.call('EXISTS', dirty) == 1 or redis.call('EXISTS', saving) == 1 then
+                    redis.call('PERSIST', entries)
+                else
+                    redis.call('PEXPIRE', entries, ttl)
+                end
+            end
+            """;
+    private static final String READ = EXPIRY + """
+            touch(KEYS[1], KEYS[3], KEYS[4], ARGV[1])
+            return redis.call('HGETALL', KEYS[1])
+            """;
+    private static final String INITIALIZE = EXPIRY + """
             if redis.call('HEXISTS', KEYS[1], '') == 0 then
-                for i = 1, #ARGV, 2 do
+                for i = 2, #ARGV, 2 do
                     redis.call('HSET', KEYS[1], ARGV[i], ARGV[i + 1])
                 end
                 redis.call('HSET', KEYS[1], '', '0')
             end
+            touch(KEYS[1], KEYS[3], KEYS[4], ARGV[1])
             return redis.call('HGETALL', KEYS[1])
             """;
-    // ARGV 依次为期望版本 (空表示不比较), 频道, 通知前缀, 编码后的 key, 写入条数, 写入的条目与值, 删除的条目
-    private static final String COMMIT = """
+    // ARGV 依次为期望版本, 频道, 通知前缀, 编码后的 key, 写入条数, TTL, 写入的条目与值, 删除的条目
+    private static final String COMMIT = EXPIRY + """
             local version = redis.call('HGET', KEYS[1], '')
+            if not version then
+                return redis.error_reply('Data entries are not loaded')
+            end
             if ARGV[1] ~= '' and version ~= ARGV[1] then
+                touch(KEYS[1], KEYS[3], KEYS[4], ARGV[6])
                 return {0, redis.call('HGETALL', KEYS[1])}
             end
-            if #ARGV == 5 then
+            if #ARGV == 6 then
+                touch(KEYS[1], KEYS[3], KEYS[4], ARGV[6])
                 return {1, version}
             end
-            local puts = 5 + 2 * tonumber(ARGV[5])
-            for i = 6, puts, 2 do
+            redis.call('PERSIST', KEYS[1])
+            local puts = 6 + 2 * tonumber(ARGV[5])
+            for i = 7, puts, 2 do
                 redis.call('HSET', KEYS[1], ARGV[i], ARGV[i + 1])
                 redis.call('SADD', KEYS[3], ARGV[i])
             end
@@ -61,7 +82,8 @@ final class RedisDataBackend<K, E, V> {
             return {1, version}
             """;
     // saving 集合存在时表示其他实例正在保存这个 key
-    private static final String TAKE_SAVE = """
+    private static final String TAKE_SAVE = EXPIRY + """
+            touch(KEYS[1], KEYS[3], KEYS[4], ARGV[1])
             if redis.call('EXISTS', KEYS[4]) == 1 then
                 return {0}
             end
@@ -76,16 +98,26 @@ final class RedisDataBackend<K, E, V> {
             end
             return result
             """;
-    private static final String FINISH_SAVE = """
+    private static final String FINISH_SAVE = EXPIRY + """
             redis.call('DEL', KEYS[4])
             if redis.call('EXISTS', KEYS[3]) == 0 then
                 redis.call('SREM', KEYS[2], ARGV[1])
             end
+            touch(KEYS[1], KEYS[3], KEYS[4], ARGV[2])
             return 1
             """;
     private static final String RESTORE_SAVE = """
             redis.call('SUNIONSTORE', KEYS[3], KEYS[3], KEYS[4])
             redis.call('DEL', KEYS[4])
+            redis.call('PERSIST', KEYS[1])
+            return 1
+            """;
+    private static final String RENEW = EXPIRY + """
+            for i = 1, #KEYS, 3 do
+                if redis.call('HEXISTS', KEYS[i], '') == 1 then
+                    touch(KEYS[i], KEYS[i + 1], KEYS[i + 2], ARGV[1])
+                end
+            end
             return 1
             """;
 
@@ -98,6 +130,7 @@ final class RedisDataBackend<K, E, V> {
     private final byte[] entriesPrefix;
     private final byte[] dirtyPrefix;
     private final byte[] savingPrefix;
+    private final byte[] ttl;
 
     RedisDataBackend(@NotNull DataDefinition<K, E, V> definition) {
         SparrowPlugin plugin = SparrowPlugin.instance();
@@ -111,20 +144,22 @@ final class RedisDataBackend<K, E, V> {
         this.entriesPrefix = (prefix + "entries:").getBytes(StandardCharsets.UTF_8);
         this.dirtyPrefix = (prefix + "dirty:").getBytes(StandardCharsets.UTF_8);
         this.savingPrefix = (prefix + "saving:").getBytes(StandardCharsets.UTF_8);
+        this.ttl = Long.toString(definition.redisTtl() == null ? 0 : definition.redisTtl().toMillis()).getBytes(StandardCharsets.US_ASCII);
     }
 
     @NotNull
     CompletableFuture<LocalEntries<E, V>> load(@NotNull K key) {
-        byte[][] keys = {concat(this.entriesPrefix, this.definition.keyCodec().encode(key))};
-        return this.commands.<List<Object>>eval(READ, ScriptOutputType.MULTI, keys)
+        byte[][] keys = this.keys(this.definition.keyCodec().encode(key));
+        return this.commands.<List<Object>>eval(READ, ScriptOutputType.MULTI, keys, this.ttl)
                 .toCompletableFuture()
                 .thenCompose(stored -> {
                     LocalEntries<E, V> entries = this.decode(stored);
                     if (entries != null) return CompletableFuture.completedFuture(entries);
                     // 尚未装入时回源数据库, 多个实例同时装入时先到的一方生效
                     return this.definition.store().load(key).thenCompose(loaded -> {
-                        byte[][] arguments = new byte[loaded.size() * 2][];
-                        int index = 0;
+                        byte[][] arguments = new byte[1 + loaded.size() * 2][];
+                        arguments[0] = this.ttl;
+                        int index = 1;
                         for (Map.Entry<E, V> entry : loaded.entrySet()) {
                             arguments[index++] = this.definition.entryCodec().encode(entry.getKey());
                             arguments[index++] = this.definition.valueCodec().encode(entry.getValue());
@@ -147,12 +182,12 @@ final class RedisDataBackend<K, E, V> {
             }
         }
         int puts = changes.size() - removals;
-        byte[][] arguments = new byte[5 + 2 * puts + removals][];
+        byte[][] arguments = new byte[6 + 2 * puts + removals][];
         byte[][] entries = new byte[changes.size()][];
         byte[][] values = new byte[changes.size()][];
         int index = 0;
-        int put = 5;
-        int removal = 5 + 2 * puts;
+        int put = 6;
+        int removal = 6 + 2 * puts;
         for (Map.Entry<E, V> change : changes.entrySet()) {
             byte[] entry = this.definition.entryCodec().encode(change.getKey());
             byte[] value = change.getValue() == null ? null : this.definition.valueCodec().encode(change.getValue());
@@ -181,6 +216,7 @@ final class RedisDataBackend<K, E, V> {
         arguments[2] = notification;
         arguments[3] = encodedKey;
         arguments[4] = Integer.toString(puts).getBytes(StandardCharsets.US_ASCII);
+        arguments[5] = this.ttl;
         return this.commands.<List<Object>>eval(COMMIT, ScriptOutputType.MULTI, this.keys(encodedKey), arguments)
                 .toCompletableFuture()
                 .thenApply(result -> {
@@ -212,7 +248,7 @@ final class RedisDataBackend<K, E, V> {
     }
 
     private CompletableFuture<Void> save(K key, byte[] encodedKey, byte[][] keys) {
-        return this.commands.<List<Object>>eval(TAKE_SAVE, ScriptOutputType.MULTI, keys)
+        return this.commands.<List<Object>>eval(TAKE_SAVE, ScriptOutputType.MULTI, keys, this.ttl)
                 .toCompletableFuture()
                 .thenCompose(taken -> {
                     if ((Long) taken.getFirst() == 0L) {
@@ -233,12 +269,36 @@ final class RedisDataBackend<K, E, V> {
                     }
                     return this.definition.store()
                             .save(key, upserts, removals)
-                            .thenCompose(ignored -> this.commands.<Long>eval(FINISH_SAVE, ScriptOutputType.INTEGER, keys, encodedKey).toCompletableFuture())
+                            .thenCompose(ignored -> this.commands.<Long>eval(FINISH_SAVE, ScriptOutputType.INTEGER, keys, encodedKey, this.ttl).toCompletableFuture())
                             .exceptionallyCompose(error -> this.commands.<Long>eval(RESTORE_SAVE, ScriptOutputType.INTEGER, keys)
                                     .toCompletableFuture()
                                     .thenCompose(ignored -> CompletableFuture.failedFuture(error)))
                             .thenApply(ignored -> null);
                 });
+    }
+
+    @NotNull
+    CompletableFuture<Void> renew(@NotNull Collection<K> selected) {
+        List<byte[]> keys = new ArrayList<>(RENEW_BATCH_SIZE * 3);
+        List<CompletableFuture<?>> batches = new ArrayList<>();
+        for (K key : selected) {
+            byte[] encoded = this.definition.keyCodec().encode(key);
+            keys.add(concat(this.entriesPrefix, encoded));
+            keys.add(concat(this.dirtyPrefix, encoded));
+            keys.add(concat(this.savingPrefix, encoded));
+            if (keys.size() == RENEW_BATCH_SIZE * 3) {
+                batches.add(this.renewBatch(keys));
+                keys.clear();
+            }
+        }
+        if (!keys.isEmpty()) {
+            batches.add(this.renewBatch(keys));
+        }
+        return CompletableFuture.allOf(batches.toArray(CompletableFuture[]::new));
+    }
+
+    private CompletableFuture<Long> renewBatch(List<byte[]> keys) {
+        return this.commands.<Long>eval(RENEW, ScriptOutputType.INTEGER, keys.toArray(byte[][]::new), this.ttl).toCompletableFuture();
     }
 
     private byte[][] keys(byte[] encodedKey) {

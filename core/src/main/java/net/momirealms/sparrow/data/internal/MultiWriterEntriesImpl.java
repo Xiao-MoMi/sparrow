@@ -76,7 +76,7 @@ final class MultiWriterEntriesImpl<K, E, V> implements MultiWriterEntries<E, V> 
     @NotNull
     @Override
     public <R> CompletableFuture<R> modify(@NotNull Function<EntryEdit<E, V>, R> operation) {
-        return this.owner.execute(() -> this.owner.cache.read(this.key).thenCompose(entries -> this.modify(entries, operation)));
+        return this.owner.execute(this.key, () -> this.owner.cache.read(this.key).thenCompose(entries -> this.modify(entries, operation)));
     }
 
     // 回调在工作执行器上对副本计算. 版本不符时脚本带回最新状态, 用它重跑回调
@@ -95,7 +95,7 @@ final class MultiWriterEntriesImpl<K, E, V> implements MultiWriterEntries<E, V> 
     @NotNull
     @Override
     public CompletableFuture<Void> save() {
-        return this.owner.execute(() -> this.owner.backend.save(this.key));
+        return this.owner.execute(this.key, () -> this.owner.backend.save(this.key));
     }
 
     // 暂存一次回调中的修改, 读取优先看暂存结果

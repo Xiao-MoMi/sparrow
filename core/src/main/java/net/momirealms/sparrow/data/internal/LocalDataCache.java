@@ -1,6 +1,7 @@
 package net.momirealms.sparrow.data.internal;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable.TableEntry;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import net.momirealms.sparrow.data.access.DataHold;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 
@@ -141,6 +143,17 @@ final class LocalDataCache<K, E, V> {
         LocalEntries<E, V> cached = this.peek(key);
         if (cached != null && cached.version == version - 1) {
             cached.apply(changes, version);
+        }
+    }
+
+    // 普通缓存的迭代会跳过已过期项, 不重置访问时间; 迁移与收集共用此锁
+    synchronized void collectUsedKeys(@NotNull Set<K> keys) {
+        for (TableEntry<K, Holding<E, V>> entry : this.held) {
+            keys.add(entry.getKey());
+        }
+        keys.addAll(this.pending.keySet());
+        for (Map.Entry<K, LocalEntries<E, V>> entry : this.cache.asMap().entrySet()) {
+            keys.add(entry.getKey());
         }
     }
 

@@ -24,17 +24,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
 
 /** 常驻数据入口. 业务保存 register 返回的对象, 后续直接通过它访问数据. */
 public final class DataAccess {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Map<SparrowKey, RegisteredData<?, ?, ?>> registrations = new HashMap<>();
+    private final ScheduledThreadPoolExecutor expiryExecutor = new ScheduledThreadPoolExecutor(1, Thread.ofPlatform().name("sparrow-data-expiry").daemon(true).factory());
     private byte[] messageHeader;
     private boolean enabled;
     private CompletableFuture<Void> closing;
 
     @ApiStatus.Internal
     public void onLoad() {
+        this.expiryExecutor.setRemoveOnCancelPolicy(true);
         MessageBroker<FriendlyByteBuf> broker = this.plugin.messageBrokerManager().broker();
         ByteBuf buffer = Unpooled.buffer();
         try {
@@ -57,6 +60,7 @@ public final class DataAccess {
         if (this.registrations.containsKey(definition.id())) throw new IllegalArgumentException("Data already registered: " + definition.id());
         SingleWriterDataImpl<K, E, V> data = new SingleWriterDataImpl<>(definition);
         this.registrations.put(definition.id(), data);
+        data.startRenewal(this.expiryExecutor);
         return data;
     }
 
@@ -67,6 +71,7 @@ public final class DataAccess {
         if (this.registrations.containsKey(definition.id())) throw new IllegalArgumentException("Data already registered: " + definition.id());
         MultiWriterDataImpl<K, E, V> data = new MultiWriterDataImpl<>(definition);
         this.registrations.put(definition.id(), data);
+        data.startRenewal(this.expiryExecutor);
         return data;
     }
 
@@ -108,6 +113,7 @@ public final class DataAccess {
             synchronized (this) {
                 this.registrations.clear();
             }
+            this.expiryExecutor.shutdown();
         });
         return this.closing.copy();
     }

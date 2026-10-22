@@ -4,6 +4,7 @@ import net.momirealms.sparrow.data.storage.DataCodec;
 import net.momirealms.sparrow.data.storage.DataStore;
 import net.momirealms.sparrow.util.SparrowKey;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 
@@ -14,8 +15,24 @@ public record SingleWriterDefinition<K, E, V>(
         @NotNull DataCodec<E> entryCodec,
         @NotNull DataCodec<V> valueCodec,
         @NotNull DataStore<K, E, V> store,
-        @NotNull CachePolicy cachePolicy
+        @NotNull CachePolicy cachePolicy,
+        @Nullable Duration redisTtl
 ) implements DataDefinition<K, E, V> {
+
+    public SingleWriterDefinition {
+        if (redisTtl != null && redisTtl.toMillis() <= 0) throw new IllegalArgumentException("Redis TTL must be at least one millisecond");
+    }
+
+    public SingleWriterDefinition(
+            @NotNull SparrowKey id,
+            @NotNull DataCodec<K> keyCodec,
+            @NotNull DataCodec<E> entryCodec,
+            @NotNull DataCodec<V> valueCodec,
+            @NotNull DataStore<K, E, V> store,
+            @NotNull CachePolicy cachePolicy
+    ) {
+        this(id, keyCodec, entryCodec, valueCodec, store, cachePolicy, null);
+    }
 
     /** 使用默认读副本策略创建定义. */
     @NotNull
@@ -32,6 +49,13 @@ public record SingleWriterDefinition<K, E, V>(
     /** 返回改用指定读副本策略的新定义. 写容器不受这项策略影响. */
     @NotNull
     public SingleWriterDefinition<K, E, V> cache(@NotNull Duration idleTimeout, long maximumSize) {
-        return new SingleWriterDefinition<>(this.id, this.keyCodec, this.entryCodec, this.valueCodec, this.store, new CachePolicy(idleTimeout, maximumSize));
+        return new SingleWriterDefinition<>(this.id, this.keyCodec, this.entryCodec, this.valueCodec, this.store, new CachePolicy(idleTimeout, maximumSize), this.redisTtl);
     }
+
+    /** 返回改用指定 Redis 保留时间的新定义, null 关闭过期; 有值时须至少为 1 毫秒. */
+    @NotNull
+    public SingleWriterDefinition<K, E, V> redisTtl(@Nullable Duration duration) {
+        return new SingleWriterDefinition<>(this.id, this.keyCodec, this.entryCodec, this.valueCodec, this.store, this.cachePolicy, duration);
+    }
+
 }

@@ -92,15 +92,21 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
     public synchronized CompletableFuture<Void> publish() {
         if (this.released) return CompletableFuture.failedFuture(new IllegalStateException("Writer is released"));
         if (this.dirty.isEmpty()) return this.publication.copy();
+        return this.track(this.owner.execute(this.key, this::publishChanges)).copy();
+    }
+
+    // 调用方已登记完整操作并持有写容器的锁, 内部发布不再申请一次新操作
+    private CompletableFuture<Void> publishChanges() {
+        if (this.dirty.isEmpty()) return this.publication;
         Map<E, V> changes = HashMap.newHashMap(this.dirty.size());
         for (E entry : this.dirty) {
             changes.put(entry, this.entries.get(entry));
         }
         this.dirty.clear();
         this.unsaved = true;
-        // execute 在当前线程发出脚本, 锁内发出让同一连接上的发布顺序与修改顺序一致
-        this.publication = this.track(this.owner.execute(() -> this.owner.backend.commit(this.key, -1, changes)
-                .thenAccept(commit -> this.owner.cache.applied(this.key, commit.version(), changes))));
+        // 锁内立即发出脚本, 同一连接上的发布顺序与修改顺序一致
+        this.publication = this.owner.backend.commit(this.key, -1, changes)
+                .thenAccept(commit -> this.owner.cache.applied(this.key, commit.version(), changes));
         this.publication.whenComplete((ignored, error) -> {
             if (error != null) {
                 synchronized (this) {
@@ -108,16 +114,20 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
                 }
             }
         });
-        return this.publication.copy();
+        return this.publication;
     }
 
     @NotNull
     @Override
     public synchronized CompletableFuture<Void> save() {
         if (this.released) return CompletableFuture.failedFuture(new IllegalStateException("Writer is released"));
-        CompletableFuture<Void> published = this.publish();
+        return this.track(this.owner.execute(this.key, this::saveChanges)).copy();
+    }
+
+    private CompletableFuture<Void> saveChanges() {
+        CompletableFuture<Void> published = this.publishChanges();
         this.unsaved = false;
-        CompletableFuture<Void> saving = this.track(this.owner.execute(() -> published.thenCompose(ignored -> this.owner.backend.save(this.key))));
+        CompletableFuture<Void> saving = published.thenCompose(ignored -> this.owner.backend.save(this.key));
         saving.whenComplete((ignored, error) -> {
             if (error != null) {
                 synchronized (this) {
@@ -125,12 +135,13 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
                 }
             }
         });
-        return saving.copy();
+        return saving;
     }
 
     synchronized CompletableFuture<Void> saveIfDirty() {
         if (this.released || (!this.unsaved && this.dirty.isEmpty())) return CompletableFuture.completedFuture(null);
-        return this.save();
+        // saveDirty 已接受整批操作, 注销期间仍要完成它选中的写容器
+        return this.track(this.saveChanges()).copy();
     }
 
     synchronized CompletableFuture<Void> release() {

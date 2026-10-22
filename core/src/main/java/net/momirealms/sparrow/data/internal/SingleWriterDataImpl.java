@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.Internal
@@ -24,7 +25,7 @@ public final class SingleWriterDataImpl<K, E, V> extends RegisteredData<K, E, V>
     @NotNull
     @Override
     public synchronized CompletableFuture<SingleWriterEntries<E, V>> load(@NotNull K key) {
-        return this.execute(() -> {
+        return this.execute(key, () -> {
             CompletableFuture<SingleWriterEntriesImpl<K, E, V>> loading = this.writers.get(key);
             if (loading == null) {
                 CompletableFuture<SingleWriterEntriesImpl<K, E, V>> created = this.backend.load(key).thenApply(entries -> new SingleWriterEntriesImpl<>(this, key, entries));
@@ -45,7 +46,7 @@ public final class SingleWriterDataImpl<K, E, V> extends RegisteredData<K, E, V>
     @NotNull
     @Override
     public CompletableFuture<Void> release(@NotNull K key) {
-        return this.execute(() -> {
+        return this.execute(key, () -> {
             CompletableFuture<SingleWriterEntriesImpl<K, E, V>> loaded;
             synchronized (this) {
                 loaded = this.writers.get(key);
@@ -73,5 +74,11 @@ public final class SingleWriterDataImpl<K, E, V> extends RegisteredData<K, E, V>
             }
             return CompletableFuture.allOf(saving);
         });
+    }
+
+    @Override
+    void collectUsedKeys(@NotNull Set<K> keys) {
+        super.collectUsedKeys(keys);
+        keys.addAll(this.writers.keySet());
     }
 }
