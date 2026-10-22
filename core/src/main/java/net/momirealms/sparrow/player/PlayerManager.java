@@ -5,6 +5,8 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
+import net.momirealms.sparrow.data.access.MultiWriterData;
+import net.momirealms.sparrow.data.access.SingleWriterData;
 import net.momirealms.sparrow.player.listener.PlayerJoinListener;
 import net.momirealms.sparrow.player.listener.PlayerPreLoginListener;
 import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
@@ -43,6 +45,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final ConcurrentChainedObject2ObjectHashTable<UUID, PlayerConnection> lockHolders = new ConcurrentChainedObject2ObjectHashTable<>(); // 本服持有玩家锁的连接
     private final PlayerLock lock = new PlayerLock();
     private final LoginPacketGate gate = new LoginPacketGate();
+    private final List<PlayerDataBinding> bindings = new ArrayList<>(); // 只在插件启用阶段添加, 之后只读
     private final HandlerList<PlayerPrepareListener> prepareListeners = new HandlerList<>();
     private final HandlerList<PlayerPreLoginListener> preLoginListeners = new HandlerList<>();
     private final HandlerList<PlayerJoinListener> joinListeners = new HandlerList<>();
@@ -83,12 +86,20 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         return registered;
     }
 
-    // 取得玩家锁后在插件异步线程执行准备监听器, 全部完成后连接进入已准备状态. 返回的 Future 也是连接收尾的等待点, 调用方不能直接改变它的结果
+    // 取得玩家锁后加载托管数据, 再在插件异步线程执行准备监听器, 全部完成后连接进入已准备状态. 返回的 Future 也是连接收尾的等待点, 调用方不能直接改变它的结果
     @NotNull
     CompletableFuture<Void> prepare(@NotNull PlayerConnection connection, long deadlineNanos) {
         UUID uniqueId = connection.uniqueId();
         CompletableFuture<Void> preparation = this.lock.acquire(uniqueId, deadlineNanos)
-                .thenRun(() -> this.lockHolders.put(uniqueId, connection))
+                .thenCompose(ignored -> {
+                    this.lockHolders.put(uniqueId, connection);
+                    // 并行加载托管数据, 成功的记到连接上. allOf 等全部加载结束才完成, 失败时连接上正好留下加载成功的那些
+                    CompletableFuture<?>[] loading = new CompletableFuture<?>[this.bindings.size()];
+                    for (int i = 0; i < loading.length; i++) {
+                        loading[i] = this.bindings.get(i).load(uniqueId).thenAccept(loaded -> connection.loaded.put(loaded.data(), loaded));
+                    }
+                    return CompletableFuture.allOf(loading);
+                })
                 .thenComposeAsync(ignored -> {
                     List<CompletableFuture<Void>> preparing = new ArrayList<>();
                     this.prepareListeners.dispatch(listener -> preparing.add(listener.onPrepare(connection)));
@@ -113,7 +124,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                 .thenCompose(ignored -> this.release(player.connection));
     }
 
-    // 执行释放监听器后删除玩家锁. 删除完成前锁仍在续期, 释放监听器耗时不会让锁提前过期
+    // 执行释放监听器, 再把托管数据先保存后释放, 最后删除玩家锁. 删除完成前锁仍在续期, 这些步骤耗时不会让锁提前过期
     private CompletableFuture<Void> release(PlayerConnection connection) {
         List<CompletableFuture<Void>> releasing = new ArrayList<>();
         this.prepareListeners.dispatch(listener -> releasing.add(CompletableFuture.completedFuture(connection).thenCompose(listener::onRelease)));
@@ -121,6 +132,27 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                 .handle((ignored, error) -> {
                     if (error != null) {
                         this.plugin.logger().warn("Failed to run release listeners for " + connection.name(), error);
+                    }
+                    return null;
+                })
+                .thenCompose(ignored -> {
+                    // 各类托管数据并行卸载, 保存失败只记录, 照样释放
+                    List<CompletableFuture<Void>> unloading = new ArrayList<>();
+                    for (PlayerDataBinding.Loaded loaded : connection.loaded.values()) {
+                        unloading.add(loaded.save().get()
+                                .handle((saved, error) -> {
+                                    if (error != null) {
+                                        this.plugin.logger().warn("Failed to save player data for " + connection.name(), error);
+                                    }
+                                    return null;
+                                })
+                                .thenCompose(saved -> loaded.release().get()));
+                    }
+                    return CompletableFuture.allOf(unloading.toArray(CompletableFuture[]::new));
+                })
+                .handle((ignored, error) -> {
+                    if (error != null) {
+                        this.plugin.logger().warn("Failed to release player data for " + connection.name(), error);
                     }
                     return null;
                 })
@@ -219,6 +251,16 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @Nullable
     public PlayerConnection getConnection(@NotNull Channel channel) {
         return this.connections.get(channel);
+    }
+
+    /** 让单写数据随玩家进出本服加载和卸载, <strong>只能在插件启用阶段, 玩家进服前调用</strong>. */
+    public <E, V> void registerData(@NotNull SingleWriterData<UUID, E, V> data) {
+        this.bindings.add(new PlayerDataBinding.Single<>(data));
+    }
+
+    /** 让多写数据随玩家进出本服固定和关闭读副本, 约束同单写. */
+    public <E, V> void registerData(@NotNull MultiWriterData<UUID, E, V> data) {
+        this.bindings.add(new PlayerDataBinding.Multi<>(data));
     }
 
     @NotNull

@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.player;
 
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandler;
@@ -23,8 +24,10 @@ public final class PlayerConnection {
     private final Channel channel;
     private final long connectedAt;
     private boolean joined;
-    private volatile CompletableFuture<Void> preparation; // 取锁与准备监听器的整体结果, 尚未开始准备时为 null
+    private volatile CompletableFuture<Void> preparation; // 取锁, 加载托管数据与准备监听器的整体结果, 尚未开始准备时为 null
     private volatile boolean prepared;
+
+    final ConcurrentChainedObject2ObjectHashTable<Object, PlayerDataBinding.Loaded> loaded = new ConcurrentChainedObject2ObjectHashTable<>(); // 本连接加载的托管数据, 键为 data 注册对象
 
     PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name) {
         this.handle = handle;
