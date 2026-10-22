@@ -1,112 +1,119 @@
 package net.momirealms.sparrow.data;
 
-import net.momirealms.sparrow.data.cache.CacheDefinition;
-import net.momirealms.sparrow.data.cache.CachedData;
-import net.momirealms.sparrow.data.message.DataCacheInvalidationMessage;
-import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.player.PlayerListener;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
+import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.data.access.MultiWriterData;
+import net.momirealms.sparrow.data.access.SingleWriterData;
+import net.momirealms.sparrow.data.definition.MultiWriterDefinition;
+import net.momirealms.sparrow.data.definition.SingleWriterDefinition;
+import net.momirealms.sparrow.data.internal.MultiWriterDataImpl;
+import net.momirealms.sparrow.data.internal.RegisteredData;
+import net.momirealms.sparrow.data.internal.SingleWriterDataImpl;
+import net.momirealms.sparrow.data.message.DataChangedMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
+import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import net.momirealms.sparrow.util.SparrowKey;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 
-@ApiStatus.Internal
-public final class DataAccess implements PlayerListener, AutoCloseable {
+/** 常驻数据入口. 业务保存 register 返回的对象, 后续直接通过它访问数据. */
+public final class DataAccess {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
-    private final Map<SparrowKey, CachedData<?, ?>> caches = new HashMap<>();
-    private PlayerDataAccess players;
-    private boolean listening;
-    private boolean closed;
+    private final Map<SparrowKey, RegisteredData<?, ?, ?>> registrations = new HashMap<>();
+    private byte[] messageHeader;
+    private boolean enabled;
+    private CompletableFuture<Void> closing;
 
-    // 准备玩家档案入口并接入玩家生命周期.
+    @ApiStatus.Internal
+    public void onLoad() {
+        MessageBroker<FriendlyByteBuf> broker = this.plugin.messageBrokerManager().broker();
+        ByteBuf buffer = Unpooled.buffer();
+        try {
+            ByteBufHelper.writeCompactInt(buffer, broker.registry().byId(DataChangedMessage.ID).id());
+            this.messageHeader = ByteBufUtil.getBytes(buffer);
+        } finally {
+            buffer.release();
+        }
+    }
+
+    @ApiStatus.Internal
     public synchronized void onEnable() {
-        this.players = new PlayerDataAccess();
-        this.plugin.playerManager().registerListener(this);
-        this.listening = true;
+        this.enabled = true;
     }
 
-    // 注册普通缓存, 条目按离线闲置规则淘汰.
+    /** 注册单写数据并返回它的入口. 在启用阶段调用, 同一 ID 不能重复注册. */
     @NotNull
-    public <K, V> CachedData<K, V> open(@NotNull CacheDefinition<K, V> definition) {
-        return this.open(definition, key -> null);
+    public synchronized <K, E, V> SingleWriterData<K, E, V> register(@NotNull SingleWriterDefinition<K, E, V> definition) {
+        if (!this.enabled) throw new IllegalStateException("Data access is not enabled");
+        if (this.registrations.containsKey(definition.id())) throw new IllegalArgumentException("Data already registered: " + definition.id());
+        SingleWriterDataImpl<K, E, V> data = new SingleWriterDataImpl<>(definition);
+        this.registrations.put(definition.id(), data);
+        return data;
     }
 
-    // 每个数据 id 在本服注册一个缓存. 映射结果为 null 的条目按普通离线缓存管理.
+    /** 注册多写数据并返回它的入口, 约束与单写注册相同. */
     @NotNull
-    public synchronized <K, V> CachedData<K, V> open(@NotNull CacheDefinition<K, V> definition, @NotNull Function<? super K, @Nullable UUID> playerIdMapper) {
-        if (this.closed) throw new CancellationException("Data access is closed");
-        CachedData<K, V> cache = new CachedData<>(definition, playerIdMapper);
-        if (this.caches.putIfAbsent(cache.id(), cache) != null) {
-            cache.close();
-            throw new IllegalArgumentException("Data cache id is already open: " + cache.id());
-        }
-        return cache;
+    public synchronized <K, E, V> MultiWriterData<K, E, V> register(@NotNull MultiWriterDefinition<K, E, V> definition) {
+        if (!this.enabled) throw new IllegalStateException("Data access is not enabled");
+        if (this.registrations.containsKey(definition.id())) throw new IllegalArgumentException("Data already registered: " + definition.id());
+        MultiWriterDataImpl<K, E, V> data = new MultiWriterDataImpl<>(definition);
+        this.registrations.put(definition.id(), data);
+        return data;
     }
 
-    // 将当前有效会话的缓存条目转为在线保留.
-    @Override
-    public synchronized void onJoin(@NotNull BukkitSparrowPlayer player) {
-        if (this.closed || player.quitting() || this.plugin.playerManager().getPlayer(player.uniqueId()) != player) return;
-        for (CachedData<?, ?> cache : this.caches.values()) {
-            cache.onJoin(player.uniqueId());
-        }
-    }
-
-    // 仅当前会话退出时开始离线计时, 旧连接的退出回调保持新会话有效.
-    @Override
-    public synchronized void onQuit(@NotNull BukkitSparrowPlayer player) {
-        if (this.closed || this.plugin.playerManager().getPlayer(player.uniqueId()) != player) return;
-        for (CachedData<?, ?> cache : this.caches.values()) {
-            cache.onQuit(player.uniqueId());
-        }
-    }
-
-    public boolean isOnline(@NotNull UUID playerId) {
-        BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(playerId);
-        return player != null && !player.quitting();
-    }
-
-    // 按数据 id 路由通知, 存储范围同时匹配时才应用到本服缓存.
-    @NotNull
-    public CompletableFuture<Void> acceptInvalidation(@NotNull DataCacheInvalidationMessage message) {
-        CachedData<?, ?> cache;
+    @ApiStatus.Internal
+    public void receive(@NotNull DataChangedMessage message) {
+        RegisteredData<?, ?, ?> data;
         synchronized (this) {
-            if (this.closed) return CompletableFuture.completedFuture(null);
-            cache = this.caches.get(message.id());
+            if (!this.enabled) return;
+            data = this.registrations.get(message.id());
         }
-        if (cache == null || !message.storagePrefix().equals(cache.getStoragePrefix())) return CompletableFuture.completedFuture(null);
-        return cache.acceptInvalidation(message.origin(), message.keys());
+        if (data != null) {
+            data.receive(message);
+        }
     }
 
-    // 关闭指定实例并移除它的路由, 同 id 的新实例仍可继续使用.
-    public synchronized void close(@NotNull CachedData<?, ?> cache) {
-        this.caches.remove(cache.id(), cache);
-        cache.close();
-    }
-
-    @Override
-    public synchronized void close() {
-        this.closed = true;
-        if (this.listening) {
-            this.plugin.playerManager().unregisterListener(this);
-            this.listening = false;
-        }
-        for (CachedData<?, ?> cache : this.caches.values()) {
-            cache.close();
-        }
-        this.caches.clear();
-    }
-
+    /** 关闭并移除一个类型, 之后可以重新注册. 不删除 Redis 或数据库中的值. */
     @NotNull
-    public PlayerDataAccess players() {
-        return this.players;
+    public synchronized CompletableFuture<Void> unregister(@NotNull SparrowKey id) {
+        if (!this.enabled) return CompletableFuture.failedFuture(new IllegalStateException("Data access is not enabled"));
+        RegisteredData<?, ?, ?> data = this.registrations.get(id);
+        if (data == null) return CompletableFuture.completedFuture(null);
+        return data.closeAsync().thenRun(() -> {
+            synchronized (this) {
+                this.registrations.remove(id, data);
+            }
+        }).copy();
+    }
+
+    /** 等待所有已接受的操作后关闭. 不会自动保存, 写容器中未发布的修改随之丢弃. */
+    @NotNull
+    public synchronized CompletableFuture<Void> closeAsync() {
+        if (this.closing != null) return this.closing.copy();
+        this.enabled = false;
+        List<CompletableFuture<Void>> closing = new ArrayList<>(this.registrations.size());
+        for (RegisteredData<?, ?, ?> data : this.registrations.values()) {
+            closing.add(data.closeAsync());
+        }
+        this.closing = CompletableFuture.allOf(closing.toArray(CompletableFuture[]::new)).whenComplete((ignored, error) -> {
+            synchronized (this) {
+                this.registrations.clear();
+            }
+        });
+        return this.closing.copy();
+    }
+
+    @ApiStatus.Internal
+    public byte @NotNull [] messageHeader() {
+        return this.messageHeader;
     }
 }

@@ -100,26 +100,6 @@ public abstract class DataStorage implements AutoCloseable {
     @NotNull
     public abstract CompletableFuture<Optional<String>> lookupName(@NotNull UUID player);
 
-    // Ban 模块的存储
-    @NotNull
-    public abstract BanStore banStore();
-
-    // Mute 模块的存储
-    @NotNull
-    public abstract MuteStore muteStore();
-
-    // Warp 模块的存储
-    @NotNull
-    public abstract WarpStore warpStore();
-
-    // Home 模块的存储
-    @NotNull
-    public abstract HomeStore homeStore();
-
-    // Spawn 模块的存储
-    @NotNull
-    public abstract SpawnStore spawnStore();
-
     // 建表或建集合时使用的名称前缀
     @NotNull
     protected String namePrefix() {

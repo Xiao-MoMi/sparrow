@@ -100,9 +100,9 @@ public class SparrowPlugin implements Plugin {
         this.applyDependencies();
         this.setupProxy();
         this.dataStorage = DataStorage.create(PluginConfig.database(), this.scheduler.async(), this.logger);
-        this.dataAccess = new DataAccess();
         this.redisConnector = new RedisConnector(PluginConfig.redis(), this.logger);
         this.messageBrokerManager = new MessageBrokerManager(this);
+        this.dataAccess = new DataAccess();
         this.serverManager = new ServerManager();
         this.translationManager = new TranslationManagerImpl(this);
         this.translationManager.reload();
@@ -142,14 +142,16 @@ public class SparrowPlugin implements Plugin {
             this.redisConnector.initialize();
             this.messageBrokerManager.onLoad();
             this.dataStorage.initialize();
+            this.dataAccess.onLoad();
+            this.messageBrokerManager.subscribe();
             this.serverManager.onLoad();
             this.playerManager.onLoad();
             this.compatibilityManager.onLoad(); // 集成插件管理器
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
-            this.dataAccess.close();
             this.playerManager.closeRegistry();
             this.serverManager.shutdown();
+            this.dataAccess.closeAsync().join();
             this.messageBrokerManager.onDisable();
             this.redisConnector.close();
             this.dataStorage.close();
@@ -217,7 +219,7 @@ public class SparrowPlugin implements Plugin {
         if (this.teleportService != null) this.teleportService.shutdown();
         if (this.featureManager != null) this.featureManager.onDisable();
         if (this.playerManager != null) this.playerManager.shutdown();
-        if (this.dataAccess != null) this.dataAccess.close();
+        if (this.dataAccess != null) this.dataAccess.closeAsync().join();
         if (this.scheduler != null) this.scheduler.shutdownScheduler();
         if (this.scheduler != null) this.scheduler.shutdownExecutor();
         if (this.messageBrokerManager != null) this.messageBrokerManager.onDisable();
