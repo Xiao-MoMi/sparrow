@@ -3,8 +3,11 @@ package net.momirealms.sparrow.player.listener;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.concurrent.CompletableFuture;
+
 @FunctionalInterface
 public interface PlayerQuitListener {
 
-    void onQuit(@NotNull BukkitSparrowPlayer player);
+    @NotNull
+    CompletableFuture<Void> onQuit(@NotNull BukkitSparrowPlayer player);
 }

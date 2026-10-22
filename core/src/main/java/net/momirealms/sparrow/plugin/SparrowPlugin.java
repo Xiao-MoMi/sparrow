@@ -123,7 +123,7 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginLoad() {
-        if (!SpigotConfig.bungee && !GlobalConfiguration.get().proxies.velocity.enabled) {
+        if (!SpigotConfig.bungee && !(VersionHelper.hasPaperPatch && GlobalConfiguration.get().proxies.velocity.enabled)) {
             this.logger.error(LogConstants.PROXY_REQUIRED);
             Bukkit.getServer().shutdown();
             return;
@@ -214,6 +214,7 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginDisable() {
+        if (this.playerManager != null) this.playerManager.closeSessions();
         if (this.playerManager != null) this.playerManager.closeRegistry();
         if (this.serverManager != null) this.serverManager.shutdown();
         if (this.teleportService != null) this.teleportService.shutdown();

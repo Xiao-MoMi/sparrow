@@ -14,6 +14,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.nio.channels.ClosedChannelException;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public final class PlayerConnection {
     private final UUID uniqueId;
@@ -22,6 +23,8 @@ public final class PlayerConnection {
     private final Channel channel;
     private final long connectedAt;
     private boolean joined;
+    private volatile CompletableFuture<Void> preparation; // 取锁与准备监听器的整体结果, 尚未开始准备时为 null
+    private volatile boolean prepared;
 
     PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name) {
         this.handle = handle;
@@ -61,6 +64,22 @@ public final class PlayerConnection {
 
     void joined(boolean joined) {
         this.joined = joined;
+    }
+
+    CompletableFuture<Void> preparation() {
+        return this.preparation;
+    }
+
+    void preparation(CompletableFuture<Void> preparation) {
+        this.preparation = preparation;
+    }
+
+    boolean prepared() {
+        return this.prepared;
+    }
+
+    void prepared(boolean prepared) {
+        this.prepared = prepared;
     }
 
     /**

@@ -27,7 +27,10 @@ public final class TeleportService {
             this.running = true;
         }
         this.target.onEnable();
-        this.quitSubscription = this.plugin.playerManager().registerQuitListener(Invulnerability::clear);
+        this.quitSubscription = this.plugin.playerManager().registerQuitListener(player -> {
+            Invulnerability.clear(player);
+            return CompletableFuture.completedFuture(null);
+        });
     }
 
     // 处理传送请求消息

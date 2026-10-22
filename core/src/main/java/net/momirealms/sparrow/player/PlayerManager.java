@@ -7,17 +7,14 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import net.momirealms.sparrow.player.listener.PlayerJoinListener;
 import net.momirealms.sparrow.player.listener.PlayerPreLoginListener;
+import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
 import net.momirealms.sparrow.player.listener.PlayerQuitListener;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
 import net.momirealms.sparrow.proxy.paper.connection.ReadablePlayerCookieConnectionProxy;
-import net.momirealms.sparrow.ui.SparrowUI;
 import net.momirealms.sparrow.ui.Subscription;
-import net.momirealms.sparrow.ui.network.packet.ConnectionState;
-import net.momirealms.sparrow.ui.network.packet.PacketFlow;
-import net.momirealms.sparrow.ui.network.packet.PacketType;
 import net.momirealms.sparrow.util.HandlerList;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -35,6 +32,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public final class PlayerManager implements Listener, ChannelFutureListener {
     public final SparrowPlugin plugin = SparrowPlugin.instance();
@@ -42,6 +40,10 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, PlayerConnection> registrations = new ConcurrentChainedObject2ObjectHashTable<>(); // 每个 UUID 在本服当前登记名单的连接
     private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> localPlayers = new ConcurrentChainedObject2ObjectHashTable<>();
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, PlayerConnection> lockHolders = new ConcurrentChainedObject2ObjectHashTable<>(); // 本服持有玩家锁的连接
+    private final PlayerLock lock = new PlayerLock();
+    private final LoginPacketGate gate = new LoginPacketGate();
+    private final HandlerList<PlayerPrepareListener> prepareListeners = new HandlerList<>();
     private final HandlerList<PlayerPreLoginListener> preLoginListeners = new HandlerList<>();
     private final HandlerList<PlayerJoinListener> joinListeners = new HandlerList<>();
     private final HandlerList<PlayerQuitListener> quitListeners = new HandlerList<>();
@@ -53,31 +55,82 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     public void onEnable() {
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
-        SparrowUI.getInstance().networkManager().listenNMS(
-                new PacketType("minecraft:login_finished", ConnectionState.LOGIN, PacketFlow.CLIENTBOUND),
-                // 登记写入 Redis 后再放行 login_finished, proxy 收到 login_finished 才断开旧服, 因此切服时新服的登记先于旧服的 Quit.
-                (user, event, packet) -> {
-                    Channel channel = user.channel();
-                    // 连接已关闭时登记已被移除, 写出会自行失败
-                    PlayerConnection connection = this.connections.get(channel);
-                    if (connection == null) return;
-                    event.cancel();
-                    // 同一 UUID 的登记和关闭清理都在 compute 内提交脚本, Redis 按提交顺序执行
-                    this.registrations.compute(connection.uniqueId(), (uniqueId, previous) -> {
-                        this.registry.publishLogin(uniqueId, connection.name()).whenComplete((ignored, error) -> {
-                            if (error != null) {
-                                this.plugin.logger().warn("Failed to register " + connection.name() + " in player registry before login", error);
-                            }
-                            channel.eventLoop().execute(() -> {
-                                if (channel.isActive()) {
-                                    user.sendPacketSilently(packet);
-                                }
-                            });
-                        });
-                        return connection;
-                    });
+        this.gate.onEnable();
+        this.plugin.scheduler().asyncRepeating(() -> {
+            if (this.lockHolders.isEmpty()) return;
+            this.lock.renew(this.lockHolders.keys()).whenComplete((ignored, error) -> {
+                if (error != null) {
+                    this.plugin.logger().warn("Failed to renew player locks", error);
                 }
-        );
+            });
+        }, 5, 5, TimeUnit.SECONDS);
+    }
+
+    // 登记本服在线名单. 同一 UUID 的登记和关闭清理都在 compute 内提交脚本, Redis 按提交顺序执行
+    @NotNull
+    CompletableFuture<Void> register(@NotNull PlayerConnection connection) {
+        CompletableFuture<Void> registered = new CompletableFuture<>();
+        this.registrations.compute(connection.uniqueId(), (uniqueId, previous) -> {
+            this.registry.publishLogin(uniqueId, connection.name()).whenComplete((ignored, error) -> {
+                if (error == null) {
+                    registered.complete(null);
+                } else {
+                    registered.completeExceptionally(error);
+                }
+            });
+            return connection;
+        });
+        return registered;
+    }
+
+    // 取得玩家锁后在插件异步线程执行准备监听器, 全部完成后连接进入已准备状态. 返回的 Future 也是连接收尾的等待点, 调用方不能直接改变它的结果
+    @NotNull
+    CompletableFuture<Void> prepare(@NotNull PlayerConnection connection, long deadlineNanos) {
+        UUID uniqueId = connection.uniqueId();
+        CompletableFuture<Void> preparation = this.lock.acquire(uniqueId, deadlineNanos)
+                .thenRun(() -> this.lockHolders.put(uniqueId, connection))
+                .thenComposeAsync(ignored -> {
+                    List<CompletableFuture<Void>> preparing = new ArrayList<>();
+                    this.prepareListeners.dispatch(listener -> preparing.add(listener.onPrepare(connection)));
+                    return CompletableFuture.allOf(preparing.toArray(CompletableFuture[]::new));
+                }, this.plugin.scheduler().async())
+                .thenRun(() -> connection.prepared(true));
+        connection.preparation(preparation);
+        return preparation;
+    }
+
+    // 等全部退出监听器结束后释放连接. 每个监听器在各自的 thenCompose 中调用, 同步抛出的异常只让它自己的 Future 失败
+    private CompletableFuture<Void> quit(BukkitSparrowPlayer player) {
+        List<CompletableFuture<Void>> quitting = new ArrayList<>();
+        this.quitListeners.dispatch(listener -> quitting.add(CompletableFuture.completedFuture(player).thenCompose(listener::onQuit)));
+        return CompletableFuture.allOf(quitting.toArray(CompletableFuture[]::new))
+                .handle((ignored, error) -> {
+                    if (error != null) {
+                        this.plugin.logger().warn("Failed to run quit listeners for " + player.name(), error);
+                    }
+                    return null;
+                })
+                .thenCompose(ignored -> this.release(player.connection));
+    }
+
+    // 执行释放监听器后删除玩家锁. 删除完成前锁仍在续期, 释放监听器耗时不会让锁提前过期
+    private CompletableFuture<Void> release(PlayerConnection connection) {
+        List<CompletableFuture<Void>> releasing = new ArrayList<>();
+        this.prepareListeners.dispatch(listener -> releasing.add(CompletableFuture.completedFuture(connection).thenCompose(listener::onRelease)));
+        return CompletableFuture.allOf(releasing.toArray(CompletableFuture[]::new))
+                .handle((ignored, error) -> {
+                    if (error != null) {
+                        this.plugin.logger().warn("Failed to run release listeners for " + connection.name(), error);
+                    }
+                    return null;
+                })
+                .thenCompose(ignored -> this.lock.release(connection.uniqueId()))
+                .whenComplete((ignored, error) -> {
+                    this.lockHolders.remove(connection.uniqueId(), connection);
+                    if (error != null) {
+                        this.plugin.logger().warn("Failed to release player lock for " + connection.name(), error);
+                    }
+                });
     }
 
     // 根据 Player 查询本服在线 SparrowPlayer 玩家实例.
@@ -169,6 +222,16 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     }
 
     @NotNull
+    public Subscription registerPrepareListener(@NotNull PlayerPrepareListener listener) {
+        return this.prepareListeners.register(listener);
+    }
+
+    @NotNull
+    public Subscription registerPrepareListener(@NotNull PlayerPrepareListener listener, @NotNull EventPriority priority) {
+        return this.prepareListeners.register(listener, priority);
+    }
+
+    @NotNull
     public Subscription registerPreLoginListener(@NotNull PlayerPreLoginListener listener) {
         return this.preLoginListeners.register(listener);
     }
@@ -245,8 +308,19 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         if (leaving == null) return;
         if (this.localPlayers.remove(player.getUniqueId(), leaving) == leaving) {
             this.registry.publishQuit(leaving.uniqueId());
-            this.quitListeners.dispatch(listener -> listener.onQuit(leaving));
+            this.quit(leaving);
         }
+    }
+
+    // Paper 关服时先禁用插件再移除玩家, 本服在线玩家收不到 Quit, 在这里走完退出流程
+    public void closeSessions() {
+        List<CompletableFuture<Void>> closing = new ArrayList<>();
+        for (BukkitSparrowPlayer player : this.localPlayers.values()) {
+            if (this.localPlayers.remove(player.uniqueId(), player) == player) {
+                closing.add(this.quit(player));
+            }
+        }
+        CompletableFuture.allOf(closing.toArray(CompletableFuture[]::new)).join();
     }
 
     // 登记一次本服登录的网络连接, 将登记的存活期绑定到 Channel 关闭事件.
@@ -273,6 +347,12 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
             }
             return null;
         });
+        // 进入过游戏的连接由 Quit 释放; 没进入游戏的连接就等准备结束, 取得过锁就释放
+        if (!connection.joined() && connection.preparation() != null) {
+            connection.preparation()
+                    .handle((ignored, error) -> null)
+                    .thenCompose(ignored -> this.lockHolders.get(connection.uniqueId()) == connection ? this.release(connection) : CompletableFuture.completedFuture(null));
+        }
     }
 
     // 关服时先于释放服务器身份调用, 删除本服的全服名单记录并等待完成.
