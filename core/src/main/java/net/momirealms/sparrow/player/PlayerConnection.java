@@ -13,6 +13,7 @@ import net.momirealms.sparrow.proxy.minecraft.network.protocol.PacketProxy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
 import java.nio.channels.ClosedChannelException;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -20,6 +21,7 @@ import java.util.concurrent.CompletableFuture;
 public final class PlayerConnection {
     private final UUID uniqueId;
     private final String name;
+    private final InetAddress ip;
     private final ChannelHandler handle;
     private final Channel channel;
     private final long connectedAt;
@@ -29,11 +31,12 @@ public final class PlayerConnection {
 
     final ConcurrentChainedObject2ObjectHashTable<Object, PlayerDataBinding.Loaded> loaded = new ConcurrentChainedObject2ObjectHashTable<>(); // 本连接加载的托管数据, 键为 data 注册对象
 
-    PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name) {
+    PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name, @Nullable InetAddress ip) {
         this.handle = handle;
         this.channel = (Channel) ConnectionProxy.INSTANCE.getChannel(handle);
         this.uniqueId = uniqueId;
         this.name = name;
+        this.ip = ip;
         this.connectedAt = System.currentTimeMillis();
     }
 
@@ -45,6 +48,11 @@ public final class PlayerConnection {
     @NotNull
     public String name() {
         return this.name;
+    }
+
+    @Nullable
+    public InetAddress ip() {
+        return this.ip;
     }
 
     @NotNull

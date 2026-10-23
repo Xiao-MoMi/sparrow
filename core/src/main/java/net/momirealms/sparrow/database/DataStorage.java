@@ -4,13 +4,12 @@ import net.momirealms.sparrow.database.mariadb.MariaDbDataStorage;
 import net.momirealms.sparrow.database.mongo.MongoDataStorage;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
 import net.momirealms.sparrow.database.postgresql.PostgresDataStorage;
-import net.momirealms.sparrow.util.IpRange;
-import net.momirealms.sparrow.util.WorldLocation;
+import net.momirealms.sparrow.data.storage.DataStore;
+import net.momirealms.sparrow.player.PlayerProfile;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -40,65 +39,18 @@ public abstract class DataStorage implements AutoCloseable {
     public abstract void initialize();
 
     @NotNull
-    public abstract CompletableFuture<Optional<PlayerData>> loadPlayer(@NotNull UUID player);
+    public abstract DataStore<UUID, String, PlayerProfile> playerProfileStore();
 
-    /**
-     * 更新玩家名、登录时间、登录 IP 和数据更新时间, 保留上次下线位置.
-     *
-     * @param player 玩家 UUID
-     * @param name 玩家当前的名字
-     * @param ip 登录 IP, 见 {@link IpRange#address}; 为 {@link IpRange#NONE} 时保留原记录
-     * @param timestamp 登录事件的时间, 单位为 Unix 毫秒
-     * @return 写入完成时结束的任务
-     */
-    @NotNull
-    public abstract CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long ip, long timestamp);
-
-    /**
-     * 最近一次登录 IP 落在该范围内的玩家数量
-     *
-     * @param range IP
-     * @return 数量
-     */
-    @NotNull
-    public abstract CompletableFuture<Long> countPlayersOnIp(@NotNull IpRange range);
-
-    /**
-     * 查询最近一次登录 IP 落在该范围内的玩家, 按最后登录时间倒序.
-     *
-     * @param offset 跳过的条数
-     * @param limit 最多返回的条数
-     * @return 查询任务
-     */
-    @NotNull
-    public abstract CompletableFuture<List<PlayerData>> listPlayersOnIp(@NotNull IpRange range, int offset, int limit);
-
-    /**
-     * 更新下线时间、服务器和位置, 保留登录时间. 时间均为 Unix 毫秒.
-     */
-    @NotNull
-    public abstract CompletableFuture<Void> saveLogout(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location);
-
-    @NotNull
-    public abstract CompletableFuture<Void> saveDeath(@NotNull UUID player, @NotNull String name, long timestamp, @NotNull String server, @NotNull WorldLocation location);
-
-    /**
-     * 按名字精确查询玩家 UUID, 区分大小写. 多名玩家先后用过同一名字时返回最近出现的那一位.
-     *
-     * @param name 玩家名
-     * @return 查询任务, 没有记录时结果为空
-     */
     @NotNull
     public abstract CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name);
 
-    /**
-     * 按 UUID 查询玩家最近一次使用的名字.
-     *
-     * @param player 玩家 UUID
-     * @return 查询任务, 没有记录时结果为空
-     */
     @NotNull
-    public abstract CompletableFuture<Optional<String>> lookupName(@NotNull UUID player);
+    public CompletableFuture<Optional<String>> lookupName(@NotNull UUID player) {
+        return this.playerProfileStore().load(player).thenApply(entries -> {
+            PlayerProfile profile = entries.get(PlayerProfile.ENTRY);
+            return profile == null ? Optional.empty() : Optional.of(profile.name());
+        });
+    }
 
     // 建表或建集合时使用的名称前缀
     @NotNull

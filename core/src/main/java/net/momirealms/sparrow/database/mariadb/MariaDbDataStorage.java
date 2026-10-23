@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.mariadb;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
+import net.momirealms.sparrow.database.mysql.MysqlPlayerProfileStore;
 import net.momirealms.sparrow.database.mysql.MysqlSchema;
 import net.momirealms.sparrow.database.mysql.MysqlSchemaMigrator;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
@@ -46,7 +47,7 @@ public final class MariaDbDataStorage extends MysqlDataStorage {
                     MIGRATIONS
             ).migrate(jdbi, this.namePrefix());
             super.pool = connected;
-            super.jdbi = jdbi;
+            super.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;

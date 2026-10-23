@@ -7,6 +7,9 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import net.momirealms.sparrow.data.access.MultiWriterData;
 import net.momirealms.sparrow.data.access.SingleWriterData;
+import net.momirealms.sparrow.data.access.SingleWriterEntries;
+import net.momirealms.sparrow.data.definition.SingleWriterDefinition;
+import net.momirealms.sparrow.data.storage.DataCodec;
 import net.momirealms.sparrow.player.listener.PlayerJoinListener;
 import net.momirealms.sparrow.player.listener.PlayerPreLoginListener;
 import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
@@ -18,6 +21,9 @@ import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketL
 import net.momirealms.sparrow.proxy.paper.connection.ReadablePlayerCookieConnectionProxy;
 import net.momirealms.sparrow.ui.Subscription;
 import net.momirealms.sparrow.util.HandlerList;
+import net.momirealms.sparrow.util.ServerLocation;
+import net.momirealms.sparrow.util.SparrowKey;
+import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -32,6 +38,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -39,6 +48,7 @@ import java.util.concurrent.TimeUnit;
 public final class PlayerManager implements Listener, ChannelFutureListener {
     public final SparrowPlugin plugin = SparrowPlugin.instance();
     public final PlayerRegistry registry = new PlayerRegistry();
+
     private final ConcurrentChainedObject2ObjectHashTable<Channel, PlayerConnection> connections = new ConcurrentChainedObject2ObjectHashTable<>();
     private final ConcurrentChainedObject2ObjectHashTable<UUID, PlayerConnection> registrations = new ConcurrentChainedObject2ObjectHashTable<>(); // 每个 UUID 在本服当前登记名单的连接
     private final ConcurrentChainedObject2ObjectHashTable<UUID, BukkitSparrowPlayer> localPlayers = new ConcurrentChainedObject2ObjectHashTable<>();
@@ -51,11 +61,21 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final HandlerList<PlayerJoinListener> joinListeners = new HandlerList<>();
     private final HandlerList<PlayerQuitListener> quitListeners = new HandlerList<>();
 
+    private SingleWriterData<UUID, String, PlayerProfile> profileData;
+
     public void onLoad() {
         this.registry.load().join();
     }
 
     public void onEnable() {
+        this.profileData = this.plugin.dataAccess().register(SingleWriterDefinition.of(
+                SparrowKey.sparrow("player_profile"),
+                DataCodec.of(UUIDUtils::toBytes, UUIDUtils::fromBytes),
+                DataCodec.<String>of(entry -> entry.getBytes(StandardCharsets.UTF_8), bytes -> new String(bytes, StandardCharsets.UTF_8)),
+                PlayerProfile.Codec.INSTANCE,
+                this.plugin.dataStorage().playerProfileStore()
+        ).redisTtl(Duration.ofMinutes(10)));
+        this.registerData(this.profileData);
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
         this.gate.onEnable();
@@ -112,6 +132,9 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
 
     // 等全部退出监听器结束后释放连接. 每个监听器在各自的 thenCompose 中调用, 同步抛出的异常只让它自己的 Future 失败
     private CompletableFuture<Void> quit(BukkitSparrowPlayer player) {
+        long logoutAt = System.currentTimeMillis();
+        ServerLocation location = player.getServerLocation();
+        player.data(this.profileData).update(PlayerProfile.ENTRY, profile -> new PlayerProfile(profile.name(), profile.loginAt(), logoutAt, profile.ip(), location));
         List<CompletableFuture<Void>> quitting = new ArrayList<>();
         this.quitListeners.dispatch(listener -> quitting.add(CompletableFuture.completedFuture(player).thenCompose(listener::onQuit)));
         return CompletableFuture.allOf(quitting.toArray(CompletableFuture[]::new))
@@ -220,13 +243,15 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         return this.registry.getGlobalOnlineCount();
     }
 
-    // 按 UUID 优先查询在线玩家, 离线时异步读取数据库中的名字.
+    // 按 UUID 优先查询在线玩家, 离线时通过档案读副本取得名字.
     @NotNull
     public CompletableFuture<Optional<SparrowPlayer>> getPlayer(@NotNull UUID uniqueId) {
         SparrowPlayer online = this.getGlobalOnlinePlayer(uniqueId);
         if (online != null) return CompletableFuture.completedFuture(Optional.of(online));
-        return this.plugin.dataStorage().lookupName(uniqueId)
-                .thenApply(found -> found.map(name -> this.getOrCreate(uniqueId, name)));
+        return this.profileData.reader(uniqueId).read().thenApply(entries -> {
+            PlayerProfile profile = entries.get(PlayerProfile.ENTRY);
+            return profile == null ? Optional.empty() : Optional.of(this.getOrCreate(uniqueId, profile.name()));
+        });
     }
 
     // 按名字优先查询在线玩家, 离线时沿用数据库的名字匹配规则, 未找到时结果为空.
@@ -251,6 +276,11 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @Nullable
     public PlayerConnection getConnection(@NotNull Channel channel) {
         return this.connections.get(channel);
+    }
+
+    @NotNull
+    public SingleWriterData<UUID, String, PlayerProfile> profileData() {
+        return this.profileData;
     }
 
     /** 让单写数据随玩家进出本服加载和卸载, <strong>只能在插件启用阶段, 玩家进服前调用</strong>. */
@@ -310,7 +340,8 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.registerConnection(
                 (ChannelHandler) ReadablePlayerCookieConnectionProxy.INSTANCE.getConnection(event.getConnection()),
                 event.getUniqueId(),
-                event.getName()
+                event.getName(),
+                event.getAddress()
         );
     }
 
@@ -328,6 +359,17 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         });
         BukkitSparrowPlayer joined = this.getOnlinePlayer(player);
         if (joined != null) {
+            SingleWriterEntries<String, PlayerProfile> entries = joined.data(this.profileData);
+            long loginAt = System.currentTimeMillis();
+            entries.update(PlayerProfile.ENTRY, previous -> new PlayerProfile(
+                    joined.name(),
+                    loginAt,
+                    previous == null ? 0 : previous.logoutAt(),
+                    joined.connection.ip(),
+                    previous == null ? null : previous.logoutLocation()
+            ));
+            entries.publish();
+            entries.save();
             this.registry.publishUpdate(joined.uniqueId(), joined.name(), joined.locale());
             this.joinListeners.dispatch(joinListener -> joinListener.onJoin(joined));
         }
@@ -366,8 +408,8 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     }
 
     // 登记一次本服登录的网络连接, 将登记的存活期绑定到 Channel 关闭事件.
-    private void registerConnection(ChannelHandler handle, UUID uniqueId, String name) {
-        PlayerConnection connection = new PlayerConnection(handle, uniqueId, name);
+    private void registerConnection(ChannelHandler handle, UUID uniqueId, String name, InetAddress ip) {
+        PlayerConnection connection = new PlayerConnection(handle, uniqueId, name, ip);
         // 登记完成后添加关闭监听, 已完成的关闭 Future 可能立即执行清理回调.
         if (this.connections.putIfAbsent(connection.channel(), connection) == null) {
             connection.channel().closeFuture().addListener(this);

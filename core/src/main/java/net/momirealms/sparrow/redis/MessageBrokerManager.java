@@ -1,23 +1,32 @@
 package net.momirealms.sparrow.redis;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.momirealms.sparrow.data.message.DataCacheInvalidationMessage;
-import net.momirealms.sparrow.feature.ban.BanMessage;
-import net.momirealms.sparrow.feature.mute.MuteMessage;
-import net.momirealms.sparrow.feature.spawn.SpawnMessage;
-import net.momirealms.sparrow.feature.tpa.TpaMessage;
-import net.momirealms.sparrow.feature.warp.WarpMessage;
+import net.momirealms.sparrow.data.message.DataChangedMessage;
+import net.momirealms.sparrow.player.message.BroadcastMessage;
+import net.momirealms.sparrow.player.message.ClearTitleMessage;
+import net.momirealms.sparrow.player.message.HideBossBarMessage;
+import net.momirealms.sparrow.player.message.KickPlayerMessage;
+import net.momirealms.sparrow.player.message.PlaySoundMessage;
+import net.momirealms.sparrow.player.message.PlayerChangedMessage;
+import net.momirealms.sparrow.player.message.PlayerRegistryResetMessage;
+import net.momirealms.sparrow.player.message.SendMessageMessage;
+import net.momirealms.sparrow.player.message.SendTitleMessage;
+import net.momirealms.sparrow.player.message.SendToastMessage;
+import net.momirealms.sparrow.player.message.SendTotemAnimationMessage;
+import net.momirealms.sparrow.player.message.ShowBossBarMessage;
+import net.momirealms.sparrow.player.message.UpdateBossBarProgressMessage;
+import net.momirealms.sparrow.player.message.UpdateBossBarTitleMessage;
+import net.momirealms.sparrow.player.message.proxy.*;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
-import net.momirealms.sparrow.redis.message.BroadcastMessage;
-import net.momirealms.sparrow.redis.message.ServerChangedMessage;
-import net.momirealms.sparrow.redis.message.WorldListRequest;
-import net.momirealms.sparrow.redis.message.WorldListResponse;
+import net.momirealms.sparrow.server.message.ServerChangedMessage;
+import net.momirealms.sparrow.server.message.ServerHeartbeatMessage;
+import net.momirealms.sparrow.server.message.ServerProbeRequest;
+import net.momirealms.sparrow.server.message.ServerProbeResponse;
 import net.momirealms.sparrow.redis.messagebroker.Logger;
 import net.momirealms.sparrow.redis.messagebroker.MessageBroker;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
-import net.momirealms.sparrow.redis.proxy.*;
 import net.momirealms.sparrow.teleport.message.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,24 +48,33 @@ public final class MessageBrokerManager {
         this.broker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":messages").getBytes(StandardCharsets.UTF_8))
                 .serverId(ServerConfig.serverId())
+                .tags(ServerConfig.tags())
                 .logger(new BrokerLogger(this.plugin.logger()))
                 .connection(connector.brokerConnection())
                 .build();
         this.broker.registry().register(ServerChangedMessage.ID, ServerChangedMessage.CODEC);
-        this.broker.registry().register(WorldListRequest.ID, WorldListRequest.CODEC);
-        this.broker.registry().register(WorldListResponse.ID, WorldListResponse.CODEC);
-        this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
-        this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);
-        this.broker.registry().register(MuteMessage.ID, MuteMessage.CODEC);
-        this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
-        this.broker.registry().register(SpawnMessage.ID, SpawnMessage.CODEC);
-        this.broker.registry().register(TpaMessage.ID, TpaMessage.CODEC);
+        this.broker.registry().register(ServerHeartbeatMessage.ID, ServerHeartbeatMessage.CODEC);
+        this.broker.registry().register(ServerProbeRequest.ID, ServerProbeRequest.CODEC);
+        this.broker.registry().register(ServerProbeResponse.ID, ServerProbeResponse.CODEC);
+        this.broker.registry().register(PlayerChangedMessage.ID, PlayerChangedMessage.CODEC);
+        this.broker.registry().register(PlayerRegistryResetMessage.ID, PlayerRegistryResetMessage.CODEC);
         this.broker.registry().register(TeleportPrepareRequest.ID, TeleportPrepareRequest.CODEC);
         this.broker.registry().register(TeleportPrepareResponse.ID, TeleportPrepareResponse.CODEC);
         this.broker.registry().register(TeleportExecuteRequest.ID, TeleportExecuteRequest.CODEC);
         this.broker.registry().register(TeleportExecuteResponse.ID, TeleportExecuteResponse.CODEC);
-        this.broker.registry().register(TeleportCancelMessage.ID, TeleportCancelMessage.CODEC);
-        this.broker.registry().register(DataCacheInvalidationMessage.ID, DataCacheInvalidationMessage.CODEC);
+        this.broker.registry().register(SendMessageMessage.ID, SendMessageMessage.CODEC);
+        this.broker.registry().register(SendTitleMessage.ID, SendTitleMessage.CODEC);
+        this.broker.registry().register(ClearTitleMessage.ID, ClearTitleMessage.CODEC);
+        this.broker.registry().register(KickPlayerMessage.ID, KickPlayerMessage.CODEC);
+        this.broker.registry().register(ShowBossBarMessage.ID, ShowBossBarMessage.CODEC);
+        this.broker.registry().register(UpdateBossBarProgressMessage.ID, UpdateBossBarProgressMessage.CODEC);
+        this.broker.registry().register(UpdateBossBarTitleMessage.ID, UpdateBossBarTitleMessage.CODEC);
+        this.broker.registry().register(HideBossBarMessage.ID, HideBossBarMessage.CODEC);
+        this.broker.registry().register(PlaySoundMessage.ID, PlaySoundMessage.CODEC);
+        this.broker.registry().register(SendToastMessage.ID, SendToastMessage.CODEC);
+        this.broker.registry().register(SendTotemAnimationMessage.ID, SendTotemAnimationMessage.CODEC);
+        this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
+        this.broker.registry().register(DataChangedMessage.ID, DataChangedMessage.CODEC);
         // Redis Pub/Sub Proxy 代理频道.
         this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":proxy").getBytes(StandardCharsets.UTF_8))
@@ -67,14 +85,13 @@ public final class MessageBrokerManager {
         this.proxyBroker.registry().register(DisconnectMessage.ID, DisconnectMessage.CODEC);
         this.proxyBroker.registry().register(DisconnectRequest.ID, DisconnectRequest.CODEC);
         this.proxyBroker.registry().register(DisconnectResponse.ID, DisconnectResponse.CODEC);
-        this.proxyBroker.registry().register(PlayerPresenceMessage.ID, PlayerPresenceMessage.CODEC);
-        this.proxyBroker.registry().register(PlayerDirectoryResetMessage.ID, PlayerDirectoryResetMessage.CODEC);
         this.proxyBroker.registry().register(ConnectRequest.ID, ConnectRequest.CODEC);
         this.proxyBroker.registry().register(ConnectResponse.ID, ConnectResponse.CODEC);
     }
 
-    public void onEnable() {
+    public void subscribe() {
         this.broker.subscribe();
+        this.proxyBroker.subscribe();
     }
 
     @NotNull
