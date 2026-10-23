@@ -21,7 +21,7 @@ public final class ReloadCommand extends BukkitCommandFeature {
         manager.command(builder
                 .flag(FlagKeys.SILENT_FLAG)
                 .handler(context -> this.plugin().scheduler().platform().execute(() -> {
-                            if (this.plugin().isReloading()) {
+                            if (this.plugin().isReloading() || this.plugin().featureManager().isBusy()) {
                                 this.handleFeedback(context, MessageConstants.COMMAND_RELOAD_TOO_FAST);
                                 return;
                             }

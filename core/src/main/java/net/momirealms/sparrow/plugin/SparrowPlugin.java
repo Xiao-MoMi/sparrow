@@ -262,7 +262,7 @@ public class SparrowPlugin implements Plugin {
     }
 
     /**
-     * 异步加载插件配置, 再调用已启用功能的重载回调并等待完成.
+     * 读取总开关和插件配置, 按模块能力应用启停或独立重载, 等待全部操作完成.
      *
      * @param asyncExecutor 异步任务执行器
      * @param syncExecutor 同步任务执行器
@@ -273,35 +273,24 @@ public class SparrowPlugin implements Plugin {
             return CompletableFuture.completedFuture(ReloadResult.failure());
         }
         try {
-            return CompletableFuture
-                    .supplyAsync(
-                            () -> {
-                                // 执行异步重载任务
-                                long startTime = System.currentTimeMillis();
-                                this.configurationManager.reload();
-                                this.translationManager.reload();
-                                return ReloadResult.success(System.currentTimeMillis() - startTime, 0, 0);
-                            },
-                            asyncExecutor
-                    )
-                    .thenComposeAsync(
-                            async -> {
-                                // 执行同步重载任务
-                                long syncStartTime = System.currentTimeMillis();
-                                return this.featureManager.onReload()
-                                        .thenApply(ignored -> ReloadResult.success(async.asyncTime(), System.currentTimeMillis() - syncStartTime, async.issues()));
-                            },
-                            syncExecutor
+            return this.featureManager.onReload(
+                    () -> {
+                        this.configurationManager.reload();
+                        this.translationManager.reload();
+                    },
+                    asyncExecutor,
+                    syncExecutor
                     )
                     .handle((result, error) -> {
                         this.reloading.set(false);
                         if (error == null) {
-                            return result;
+                            return ReloadResult.success(result.asyncTime(), result.syncTime(), result.restartRequired().size());
                         }
                         Throwable cause = error instanceof CompletionException ? error.getCause() : error;
                         this.logger().warn(LogConstants.PLUGIN_RELOAD_FAILED, cause);
                         return ReloadResult.failure();
-                    });
+                    })
+                    .copy();
         } catch (RuntimeException exception) {
             this.reloading.set(false);
             this.logger().warn(LogConstants.PLUGIN_RELOAD_FAILED, exception);

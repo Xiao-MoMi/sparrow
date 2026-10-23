@@ -44,7 +44,7 @@ public final class FeatureEnableCommand extends BukkitCommandFeature {
         List<String> suggestions = new ArrayList<>();
         for (String id : manager.ids()) {
             Feature feature = manager.feature(id);
-            if (feature.supportsHotEnable() && !manager.isEnabled(id)) {
+            if (manager.getState(id) != FeatureState.FAILED && feature.supportsHotEnable() && !manager.isEnabled(id)) {
                 suggestions.add(id);
             }
         }
@@ -59,7 +59,7 @@ public final class FeatureEnableCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_UNKNOWN, Component.text(id));
             return;
         }
-        if (!feature.supportsHotEnable()) {
+        if (manager.getState(id) == FeatureState.FAILED || !feature.supportsHotEnable()) {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_RESTART_REQUIRED, Component.text(id));
             return;
         }

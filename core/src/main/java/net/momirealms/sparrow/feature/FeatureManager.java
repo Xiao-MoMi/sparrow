@@ -16,10 +16,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.Executor;
+import java.util.function.Supplier;
 
 public final class FeatureManager {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Map<String, Entry> features = new LinkedHashMap<>();
+    private CompletableFuture<?> operation = CompletableFuture.completedFuture(null);
     private boolean closed;
 
     public void onLoad() {
@@ -40,38 +44,99 @@ public final class FeatureManager {
 
     @NotNull
     public CompletableFuture<Void> onEnable() {
-        List<CompletableFuture<Void>> starting = new ArrayList<>();
-        for (Entry entry : this.features.values()) {
-            if (entry.startupEnabled) starting.add(this.change(entry, true));
-        }
-        return CompletableFuture.allOf(starting.toArray(CompletableFuture[]::new));
-    }
-
-    @NotNull
-    public synchronized CompletableFuture<Void> onReload() {
-        this.requireIdle();
-        List<CompletableFuture<Void>> reloading = new ArrayList<>();
-        for (Entry entry : this.features.values()) {
-            if (entry.state != FeatureState.ENABLED) continue;
-            entry.operation = CompletableFuture.completedFuture(null).thenCompose(ignored -> entry.feature.onReload());
-            reloading.add(entry.operation);
-        }
-        return CompletableFuture.allOf(reloading.toArray(CompletableFuture[]::new)).copy();
-    }
-
-    @NotNull
-    public synchronized CompletableFuture<FeatureState> setEnabled(@NotNull String id, boolean enabled) {
-        this.requireIdle();
-        Entry entry = this.getEntry(id);
-        if (enabled ? !entry.feature.supportsHotEnable() : !entry.feature.supportsHotDisable()) {
-            throw new IllegalArgumentException("Feature requires a restart: " + id);
-        }
-        if (entry.state == FeatureState.FAILED) throw new IllegalStateException("Feature has failed: " + id);
-        if (this.isEnabled(id) == enabled) return CompletableFuture.completedFuture(entry.state);
-        return this.change(entry, enabled).thenApply(ignored -> {
-            this.refreshCommands();
-            return enabled ? FeatureState.ENABLED : FeatureState.DISABLED;
+        return this.execute(() -> {
+            List<CompletableFuture<Void>> starting = new ArrayList<>();
+            for (Entry entry : this.features.values()) {
+                if (entry.startupEnabled) {
+                    starting.add(this.change(entry, true));
+                }
+            }
+            return CompletableFuture.allOf(starting.toArray(CompletableFuture[]::new));
         });
+    }
+
+    @NotNull
+    public CompletableFuture<ReloadResult> onReload(@NotNull Runnable reloadConfiguration, @NotNull Executor asyncExecutor, @NotNull Executor lifecycleExecutor) {
+        return this.execute(() -> {
+            long started = System.currentTimeMillis();
+            return CompletableFuture.supplyAsync(
+                    () -> {
+                        Set<String> enabled = ModulesConfig.loadEnabled();
+                        reloadConfiguration.run();
+                        return enabled;
+                    },
+                    asyncExecutor)
+                    .thenComposeAsync(
+                            enabled -> {
+                                long applying = System.currentTimeMillis();
+                                return this.applyReload(enabled)
+                                        .thenApply(restartRequired -> new ReloadResult(applying - started, System.currentTimeMillis() - applying, restartRequired));
+                            },
+                            lifecycleExecutor
+                    );
+        });
+    }
+
+    private synchronized CompletableFuture<List<String>> applyReload(Set<String> enabled) {
+        if (this.closed) throw new IllegalStateException("Feature manager is shut down");
+        List<CompletableFuture<Void>> reloading = new ArrayList<>();
+        List<String> restartRequired = new ArrayList<>();
+        for (Entry entry : this.features.values()) {
+            String id = entry.feature.id();
+            boolean target = enabled.contains(id);
+            boolean current = entry.state == FeatureState.ENABLED;
+            if (entry.state == FeatureState.FAILED || (current != target && (target ? !entry.feature.supportsHotEnable() : !entry.feature.supportsHotDisable()))) {
+                restartRequired.add(id);
+                this.plugin.logger().warn("Feature '" + id + "' requires a restart to apply modules.yml (state=" + entry.state + ", enabled=" + target + ")");
+                continue;
+            }
+            if (current != target) {
+                this.change(entry, target);
+            } else if (current) {
+                entry.operation = CompletableFuture.completedFuture(null).thenCompose(ignored -> entry.feature.onReload());
+            } else {
+                continue;
+            }
+            reloading.add(entry.operation.exceptionally(error -> {
+                Throwable cause = error instanceof CompletionException ? error.getCause() : error;
+                throw new IllegalStateException("Failed to reload feature '" + id + "'", cause);
+            }));
+        }
+        return CompletableFuture.allOf(reloading.toArray(CompletableFuture[]::new))
+                .whenComplete((ignored, error) -> this.refreshCommands())
+                .thenApply(ignored -> List.copyOf(restartRequired));
+    }
+
+    @NotNull
+    public CompletableFuture<FeatureState> setEnabled(@NotNull String id, boolean enabled) {
+        return this.execute(() -> {
+            Entry entry = this.getEntry(id);
+            if (enabled ? !entry.feature.supportsHotEnable() : !entry.feature.supportsHotDisable()) {
+                throw new IllegalArgumentException("Feature requires a restart: " + id);
+            }
+            if (entry.state == FeatureState.FAILED) throw new IllegalStateException("Feature has failed: " + id);
+            if (this.isEnabled(id) == enabled) return CompletableFuture.completedFuture(entry.state);
+            return this.change(entry, enabled)
+                    .whenComplete((ignored, error) -> this.refreshCommands())
+                    .thenApply(ignored -> enabled ? FeatureState.ENABLED : FeatureState.DISABLED);
+        });
+    }
+
+    private synchronized <T> CompletableFuture<T> execute(Supplier<CompletableFuture<T>> action) {
+        this.requireIdle();
+        // 占用管理入口后再调用模块, 同步回调和异步阶段都属于本次操作
+        CompletableFuture<T> result = new CompletableFuture<>();
+        this.operation = result;
+        CompletableFuture.completedFuture(null)
+                .thenCompose(ignored -> action.get())
+                .whenComplete((value, error) -> {
+                    if (error == null) {
+                        result.complete(value);
+                    } else {
+                        result.completeExceptionally(error);
+                    }
+                });
+        return result.copy();
     }
 
     private CompletableFuture<Void> change(Entry entry, boolean enabled) {
@@ -123,10 +188,7 @@ public final class FeatureManager {
     }
 
     public synchronized boolean isBusy() {
-        for (Entry entry : this.features.values()) {
-            if (!entry.operation.isDone()) return true;
-        }
-        return false;
+        return !this.operation.isDone();
     }
 
     private void requireIdle() {
@@ -163,6 +225,9 @@ public final class FeatureManager {
     @NotNull
     public Collection<String> ids() {
         return Collections.unmodifiableSet(this.features.keySet());
+    }
+
+    public record ReloadResult(long asyncTime, long syncTime, @NotNull List<String> restartRequired) {
     }
 
     private static final class Entry {

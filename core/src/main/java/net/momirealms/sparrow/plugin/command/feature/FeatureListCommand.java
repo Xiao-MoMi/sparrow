@@ -47,8 +47,9 @@ public final class FeatureListCommand extends BukkitCommandFeature {
             String id = ids.get(i);
             Feature feature = manager.feature(id);
             FeatureState state = manager.getState(id);
-            String unavailable = state == FeatureState.FAILED ? "restart_required"
-                    : (this.plugin().isReloading() || manager.isBusy() ? "busy" : null);
+            String unavailable = state == FeatureState.FAILED
+                    ? "restart_required"
+                    : (this.plugin().isReloading() || manager.isBusy() ? "operation_busy" : null);
             Component actions = this.action(
                     sender,
                     "enable",
@@ -63,9 +64,7 @@ public final class FeatureListCommand extends BukkitCommandFeature {
                             "feature_disable",
                             id,
                             unavailable != null ? unavailable : (!feature.supportsHotDisable() ? "restart_required" : (!manager.isEnabled(id) ? "already_disabled" : null))
-                    ))
-                    .append(Component.space())
-                    .append(this.action(sender, "status", "feature_status", id, null));
+                    ));
             Component row = this.tr(
                     "row",
                     Component.text(id),
@@ -123,7 +122,7 @@ public final class FeatureListCommand extends BukkitCommandFeature {
             return this.tr("console.action", this.tr("action." + label, caption), Component.text(command));
         }
         return this.tr("action." + label, caption)
-                .hoverEvent(this.tr("hint." + label, Component.text(command)))
+                .hoverEvent(this.tr("hint." + (label.equals("enable") || label.equals("disable") ? "runtime_" + label : label), Component.text(command)))
                 .clickEvent(ClickEvent.runCommand(command));
     }
 
