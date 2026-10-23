@@ -4,10 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
-import net.momirealms.sparrow.data.access.EntryView;
-import net.momirealms.sparrow.data.access.MultiWriterData;
-import net.momirealms.sparrow.data.access.SingleWriterData;
-import net.momirealms.sparrow.data.access.SingleWriterEntries;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.util.ServerLocation;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -32,18 +28,6 @@ public final class BukkitSparrowPlayer extends OfflineSparrowPlayer {
         this.connection = connection;
         this.platformPlayer = platformPlayer;
         this.nmsPlayer = ((CraftPlayer) platformPlayer).getHandle();
-    }
-
-    @NotNull
-    @SuppressWarnings("unchecked")
-    public <E, V> SingleWriterEntries<E, V> data(@NotNull SingleWriterData<UUID, E, V> data) {
-        return (SingleWriterEntries<E, V>) this.connection.loaded.get(data).view();
-    }
-
-    @NotNull
-    @SuppressWarnings("unchecked")
-    public <E, V> EntryView<E, V> data(@NotNull MultiWriterData<UUID, E, V> data) {
-        return (EntryView<E, V>) this.connection.loaded.get(data).view();
     }
 
     @NotNull
