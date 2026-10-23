@@ -6,7 +6,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
-import net.momirealms.sparrow.feature.FeatureState;
 import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.sparrow.proxy.minecraft.world.item.component.ItemContainerContentsProxy;
@@ -14,7 +13,6 @@ import net.momirealms.sparrow.ui.inventory.VirtualInventory;
 import net.momirealms.sparrow.ui.inventory.event.SlotChange;
 import net.momirealms.sparrow.ui.pane.NormalPane;
 import net.momirealms.sparrow.ui.pane.Pane;
-import net.momirealms.sparrow.ui.state.Signal;
 import net.momirealms.sparrow.ui.util.ItemUtils;
 import net.momirealms.sparrow.ui.window.NormalWindow;
 import net.momirealms.sparrow.ui.window.Window;
@@ -33,24 +31,25 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class QuickShulkerMenu {
-    private final Player viewer;
-    private final Inventory playerInventory;
     private final int sourceSlot;
-    private final ItemStack shulker;
-    private final VirtualInventory contents;
-    private final NormalWindow window;
+    private final String title;
+    private Player viewer;
+    private Inventory playerInventory;
+    private ItemStack shulker;
+    private VirtualInventory contents;
+    private NormalWindow window;
     private boolean invalidated;
 
-    @NotNull
-    public static CompletableFuture<Window.OpenResult> open(@NotNull Player viewer, int sourceSlot, @NotNull String title, @NotNull Signal<FeatureState> state) {
-        return new QuickShulkerMenu(viewer, sourceSlot, title, state).window.open();
+    public QuickShulkerMenu(int sourceSlot, @NotNull String title) {
+        this.sourceSlot = sourceSlot;
+        this.title = title;
     }
 
-    private QuickShulkerMenu(@NotNull Player viewer, int sourceSlot, @NotNull String title, @NotNull Signal<FeatureState> state) {
+    @NotNull
+    public Window build(@NotNull Player viewer) {
         this.viewer = viewer;
         this.playerInventory = ((CraftPlayer) viewer).getHandle().getInventory();
-        this.sourceSlot = sourceSlot;
-        this.shulker = this.playerInventory.getItem(sourceSlot);
+        this.shulker = this.playerInventory.getItem(this.sourceSlot);
         this.contents = new VirtualInventory(readContents(this.shulker));
         this.contents.setAccessRule(context -> context.player() == this.viewer);
 
@@ -61,24 +60,17 @@ public final class QuickShulkerMenu {
         Component itemName = AdventureHelper.jsonToComponent(CraftChatMessage.toJSON(this.shulker.getHoverName()));
         this.window = NormalWindow.builder()
                 .setUpperPane(pane)
-                .setTitle(AdventureHelper.miniMessage().deserialize(title, MessageContext.of(Map.of("hover_name", itemName))))
+                .setTitle(AdventureHelper.miniMessage().deserialize(this.title, MessageContext.of(Map.of("hover_name", itemName))))
                 .build(viewer);
 
         // 冻结原潜影盒所在的快捷栏槽位或副手.
-        if (sourceSlot == Inventory.SLOT_OFFHAND) {
+        if (this.sourceSlot == Inventory.SLOT_OFFHAND) {
             this.window.offhandFrozen(true);
         } else {
-            this.window.frozenAt(this.window.windowSlotAtHotbar(sourceSlot), true);
+            this.window.frozenAt(this.window.windowSlotAtHotbar(this.sourceSlot), true);
         }
 
-        // 功能停用时关闭窗口, 订阅随窗口的打开和关闭挂载与释放.
-        this.window.bind(state, window -> {
-            if (state.get() != FeatureState.ENABLED) {
-                window.close();
-            }
-        });
-
-        // 提交前核对原物品身份, 停用后不再接受编辑.
+        // 提交前核对原物品身份.
         this.contents.subscribePreUpdate(event -> {
             if (!this.validateSource()) {
                 event.setCancelled(true);
@@ -86,7 +78,7 @@ public final class QuickShulkerMenu {
             }
         });
 
-        // 每次事务完成后立即写回, 关闭窗口时无需额外保存.
+        // 每次事务完成后立即写回潜影盒.
         this.contents.subscribePostUpdate(event -> {
             if (this.validateSource()) {
                 if (VersionHelper.isOrAbove26_1) {
@@ -97,6 +89,12 @@ public final class QuickShulkerMenu {
                 this.playerInventory.setChanged();
             }
         });
+        return this.window;
+    }
+
+    @NotNull
+    public CompletableFuture<Window.OpenResult> open(@NotNull Player viewer) {
+        return this.build(viewer).open();
     }
 
     private boolean validateSource() {

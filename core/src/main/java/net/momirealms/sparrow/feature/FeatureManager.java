@@ -1,5 +1,7 @@
 package net.momirealms.sparrow.feature;
 
+import net.momirealms.sparrow.feature.highlight.HighlightFeature;
+import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ModulesConfig;
 import net.momirealms.sparrow.util.ExceptionCollector;
@@ -26,6 +28,11 @@ public final class FeatureManager {
     private CompletableFuture<?> operation = CompletableFuture.completedFuture(null);
     private boolean reloading;
     private volatile boolean closed;
+
+    public FeatureManager() {
+        this.features.put(HighlightFeature.ID, new Entry(new HighlightFeature()));
+        this.features.put(QuickShulkerFeature.ID, new Entry(new QuickShulkerFeature()));
+    }
 
     public void onLoad() {
         Set<String> enabled = ModulesConfig.loadEnabled();

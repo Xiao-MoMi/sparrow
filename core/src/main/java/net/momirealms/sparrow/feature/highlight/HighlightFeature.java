@@ -7,11 +7,11 @@ import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerConnection;
-import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
+import net.momirealms.sparrow.ui.Subscription;
+import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.Location;
 import org.bukkit.Difficulty;
 import org.bukkit.World;
@@ -25,6 +25,8 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,52 +36,99 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
-public final class HighlightFeature extends Feature<HighlightSettings> implements Listener, PlayerListener {
+public final class HighlightFeature implements Feature, Listener {
     public static final String ID = "highlight";
 
-    private final SparrowPlugin plugin;
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Map<UUID, Selection> selections = new HashMap<>();
     private final List<Display> displays = new ArrayList<>();
     private SchedulerTask cleanup;
+    private Subscription quitSubscription;
+    private volatile HighlightSettings config;
     private long generation;
 
-    public HighlightFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
-        this.plugin = plugin;
+    @Override
+    @NotNull
+    public String id() {
+        return ID;
     }
 
     @Override
-    public void loadConfig() {
-        HighlightSettings settings = this.plugin.configurationManager().featuresConfig().config().highlight();
+    public boolean supportsHotEnable() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsHotDisable() {
+        return true;
+    }
+
+    @NotNull
+    private HighlightSettings readConfig() {
+        HighlightSettings settings;
+        try {
+            settings = YamlMapperFactory.builder()
+                    .sparrowYaml(this.plugin.configurationManager().sparrowYaml())
+                    .build()
+                    .create(HighlightSettings.class, HighlightSettings::new)
+                    .load(this.plugin.dataFolderPath().resolve("features/highlight.yml"))
+                    .value();
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to load features/highlight.yml", exception);
+        }
         if (NamedTextColor.NAMES.value(settings.defaultColor().toLowerCase(Locale.ROOT)) == null
                 || settings.defaultDuration() < 0 || settings.defaultDuration() > 300
                 || settings.maxBlocks() <= 0 || settings.selectionTimeout() <= 0) {
             throw new IllegalArgumentException("Invalid highlight color, duration, max-blocks or selection-timeout");
         }
-        super.config = settings;
+        return settings;
     }
 
     @Override
-    protected void onLoad() {
+    @NotNull
+    public CompletableFuture<Void> onEnable() {
+        this.start(this.readConfig());
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private synchronized void start(@NotNull HighlightSettings settings) {
+        this.config = settings;
         this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
-        this.plugin.playerManager().registerListener(this);
-    }
-
-    @Override
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-        register.accept(new HighlightCommand(this.plugin.commandManager(), this.plugin));
-    }
-
-    @Override
-    protected synchronized void onEnable() {
+        this.quitSubscription = this.plugin.playerManager().registerQuitListener(player -> {
+            this.clear(player.platformPlayer, false);
+            return CompletableFuture.completedFuture(null);
+        });
         this.cleanup = this.plugin.scheduler().asyncRepeating(this::expire, 1, 1, TimeUnit.SECONDS);
     }
 
     @Override
-    protected synchronized void onDisable() {
+    @NotNull
+    public synchronized CompletableFuture<Void> onReload() {
+        HighlightSettings settings = this.readConfig();
+        this.onDisable();
+        this.start(settings);
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @NotNull
+    public HighlightSettings config() {
+        return this.config;
+    }
+
+    private boolean enabled() {
+        return this.plugin.featureManager().isEnabled(ID);
+    }
+
+    @Override
+    @NotNull
+    public synchronized CompletableFuture<Void> onDisable() {
         this.generation++;
+        HandlerList.unregisterAll(this);
+        if (this.quitSubscription != null) {
+            this.quitSubscription.close();
+            this.quitSubscription = null;
+        }
         if (this.cleanup != null) {
             this.cleanup.cancel();
             this.cleanup = null;
@@ -90,12 +139,7 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
             display.connection.sendPacket(display.removal);
         }
         this.displays.clear();
-    }
-
-    @Override
-    protected void onUnload() {
-        this.plugin.playerManager().unregisterListener(this);
-        HandlerList.unregisterAll(this);
+        return CompletableFuture.completedFuture(null);
     }
 
     public synchronized boolean cancelSelection(@NotNull Player player) {
@@ -154,9 +198,9 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
         }
         HighlightRegion region;
         try {
-            region = HighlightRegion.between(first, second, super.config.maxBlocks());
+            region = HighlightRegion.between(first, second, this.config.maxBlocks());
         } catch (IllegalArgumentException exception) {
-            feedback.send(MessageConstants.COMMAND_HIGHLIGHT_TOO_LARGE, Component.text(super.config.maxBlocks()));
+            feedback.send(MessageConstants.COMMAND_HIGHLIGHT_TOO_LARGE, Component.text(this.config.maxBlocks()));
             return;
         }
         if (region.minY() < world.getMinHeight() || (long) region.minY() + region.sizeY() > world.getMaxHeight()) {
@@ -185,17 +229,17 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
                     if (!this.current(expectedGeneration)) {
                         return;
                     }
-                    BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(viewer);
+                    BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(viewer);
                     if (player == null || viewer.getWorld() != world) {
                         continue;
                     }
-                    blocks.show(player.connection());
+                    blocks.show(player.connection);
                     if (options.duration == 0) {
-                        blocks.destroy(player.connection());
+                        blocks.destroy(player.connection);
                     } else {
                         this.displays.add(
                                 new Display(
-                                        player.connection(),
+                                        player.connection,
                                         blocks.removalPacket(),
                                         System.nanoTime() + TimeUnit.SECONDS.toNanos(options.duration)
                                 )
@@ -235,11 +279,6 @@ public final class HighlightFeature extends Feature<HighlightSettings> implement
                 display.connection.sendPacket(display.removal);
             }
         }
-    }
-
-    @Override
-    public void onQuit(@NotNull BukkitSparrowPlayer player) {
-        this.clear(player.platformPlayer(), false);
     }
 
     @EventHandler
