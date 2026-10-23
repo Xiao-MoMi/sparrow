@@ -49,7 +49,7 @@ public final class FeatureListCommand extends BukkitCommandFeature {
             FeatureState state = manager.getState(id);
             String unavailable = state == FeatureState.FAILED
                     ? "restart_required"
-                    : (this.plugin().isReloading() || manager.isBusy() ? "operation_busy" : null);
+                    : (manager.isBusy() ? "operation_busy" : null);
             Component actions = this.action(
                     sender,
                     "enable",

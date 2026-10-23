@@ -24,7 +24,8 @@ public final class FeatureManager {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Map<String, Entry> features = new LinkedHashMap<>();
     private CompletableFuture<?> operation = CompletableFuture.completedFuture(null);
-    private boolean closed;
+    private boolean reloading;
+    private volatile boolean closed;
 
     public void onLoad() {
         Set<String> enabled = ModulesConfig.loadEnabled();
@@ -44,7 +45,7 @@ public final class FeatureManager {
 
     @NotNull
     public CompletableFuture<Void> onEnable() {
-        return this.execute(() -> {
+        return this.execute(false, () -> {
             List<CompletableFuture<Void>> starting = new ArrayList<>();
             for (Entry entry : this.features.values()) {
                 if (entry.startupEnabled) {
@@ -57,7 +58,7 @@ public final class FeatureManager {
 
     @NotNull
     public CompletableFuture<ReloadResult> onReload(@NotNull Runnable reloadConfiguration, @NotNull Executor asyncExecutor, @NotNull Executor lifecycleExecutor) {
-        return this.execute(() -> {
+        return this.execute(true, () -> {
             long started = System.currentTimeMillis();
             return CompletableFuture.supplyAsync(
                     () -> {
@@ -109,7 +110,7 @@ public final class FeatureManager {
 
     @NotNull
     public CompletableFuture<FeatureState> setEnabled(@NotNull String id, boolean enabled) {
-        return this.execute(() -> {
+        return this.execute(false, () -> {
             Entry entry = this.getEntry(id);
             if (enabled ? !entry.feature.supportsHotEnable() : !entry.feature.supportsHotDisable()) {
                 throw new IllegalArgumentException("Feature requires a restart: " + id);
@@ -122,11 +123,12 @@ public final class FeatureManager {
         });
     }
 
-    private synchronized <T> CompletableFuture<T> execute(Supplier<CompletableFuture<T>> action) {
+    private synchronized <T> CompletableFuture<T> execute(boolean reloading, Supplier<CompletableFuture<T>> action) {
         this.requireIdle();
         // 占用管理入口后再调用模块, 同步回调和异步阶段都属于本次操作
         CompletableFuture<T> result = new CompletableFuture<>();
         this.operation = result;
+        this.reloading = reloading;
         CompletableFuture.completedFuture(null)
                 .thenCompose(ignored -> action.get())
                 .whenComplete((value, error) -> {
@@ -149,7 +151,7 @@ public final class FeatureManager {
                     entry.state = error == null ? (enabled ? FeatureState.ENABLED : FeatureState.DISABLED) : FeatureState.FAILED;
                     if (!enabled && error == null) entry.enableAttempted = false;
                 });
-        return entry.operation.copy();
+        return entry.operation;
     }
 
     public void onDisable() {
@@ -159,7 +161,7 @@ public final class FeatureManager {
         ExceptionCollector<RuntimeException> failures = new ExceptionCollector<>(RuntimeException.class);
         for (Entry entry : this.features.values()) {
             if (!entry.participated) continue;
-            // 先结束已接受的回调, 再按当前状态清理这个模块
+            // 等已进入模块的回调结束, 保留会话收尾需要的数据服务
             entry.operation.handle((ignored, error) -> null).join();
             try {
                 if (entry.enableAttempted) {
@@ -167,20 +169,30 @@ public final class FeatureManager {
                 }
             } catch (RuntimeException exception) {
                 failures.add(exception);
-            } finally {
-                entry.participated = false;
-                entry.state = FeatureState.UNLOADED;
-                try {
-                    entry.feature.onPluginShutdown().join();
-                } catch (RuntimeException exception) {
-                    failures.add(exception);
-                }
             }
         }
         failures.throwIfPresent();
     }
 
-    public void refreshCommands() {
+    // 玩家会话全部释放后, 再结束参与过初始化的模块数据服务
+    public void onPluginShutdown() {
+        ExceptionCollector<RuntimeException> failures = new ExceptionCollector<>(RuntimeException.class);
+        for (Entry entry : this.features.values()) {
+            if (!entry.participated) continue;
+            entry.participated = false;
+            try {
+                entry.feature.onPluginShutdown().join();
+            } catch (RuntimeException exception) {
+                failures.add(exception);
+            } finally {
+                entry.state = FeatureState.UNLOADED;
+            }
+        }
+        failures.throwIfPresent();
+    }
+
+    public synchronized void refreshCommands() {
+        if (this.closed || !this.plugin.javaPlugin().isEnabled()) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
             // Spigot 的命令树更新会触发同步 PlayerCommandSendEvent.
             this.plugin.scheduler().platform().run(player::updateCommands, () -> {}, player);
@@ -189,6 +201,10 @@ public final class FeatureManager {
 
     public synchronized boolean isBusy() {
         return !this.operation.isDone();
+    }
+
+    public synchronized boolean isReloading() {
+        return this.reloading && this.isBusy();
     }
 
     private void requireIdle() {
@@ -203,7 +219,7 @@ public final class FeatureManager {
     }
 
     public boolean isEnabled(@NotNull String id) {
-        return this.getState(id) == FeatureState.ENABLED;
+        return !this.closed && this.getState(id) == FeatureState.ENABLED;
     }
 
     @NotNull

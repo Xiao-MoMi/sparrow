@@ -13,7 +13,6 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import net.momirealms.sparrow.teleport.search.SafetyRule;
 import net.momirealms.sparrow.teleport.search.SearchContext;
 import net.momirealms.sparrow.util.Dimensions;
@@ -26,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 /**
@@ -122,7 +120,7 @@ final class RtpColumnSearch {
 
     /**
      * 进入这一列并开始检查, 先消耗一次列检查额度.
-     * 超时任务使用整轮剩余时间, 即使外部规则一直没有完成, 本列也会按时返回无结果.
+     * 整轮时限由 RtpSearch 计时, 整轮结束时取消本列的 Future.
      *
      * @return 本列的结果, 异常保留为异常完成, 调用方可以取消此 Future
      */
@@ -132,12 +130,6 @@ final class RtpColumnSearch {
             this.completion.complete(Result.Miss.INSTANCE);
             return this.completion;
         }
-        SchedulerTask timeout = SparrowPlugin.instance().scheduler().asyncLater(
-                () -> this.completion.complete(Result.Miss.INSTANCE),
-                this.budget.remainingNanos(),
-                TimeUnit.NANOSECONDS
-        );
-        this.completion.whenComplete((result, error) -> timeout.cancel());
         this.advance();
         return this.completion;
     }

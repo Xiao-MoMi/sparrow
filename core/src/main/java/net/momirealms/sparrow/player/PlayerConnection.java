@@ -27,6 +27,7 @@ public final class PlayerConnection {
     private boolean joined;
     private volatile CompletableFuture<Void> preparation; // 取锁, 加载档案与准备监听器的整体结果, 尚未开始准备时为 null
     private volatile boolean prepared;
+    private CompletableFuture<Void> ending; // 由 PlayerManager 串行发起, 覆盖退出回调到玩家锁释放
 
     PlayerConnection(@NotNull ChannelHandler handle, @NotNull UUID uniqueId, @NotNull String name, @Nullable InetAddress ip) {
         this.handle = handle;
@@ -88,6 +89,14 @@ public final class PlayerConnection {
 
     void prepared(boolean prepared) {
         this.prepared = prepared;
+    }
+
+    CompletableFuture<Void> ending() {
+        return this.ending;
+    }
+
+    void ending(CompletableFuture<Void> ending) {
+        this.ending = ending;
     }
 
     /**

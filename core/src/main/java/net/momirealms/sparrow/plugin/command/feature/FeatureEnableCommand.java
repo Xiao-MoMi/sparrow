@@ -63,7 +63,7 @@ public final class FeatureEnableCommand extends BukkitCommandFeature {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_RESTART_REQUIRED, Component.text(id));
             return;
         }
-        if (this.plugin().isReloading() || manager.isBusy()) {
+        if (manager.isBusy()) {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_BUSY);
             return;
         }

@@ -114,9 +114,7 @@ final class RedisDataBackend<K, E, V> {
             """;
     private static final String RENEW = EXPIRY + """
             for i = 1, #KEYS, 3 do
-                if redis.call('HEXISTS', KEYS[i], '') == 1 then
-                    touch(KEYS[i], KEYS[i + 1], KEYS[i + 2], ARGV[1])
-                end
+                touch(KEYS[i], KEYS[i + 1], KEYS[i + 2], ARGV[1])
             end
             return 1
             """;

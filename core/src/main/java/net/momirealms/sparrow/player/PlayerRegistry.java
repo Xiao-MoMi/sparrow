@@ -107,7 +107,6 @@ public final class PlayerRegistry {
                 .thenCombine(reset, (records, ignored) -> records)
                 .thenAccept(records -> {
                     synchronized (this) {
-                        if (this.closed) return;
                         List<RedisMessage<FriendlyByteBuf>> changes = this.loading;
                         this.loading = null;
                         int size = records.size();

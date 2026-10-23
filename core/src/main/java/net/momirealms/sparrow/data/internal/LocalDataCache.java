@@ -54,7 +54,7 @@ final class LocalDataCache<K, E, V> {
             LocalEntries<E, V> cached = this.peek(key);
             if (cached != null) return CompletableFuture.completedFuture(cached);
             loading = this.pending.get(key);
-            if (loading != null) return loading.result.copy();
+            if (loading != null) return loading.result;
             loading = new Pending<>();
             this.pending.put(key, loading);
         }
@@ -84,8 +84,8 @@ final class LocalDataCache<K, E, V> {
                 selected.result.completeExceptionally(error);
             }
         });
-        // 每个等待者持有独立 Future, 取消等待不会取消共享读取
-        return selected.result.copy();
+        // 调用方通过后续异步阶段隔离取消, 共享加载结果供内部复用
+        return selected.result;
     }
 
     // 对外申请可以取消, 返回的内部 Future 仍等共享加载结束, 供注销时等待

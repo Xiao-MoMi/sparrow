@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -80,7 +79,6 @@ public class SparrowPlugin implements Plugin {
     private FeatureManager featureManager;
 
     private JavaPlugin javaPlugin;
-    private final AtomicBoolean reloading = new AtomicBoolean();
     private boolean isInitializing;
     private boolean successfullyLoaded = false;
     private boolean successfullyEnabled = false;
@@ -154,6 +152,7 @@ public class SparrowPlugin implements Plugin {
             if (this.featureManager != null) {
                 try {
                     this.featureManager.onDisable();
+                    this.featureManager.onPluginShutdown();
                 } catch (RuntimeException cleanupFailure) {
                     exception.addSuppressed(cleanupFailure);
                 }
@@ -221,19 +220,22 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginDisable() {
-        if (this.playerManager != null) this.playerManager.closeSessions();
-        if (this.playerManager != null) this.playerManager.closeRegistry();
-        if (this.serverManager != null) this.serverManager.shutdown();
-        if (this.teleportService != null) this.teleportService.shutdown();
-        if (this.featureManager != null) this.featureManager.onDisable();
-        if (this.playerManager != null) this.playerManager.shutdown();
-        if (this.dataAccess != null) this.dataAccess.closeAsync().join();
-        if (this.scheduler != null) this.scheduler.shutdownScheduler();
-        if (this.scheduler != null) this.scheduler.shutdownExecutor();
-        if (this.messageBrokerManager != null) this.messageBrokerManager.onDisable();
-        if (this.redisConnector != null) this.redisConnector.close();
-        if (this.dataStorage != null) this.dataStorage.close();
-        if (this.dependencyManager != null) this.dependencyManager.close();
+        ExceptionCollector<RuntimeException> failures = new ExceptionCollector<>(RuntimeException.class);
+        this.playerManager.stopAccepting();
+        failures.runCatching(this.featureManager::onDisable);
+        failures.runCatching(this.playerManager::closeSessions);
+        failures.runCatching(this.featureManager::onPluginShutdown);
+        failures.runCatching(this.teleportService::shutdown);
+        failures.runCatching(this.playerManager::shutdown);
+        failures.runCatching(this.playerManager::closeRegistry);
+        failures.runCatching(this.serverManager::shutdown);
+        failures.runCatching(() -> this.dataAccess.closeAsync().join());
+        failures.runCatching(this.scheduler::shutdownScheduler);
+        failures.runCatching(this.scheduler::shutdownExecutor);
+        failures.runCatching(this.messageBrokerManager::onDisable);
+        failures.runCatching(this.redisConnector::close);
+        failures.runCatching(this.dataStorage::close);
+        failures.runCatching(this.dependencyManager::close);
         if (ServerUtils.isRunning()) {
             this.logger().error(" ");
             this.logger().error(" ");
@@ -244,6 +246,7 @@ public class SparrowPlugin implements Plugin {
             this.logger().error(" ");
             Bukkit.getServer().shutdown();
         }
+        failures.throwIfPresent();
     }
 
     /**
@@ -269,9 +272,6 @@ public class SparrowPlugin implements Plugin {
      * @return 一个异步完成的重载结果对象, 包含成功状态, 异步耗时, 同步耗时和问题数量
      */
     public CompletableFuture<ReloadResult> reloadPlugin(Executor asyncExecutor, Executor syncExecutor) {
-        if (!this.reloading.compareAndSet(false, true)) {
-            return CompletableFuture.completedFuture(ReloadResult.failure());
-        }
         try {
             return this.featureManager.onReload(
                     () -> {
@@ -282,7 +282,6 @@ public class SparrowPlugin implements Plugin {
                     syncExecutor
                     )
                     .handle((result, error) -> {
-                        this.reloading.set(false);
                         if (error == null) {
                             return ReloadResult.success(result.asyncTime(), result.syncTime(), result.restartRequired().size());
                         }
@@ -292,7 +291,6 @@ public class SparrowPlugin implements Plugin {
                     })
                     .copy();
         } catch (RuntimeException exception) {
-            this.reloading.set(false);
             this.logger().warn(LogConstants.PLUGIN_RELOAD_FAILED, exception);
             return CompletableFuture.completedFuture(ReloadResult.failure());
         }
@@ -501,7 +499,7 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public boolean isReloading() {
-        return this.reloading.get();
+        return this.featureManager.isReloading();
     }
 
     @Override

@@ -143,7 +143,7 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
     synchronized CompletableFuture<Void> saveIfDirty() {
         if (this.released || (!this.unsaved && this.dirty.isEmpty())) return CompletableFuture.completedFuture(null);
         // saveDirty 已接受整批操作, 注销期间仍要完成它选中的写容器
-        return this.track(this.saveChanges()).copy();
+        return this.track(this.saveChanges());
     }
 
     synchronized CompletableFuture<Void> release() {
