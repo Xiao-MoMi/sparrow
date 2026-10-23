@@ -29,7 +29,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 /** 常驻数据入口. 业务保存 register 返回的对象, 后续直接通过它访问数据. */
 public final class DataAccess {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
-    private final Map<SparrowKey, RegisteredData<?, ?, ?>> registrations = new HashMap<>();
+    private final Map<SparrowKey, RegisteredData<?, ?>> registrations = new HashMap<>();
     private final ScheduledThreadPoolExecutor expiryExecutor = new ScheduledThreadPoolExecutor(1, Thread.ofPlatform().name("sparrow-data-expiry").daemon(true).factory());
     private byte[] messageHeader;
     private boolean enabled;
@@ -55,29 +55,29 @@ public final class DataAccess {
 
     /** 注册单写数据并返回它的入口. 在启用阶段调用, 同一 ID 不能重复注册. */
     @NotNull
-    public synchronized <K, E, V> SingleWriterData<K, E, V> register(@NotNull SingleWriterDefinition<K, E, V> definition) {
+    public synchronized <E, V> SingleWriterData<E, V> register(@NotNull SingleWriterDefinition<E, V> definition) {
         if (!this.enabled) throw new IllegalStateException("Data access is not enabled");
         if (this.registrations.containsKey(definition.id())) throw new IllegalArgumentException("Data already registered: " + definition.id());
-        SingleWriterDataImpl<K, E, V> data = new SingleWriterDataImpl<>(definition);
+        SingleWriterDataImpl<E, V> data = new SingleWriterDataImpl<>(definition);
         this.registrations.put(definition.id(), data);
-        data.startRenewal(this.expiryExecutor);
+        data.schedule(this.expiryExecutor);
         return data;
     }
 
     /** 注册多写数据并返回它的入口, 约束与单写注册相同. */
     @NotNull
-    public synchronized <K, E, V> MultiWriterData<K, E, V> register(@NotNull MultiWriterDefinition<K, E, V> definition) {
+    public synchronized <E, V> MultiWriterData<E, V> register(@NotNull MultiWriterDefinition<E, V> definition) {
         if (!this.enabled) throw new IllegalStateException("Data access is not enabled");
         if (this.registrations.containsKey(definition.id())) throw new IllegalArgumentException("Data already registered: " + definition.id());
-        MultiWriterDataImpl<K, E, V> data = new MultiWriterDataImpl<>(definition);
+        MultiWriterDataImpl<E, V> data = new MultiWriterDataImpl<>(definition);
         this.registrations.put(definition.id(), data);
-        data.startRenewal(this.expiryExecutor);
+        data.schedule(this.expiryExecutor);
         return data;
     }
 
     @ApiStatus.Internal
     public void receive(@NotNull DataChangedMessage message) {
-        RegisteredData<?, ?, ?> data;
+        RegisteredData<?, ?> data;
         synchronized (this) {
             if (!this.enabled) return;
             data = this.registrations.get(message.id());
@@ -91,7 +91,7 @@ public final class DataAccess {
     @NotNull
     public synchronized CompletableFuture<Void> unregister(@NotNull SparrowKey id) {
         if (!this.enabled) return CompletableFuture.failedFuture(new IllegalStateException("Data access is not enabled"));
-        RegisteredData<?, ?, ?> data = this.registrations.get(id);
+        RegisteredData<?, ?> data = this.registrations.get(id);
         if (data == null) return CompletableFuture.completedFuture(null);
         return data.closeAsync().thenRun(() -> {
             synchronized (this) {
@@ -106,7 +106,7 @@ public final class DataAccess {
         if (this.closing != null) return this.closing.copy();
         this.enabled = false;
         List<CompletableFuture<Void>> closing = new ArrayList<>(this.registrations.size());
-        for (RegisteredData<?, ?, ?> data : this.registrations.values()) {
+        for (RegisteredData<?, ?> data : this.registrations.values()) {
             closing.add(data.closeAsync());
         }
         this.closing = CompletableFuture.allOf(closing.toArray(CompletableFuture[]::new)).whenComplete((ignored, error) -> {

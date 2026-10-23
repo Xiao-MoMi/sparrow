@@ -11,7 +11,7 @@ public interface PlayerPrepareListener {
     @NotNull
     CompletableFuture<Void> onPrepare(@NotNull PlayerConnection connection);
 
-    /** 开始过准备的连接结束时调用, 正常退出时排在退出监听器之后, 全部完成后释放玩家锁. 本次准备可能失败或未执行到这个监听器. */
+    /** 取得过玩家锁的会话结束时调用, 进入过游戏的排在退出监听器之后. 全部完成后保存并关闭会话的写容器, 再释放玩家锁. 本次准备可能失败或未执行到这个监听器. */
     @NotNull
     CompletableFuture<Void> onRelease(@NotNull PlayerConnection connection);
 }

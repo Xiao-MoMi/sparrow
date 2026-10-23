@@ -39,7 +39,7 @@ public abstract class DataStorage implements AutoCloseable {
     public abstract void initialize();
 
     @NotNull
-    public abstract DataStore<UUID, String, PlayerProfile> playerProfileStore();
+    public abstract DataStore<String, PlayerProfile> playerProfileStore();
 
     @NotNull
     public abstract CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name);

@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
-public final class MongoPlayerProfileStore implements DataStore<UUID, String, PlayerProfile> {
+public final class MongoPlayerProfileStore implements DataStore<String, PlayerProfile> {
     private final MongoCollection<Document> collection;
     private final Executor executor;
 

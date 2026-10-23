@@ -76,7 +76,7 @@ public final class MongoDataStorage extends DataStorage {
 
     @NotNull
     @Override
-    public DataStore<UUID, String, PlayerProfile> playerProfileStore() {
+    public DataStore<String, PlayerProfile> playerProfileStore() {
         return this.profileStore;
     }
 

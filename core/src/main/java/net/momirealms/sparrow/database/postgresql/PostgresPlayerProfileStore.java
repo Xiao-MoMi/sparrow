@@ -16,7 +16,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
-public final class PostgresPlayerProfileStore implements DataStore<UUID, String, PlayerProfile> {
+public final class PostgresPlayerProfileStore implements DataStore<String, PlayerProfile> {
     private final Jdbi sql;
     private final Executor executor;
     private final String table;

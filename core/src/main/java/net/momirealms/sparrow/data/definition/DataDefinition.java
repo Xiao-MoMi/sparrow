@@ -8,14 +8,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 
-/** 同一环境内, 相同 ID 必须使用一致的写入模型和编码. 条目键不能编码为空字节, 读到的值<strong>只读</strong>. */
-public interface DataDefinition<K, E, V> {
+/** 数据按玩家 UUID 分 key. 同一环境内, 相同 ID 必须使用一致的写入模型和编码. 条目键不能编码为空字节, 读到的值<strong>只读</strong>. */
+public interface DataDefinition<E, V> {
 
     @NotNull
     SparrowKey id();
-
-    @NotNull
-    DataCodec<K> keyCodec();
 
     @NotNull
     DataCodec<E> entryCodec();
@@ -24,7 +21,7 @@ public interface DataDefinition<K, E, V> {
     DataCodec<V> valueCodec();
 
     @NotNull
-    DataStore<K, E, V> store();
+    DataStore<E, V> store();
 
     @NotNull
     CachePolicy cachePolicy();

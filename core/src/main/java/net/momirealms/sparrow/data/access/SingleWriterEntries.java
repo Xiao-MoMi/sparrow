@@ -24,4 +24,8 @@ public interface SingleWriterEntries<E, V> extends EntryEdit<E, V> {
     /** 发布本地修改, 再把这个 key 在 Redis 中尚未落库的条目保存到数据库. */
     @NotNull
     CompletableFuture<Void> save();
+
+    /** 等已接受的发布和保存结束后关闭, 未发布的修改直接丢弃, 不执行 I/O. <strong>关闭后不能再修改, 发布或保存</strong>. */
+    @NotNull
+    CompletableFuture<Void> close();
 }

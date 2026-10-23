@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.data.internal;
 
 import net.momirealms.sparrow.data.access.DataReader;
-import net.momirealms.sparrow.data.access.DataHold;
 import net.momirealms.sparrow.data.access.EntryEdit;
 import net.momirealms.sparrow.data.access.EntryView;
 import net.momirealms.sparrow.data.access.MultiWriterEntries;
@@ -10,17 +9,18 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-final class MultiWriterEntriesImpl<K, E, V> implements MultiWriterEntries<E, V> {
-    private final MultiWriterDataImpl<K, E, V> owner;
-    private final K key;
+final class MultiWriterEntriesImpl<E, V> implements MultiWriterEntries<E, V> {
+    private final MultiWriterDataImpl<E, V> owner;
+    private final UUID key;
     private final DataReader<E, V> reader;
 
-    MultiWriterEntriesImpl(@NotNull MultiWriterDataImpl<K, E, V> owner, @NotNull K key) {
+    MultiWriterEntriesImpl(@NotNull MultiWriterDataImpl<E, V> owner, @NotNull UUID key) {
         this.owner = owner;
         this.key = key;
         this.reader = owner.reader(key);
@@ -36,12 +36,6 @@ final class MultiWriterEntriesImpl<K, E, V> implements MultiWriterEntries<E, V> 
     @Override
     public CompletableFuture<EntryView<E, V>> read() {
         return this.reader.read();
-    }
-
-    @NotNull
-    @Override
-    public CompletableFuture<DataHold<E, V>> hold() {
-        return this.reader.hold();
     }
 
     @NotNull

@@ -6,79 +6,40 @@ import net.momirealms.sparrow.data.definition.SingleWriterDefinition;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @ApiStatus.Internal
-public final class SingleWriterDataImpl<K, E, V> extends RegisteredData<K, E, V> implements SingleWriterData<K, E, V> {
-    private final Map<K, CompletableFuture<SingleWriterEntriesImpl<K, E, V>>> writers = new HashMap<>();
+public final class SingleWriterDataImpl<E, V> extends RegisteredData<E, V> implements SingleWriterData<E, V> {
+    private final Set<SingleWriterEntriesImpl<E, V>> writers = new HashSet<>(); // 尚未关闭的写容器, 它们的 key 需要续期
 
-    public SingleWriterDataImpl(@NotNull SingleWriterDefinition<K, E, V> definition) {
+    public SingleWriterDataImpl(@NotNull SingleWriterDefinition<E, V> definition) {
         super(definition);
     }
 
-    // 同键只加载一次, 加载失败时移除记录, 下次调用重新加载
     @NotNull
     @Override
-    public synchronized CompletableFuture<SingleWriterEntries<E, V>> load(@NotNull K key) {
-        return this.execute(key, () -> {
-            CompletableFuture<SingleWriterEntriesImpl<K, E, V>> loading = this.writers.get(key);
-            if (loading == null) {
-                CompletableFuture<SingleWriterEntriesImpl<K, E, V>> created = this.backend.load(key).thenApply(entries -> new SingleWriterEntriesImpl<>(this, key, entries));
-                this.writers.put(key, created);
-                created.whenComplete((writer, error) -> {
-                    if (error != null) {
-                        synchronized (this) {
-                            this.writers.remove(key, created);
-                        }
-                    }
-                });
-                loading = created;
-            }
-            return loading.thenApply(writer -> writer);
-        });
-    }
-
-    @NotNull
-    @Override
-    public CompletableFuture<Void> release(@NotNull K key) {
-        return this.execute(key, () -> {
-            CompletableFuture<SingleWriterEntriesImpl<K, E, V>> loaded;
+    public CompletableFuture<SingleWriterEntries<E, V>> load(@NotNull UUID key) {
+        return this.execute(key, () -> this.backend.load(key).thenApply(entries -> {
+            SingleWriterEntriesImpl<E, V> writer = new SingleWriterEntriesImpl<>(this, key, entries);
             synchronized (this) {
-                loaded = this.writers.get(key);
+                this.writers.add(writer);
             }
-            if (loaded == null) return CompletableFuture.completedFuture(null);
-            return loaded.thenCompose(SingleWriterEntriesImpl::release).thenRun(() -> {
-                synchronized (this) {
-                    this.writers.remove(key, loaded);
-                }
-            });
-        });
+            return writer;
+        }));
     }
 
-    @NotNull
-    @Override
-    public CompletableFuture<Void> saveDirty() {
-        return this.execute(() -> {
-            List<CompletableFuture<SingleWriterEntriesImpl<K, E, V>>> selected;
-            synchronized (this) {
-                selected = new ArrayList<>(this.writers.values());
-            }
-            CompletableFuture<?>[] saving = new CompletableFuture<?>[selected.size()];
-            for (int i = 0; i < saving.length; i++) {
-                saving[i] = selected.get(i).thenCompose(SingleWriterEntriesImpl::saveIfDirty);
-            }
-            return CompletableFuture.allOf(saving);
-        });
+    synchronized void writerClosed(@NotNull SingleWriterEntriesImpl<E, V> writer) {
+        this.writers.remove(writer);
     }
 
     @Override
-    void collectUsedKeys(@NotNull Set<K> keys) {
+    void collectUsedKeys(@NotNull Set<UUID> keys) {
         super.collectUsedKeys(keys);
-        keys.addAll(this.writers.keySet());
+        for (SingleWriterEntriesImpl<E, V> writer : this.writers) {
+            keys.add(writer.key());
+        }
     }
 }

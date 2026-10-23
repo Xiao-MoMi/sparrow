@@ -29,6 +29,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLocaleChangeEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -94,19 +95,20 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         return registered;
     }
 
-    // 返回的 Future 同时供登录门控与连接收尾等待, 调用方不能直接改变它的结果
+    // 返回的 Future 同时供登录门控与会话收尾等待, 调用方不能直接改变它的结果
     @NotNull
     synchronized CompletableFuture<Void> prepare(@NotNull PlayerConnection connection, long deadlineNanos) {
-        if (this.closing || connection.ending() != null || !this.sessions.contains(connection)) {
+        if (connection.preparation() != null) return connection.preparation();
+        if (this.closing || !connection.beginPreparation()) {
             return CompletableFuture.failedFuture(new IllegalStateException("Player connection is closing"));
         }
-        if (connection.preparation() != null) return connection.preparation();
         UUID uniqueId = connection.uniqueId();
-        CompletableFuture<Void> preparation = this.lock.acquire(uniqueId, deadlineNanos)
-                .thenCompose(ignored -> {
+        CompletableFuture<Void> preparation = this.lock.acquire(uniqueId, deadlineNanos, () -> !connection.isClosed())
+                .thenCompose(token -> {
+                    connection.lockToken(token);
                     this.lockHolders.put(uniqueId, connection);
                     // 业务准备回调执行前, 档案写容器已加载
-                    return this.profiles.prepare(connection);
+                    return connection.load(this.profiles.data());
                 })
                 .thenComposeAsync(ignored -> {
                     List<CompletableFuture<Void>> preparing = new ArrayList<>();
@@ -115,55 +117,41 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                 }, this.plugin.scheduler().async())
                 .thenRun(() -> connection.prepared(true));
         connection.preparation(preparation);
+        preparation.whenComplete((ignored, error) -> {
+            if (connection.finishPreparation()) {
+                this.end(connection);
+            }
+        });
         return preparation;
     }
 
-    // 在锁内登记一次收尾结果, 退出和释放回调在锁外执行
-    private CompletableFuture<Void> end(PlayerConnection connection, @Nullable BukkitSparrowPlayer player) {
-        CompletableFuture<Void> ending;
-        CompletableFuture<Void> preparation;
-        synchronized (this) {
-            if (connection.ending() != null) return connection.ending();
-            ending = new CompletableFuture<>();
-            connection.ending(ending);
-            preparation = connection.preparation();
-        }
-        CompletableFuture.completedFuture(null)
-                .thenCompose(ignored -> {
-                    if (player != null) return this.quit(player);
-                    if (preparation == null) return CompletableFuture.completedFuture(null);
-                    return preparation.handle((result, error) -> null)
-                            .thenCompose(result -> this.lockHolders.get(connection.uniqueId()) == connection ? this.release(connection) : CompletableFuture.completedFuture(null));
-                })
-                .whenComplete((ignored, error) -> {
-                    synchronized (this) {
-                        this.sessions.remove(connection);
-                    }
-                    if (error == null) {
-                        ending.complete(null);
-                    } else {
-                        ending.completeExceptionally(error);
-                    }
-                });
-        return ending;
+    // 会话的三个条件凑齐时调用一次. 取得过玩家锁的会话先释放, 收尾结束后移出会话登记
+    private void end(PlayerConnection connection) {
+        CompletableFuture<Void> releasing = connection.lockToken() == null ? CompletableFuture.completedFuture(null) : this.release(connection);
+        releasing.whenComplete((ignored, error) -> {
+            synchronized (this) {
+                this.sessions.remove(connection);
+            }
+            connection.ended().complete(null);
+        });
     }
 
-    // 等全部退出监听器结束后释放连接. 每个监听器在各自的 thenCompose 中调用, 同步抛出的异常只让它自己的 Future 失败
-    private CompletableFuture<Void> quit(BukkitSparrowPlayer player) {
+    // 等全部退出监听器结束后记下会话不会再写入. 每个监听器在各自的 thenCompose 中调用, 同步抛出的异常只让它自己的 Future 失败
+    private void quit(BukkitSparrowPlayer player) {
         this.profiles.onQuit(player);
         List<CompletableFuture<Void>> quitting = new ArrayList<>();
         this.quitListeners.dispatch(listener -> quitting.add(CompletableFuture.completedFuture(player).thenCompose(listener::onQuit)));
-        return CompletableFuture.allOf(quitting.toArray(CompletableFuture[]::new))
-                .handle((ignored, error) -> {
-                    if (error != null) {
-                        this.plugin.logger().warn("Failed to run quit listeners for " + player.name(), error);
-                    }
-                    return null;
-                })
-                .thenCompose(ignored -> this.release(player.connection));
+        CompletableFuture.allOf(quitting.toArray(CompletableFuture[]::new)).whenComplete((ignored, error) -> {
+            if (error != null) {
+                this.plugin.logger().warn("Failed to run quit listeners for " + player.name(), error);
+            }
+            if (player.connection.markWritesDone()) {
+                this.end(player.connection);
+            }
+        });
     }
 
-    // 业务释放回调结束后保存并释放档案, 最后归还持续续期的玩家锁
+    // 业务释放回调结束后保存并关闭会话的写容器, 最后用本次的锁值归还持续续期的玩家锁
     private CompletableFuture<Void> release(PlayerConnection connection) {
         List<CompletableFuture<Void>> releasing = new ArrayList<>();
         this.prepareListeners.dispatch(listener -> releasing.add(CompletableFuture.completedFuture(connection).thenCompose(listener::onRelease)));
@@ -174,14 +162,14 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                     }
                     return null;
                 })
-                .thenCompose(ignored -> this.profiles.release(connection))
+                .thenCompose(ignored -> connection.closeWriters())
                 .handle((ignored, error) -> {
                     if (error != null) {
-                        this.plugin.logger().warn("Failed to release player profile for " + connection.name(), error);
+                        this.plugin.logger().warn("Failed to save player data for " + connection.name(), error);
                     }
                     return null;
                 })
-                .thenCompose(ignored -> this.lock.release(connection.uniqueId()))
+                .thenCompose(ignored -> this.lock.release(connection.uniqueId(), connection.lockToken()))
                 .whenComplete((ignored, error) -> {
                     this.lockHolders.remove(connection.uniqueId(), connection);
                     if (error != null) {
@@ -281,8 +269,14 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     }
 
     @NotNull
-    public SingleWriterData<UUID, String, PlayerProfile> profileData() {
+    public SingleWriterData<String, PlayerProfile> profileData() {
         return this.profiles.data();
+    }
+
+    // 本服是否持有这个玩家的会话, 数据层按它保留玩家的读副本
+    @ApiStatus.Internal
+    public boolean hasSession(@NotNull UUID uniqueId) {
+        return this.lockHolders.containsKey(uniqueId);
     }
 
     @NotNull
@@ -380,7 +374,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         if (leaving == null) return;
         if (this.localPlayers.remove(player.getUniqueId(), leaving) == leaving) {
             this.registry.publishQuit(leaving.uniqueId());
-            this.end(leaving.connection, leaving);
+            this.quit(leaving);
         }
     }
 
@@ -389,24 +383,28 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         this.closing = true;
     }
 
-    // 等待全部已接纳会话, 包括准备中, 未 Join 和已开始退出的连接
+    // 关服时插件收不到 Quit 和连接关闭, 替每个已接纳的会话补上这两件事, 在线玩家先跑退出回调, 再等全部会话收尾
     public void closeSessions() {
-        List<CompletableFuture<Void>> closing = new ArrayList<>();
         List<PlayerConnection> sessions;
         synchronized (this) {
             this.closing = true;
             sessions = List.copyOf(this.sessions);
         }
-        for (PlayerConnection connection : sessions) {
+        CompletableFuture<?>[] ended = new CompletableFuture<?>[sessions.size()];
+        for (int i = 0; i < ended.length; i++) {
+            PlayerConnection connection = sessions.get(i);
             BukkitSparrowPlayer player = this.localPlayers.get(connection.uniqueId());
             if (player != null && player.connection == connection) {
                 this.localPlayers.remove(connection.uniqueId(), player);
-                closing.add(this.end(connection, player));
-            } else {
-                closing.add(this.end(connection, null));
+                this.quit(player);
             }
+            // 进入过游戏的连接等它的退出回调结束, 可能是刚发起的, 也可能是关服前已开始的
+            if (connection.markClosed(!connection.joined())) {
+                this.end(connection);
+            }
+            ended[i] = connection.ended();
         }
-        CompletableFuture.allOf(closing.toArray(CompletableFuture[]::new)).join();
+        CompletableFuture.allOf(ended).join();
     }
 
     // 登记一次本服登录的网络连接, 将登记的存活期绑定到 Channel 关闭事件.
@@ -436,9 +434,9 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
             }
             return null;
         });
-        // 进入过游戏的连接由 Quit 释放; 没进入游戏的连接就等准备结束, 取得过锁就释放
-        if (!connection.joined()) {
-            this.end(connection, null);
+        // 进入过游戏的连接还要等退出回调结束; 关闭时没进入游戏的连接之后也不会再进入, 不会再写入
+        if (connection.markClosed(!connection.joined())) {
+            this.end(connection);
         }
     }
 

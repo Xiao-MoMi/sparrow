@@ -8,6 +8,7 @@ import io.netty.buffer.Unpooled;
 import net.momirealms.sparrow.data.definition.DataDefinition;
 import net.momirealms.sparrow.data.message.DataChangedMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.util.UUIDUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -20,12 +21,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 
 // 每个 key 一个 Hash, 字段 "" 保存 key 的版本, 同时表示这个 key 已从数据库装入
-final class RedisDataBackend<K, E, V> {
+final class RedisDataBackend<E, V> {
     private static final byte[] EMPTY = new byte[0];
     private static final int RENEW_BATCH_SIZE = 256;
     private static final String EXPIRY = """
@@ -119,7 +121,7 @@ final class RedisDataBackend<K, E, V> {
             return 1
             """;
 
-    private final DataDefinition<K, E, V> definition;
+    private final DataDefinition<E, V> definition;
     private final RedisAsyncCommands<byte[], byte[]> commands;
     private final Executor waiting;
     private final byte[] channel;
@@ -130,7 +132,7 @@ final class RedisDataBackend<K, E, V> {
     private final byte[] savingPrefix;
     private final byte[] ttl;
 
-    RedisDataBackend(@NotNull DataDefinition<K, E, V> definition) {
+    RedisDataBackend(@NotNull DataDefinition<E, V> definition) {
         SparrowPlugin plugin = SparrowPlugin.instance();
         String prefix = "sparrow:data:" + definition.id() + ":";
         this.definition = definition;
@@ -146,8 +148,8 @@ final class RedisDataBackend<K, E, V> {
     }
 
     @NotNull
-    CompletableFuture<LocalEntries<E, V>> load(@NotNull K key) {
-        byte[][] keys = this.keys(this.definition.keyCodec().encode(key));
+    CompletableFuture<LocalEntries<E, V>> load(@NotNull UUID key) {
+        byte[][] keys = this.keys(UUIDUtils.toBytes(key));
         return this.commands.<List<Object>>eval(READ, ScriptOutputType.MULTI, keys, this.ttl)
                 .toCompletableFuture()
                 .thenCompose(stored -> {
@@ -171,8 +173,8 @@ final class RedisDataBackend<K, E, V> {
 
     // expectedVersion 小于 0 时不比较版本. changes 中的 null 表示删除, changes 为空时只校验版本
     @NotNull
-    CompletableFuture<Commit<E, V>> commit(@NotNull K key, long expectedVersion, @NotNull Map<E, V> changes) {
-        byte[] encodedKey = this.definition.keyCodec().encode(key);
+    CompletableFuture<Commit<E, V>> commit(@NotNull UUID key, long expectedVersion, @NotNull Map<E, V> changes) {
+        byte[] encodedKey = UUIDUtils.toBytes(key);
         int removals = 0;
         for (V value : changes.values()) {
             if (value == null) {
@@ -226,13 +228,13 @@ final class RedisDataBackend<K, E, V> {
     }
 
     @NotNull
-    CompletableFuture<List<K>> dirtyKeys() {
+    CompletableFuture<List<UUID>> dirtyKeys() {
         return this.commands.smembers(this.dirtyKey)
                 .toCompletableFuture()
                 .thenApply(members -> {
-                    List<K> keys = new ArrayList<>(members.size());
+                    List<UUID> keys = new ArrayList<>(members.size());
                     for (byte[] member : members) {
-                        keys.add(this.definition.keyCodec().decode(member));
+                        keys.add(UUIDUtils.fromBytes(member));
                     }
                     return keys;
                 });
@@ -240,12 +242,12 @@ final class RedisDataBackend<K, E, V> {
 
     // 保存调用前已提交到 Redis 的修改. 保存期间的新修改留在 dirty 中, 失败时取出的条目并回 dirty
     @NotNull
-    CompletableFuture<Void> save(@NotNull K key) {
-        byte[] encodedKey = this.definition.keyCodec().encode(key);
+    CompletableFuture<Void> save(@NotNull UUID key) {
+        byte[] encodedKey = UUIDUtils.toBytes(key);
         return this.save(key, encodedKey, this.keys(encodedKey));
     }
 
-    private CompletableFuture<Void> save(K key, byte[] encodedKey, byte[][] keys) {
+    private CompletableFuture<Void> save(UUID key, byte[] encodedKey, byte[][] keys) {
         return this.commands.<List<Object>>eval(TAKE_SAVE, ScriptOutputType.MULTI, keys, this.ttl)
                 .toCompletableFuture()
                 .thenCompose(taken -> {
@@ -276,11 +278,11 @@ final class RedisDataBackend<K, E, V> {
     }
 
     @NotNull
-    CompletableFuture<Void> renew(@NotNull Collection<K> selected) {
+    CompletableFuture<Void> renew(@NotNull Collection<UUID> selected) {
         List<byte[]> keys = new ArrayList<>(RENEW_BATCH_SIZE * 3);
         List<CompletableFuture<?>> batches = new ArrayList<>();
-        for (K key : selected) {
-            byte[] encoded = this.definition.keyCodec().encode(key);
+        for (UUID key : selected) {
+            byte[] encoded = UUIDUtils.toBytes(key);
             keys.add(concat(this.entriesPrefix, encoded));
             keys.add(concat(this.dirtyPrefix, encoded));
             keys.add(concat(this.savingPrefix, encoded));

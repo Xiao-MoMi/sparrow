@@ -9,26 +9,32 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
-final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V> {
-    private final SingleWriterDataImpl<K, E, V> owner;
-    private final K key;
+final class SingleWriterEntriesImpl<E, V> implements SingleWriterEntries<E, V> {
+    private final SingleWriterDataImpl<E, V> owner;
+    private final UUID key;
     private final LocalEntries<E, V> entries;
     private final Set<E> dirty = new HashSet<>();                       // 尚未发布的条目
-    private final Set<CompletableFuture<Void>> active = new HashSet<>(); // release 需要等待的发布和保存
+    private final Set<CompletableFuture<Void>> active = new HashSet<>(); // close 需要等待的发布和保存
     private CompletableFuture<Void> publication = CompletableFuture.completedFuture(null);
     private CompletableFuture<Void> saving = CompletableFuture.completedFuture(null);
     private boolean unsaved = true; // 已发布或接手时 Redis 中可能有尚未落库的修改
-    private boolean released;
+    private boolean closed;
 
-    SingleWriterEntriesImpl(@NotNull SingleWriterDataImpl<K, E, V> owner, @NotNull K key, @NotNull LocalEntries<E, V> entries) {
+    SingleWriterEntriesImpl(@NotNull SingleWriterDataImpl<E, V> owner, @NotNull UUID key, @NotNull LocalEntries<E, V> entries) {
         this.owner = owner;
         this.key = key;
         this.entries = entries;
+    }
+
+    @NotNull
+    UUID key() {
+        return this.key;
     }
 
     @Nullable
@@ -55,14 +61,14 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
 
     @Override
     public synchronized void put(@NotNull E entry, @NotNull V value) {
-        if (this.released) throw new IllegalStateException("Writer is released");
+        if (this.closed) throw new IllegalStateException("Writer is closed");
         this.entries.entries.put(entry, value);
         this.dirty.add(entry);
     }
 
     @Override
     public synchronized boolean remove(@NotNull E entry) {
-        if (this.released) throw new IllegalStateException("Writer is released");
+        if (this.closed) throw new IllegalStateException("Writer is closed");
         if (this.entries.entries.remove(entry) == null) return false;
         this.dirty.add(entry);
         return true;
@@ -71,7 +77,7 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
     @Nullable
     @Override
     public synchronized V update(@NotNull E entry, @NotNull UnaryOperator<@Nullable V> operation) {
-        if (this.released) throw new IllegalStateException("Writer is released");
+        if (this.closed) throw new IllegalStateException("Writer is closed");
         V value = operation.apply(this.entries.get(entry));
         if (value == null) {
             this.entries.entries.remove(entry);
@@ -84,14 +90,14 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
 
     @Override
     public synchronized <R> R modify(@NotNull Function<EntryEdit<E, V>, R> operation) {
-        if (this.released) throw new IllegalStateException("Writer is released");
+        if (this.closed) throw new IllegalStateException("Writer is closed");
         return operation.apply(this);
     }
 
     @NotNull
     @Override
     public synchronized CompletableFuture<Void> publish() {
-        if (this.released) return CompletableFuture.failedFuture(new IllegalStateException("Writer is released"));
+        if (this.closed) return CompletableFuture.failedFuture(new IllegalStateException("Writer is closed"));
         if (this.dirty.isEmpty()) return this.publication.copy();
         return this.track(this.owner.execute(this.key, this::publishChanges)).copy();
     }
@@ -121,7 +127,7 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
     @NotNull
     @Override
     public synchronized CompletableFuture<Void> save() {
-        if (this.released) return CompletableFuture.failedFuture(new IllegalStateException("Writer is released"));
+        if (this.closed) return CompletableFuture.failedFuture(new IllegalStateException("Writer is closed"));
         if (!this.unsaved && this.dirty.isEmpty()) return this.saving.copy();
         return this.track(this.owner.execute(this.key, this::saveChanges)).copy();
     }
@@ -140,15 +146,12 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
         return this.saving;
     }
 
-    synchronized CompletableFuture<Void> saveIfDirty() {
-        if (this.released || (!this.unsaved && this.dirty.isEmpty())) return CompletableFuture.completedFuture(null);
-        // saveDirty 已接受整批操作, 注销期间仍要完成它选中的写容器
-        return this.track(this.saveChanges());
-    }
-
-    synchronized CompletableFuture<Void> release() {
-        this.released = true;
-        // 发布和保存的异常已交给各自的调用方, 释放只等待它们结束
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> close() {
+        this.closed = true;
+        this.owner.writerClosed(this);
+        // 发布和保存的异常已交给各自的调用方, 关闭只等待它们结束
         return CompletableFuture.allOf(this.active.toArray(CompletableFuture[]::new)).handle((ignored, error) -> null);
     }
 
