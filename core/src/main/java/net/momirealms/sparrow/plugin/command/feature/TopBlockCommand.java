@@ -63,8 +63,7 @@ public final class TopBlockCommand extends BukkitCommandFeature {
                                 || block.isEmpty()) {
                             this.handleFeedback(
                                     context,
-                                    (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE_SELF
-                                            : MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE),
+                                    (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE_SELF : MessageConstants.COMMAND_TOP_BLOCK_UNAVAILABLE),
                                     Component.text(entity.getName())
                             );
                             return;
@@ -79,10 +78,8 @@ public final class TopBlockCommand extends BukkitCommandFeature {
                                     this.handleFeedback(
                                             context,
                                             error == null && success
-                                                    ? (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS_SELF
-                                                            : MessageConstants.COMMAND_TOP_BLOCK_SUCCESS)
-                                                                    : (entity == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF
-                                                                            : MessageConstants.COMMAND_TELEPORT_FAILURE),
+                                                    ? (entity == context.sender() ? MessageConstants.COMMAND_TOP_BLOCK_SUCCESS_SELF : MessageConstants.COMMAND_TOP_BLOCK_SUCCESS)
+                                                    : (entity == context.sender() ? MessageConstants.COMMAND_TELEPORT_FAILURE_SELF : MessageConstants.COMMAND_TELEPORT_FAILURE),
                                             Component.text(name)
                                     );
                                 });
@@ -92,6 +89,6 @@ public final class TopBlockCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "top-block";
+        return "top_block";
     }
 }

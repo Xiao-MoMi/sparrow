@@ -1,19 +1,23 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
-import net.minecraft.world.item.ItemStack;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.OfflineSparrowPlayer;
+import net.momirealms.sparrow.player.message.RepairItemsRequest;
+import net.momirealms.sparrow.player.message.RepairItemsResponse;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
 import org.bukkit.command.CommandSender;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.EquipmentSlot;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 public final class RepairAllCommand extends BukkitCommandFeature {
 
@@ -23,35 +27,42 @@ public final class RepairAllCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", PlayerParser.playerParser()).handler(this::execute));
+        manager.command(builder.required("player", GlobalPlayerParser.clusterPlayerParser()).handler(this::execute));
     }
 
     private void execute(@NotNull CommandContext<CommandSender> context) {
-        Player player = context.get("player");
-        this.plugin().scheduler().platform().run(() -> {
-            PlayerInventory inventory = player.getInventory();
-            int repaired = 0;
-            long restored = 0;
-            for (int slot = 0, size = inventory.getSize(); slot < size; slot++) {
-                ItemStack item = CraftItemStack.asNMSCopy(inventory.getItem(slot));
-                if (item.isEmpty() || item.getMaxDamage() == 0 || item.getDamageValue() == 0) continue;
-                restored += item.getDamageValue();
-                item.setDamageValue(0);
-                inventory.setItem(slot, CraftItemStack.asBukkitCopy(item));
-                repaired++;
+        OfflineSparrowPlayer target = this.resolveOnlinePlayer(context, context.get("player"));
+        if (target == null) return;
+        RepairItemsRequest request = new RepairItemsRequest(target.uniqueId(), true, EquipmentSlot.HAND, -1);
+        CompletableFuture<RepairItemsResponse> resultFuture;
+        if (target instanceof BukkitSparrowPlayer) {
+            resultFuture = request.execute();
+        } else {
+            String server = target.getCurrentServerId();
+            if (server == null) {
+                this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_OFFLINE, Component.text(target.name()));
+                return;
             }
-            this.handleFeedback(
-                    context,
-                    MessageConstants.COMMAND_REPAIR_ALL_SUCCESS,
-                    Component.text(player.getName()),
-                    Component.text(repaired),
-                    Component.text(restored)
-            );
-        }, () -> {}, player);
+            resultFuture = this.plugin().messageBrokerManager().broker()
+                    .publishTwoWay(request, server)
+                    .orTimeout(5, TimeUnit.SECONDS);
+        }
+        resultFuture.whenComplete((result, error) -> {
+            if (error != null) {
+                this.plugin().logger().warn("Failed to execute RepairAll for " + target.name(), error);
+                this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUEST_FAILED, Component.text(target.name()));
+                return;
+            }
+            if (result.status() == RepairItemsResponse.Status.OFFLINE) {
+                this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_OFFLINE, Component.text(target.name()));
+            } else {
+                this.handleFeedback(context, MessageConstants.COMMAND_REPAIR_ALL_SUCCESS, Component.text(target.name()), Component.text(result.count()), Component.text(result.restored()));
+            }
+        });
     }
 
     @Override
     public String getFeatureID() {
-        return "repair-all";
+        return "repair_all";
     }
 }

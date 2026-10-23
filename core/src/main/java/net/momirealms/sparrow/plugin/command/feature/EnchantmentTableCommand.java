@@ -12,7 +12,7 @@ public final class EnchantmentTableCommand extends AbstractContainerCommand {
         super(
                 commandManager,
                 plugin,
-                "enchantment-table",
+                "enchantment_table",
                 ContainerType.ENCHANTMENT_TABLE,
                 MessageConstants.COMMAND_ENCHANTMENT_TABLE_SUCCESS_SELF,
                 MessageConstants.COMMAND_ENCHANTMENT_TABLE_SUCCESS

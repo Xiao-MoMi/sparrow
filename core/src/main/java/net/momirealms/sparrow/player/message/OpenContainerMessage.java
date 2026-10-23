@@ -68,6 +68,7 @@ public final class OpenContainerMessage extends OneWayMessage<FriendlyByteBuf> {
         ANVIL,
         CARTOGRAPHY_TABLE,
         ENCHANTMENT_TABLE,
+        ENDER_CHEST,
         GRINDSTONE,
         LOOM,
         SMITHING_TABLE,
@@ -79,6 +80,7 @@ public final class OpenContainerMessage extends OneWayMessage<FriendlyByteBuf> {
                 case ANVIL -> player.openInventory(MenuType.ANVIL.create(player, InventoryType.ANVIL.getDefaultTitle()));
                 case CARTOGRAPHY_TABLE -> player.openInventory(MenuType.CARTOGRAPHY_TABLE.create(player, InventoryType.CARTOGRAPHY.getDefaultTitle()));
                 case ENCHANTMENT_TABLE -> player.openInventory(MenuType.ENCHANTMENT.create(player, InventoryType.ENCHANTING.getDefaultTitle()));
+                case ENDER_CHEST -> player.openInventory(player.getEnderChest());
                 case GRINDSTONE -> player.openInventory(MenuType.GRINDSTONE.create(player, InventoryType.GRINDSTONE.getDefaultTitle()));
                 case LOOM -> player.openInventory(MenuType.LOOM.create(player, InventoryType.LOOM.getDefaultTitle()));
                 case SMITHING_TABLE -> player.openInventory(MenuType.SMITHING.create(player, InventoryType.SMITHING.getDefaultTitle()));

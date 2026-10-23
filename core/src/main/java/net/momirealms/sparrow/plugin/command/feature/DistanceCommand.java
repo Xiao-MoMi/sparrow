@@ -44,7 +44,7 @@ public final class DistanceCommand extends BukkitCommandFeature {
             return;
         }
         if (!context.flags().hasFlag("disable-marker")) {
-            this.plugin().playerManager().getPlayer(player).sendDebugMarker(block.getX(), block.getY(), block.getZ());
+            this.plugin().playerManager().getOnlinePlayer(player).sendDebugMarker(block.getX(), block.getY(), block.getZ());
         }
         Location source = player.getLocation();
         double dx = block.getX() + 0.5 - source.getX();

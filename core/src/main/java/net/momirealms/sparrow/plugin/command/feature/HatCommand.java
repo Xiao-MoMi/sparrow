@@ -40,9 +40,9 @@ public final class HatCommand extends BukkitCommandFeature {
             return;
         }
         this.plugin().scheduler().platform().run(() -> {
-                    BukkitSparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-                    ServerPlayer handle = receiver.nmsPlayer();
-                    ItemStack hand = receiver.getItemInMainHand();
+                    BukkitSparrowPlayer receiver = this.plugin().playerManager().getOnlinePlayer(player);
+                    ServerPlayer handle = receiver.nmsPlayer;
+                    ItemStack hand = receiver.nmsPlayer.getMainHandItem();
                     if (hand.isEmpty()) {
                         this.handleFeedback(
                                 context,
@@ -77,7 +77,10 @@ public final class HatCommand extends BukkitCommandFeature {
                             (player == context.sender() ? MessageConstants.COMMAND_HAT_SUCCESS_SELF : MessageConstants.COMMAND_HAT_SUCCESS),
                             Component.text(player.getName())
                     );
-                }, () -> {}, player);
+                },
+                () -> {},
+                player
+        );
     }
 
     @Override

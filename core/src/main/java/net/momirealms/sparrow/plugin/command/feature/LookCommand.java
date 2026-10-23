@@ -50,7 +50,7 @@ public final class LookCommand extends BukkitCommandFeature {
         manager.command(builder.handler(this::execute));
     }
 
-    // 三条子命令共用, 每条只会带有 location、face、entity 中的一个
+    // 三条子命令共用, 每条只会带有 location, face, entity 中的一个
     private void execute(CommandContext<CommandSender> context) {
         Location location = context.<Location>optional("location").orElse(null);
         BlockFace face = context.<BlockFace>optional("face").orElse(null);
@@ -90,8 +90,7 @@ public final class LookCommand extends BukkitCommandFeature {
                             if (!rotation.getWorld().equals(destination.getWorld())) {
                                 this.handleFeedback(
                                         context,
-                                        (entity == context.sender() ? MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD_SELF
-                                                : MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD),
+                                        (entity == context.sender() ? MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD_SELF : MessageConstants.COMMAND_LOOK_DIFFERENT_WORLD),
                                         Component.text(entity.getName())
                                 );
                                 return;

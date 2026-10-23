@@ -12,7 +12,7 @@ public final class CartographyTableCommand extends AbstractContainerCommand {
         super(
                 commandManager,
                 plugin,
-                "cartography-table",
+                "cartography_table",
                 ContainerType.CARTOGRAPHY_TABLE,
                 MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS_SELF,
                 MessageConstants.COMMAND_CARTOGRAPHY_TABLE_SUCCESS

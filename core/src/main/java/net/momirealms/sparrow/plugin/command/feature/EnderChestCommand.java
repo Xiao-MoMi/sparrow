@@ -2,13 +2,16 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.OfflineSparrowPlayer;
+import net.momirealms.sparrow.player.message.OpenContainerMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
@@ -21,7 +24,7 @@ public final class EnderChestCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", PlayerParser.playerParser())
+        manager.command(builder.required("player", GlobalPlayerParser.clusterPlayerParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .permission(this.otherPermission(builder))
                 .handler(this::execute));
@@ -29,32 +32,41 @@ public final class EnderChestCommand extends BukkitCommandFeature {
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        Player player = context.getOrDefault("player", context.sender() instanceof Player sender ? sender : null);
-        if (player == null) {
+        String input = context.getOrDefault("player", context.sender() instanceof Player sender ? sender.getUniqueId().toString() : null);
+        if (input == null) {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;
         }
-        this.plugin().scheduler().platform().run(() -> {
+        OfflineSparrowPlayer target = this.resolveOnlinePlayer(context, input);
+        if (target == null) return;
+        if (!(target instanceof BukkitSparrowPlayer local)) {
+            this.sendRemoteRequest(context, target, new OpenContainerMessage(target.uniqueId(), OpenContainerMessage.ContainerType.ENDER_CHEST));
+            return;
+        }
+        Player player = local.platformPlayer;
+        this.plugin().scheduler().platform().run(
+                () -> {
                     if (player.openInventory(player.getEnderChest()) == null) {
                         this.handleFeedback(
                                 context,
-                                (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_FAILED_SELF
-                                        : MessageConstants.COMMAND_ENDER_CHEST_FAILED),
+                                (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_FAILED_SELF : MessageConstants.COMMAND_ENDER_CHEST_FAILED),
                                 Component.text(player.getName())
                         );
                         return;
                     }
                     this.handleFeedback(
                             context,
-                            (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_SUCCESS_SELF
-                                    : MessageConstants.COMMAND_ENDER_CHEST_SUCCESS),
+                            (player == context.sender() ? MessageConstants.COMMAND_ENDER_CHEST_SUCCESS_SELF : MessageConstants.COMMAND_ENDER_CHEST_SUCCESS),
                             Component.text(player.getName())
                     );
-                }, () -> {}, player);
+                },
+                () -> {},
+                player
+        );
     }
 
     @Override
     public String getFeatureID() {
-        return "ender-chest";
+        return "ender_chest";
     }
 }

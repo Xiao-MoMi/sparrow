@@ -38,19 +38,23 @@ public final class SmiteCommand extends BukkitCommandFeature {
         }
         boolean effect = context.flags().hasFlag("effect");
         for (Entity entity : entities) {
-            this.plugin().scheduler().platform().run(() -> {
-                Location location = entity.getLocation();
-                if (effect) {
-                    location.getWorld().strikeLightningEffect(location);
-                } else {
-                    location.getWorld().strikeLightning(location);
-                }
-                this.handleFeedback(
-                        context,
-                        effect ? MessageConstants.COMMAND_SMITE_EFFECT : MessageConstants.COMMAND_SMITE_SUCCESS,
-                        Component.text(entity.getName())
-                );
-            }, () -> {}, entity);
+            this.plugin().scheduler().platform().run(
+                    () -> {
+                        Location location = entity.getLocation();
+                        if (effect) {
+                            location.getWorld().strikeLightningEffect(location);
+                        } else {
+                            location.getWorld().strikeLightning(location);
+                        }
+                        this.handleFeedback(
+                                context,
+                                effect ? MessageConstants.COMMAND_SMITE_EFFECT : MessageConstants.COMMAND_SMITE_SUCCESS,
+                                Component.text(entity.getName())
+                        );
+                    },
+                    () -> {},
+                    entity
+            );
         }
     }
 

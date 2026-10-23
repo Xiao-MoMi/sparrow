@@ -12,7 +12,7 @@ public final class SmithingTableCommand extends AbstractContainerCommand {
         super(
                 commandManager,
                 plugin,
-                "smithing-table",
+                "smithing_table",
                 ContainerType.SMITHING_TABLE,
                 MessageConstants.COMMAND_SMITHING_TABLE_SUCCESS_SELF,
                 MessageConstants.COMMAND_SMITHING_TABLE_SUCCESS

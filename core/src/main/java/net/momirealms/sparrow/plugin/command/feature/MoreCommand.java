@@ -4,10 +4,10 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -40,8 +40,8 @@ public final class MoreCommand extends BukkitCommandFeature {
         }
         int amount = context.getOrDefault("amount", 0);
         this.plugin().scheduler().platform().run(() -> {
-                    BukkitSparrowPlayer receiver = this.plugin().playerManager().getPlayer(player);
-                    ItemStack item = receiver.getItemInMainHand();
+                    BukkitSparrowPlayer receiver = this.plugin().playerManager().getOnlinePlayer(player);
+                    ItemStack item = receiver.nmsPlayer.getMainHandItem();
                     if (item.isEmpty()) {
                         this.handleFeedback(
                                 context,
@@ -56,8 +56,7 @@ public final class MoreCommand extends BukkitCommandFeature {
                         if (added <= 0) {
                             this.handleFeedback(
                                     context,
-                                    (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF
-                                            : MessageConstants.COMMAND_MORE_NO_CHANGE),
+                                    (player == context.sender() ? MessageConstants.COMMAND_MORE_NO_CHANGE_SELF : MessageConstants.COMMAND_MORE_NO_CHANGE),
                                     Component.text(player.getName())
                             );
                             return;

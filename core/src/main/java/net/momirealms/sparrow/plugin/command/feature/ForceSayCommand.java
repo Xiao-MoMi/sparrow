@@ -55,6 +55,6 @@ public final class ForceSayCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "force-say";
+        return "force_say";
     }
 }
