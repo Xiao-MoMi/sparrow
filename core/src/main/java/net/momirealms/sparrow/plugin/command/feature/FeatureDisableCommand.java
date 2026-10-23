@@ -43,8 +43,8 @@ public final class FeatureDisableCommand extends BukkitCommandFeature {
         FeatureManager manager = this.plugin().featureManager();
         List<String> suggestions = new ArrayList<>();
         for (String id : manager.ids()) {
-            Feature<?> feature = manager.feature(id);
-            if (feature.hotToggleable() && feature.enabled()) {
+            Feature feature = manager.feature(id);
+            if (feature.supportsHotDisable() && manager.isEnabled(id)) {
                 suggestions.add(id);
             }
         }
@@ -54,16 +54,16 @@ public final class FeatureDisableCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         FeatureManager manager = this.plugin().featureManager();
         String id = context.get("feature");
-        Feature<?> feature = manager.feature(id);
+        Feature feature = manager.feature(id);
         if (feature == null) {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_UNKNOWN, Component.text(id));
             return;
         }
-        if (!feature.hotToggleable()) {
+        if (!feature.supportsHotDisable()) {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_RESTART_REQUIRED, Component.text(id));
             return;
         }
-        if (this.plugin().isReloading()) {
+        if (this.plugin().isReloading() || manager.isBusy()) {
             this.handleFeedback(context, MessageConstants.COMMAND_FEATURE_BUSY);
             return;
         }

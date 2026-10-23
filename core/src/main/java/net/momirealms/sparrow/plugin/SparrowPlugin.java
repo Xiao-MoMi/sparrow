@@ -109,6 +109,7 @@ public class SparrowPlugin implements Plugin {
         this.compatibilityManager = new CompatibilityManager(this);
         this.playerManager = new PlayerManager();
         this.teleportService = new TeleportService();
+        this.featureManager = new FeatureManager();
 
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
     }
@@ -146,9 +147,17 @@ public class SparrowPlugin implements Plugin {
             this.messageBrokerManager.subscribe();
             this.serverManager.onLoad();
             this.playerManager.onLoad();
-            this.compatibilityManager.onLoad(); // 集成插件管理器
+            this.compatibilityManager.onLoad();
+            this.featureManager.onLoad();
             this.successfullyLoaded = true;
         } catch (RuntimeException exception) {
+            if (this.featureManager != null) {
+                try {
+                    this.featureManager.onDisable();
+                } catch (RuntimeException cleanupFailure) {
+                    exception.addSuppressed(cleanupFailure);
+                }
+            }
             this.playerManager.closeRegistry();
             this.serverManager.shutdown();
             this.dataAccess.closeAsync().join();
@@ -194,11 +203,9 @@ public class SparrowPlugin implements Plugin {
         this.commandManager.registerDefaultFeatures();
         // 集成插件管理器
         this.compatibilityManager.onEnable();
-        // 模块管理器
-        this.featureManager = new FeatureManager(this);
         this.playerManager.onEnable();
         this.teleportService.onEnable();
-        this.featureManager.onEnable();
+        this.featureManager.onEnable().join();
         this.serverManager.onEnable();
         // 延迟初始化事件
         this.isInitializing = true;
@@ -255,8 +262,7 @@ public class SparrowPlugin implements Plugin {
     }
 
     /**
-     * 从平台线程发起重载: 同步停用功能, 异步加载配置, 再同步启用功能.
-     * 加载失败时功能保持停用; 阶段失败或任务提交被拒绝时释放重载状态并返回失败结果.
+     * 异步加载插件配置, 再调用已启用功能的重载回调并等待完成.
      *
      * @param asyncExecutor 异步任务执行器
      * @param syncExecutor 同步任务执行器
@@ -267,9 +273,6 @@ public class SparrowPlugin implements Plugin {
             return CompletableFuture.completedFuture(ReloadResult.failure());
         }
         try {
-            long disableStartTime = System.currentTimeMillis();
-            this.featureManager.onReloadStart();
-            long disableTime = System.currentTimeMillis() - disableStartTime;
             return CompletableFuture
                     .supplyAsync(
                             () -> {
@@ -277,18 +280,16 @@ public class SparrowPlugin implements Plugin {
                                 long startTime = System.currentTimeMillis();
                                 this.configurationManager.reload();
                                 this.translationManager.reload();
-                                this.featureManager.onReloadAsync();
                                 return ReloadResult.success(System.currentTimeMillis() - startTime, 0, 0);
                             },
                             asyncExecutor
                     )
-                    .thenApplyAsync(
+                    .thenComposeAsync(
                             async -> {
                                 // 执行同步重载任务
                                 long syncStartTime = System.currentTimeMillis();
-                                this.featureManager.onReloadFinish();
-                                long syncTime = disableTime + System.currentTimeMillis() - syncStartTime;
-                                return ReloadResult.success(async.asyncTime(), syncTime, async.issues());
+                                return this.featureManager.onReload()
+                                        .thenApply(ignored -> ReloadResult.success(async.asyncTime(), System.currentTimeMillis() - syncStartTime, async.issues()));
                             },
                             syncExecutor
                     )

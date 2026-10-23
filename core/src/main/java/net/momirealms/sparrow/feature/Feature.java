@@ -1,120 +1,38 @@
 package net.momirealms.sparrow.feature;
 
-import net.momirealms.sparrow.plugin.command.CommandFeature;
-import net.momirealms.sparrow.ui.state.MutableSignal;
-import net.momirealms.sparrow.ui.state.Signal;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
-public abstract class Feature<C extends FeatureSettings> {
-    private final String id;
-    private final MutableSignal<FeatureState> state = Signal.of(FeatureState.UNINSTALLED);
-    protected volatile C config;
-    private boolean installed;
+public interface Feature {
 
-    protected Feature(@NotNull String id) {
-        this.id = id;
+    @NotNull
+    String id();
+
+    default boolean supportsHotEnable() {
+        return false;
     }
 
-    // 同步读取配置, 按开关安装并启动功能.
-    final void install() {
-        if (this.installed) return;
-        this.loadConfig();
-        if (!this.config.enabled()) return;
-        try {
-            this.installed = true;
-            this.onLoad();
-            this.state.set(FeatureState.DISABLED);
-            this.start();
-        } catch (RuntimeException exception) {
-            this.state.set(FeatureState.FAILED);
-            throw exception;
-        }
+    default boolean supportsHotDisable() {
+        return false;
     }
 
-    // 配置加载完成后同步启动已安装的功能.
-    final void start() {
-        FeatureState current = this.state.get();
-        if (current == FeatureState.ENABLED) return;
-        if (!this.installed || current != FeatureState.DISABLED) {
-            throw new IllegalStateException("Feature cannot be enabled in state " + current + ": " + this.id);
-        }
-        try {
-            this.onEnable();
-            this.state.set(FeatureState.ENABLED);
-        } catch (RuntimeException exception) {
-            this.state.set(FeatureState.FAILED);
-            throw exception;
-        }
-    }
-
-    final void stop() {
-        FeatureState current = this.state.get();
-        if (!this.installed || current == FeatureState.DISABLED) return;
-        this.state.set(FeatureState.DISABLED);
-        try {
-            this.onDisable();
-        } catch (RuntimeException exception) {
-            this.state.set(FeatureState.FAILED);
-            throw exception;
-        }
-    }
-
-    final void uninstall() {
-        if (!this.installed) return;
-        try {
-            this.stop();
-        } finally {
-            this.installed = false;
-            this.state.set(FeatureState.UNLOADED);
-            this.onUnload();
-        }
-    }
-
-    public abstract void loadConfig();
-
-    protected void onLoad() {
-    }
-
-    // 插件启用时调用一次, 与模块是否开启无关.
-    // 注册的命令由 FeatureManager 绑定模块状态, 模块未启用时对玩家隐藏
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-    }
-
-    protected void onEnable() {
-    }
-
-    protected void onDisable() {
-    }
-
-    protected void onUnload() {
+    default void onPluginLoad() {
     }
 
     @NotNull
-    public final String id() {
-        return this.id;
+    CompletableFuture<Void> onEnable();
+
+    @NotNull
+    default CompletableFuture<Void> onReload() {
+        return CompletableFuture.completedFuture(null);
     }
 
     @NotNull
-    public final C config() {
-        return this.config;
-    }
+    CompletableFuture<Void> onDisable();
 
     @NotNull
-    public final Signal<FeatureState> state() {
-        return this.state;
-    }
-
-    public final boolean enabled() {
-        return this.state.get() == FeatureState.ENABLED;
-    }
-
-    public final boolean installed() {
-        return this.installed;
-    }
-
-    public boolean hotToggleable() {
-        return true;
+    default CompletableFuture<Void> onPluginShutdown() {
+        return CompletableFuture.completedFuture(null);
     }
 }

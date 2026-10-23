@@ -45,16 +45,16 @@ public final class FeatureListCommand extends BukkitCommandFeature {
         int end = Math.min(page * PAGE_SIZE, total);
         for (int i = (page - 1) * PAGE_SIZE; i < end; i++) {
             String id = ids.get(i);
-            Feature<?> feature = manager.feature(id);
-            FeatureState state = feature.state().get();
-            String unavailable = !feature.hotToggleable() || state == FeatureState.FAILED ? "restart_required"
-                    : (this.plugin().isReloading() ? "busy" : null);
+            Feature feature = manager.feature(id);
+            FeatureState state = manager.getState(id);
+            String unavailable = state == FeatureState.FAILED ? "restart_required"
+                    : (this.plugin().isReloading() || manager.isBusy() ? "busy" : null);
             Component actions = this.action(
                     sender,
                     "enable",
                     "feature_enable",
                     id,
-                    unavailable != null ? unavailable : (feature.enabled() ? "already_enabled" : null)
+                    unavailable != null ? unavailable : (!feature.supportsHotEnable() ? "restart_required" : (manager.isEnabled(id) ? "already_enabled" : null))
             )
                     .append(Component.space())
                     .append(this.action(
@@ -62,7 +62,7 @@ public final class FeatureListCommand extends BukkitCommandFeature {
                             "disable",
                             "feature_disable",
                             id,
-                            unavailable != null ? unavailable : (!feature.enabled() ? "already_disabled" : null)
+                            unavailable != null ? unavailable : (!feature.supportsHotDisable() ? "restart_required" : (!manager.isEnabled(id) ? "already_disabled" : null))
                     ))
                     .append(Component.space())
                     .append(this.action(sender, "status", "feature_status", id, null));

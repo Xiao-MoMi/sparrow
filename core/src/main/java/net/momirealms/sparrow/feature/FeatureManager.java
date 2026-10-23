@@ -1,194 +1,180 @@
 package net.momirealms.sparrow.feature;
 
-import net.momirealms.sparrow.feature.back.BackFeature;
-import net.momirealms.sparrow.feature.bed.BedFeature;
-import net.momirealms.sparrow.feature.spawn.SpawnFeature;
-import net.momirealms.sparrow.feature.tpa.TpaFeature;
-import net.momirealms.sparrow.feature.warp.WarpFeature;
-import net.momirealms.sparrow.feature.ban.BanFeature;
-import net.momirealms.sparrow.feature.mute.MuteFeature;
-import net.momirealms.sparrow.feature.patrol.PatrolFeature;
-import net.momirealms.sparrow.feature.head.HeadFeature;
-import net.momirealms.sparrow.feature.home.HomeFeature;
-import net.momirealms.sparrow.feature.highlight.HighlightFeature;
-import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
-import net.momirealms.sparrow.feature.playerlimit.PlayerLimitFeature;
-import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
-import net.momirealms.sparrow.feature.rtp.RtpFeature;
-import net.momirealms.sparrow.feature.server.ServerFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.command.FeaturePermission;
-import net.momirealms.sparrow.plugin.configuration.FeaturesConfig;
-import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
+import net.momirealms.sparrow.plugin.configuration.ModulesConfig;
 import net.momirealms.sparrow.util.ExceptionCollector;
-import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 public final class FeatureManager {
-    private final FeaturesConfig config;
-    private final Executor asyncExecutor;
-    private final PlatformExecutor platformExecutor;
-    private final CommandManager commandManager;
-    private final Map<String, Feature<?>> features = new LinkedHashMap<>();
-    private volatile boolean closed;
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
+    private final Map<String, Entry> features = new LinkedHashMap<>();
+    private boolean closed;
 
-    public FeatureManager(@NotNull SparrowPlugin plugin) {
-        this.config = plugin.configurationManager().featuresConfig();
-        this.asyncExecutor = plugin.scheduler().async();
-        this.platformExecutor = plugin.scheduler().platform();
-        this.commandManager = plugin.commandManager();
-
-        this.features.put(MaintenanceFeature.ID, new MaintenanceFeature(plugin));
-        this.features.put(BanFeature.ID, new BanFeature(plugin));
-        this.features.put(QuickShulkerFeature.ID, new QuickShulkerFeature(plugin.javaPlugin(), this.config));
-        this.features.put(PatrolFeature.ID, new PatrolFeature(plugin));
-        this.features.put(ServerFeature.ID, new ServerFeature(plugin));
-        this.features.put(HighlightFeature.ID, new HighlightFeature(plugin));
-        this.features.put(HeadFeature.ID, new HeadFeature(plugin));
-        this.features.put(PlayerLimitFeature.ID, new PlayerLimitFeature(plugin));
-        this.features.put(MuteFeature.ID, new MuteFeature());
-        this.features.put(BackFeature.ID, new BackFeature(plugin));
-        this.features.put(BedFeature.ID, new BedFeature(plugin));
-        this.features.put(SpawnFeature.ID, new SpawnFeature(plugin));
-        this.features.put(WarpFeature.ID, new WarpFeature(plugin));
-        this.features.put(HomeFeature.ID, new HomeFeature(plugin));
-        this.features.put(TpaFeature.ID, new TpaFeature(plugin));
-        if (VersionHelper.hasPaperPatch) {
-            this.features.put(RtpFeature.ID, new RtpFeature());
-        }
-    }
-
-    // 模块命令只在插件启用时注册一次, 此后命令树不再变化, 模块开关只决定这些命令是否可见
-    public void onEnable() {
-        for (Feature<?> feature : this.features.values()) {
-            FeaturePermission requirement = new FeaturePermission(feature.id(), feature::enabled);
-            feature.registerCommand(command -> this.commandManager.registerFeature(command, requirement));
-        }
-        for (Feature<?> feature : this.features.values()) {
-            feature.install();
-        }
-    }
-
-    public void onReloadStart() {
-        this.requireOpen();
-        for (Feature<?> feature : this.features.values()) {
-            if (feature.hotToggleable()) {
-                feature.stop();
+    public void onLoad() {
+        Set<String> enabled = ModulesConfig.loadEnabled();
+        for (Entry entry : this.features.values()) {
+            entry.startupEnabled = enabled.contains(entry.feature.id());
+            if (!entry.startupEnabled) continue;
+            entry.participated = true;
+            try {
+                entry.feature.onPluginLoad();
+                entry.state = FeatureState.DISABLED;
+            } catch (RuntimeException exception) {
+                entry.state = FeatureState.FAILED;
+                throw exception;
             }
         }
     }
 
-    public void onReloadAsync() {
-        this.requireOpen();
-        for (Feature<?> feature : this.features.values()) {
-            if (feature.hotToggleable() && feature.installed()) {
-                feature.loadConfig();
-            }
+    @NotNull
+    public CompletableFuture<Void> onEnable() {
+        List<CompletableFuture<Void>> starting = new ArrayList<>();
+        for (Entry entry : this.features.values()) {
+            if (entry.startupEnabled) starting.add(this.change(entry, true));
         }
+        return CompletableFuture.allOf(starting.toArray(CompletableFuture[]::new));
     }
 
-    public void onReloadFinish() {
-        this.requireOpen();
-        for (Feature<?> feature : this.features.values()) {
-            if (feature.hotToggleable()) {
-                if (!feature.installed()) {
-                    feature.install();
-                } else if (feature.config().enabled()) {
-                    feature.start();
-                }
-            }
+    @NotNull
+    public synchronized CompletableFuture<Void> onReload() {
+        this.requireIdle();
+        List<CompletableFuture<Void>> reloading = new ArrayList<>();
+        for (Entry entry : this.features.values()) {
+            if (entry.state != FeatureState.ENABLED) continue;
+            entry.operation = CompletableFuture.completedFuture(null).thenCompose(ignored -> entry.feature.onReload());
+            reloading.add(entry.operation);
         }
-        this.refreshCommands();
+        return CompletableFuture.allOf(reloading.toArray(CompletableFuture[]::new)).copy();
+    }
+
+    @NotNull
+    public synchronized CompletableFuture<FeatureState> setEnabled(@NotNull String id, boolean enabled) {
+        this.requireIdle();
+        Entry entry = this.getEntry(id);
+        if (enabled ? !entry.feature.supportsHotEnable() : !entry.feature.supportsHotDisable()) {
+            throw new IllegalArgumentException("Feature requires a restart: " + id);
+        }
+        if (entry.state == FeatureState.FAILED) throw new IllegalStateException("Feature has failed: " + id);
+        if (this.isEnabled(id) == enabled) return CompletableFuture.completedFuture(entry.state);
+        return this.change(entry, enabled).thenApply(ignored -> {
+            this.refreshCommands();
+            return enabled ? FeatureState.ENABLED : FeatureState.DISABLED;
+        });
+    }
+
+    private CompletableFuture<Void> change(Entry entry, boolean enabled) {
+        entry.participated = true;
+        if (enabled) entry.enableAttempted = true;
+        if (!enabled) entry.state = FeatureState.DISABLED;
+        entry.operation = CompletableFuture.completedFuture(null)
+                .thenCompose(ignored -> enabled ? entry.feature.onEnable() : entry.feature.onDisable())
+                .whenComplete((ignored, error) -> {
+                    entry.state = error == null ? (enabled ? FeatureState.ENABLED : FeatureState.DISABLED) : FeatureState.FAILED;
+                    if (!enabled && error == null) entry.enableAttempted = false;
+                });
+        return entry.operation.copy();
     }
 
     public void onDisable() {
-        this.closed = true;
+        synchronized (this) {
+            this.closed = true;
+        }
         ExceptionCollector<RuntimeException> failures = new ExceptionCollector<>(RuntimeException.class);
-        for (Feature<?> feature : this.features.values()) {
+        for (Entry entry : this.features.values()) {
+            if (!entry.participated) continue;
+            // 先结束已接受的回调, 再按当前状态清理这个模块
+            entry.operation.handle((ignored, error) -> null).join();
             try {
-                feature.uninstall();
+                if (entry.enableAttempted) {
+                    this.change(entry, false).join();
+                }
             } catch (RuntimeException exception) {
                 failures.add(exception);
+            } finally {
+                entry.participated = false;
+                entry.state = FeatureState.UNLOADED;
+                try {
+                    entry.feature.onPluginShutdown().join();
+                } catch (RuntimeException exception) {
+                    failures.add(exception);
+                }
             }
         }
         failures.throwIfPresent();
     }
 
-    @NotNull
-    public CompletableFuture<FeatureState> setEnabled(@NotNull String id, boolean enabled) {
-        this.requireOpen();
-        Feature<?> feature = this.features.get(id);
-        if (feature == null) {
-            throw new IllegalArgumentException("Unknown feature: " + id);
-        }
-        if (!feature.hotToggleable()) {
-            throw new IllegalArgumentException("Feature requires a restart: " + id);
-        }
-        this.config.saveEnabled(id, enabled);
-        if (!enabled) {
-            feature.stop();
-        } else if (!feature.installed()) {
-            feature.install();
-        } else if (!feature.enabled()) {
-            return CompletableFuture.runAsync(() -> {
-                this.requireOpen();
-                feature.loadConfig();
-            }, this.asyncExecutor).thenApplyAsync(ignored -> {
-                        this.requireOpen();
-                        feature.start();
-                        this.refreshCommands();
-                        return feature.state().get();
-                    }, this.platformExecutor
-            );
-        }
-        this.refreshCommands();
-        return CompletableFuture.completedFuture(feature.state().get());
-    }
-
-    // 模块开关变化后重发命令树, 玩家看到的模块命令随之显示或隐藏
     public void refreshCommands() {
         for (Player player : Bukkit.getOnlinePlayers()) {
             // Spigot 的命令树更新会触发同步 PlayerCommandSendEvent.
-            this.platformExecutor.run(player::updateCommands, () -> {}, player);
+            this.plugin.scheduler().platform().run(player::updateCommands, () -> {}, player);
         }
     }
 
-    private void requireOpen() {
-        if (this.closed) {
-            throw new IllegalStateException("Feature manager is shut down");
+    public synchronized boolean isBusy() {
+        for (Entry entry : this.features.values()) {
+            if (!entry.operation.isDone()) return true;
         }
+        return false;
+    }
+
+    private void requireIdle() {
+        if (this.closed) throw new IllegalStateException("Feature manager is shut down");
+        if (this.isBusy()) throw new IllegalStateException("Feature operation is in progress");
+    }
+
+    private Entry getEntry(String id) {
+        Entry entry = this.features.get(id);
+        if (entry == null) throw new IllegalArgumentException("Unknown feature: " + id);
+        return entry;
+    }
+
+    public boolean isEnabled(@NotNull String id) {
+        return this.getState(id) == FeatureState.ENABLED;
+    }
+
+    @NotNull
+    public FeatureState getState(@NotNull String id) {
+        return this.getEntry(id).state;
     }
 
     @Nullable
-    public Feature<?> feature(@NotNull String id) {
-        return this.features.get(id);
+    public Feature feature(@NotNull String id) {
+        Entry entry = this.features.get(id);
+        return entry == null ? null : entry.feature;
     }
 
-    /**
-     * 按 ID 获取已注册的内置模块并转换为具体类型, 供模块自带的命令访问业务方法.
-     *
-     * @param id <strong>必须是已注册的模块 ID</strong>
-     * @param type 模块的具体类型
-     * @return 对应的模块实例
-     */
     @NotNull
-    public <F extends Feature<?>> F feature(@NotNull String id, @NotNull Class<F> type) {
-        return type.cast(this.features.get(id));
+    public <F extends Feature> F feature(@NotNull String id, @NotNull Class<F> type) {
+        return type.cast(this.getEntry(id).feature);
     }
 
     @NotNull
     public Collection<String> ids() {
         return Collections.unmodifiableSet(this.features.keySet());
+    }
+
+    private static final class Entry {
+        private final Feature feature;
+        private volatile FeatureState state = FeatureState.UNINSTALLED;
+        private volatile CompletableFuture<Void> operation = CompletableFuture.completedFuture(null);
+        private boolean startupEnabled;
+        private boolean participated;
+        private volatile boolean enableAttempted;
+
+        private Entry(Feature feature) {
+            this.feature = feature;
+        }
     }
 }
