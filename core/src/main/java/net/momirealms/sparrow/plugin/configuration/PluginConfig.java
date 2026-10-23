@@ -37,6 +37,9 @@ public final class PluginConfig {
     void reload() {
         try {
             ConfigDefinition loaded = this.configMapper.load(this.configFilePath).value();
+            if (loaded.playerData.autoSaveIntervalSeconds <= 0) {
+                throw new IllegalArgumentException("player-data.auto-save-interval-seconds must be positive");
+            }
             if (this.startupDatabase != null) {
                 loaded.database = this.startupDatabase;
                 loaded.redis = this.startupRedis;
@@ -81,9 +84,23 @@ public final class PluginConfig {
         DatabaseOptions database = new DatabaseOptions();
 
         @BlankLineBefore
+        PlayerDataOptions playerData = new PlayerDataOptions();
+
+        @BlankLineBefore
         @Comment("Default text parsing options for actionbar, broadcast, title and toast commands.")
         @Comment(lang = "zh", value = "ActionBar、广播、标题和进度提示命令的默认文本解析选项.")
         TextOptions textOptions = new TextOptions();
+    }
+
+    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
+    public static class PlayerDataOptions {
+        @Comment("Wait between completed automatic saves of bound data, in seconds. Must be positive.")
+        @Comment(lang = "zh", value = "绑定数据每轮自动保存结束后的等待秒数, 必须为正数.")
+        long autoSaveIntervalSeconds = 300;
+
+        public long autoSaveIntervalSeconds() {
+            return this.autoSaveIntervalSeconds;
+        }
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -235,6 +252,10 @@ public final class PluginConfig {
 
     public static TextOptions text() {
         return config.textOptions;
+    }
+
+    public static PlayerDataOptions playerData() {
+        return config.playerData;
     }
 
     public static RedisOptions redis() {

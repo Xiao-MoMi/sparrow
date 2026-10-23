@@ -21,6 +21,7 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
     private final Set<E> dirty = new HashSet<>();                       // 尚未发布的条目
     private final Set<CompletableFuture<Void>> active = new HashSet<>(); // release 需要等待的发布和保存
     private CompletableFuture<Void> publication = CompletableFuture.completedFuture(null);
+    private CompletableFuture<Void> saving = CompletableFuture.completedFuture(null);
     private boolean unsaved = true; // 已发布或接手时 Redis 中可能有尚未落库的修改
     private boolean released;
 
@@ -121,21 +122,22 @@ final class SingleWriterEntriesImpl<K, E, V> implements SingleWriterEntries<E, V
     @Override
     public synchronized CompletableFuture<Void> save() {
         if (this.released) return CompletableFuture.failedFuture(new IllegalStateException("Writer is released"));
+        if (!this.unsaved && this.dirty.isEmpty()) return this.saving.copy();
         return this.track(this.owner.execute(this.key, this::saveChanges)).copy();
     }
 
     private CompletableFuture<Void> saveChanges() {
         CompletableFuture<Void> published = this.publishChanges();
         this.unsaved = false;
-        CompletableFuture<Void> saving = published.thenCompose(ignored -> this.owner.backend.save(this.key));
-        saving.whenComplete((ignored, error) -> {
+        this.saving = published.thenCompose(ignored -> this.owner.backend.save(this.key));
+        this.saving.whenComplete((ignored, error) -> {
             if (error != null) {
                 synchronized (this) {
                     this.unsaved = true;
                 }
             }
         });
-        return saving;
+        return this.saving;
     }
 
     synchronized CompletableFuture<Void> saveIfDirty() {

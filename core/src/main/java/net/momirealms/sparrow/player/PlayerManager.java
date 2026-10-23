@@ -15,6 +15,8 @@ import net.momirealms.sparrow.player.listener.PlayerPreLoginListener;
 import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
 import net.momirealms.sparrow.player.listener.PlayerQuitListener;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.configuration.PluginConfig;
+import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
@@ -62,6 +64,8 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final HandlerList<PlayerQuitListener> quitListeners = new HandlerList<>();
 
     private SingleWriterData<UUID, String, PlayerProfile> profileData;
+    private SchedulerTask autoSaveTask;
+    private boolean autoSaveStopped;
 
     public void onLoad() {
         this.registry.load().join();
@@ -87,6 +91,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                 }
             });
         }, 5, 5, TimeUnit.SECONDS);
+        this.scheduleAutoSave();
     }
 
     // 登记本服在线名单. 同一 UUID 的登记和关闭清理都在 compute 内提交脚本, Redis 按提交顺序执行
@@ -284,12 +289,12 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     }
 
     /** 让单写数据随玩家进出本服加载和卸载, <strong>只能在插件启用阶段, 玩家进服前调用</strong>. */
-    public <E, V> void registerData(@NotNull SingleWriterData<UUID, E, V> data) {
+    public synchronized <E, V> void registerData(@NotNull SingleWriterData<UUID, E, V> data) {
         this.bindings.add(new PlayerDataBinding.Single<>(data));
     }
 
     /** 让多写数据随玩家进出本服固定和关闭读副本, 约束同单写. */
-    public <E, V> void registerData(@NotNull MultiWriterData<UUID, E, V> data) {
+    public synchronized <E, V> void registerData(@NotNull MultiWriterData<UUID, E, V> data) {
         this.bindings.add(new PlayerDataBinding.Multi<>(data));
     }
 
@@ -396,8 +401,35 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         }
     }
 
+    // 数据保存
+    private synchronized void scheduleAutoSave() {
+        if (this.autoSaveStopped) return;
+        this.autoSaveTask = this.plugin.scheduler().asyncLater(this::saveDirtyData, PluginConfig.playerData().autoSaveIntervalSeconds(), TimeUnit.SECONDS);
+    }
+
+    private synchronized void saveDirtyData() {
+        if (this.autoSaveStopped) return;
+        CompletableFuture<?>[] saving = new CompletableFuture<?>[this.bindings.size()];
+        for (int i = 0; i < saving.length; i++) {
+            saving[i] = this.bindings.get(i).saveDirty();
+        }
+        // 整轮结束后再计下一周期, 已接受的保存由 data 自身跟踪并在关闭时等待
+        CompletableFuture.allOf(saving).whenComplete((ignored, error) -> {
+            if (error != null) {
+                this.plugin.logger().warn("Failed to auto-save bound player data", error);
+            }
+            this.scheduleAutoSave();
+        });
+    }
+
+    private synchronized void stopAutoSave() {
+        this.autoSaveStopped = true;
+        if (this.autoSaveTask != null) this.autoSaveTask.cancel();
+    }
+
     // Paper 关服时先禁用插件再移除玩家, 本服在线玩家收不到 Quit, 在这里走完退出流程
     public void closeSessions() {
+        this.stopAutoSave();
         List<CompletableFuture<Void>> closing = new ArrayList<>();
         for (BukkitSparrowPlayer player : this.localPlayers.values()) {
             if (this.localPlayers.remove(player.uniqueId(), player) == player) {

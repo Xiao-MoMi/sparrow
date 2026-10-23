@@ -15,10 +15,17 @@ sealed interface PlayerDataBinding {
 
     CompletableFuture<Loaded> load(UUID player);
 
+    CompletableFuture<Void> saveDirty();
+
     record Single<E, V>(SingleWriterData<UUID, E, V> data) implements PlayerDataBinding {
         @Override
         public CompletableFuture<Loaded> load(UUID player) {
             return this.data.load(player).thenApply(writer -> new Loaded(this.data, writer, writer::save, () -> this.data.release(player)));
+        }
+
+        @Override
+        public CompletableFuture<Void> saveDirty() {
+            return this.data.saveDirty();
         }
     }
 
@@ -29,6 +36,11 @@ sealed interface PlayerDataBinding {
                 hold.close();
                 return CompletableFuture.completedFuture(null);
             }));
+        }
+
+        @Override
+        public CompletableFuture<Void> saveDirty() {
+            return this.data.saveDirty();
         }
     }
 
