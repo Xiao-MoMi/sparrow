@@ -151,22 +151,17 @@ public final class ServerRegistry {
 
     // 首次采集前 status 为 null, 此时维持身份占用.
     void heartbeat(@Nullable ServerStatus status) {
-        CompletableFuture<Void> operation;
         synchronized (this) {
             if (this.closing) return;
-            CompletableFuture<Void> renewal = this.renewIdentity();
-            if (status == null) {
-                operation = renewal;
-            } else {
-                CompletableFuture<Void> publication = this.lastPublishedStatus == null ? this.publishInitial(status) : this.publishChanges(status);
-                operation = CompletableFuture.allOf(renewal, publication);
+            this.renewIdentity();
+            if (status != null) {
+                if (this.lastPublishedStatus == null) {
+                    this.publishInitial(status);
+                } else {
+                    this.publishChanges(status);
+                }
             }
         }
-        operation.whenComplete((ignored, error) -> {
-            if (error != null) {
-                this.plugin.logger().warn("Failed to publish server state for " + this.serverId, error);
-            }
-        });
     }
 
     @NotNull

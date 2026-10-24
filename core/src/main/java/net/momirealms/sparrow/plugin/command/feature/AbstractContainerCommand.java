@@ -65,8 +65,7 @@ abstract class AbstractContainerCommand extends BukkitCommandFeature {
                 target,
                 new OpenContainerMessage(target.uniqueId(), this.type),
                 MessageConstants.COMMAND_CONTAINER_OFFLINE,
-                MessageConstants.COMMAND_CONTAINER_REQUEST_SENT,
-                MessageConstants.COMMAND_CONTAINER_REQUEST_FAILED
+                MessageConstants.COMMAND_CONTAINER_REQUEST_SENT
         );
     }
 

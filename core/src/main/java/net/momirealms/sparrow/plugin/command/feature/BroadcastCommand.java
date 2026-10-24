@@ -1,11 +1,10 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.redis.message.BroadcastMessage;
+import net.momirealms.sparrow.player.message.BroadcastMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
@@ -23,16 +22,14 @@ public final class BroadcastCommand extends BukkitCommandFeature {
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.required("message", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
-                .flag(manager.flagBuilder("legacy-color").withAliases("l"))
                 .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
         String message = context.get("message");
-        PluginConfig.TextOptions text = PluginConfig.text();
-        boolean legacy = text.parseLegacyColor() || context.flags().hasFlag("legacy-color");
-        this.plugin().messageBrokerManager().broker().publishOneWay(new BroadcastMessage(message, legacy), "");
-        this.handleFeedback(context, MessageConstants.COMMAND_BROADCAST_SENT);
+        this.plugin().messageBrokerManager()
+                .publishOneWay(new BroadcastMessage(message), "")
+                .whenComplete((ignored, error) -> this.handleFeedback(context, MessageConstants.COMMAND_BROADCAST_SENT));
     }
 
     @Override

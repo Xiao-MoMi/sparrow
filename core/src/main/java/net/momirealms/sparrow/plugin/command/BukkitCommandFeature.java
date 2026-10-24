@@ -94,8 +94,8 @@ public abstract class BukkitCommandFeature extends AbstractCommandFeature {
     }
 
     /**
-     * 向目标玩家所在服务器发送单向请求, 使用默认的离线, 已发送和失败提示.
-     * 已发送表示消息发布完成, 目标服的业务执行结果由单向消息语义决定.
+     * 向目标玩家所在服务器提交单向请求, 使用默认的离线和已发送提示.
+     * 已发送表示请求已提交, 目标服的业务执行结果由单向消息语义决定.
      */
     protected void sendRemoteRequest(@NotNull CommandContext<CommandSender> context, @NotNull OfflineSparrowPlayer target, @NotNull OneWayMessage<FriendlyByteBuf> message) {
         this.sendRemoteRequest(
@@ -103,43 +103,32 @@ public abstract class BukkitCommandFeature extends AbstractCommandFeature {
                 target,
                 message,
                 MessageConstants.COMMAND_PLAYER_OFFLINE,
-                MessageConstants.COMMAND_PLAYER_REQUEST_SENT,
-                MessageConstants.COMMAND_PLAYER_REQUEST_FAILED
+                MessageConstants.COMMAND_PLAYER_REQUEST_SENT
         );
     }
 
     /**
-     * 异步发布单向请求, 按发布结果反馈调用方指定的提示.
+     * 提交单向请求, 使用调用方指定的离线和已发送提示.
      *
      * @param target 目标玩家, 调用方负责区分本服执行和远程发送
      * @param message 本次发送的消息, 目标服务器由玩家当前所在服务器确定
      * @param offline 无法取得目标服务器时的提示, 参数 0 为玩家名
-     * @param sent 发布完成时的提示, 参数 0 为玩家名, 不代表目标服已执行成功
-     * @param failed 发布失败时的提示, 参数 0 为玩家名, 异常同时记录到日志
+     * @param sent 请求提交后的提示, 参数 0 为玩家名
      */
     protected void sendRemoteRequest(
             @NotNull CommandContext<CommandSender> context,
             @NotNull OfflineSparrowPlayer target,
             @NotNull OneWayMessage<FriendlyByteBuf> message,
             @NotNull TranslatableComponent offline,
-            @NotNull TranslatableComponent sent,
-            @NotNull TranslatableComponent failed
+            @NotNull TranslatableComponent sent
     ) {
         String server = target.getCurrentServerId();
         if (server == null) {
             this.handleFeedback(context, offline, Component.text(target.name()));
             return;
         }
-        this.plugin().messageBrokerManager()
-                .publishOneWay(message, server)
-                .whenComplete((ignored, error) -> {
-                    if (error == null) {
-                        this.handleFeedback(context, sent, Component.text(target.name()));
-                    } else {
-                        this.plugin().logger().warn("Failed to send player command for " + target.name(), error);
-                        this.handleFeedback(context, failed, Component.text(target.name()));
-                    }
-                });
+        this.plugin().messageBrokerManager().publishOneWay(message, server);
+        this.handleFeedback(context, sent, Component.text(target.name()));
     }
 
     @Override

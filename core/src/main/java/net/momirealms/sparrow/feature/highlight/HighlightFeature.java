@@ -248,13 +248,7 @@ public final class HighlightFeature implements Feature, Listener {
                     feedback.send(MessageConstants.COMMAND_HIGHLIGHT_SUCCESS, Component.text(viewer.getName()));
                 }
             }
-        }, this.plugin.scheduler().async()).exceptionally(error -> {
-            this.plugin.logger().warn("Failed to create highlight", error);
-            if (this.current(expectedGeneration)) {
-                feedback.send(MessageConstants.COMMAND_HIGHLIGHT_FAILURE);
-            }
-            return null;
-        });
+        }, this.plugin.scheduler().async());
     }
 
     private synchronized boolean current(long generation) {

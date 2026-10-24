@@ -12,8 +12,8 @@ import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
-import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import net.momirealms.sparrow.util.AdventureHelper;
+import net.momirealms.sparrow.util.MessageText;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,16 +25,25 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageCodec<FriendlyByteBuf, SendTitleMessage> CODEC = RedisMessage.codec(SendTitleMessage::write, SendTitleMessage::new);
 
     private final UUID playerId;
-    private final Component title;
-    private final Component subtitle;
+    private final MessageText title;
+    private final MessageText subtitle;
     private final int fadeIn;
     private final int stay;
     private final int fadeOut;
 
     public SendTitleMessage(@NotNull UUID playerId, @NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut) {
         this.playerId = playerId;
-        this.title = title;
-        this.subtitle = subtitle;
+        this.title = new MessageText(title);
+        this.subtitle = new MessageText(subtitle);
+        this.fadeIn = fadeIn;
+        this.stay = stay;
+        this.fadeOut = fadeOut;
+    }
+
+    public SendTitleMessage(@NotNull UUID playerId, @NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
+        this.playerId = playerId;
+        this.title = new MessageText(title);
+        this.subtitle = new MessageText(subtitle);
         this.fadeIn = fadeIn;
         this.stay = stay;
         this.fadeOut = fadeOut;
@@ -43,8 +52,8 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
     private SendTitleMessage(FriendlyByteBuf buffer) {
         super(buffer);
         this.playerId = buffer.readUUID();
-        this.title = AdventureHelper.jsonToComponent(ByteBufHelper.readUtf8(buffer, 262144));
-        this.subtitle = AdventureHelper.jsonToComponent(ByteBufHelper.readUtf8(buffer, 262144));
+        this.title = new MessageText(buffer);
+        this.subtitle = new MessageText(buffer);
         this.fadeIn = buffer.readInt();
         this.stay = buffer.readInt();
         this.fadeOut = buffer.readInt();
@@ -54,8 +63,8 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
         buffer.writeUUID(this.playerId);
-        ByteBufHelper.writeUtf8(buffer, AdventureHelper.componentToJson(this.title), 262144);
-        ByteBufHelper.writeUtf8(buffer, AdventureHelper.componentToJson(this.subtitle), 262144);
+        this.title.write(buffer);
+        this.subtitle.write(buffer);
         buffer.writeInt(this.fadeIn);
         buffer.writeInt(this.stay);
         buffer.writeInt(this.fadeOut);
@@ -69,11 +78,22 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        BukkitSparrowPlayer player = SparrowPlugin.instance().playerManager().getOnlinePlayer(this.playerId);
-        if (player == null) return;
+        this.sendLocally();
+    }
+
+    // 在当前执行器上解析并发送, 目标不在本服时返回 false.
+    public boolean sendLocally() {
+        SparrowPlugin plugin = SparrowPlugin.instance();
+        BukkitSparrowPlayer player = plugin.playerManager().getOnlinePlayer(this.playerId);
+        if (player == null) return false;
+        this.send(player);
+        return true;
+    }
+
+    private void send(BukkitSparrowPlayer player) {
         player.connection.sendPacket(new ClientboundBundlePacket(List.of(
-                new ClientboundSetTitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(this.title))),
-                new ClientboundSetSubtitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(this.subtitle))),
+                new ClientboundSetTitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(this.title.resolve(player)))),
+                new ClientboundSetSubtitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(this.subtitle.resolve(player)))),
                 new ClientboundSetTitlesAnimationPacket(this.fadeIn, this.stay, this.fadeOut)
         )));
     }

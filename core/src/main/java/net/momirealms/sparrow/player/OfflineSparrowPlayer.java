@@ -131,6 +131,21 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
     }
 
     @Override
+    public boolean sendMessage(@NotNull String message) {
+        return this.sendMessage(message, false);
+    }
+
+    @Override
+    public boolean sendMessage(@NotNull String message, boolean overlay) {
+        SendMessageMessage request = new SendMessageMessage(this.uniqueId, message, overlay);
+        if (request.sendLocally()) return true;
+        String serverId = this.getCurrentServerId();
+        if (serverId == null) return false;
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
+        return true;
+    }
+
+    @Override
     public boolean sendMessage(@NotNull Component message) {
         return this.sendMessage(message, false);
     }
@@ -161,6 +176,11 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
     }
 
     @Override
+    public boolean sendActionBar(@NotNull String message) {
+        return this.sendMessage(message, true);
+    }
+
+    @Override
     public boolean sendActionBar(@NotNull Component message) {
         return this.sendMessage(message, true);
     }
@@ -173,6 +193,16 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
     @Override
     public boolean sendActionBar(@NotNull TranslatableComponent key, @NotNull Component... arguments) {
         return this.sendMessage(SparrowPlugin.instance().translationManager().render(key.arguments(arguments), this.locale()), true);
+    }
+
+    @Override
+    public boolean sendTitle(@NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
+        SendTitleMessage request = new SendTitleMessage(this.uniqueId, title, subtitle, fadeIn, stay, fadeOut);
+        if (request.sendLocally()) return true;
+        String serverId = this.getCurrentServerId();
+        if (serverId == null) return false;
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
+        return true;
     }
 
     @Override
@@ -282,6 +312,16 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
         String serverId = this.getCurrentServerId();
         if (serverId == null) return false;
         plugin.messageBrokerManager().publishOneWay(new PlaySoundMessage(this.uniqueId, sound), serverId);
+        return true;
+    }
+
+    @Override
+    public boolean sendToast(@NotNull String text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
+        SendToastMessage request = new SendToastMessage(this.uniqueId, text, icon, frame);
+        if (request.sendLocally()) return true;
+        String serverId = this.getCurrentServerId();
+        if (serverId == null) return false;
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
         return true;
     }
 

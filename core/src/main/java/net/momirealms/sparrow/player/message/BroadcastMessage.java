@@ -1,15 +1,12 @@
 package net.momirealms.sparrow.player.message;
 
-import net.kyori.adventure.text.Component;
 import net.minecraft.network.FriendlyByteBuf;
-import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
-import net.momirealms.sparrow.util.AdventureHelper;
 import org.jetbrains.annotations.NotNull;
 
 public final class BroadcastMessage extends OneWayMessage<FriendlyByteBuf> {
@@ -42,8 +39,7 @@ public final class BroadcastMessage extends OneWayMessage<FriendlyByteBuf> {
     @Override
     protected void handle() {
         for (BukkitSparrowPlayer receiver : SparrowPlugin.instance().playerManager().getOnlinePlayers()) {
-            Component component = AdventureHelper.miniMessage().deserialize(this.message, MessageContext.of(receiver.platformPlayer));
-            receiver.sendMessage(component);
+            new SendMessageMessage(receiver.uniqueId(), this.message).sendLocally();
         }
     }
 }

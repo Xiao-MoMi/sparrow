@@ -137,11 +137,7 @@ public final class PlayerRegistry {
 
     // 刷新 Redis 的记录, Join 和语言变化共用.
     void publishUpdate(@NotNull UUID uniqueId, @NotNull String name, @NotNull Locale locale) {
-        this.publishRecord(UPDATE_SCRIPT, uniqueId, name, locale).whenComplete((ignored, error) -> {
-            if (error != null) {
-                this.plugin.logger().warn("Failed to publish player registry change", error);
-            }
-        });
+        this.publishRecord(UPDATE_SCRIPT, uniqueId, name, locale);
     }
 
     // 刷新 Redis 里的记录, 并广播 PlayerChangedMessage.
@@ -172,12 +168,7 @@ public final class PlayerRegistry {
         message.setTargetServer("");
         byte[][] arguments = {UUIDUtils.toBytes(uniqueId), this.serverPrefix, broker.channel(), broker.encode(message)};
         this.commands.get()
-                .<Long>eval(QUIT_SCRIPT, ScriptOutputType.INTEGER, new byte[][]{ONLINE_KEY}, arguments)
-                .whenComplete((ignored, error) -> {
-                    if (error != null) {
-                        this.plugin.logger().warn("Failed to publish player registry change", error);
-                    }
-                });
+                .<Long>eval(QUIT_SCRIPT, ScriptOutputType.INTEGER, new byte[][]{ONLINE_KEY}, arguments);
     }
 
     // 名单消息的唯一入口, 启动读取完成前先暂存

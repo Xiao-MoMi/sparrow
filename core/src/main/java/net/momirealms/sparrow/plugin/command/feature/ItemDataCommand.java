@@ -48,11 +48,6 @@ public final class ItemDataCommand extends BukkitCommandFeature {
                 ((CraftServer) player.getServer()).getServer().registryAccess(),
                 context.flags().hasFlag("full")
         );
-        if (result.error().isPresent()) {
-            this.plugin().logger().warn("Failed to read item data: " + result.error().get().message());
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_FAILURE);
-            return;
-        }
         Map<String, Object> data = result.getOrThrow();
         List<Component> lines = DataTreeRenderer.render(data, true);
         Component output;

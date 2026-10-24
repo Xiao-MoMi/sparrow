@@ -35,6 +35,10 @@ public interface SparrowPlayer {
     @NotNull
     CompletableFuture<Integer> getPermissionValueAsync(@NotNull String node, int defaultValue, @NotNull PermissionValueMode mode);
 
+    boolean sendMessage(@NotNull String message);
+
+    boolean sendMessage(@NotNull String message, boolean overlay);
+
     boolean sendMessage(@NotNull Component message);
 
     boolean sendMessage(@NotNull Component message, boolean overlay);
@@ -43,11 +47,15 @@ public interface SparrowPlayer {
 
     boolean sendMessage(@NotNull TranslatableComponent key, @NotNull Component... arguments);
 
+    boolean sendActionBar(@NotNull String message);
+
     boolean sendActionBar(@NotNull Component message);
 
     boolean sendActionBar(@NotNull TranslatableComponent message);
 
     boolean sendActionBar(@NotNull TranslatableComponent key, @NotNull Component... arguments);
+
+    boolean sendTitle(@NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut);
 
     boolean sendTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut);
 
@@ -67,6 +75,8 @@ public interface SparrowPlayer {
     boolean kick(boolean disconnectFromProxy, @Nullable Component reason);
 
     boolean playSound(@NotNull Sound sound);
+
+    boolean sendToast(@NotNull String text, @NotNull ItemStack icon, @NotNull AdvancementType frame);
 
     boolean sendToast(@NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementType frame);
 

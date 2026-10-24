@@ -10,8 +10,8 @@ import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
-import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import net.momirealms.sparrow.util.AdventureHelper;
+import net.momirealms.sparrow.util.MessageText;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -21,7 +21,7 @@ public final class SendMessageMessage extends OneWayMessage<FriendlyByteBuf> {
     public static final MessageCodec<FriendlyByteBuf, SendMessageMessage> CODEC = RedisMessage.codec(SendMessageMessage::write, SendMessageMessage::new);
 
     private final UUID playerId;
-    private final Component message;
+    private final MessageText message;
     private final boolean overlay;
 
     public SendMessageMessage(@NotNull UUID playerId, @NotNull Component message) {
@@ -30,14 +30,24 @@ public final class SendMessageMessage extends OneWayMessage<FriendlyByteBuf> {
 
     public SendMessageMessage(@NotNull UUID playerId, @NotNull Component message, boolean overlay) {
         this.playerId = playerId;
-        this.message = message;
+        this.message = new MessageText(message);
+        this.overlay = overlay;
+    }
+
+    public SendMessageMessage(@NotNull UUID playerId, @NotNull String message) {
+        this(playerId, message, false);
+    }
+
+    public SendMessageMessage(@NotNull UUID playerId, @NotNull String message, boolean overlay) {
+        this.playerId = playerId;
+        this.message = new MessageText(message);
         this.overlay = overlay;
     }
 
     private SendMessageMessage(FriendlyByteBuf buffer) {
         super(buffer);
         this.playerId = buffer.readUUID();
-        this.message = AdventureHelper.jsonToComponent(ByteBufHelper.readUtf8(buffer, 262144));
+        this.message = new MessageText(buffer);
         this.overlay = buffer.readBoolean();
     }
 
@@ -45,7 +55,7 @@ public final class SendMessageMessage extends OneWayMessage<FriendlyByteBuf> {
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
         buffer.writeUUID(this.playerId);
-        ByteBufHelper.writeUtf8(buffer, AdventureHelper.componentToJson(this.message), 262144);
+        this.message.write(buffer);
         buffer.writeBoolean(this.overlay);
     }
 
@@ -57,9 +67,20 @@ public final class SendMessageMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        BukkitSparrowPlayer player = SparrowPlugin.instance().playerManager().getOnlinePlayer(this.playerId);
-        if (player == null) return;
-        Object component = CraftChatMessageProxy.INSTANCE.fromJSON(AdventureHelper.componentToJson(this.message));
+        this.sendLocally();
+    }
+
+    // 在当前执行器上解析并发送, 目标不在本服时返回 false.
+    public boolean sendLocally() {
+        SparrowPlugin plugin = SparrowPlugin.instance();
+        BukkitSparrowPlayer player = plugin.playerManager().getOnlinePlayer(this.playerId);
+        if (player == null) return false;
+        this.send(player);
+        return true;
+    }
+
+    private void send(BukkitSparrowPlayer player) {
+        Object component = CraftChatMessageProxy.INSTANCE.fromJSON(AdventureHelper.componentToJson(this.message.resolve(player)));
         ServerPlayerProxy.INSTANCE.sendSystemMessage(player.nmsPlayer, component, this.overlay);
     }
 }

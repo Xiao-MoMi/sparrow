@@ -3,12 +3,21 @@ package net.momirealms.sparrow.redis;
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.data.message.DataChangedMessage;
 import net.momirealms.sparrow.player.message.BroadcastMessage;
+import net.momirealms.sparrow.player.message.ClearChatMessage;
 import net.momirealms.sparrow.player.message.ClearTitleMessage;
 import net.momirealms.sparrow.player.message.HideBossBarMessage;
 import net.momirealms.sparrow.player.message.KickPlayerMessage;
+import net.momirealms.sparrow.player.message.OpenContainerMessage;
+import net.momirealms.sparrow.player.message.ClearInventoryRequest;
+import net.momirealms.sparrow.player.message.ClearInventoryResponse;
+import net.momirealms.sparrow.player.message.RepairItemsRequest;
+import net.momirealms.sparrow.player.message.RepairItemsResponse;
+import net.momirealms.sparrow.player.message.PlayerStateMessage;
 import net.momirealms.sparrow.player.message.PlaySoundMessage;
 import net.momirealms.sparrow.player.message.PlayerChangedMessage;
 import net.momirealms.sparrow.player.message.PlayerRegistryResetMessage;
+import net.momirealms.sparrow.player.message.SendCreditsMessage;
+import net.momirealms.sparrow.player.message.SendDemoMessage;
 import net.momirealms.sparrow.player.message.SendMessageMessage;
 import net.momirealms.sparrow.player.message.SendTitleMessage;
 import net.momirealms.sparrow.player.message.SendToastMessage;
@@ -75,6 +84,15 @@ public final class MessageBrokerManager {
         this.broker.registry().register(SendTotemAnimationMessage.ID, SendTotemAnimationMessage.CODEC);
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
         this.broker.registry().register(DataChangedMessage.ID, DataChangedMessage.CODEC);
+        this.broker.registry().register(OpenContainerMessage.ID, OpenContainerMessage.CODEC);
+        this.broker.registry().register(ClearInventoryRequest.ID, ClearInventoryRequest.CODEC);
+        this.broker.registry().register(ClearInventoryResponse.ID, ClearInventoryResponse.CODEC);
+        this.broker.registry().register(RepairItemsRequest.ID, RepairItemsRequest.CODEC);
+        this.broker.registry().register(RepairItemsResponse.ID, RepairItemsResponse.CODEC);
+        this.broker.registry().register(PlayerStateMessage.ID, PlayerStateMessage.CODEC);
+        this.broker.registry().register(ClearChatMessage.ID, ClearChatMessage.CODEC);
+        this.broker.registry().register(SendDemoMessage.ID, SendDemoMessage.CODEC);
+        this.broker.registry().register(SendCreditsMessage.ID, SendCreditsMessage.CODEC);
         // Redis Pub/Sub Proxy 代理频道.
         this.proxyBroker = MessageBroker.builder(FriendlyByteBuf::new)
                 .channel(("sparrow:db:" + connector.database() + ":proxy").getBytes(StandardCharsets.UTF_8))
