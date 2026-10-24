@@ -2,8 +2,7 @@ package net.momirealms.sparrow.database.mysql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
-import net.momirealms.sparrow.data.storage.DataStore;
-import net.momirealms.sparrow.player.PlayerProfile;
+import net.momirealms.sparrow.database.PlayerProfileStore;
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
@@ -14,9 +13,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
@@ -79,14 +75,8 @@ public class MysqlDataStorage extends DataStorage {
 
     @NotNull
     @Override
-    public DataStore<String, PlayerProfile> playerProfileStore() {
+    public PlayerProfileStore playerProfileStore() {
         return this.profileStore;
-    }
-
-    @NotNull
-    @Override
-    public CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name) {
-        return this.profileStore.lookupUser(name);
     }
 
     @Override

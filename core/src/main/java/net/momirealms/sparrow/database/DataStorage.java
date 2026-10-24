@@ -3,15 +3,10 @@ package net.momirealms.sparrow.database;
 import net.momirealms.sparrow.database.mariadb.MariaDbDataStorage;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
 import net.momirealms.sparrow.database.postgresql.PostgresDataStorage;
-import net.momirealms.sparrow.data.storage.DataStore;
-import net.momirealms.sparrow.player.PlayerProfile;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public abstract class DataStorage implements AutoCloseable {
@@ -37,18 +32,7 @@ public abstract class DataStorage implements AutoCloseable {
     public abstract void initialize();
 
     @NotNull
-    public abstract DataStore<String, PlayerProfile> playerProfileStore();
-
-    @NotNull
-    public abstract CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name);
-
-    @NotNull
-    public CompletableFuture<Optional<String>> lookupName(@NotNull UUID player) {
-        return this.playerProfileStore().load(player).thenApply(entries -> {
-            PlayerProfile profile = entries.get(PlayerProfile.ENTRY);
-            return profile == null ? Optional.empty() : Optional.of(profile.name());
-        });
-    }
+    public abstract PlayerProfileStore playerProfileStore();
 
     // 建表时使用的名称前缀
     @NotNull

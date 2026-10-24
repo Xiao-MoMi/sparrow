@@ -61,7 +61,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                 : CompletableFuture.completedFuture(Optional.of(uuid));
         identity.thenCompose(found -> {
             if (found.isEmpty()) return CompletableFuture.<PlayerProfile>completedFuture(null);
-            return this.plugin().playerManager().profileData().reader(found.get()).read().thenApply(entries -> entries.get(PlayerProfile.ENTRY));
+            return this.plugin().dataStorage().playerProfileStore().load(found.get()).thenApply(profile -> profile.orElse(null));
         }).thenAccept(profile -> {
             if (profile == null) {
                 this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_UNKNOWN, Component.text(input));

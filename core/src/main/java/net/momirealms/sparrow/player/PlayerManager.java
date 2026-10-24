@@ -6,7 +6,6 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandler;
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.data.access.SingleWriterData;
 import net.momirealms.sparrow.player.listener.PlayerJoinListener;
 import net.momirealms.sparrow.player.listener.PlayerPreLoginListener;
 import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
@@ -104,11 +103,9 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         }
         UUID uniqueId = connection.uniqueId();
         CompletableFuture<Void> preparation = this.lock.acquire(uniqueId, deadlineNanos, () -> !connection.isClosed())
-                .thenCompose(token -> {
+                .thenAccept(token -> {
                     connection.lockToken(token);
                     this.lockHolders.put(uniqueId, connection);
-                    // 业务准备回调执行前, 档案写容器已加载
-                    return connection.load(this.profiles.data());
                 })
                 .thenComposeAsync(ignored -> {
                     List<CompletableFuture<Void>> preparing = new ArrayList<>();
@@ -138,7 +135,6 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
 
     // 等全部退出监听器结束后记下会话不会再写入. 每个监听器在各自的 thenCompose 中调用, 同步抛出的异常只让它自己的 Future 失败
     private void quit(BukkitSparrowPlayer player) {
-        this.profiles.onQuit(player);
         List<CompletableFuture<Void>> quitting = new ArrayList<>();
         this.quitListeners.dispatch(listener -> quitting.add(CompletableFuture.completedFuture(player).thenCompose(listener::onQuit)));
         CompletableFuture.allOf(quitting.toArray(CompletableFuture[]::new)).whenComplete((ignored, error) -> {
@@ -233,15 +229,14 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         return this.registry.getGlobalOnlineCount();
     }
 
-    // 按 UUID 优先查询在线玩家, 离线时通过档案读副本取得名字.
+    // 按 UUID 优先查询在线玩家, 离线时从数据库档案取得名字.
     @NotNull
     public CompletableFuture<Optional<SparrowPlayer>> getPlayer(@NotNull UUID uniqueId) {
         SparrowPlayer online = this.getGlobalOnlinePlayer(uniqueId);
         if (online != null) return CompletableFuture.completedFuture(Optional.of(online));
-        return this.profiles.data().reader(uniqueId).read().thenApply(entries -> {
-            PlayerProfile profile = entries.get(PlayerProfile.ENTRY);
-            return profile == null ? Optional.empty() : Optional.of(this.getOrCreate(uniqueId, profile.name()));
-        });
+        return this.plugin.dataStorage().playerProfileStore()
+                .lookupName(uniqueId)
+                .thenApply(found -> found.map(name -> this.getOrCreate(uniqueId, name)));
     }
 
     // 按名字优先查询在线玩家, 离线时沿用数据库的名字匹配规则, 未找到时结果为空.
@@ -249,7 +244,8 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     public CompletableFuture<Optional<SparrowPlayer>> getPlayer(@NotNull String playerName) {
         SparrowPlayer online = this.getGlobalOnlinePlayer(playerName);
         if (online != null) return CompletableFuture.completedFuture(Optional.of(online));
-        return this.plugin.dataStorage().lookupUser(playerName)
+        return this.plugin.dataStorage().playerProfileStore()
+                .lookupUser(playerName)
                 .thenApply(found -> found.map(uniqueId -> this.getOrCreate(uniqueId, playerName)));
     }
 
@@ -266,11 +262,6 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @Nullable
     public PlayerConnection getConnection(@NotNull Channel channel) {
         return this.connections.get(channel);
-    }
-
-    @NotNull
-    public SingleWriterData<String, PlayerProfile> profileData() {
-        return this.profiles.data();
     }
 
     // 本服是否持有这个玩家的会话, 数据层按它保留玩家的读副本
@@ -351,7 +342,6 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         });
         BukkitSparrowPlayer joined = this.getOnlinePlayer(player);
         if (joined != null) {
-            this.profiles.onJoin(joined);
             this.registry.publishUpdate(joined.uniqueId(), joined.name(), joined.locale());
             this.joinListeners.dispatch(joinListener -> joinListener.onJoin(joined));
         }

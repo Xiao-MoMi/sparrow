@@ -38,7 +38,7 @@ public final class PlayerConnection {
     private final Channel channel;
     private final long connectedAt;
     private boolean joined;
-    private volatile CompletableFuture<Void> preparation; // 取锁, 加载档案与准备监听器的整体结果, 尚未开始准备时为 null
+    private volatile CompletableFuture<Void> preparation; // 取锁与准备监听器的整体结果, 尚未开始准备时为 null
     private volatile byte[] lockToken; // 本次取得的玩家锁值, 释放锁时交回, 尚未取得时为 null
     private volatile boolean prepared;
     private final AtomicInteger state = new AtomicInteger();

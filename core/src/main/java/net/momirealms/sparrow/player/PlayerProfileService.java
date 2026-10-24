@@ -1,56 +1,52 @@
 package net.momirealms.sparrow.player;
 
-import net.momirealms.sparrow.data.access.SingleWriterData;
-import net.momirealms.sparrow.data.access.SingleWriterEntries;
-import net.momirealms.sparrow.data.definition.SingleWriterDefinition;
-import net.momirealms.sparrow.data.storage.DataCodec;
+import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
+import net.momirealms.sparrow.database.PlayerProfileStore;
+import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.util.ServerLocation;
-import net.momirealms.sparrow.util.SparrowKey;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
-final class PlayerProfileService {
+final class PlayerProfileService implements PlayerPrepareListener {
     private final SparrowPlugin plugin = SparrowPlugin.instance();
-    private SingleWriterData<String, PlayerProfile> data;
+    private final ConcurrentChainedObject2ObjectHashTable<UUID, PlayerProfile> profiles = new ConcurrentChainedObject2ObjectHashTable<>();
+    private PlayerProfileStore store;
 
     void onEnable() {
-        this.data = this.plugin.dataAccess().register(SingleWriterDefinition.of(
-                SparrowKey.sparrow("player_profile"),
-                DataCodec.of(entry -> entry.getBytes(StandardCharsets.UTF_8), bytes -> new String(bytes, StandardCharsets.UTF_8)),
-                PlayerProfile.Codec.INSTANCE,
-                this.plugin.dataStorage().playerProfileStore()
-        ).redisTtl(Duration.ofMinutes(10)));
-    }
-
-    // 档案写容器在准备阶段已加载完成, 进服和退出时 join 不会等待
-    void onJoin(@NotNull BukkitSparrowPlayer player) {
-        SingleWriterEntries<String, PlayerProfile> entries = player.connection.load(this.data).join();
-        long loginAt = System.currentTimeMillis();
-        entries.update(PlayerProfile.ENTRY, previous -> new PlayerProfile(
-                player.name(),
-                loginAt,
-                previous == null ? 0 : previous.logoutAt(),
-                player.connection.ip(),
-                previous == null ? null : previous.logoutLocation()
-        ));
-        entries.save().whenComplete((ignored, error) -> {
-            if (error != null) {
-                this.plugin.logger().warn("Failed to save player profile after join for " + player.name(), error);
-            }
-        });
-    }
-
-    void onQuit(@NotNull BukkitSparrowPlayer player) {
-        long logoutAt = System.currentTimeMillis();
-        ServerLocation location = player.getServerLocation();
-        player.connection.load(this.data).join().update(PlayerProfile.ENTRY, profile -> new PlayerProfile(profile.name(), profile.loginAt(), logoutAt, profile.ip(), location));
+        this.store = this.plugin.dataStorage().playerProfileStore();
+        this.plugin.playerManager().registerPrepareListener(this);
+        this.plugin.playerManager().registerQuitListener(this::onQuit);
     }
 
     @NotNull
-    SingleWriterData<String, PlayerProfile> data() {
-        return this.data;
+    @Override
+    public CompletableFuture<Void> onPrepare(@NotNull PlayerConnection connection) {
+        return this.store.load(connection.uniqueId()).thenCompose(found -> {
+            PlayerProfile previous = found.orElse(null);
+            PlayerProfile profile = new PlayerProfile(
+                    connection.name(),
+                    System.currentTimeMillis(),
+                    previous == null ? 0 : previous.logoutAt(),
+                    connection.ip(),
+                    previous == null ? null : previous.logoutLocation()
+            );
+            return this.store.save(connection.uniqueId(), profile).thenRun(() -> this.profiles.put(connection.uniqueId(), profile));
+        });
+    }
+
+    @NotNull
+    private CompletableFuture<Void> onQuit(@NotNull BukkitSparrowPlayer player) {
+        PlayerProfile previous = this.profiles.get(player.uniqueId());
+        PlayerProfile profile = new PlayerProfile(previous.name(), previous.loginAt(), System.currentTimeMillis(), previous.ip(), player.getServerLocation());
+        return this.store.save(player.uniqueId(), profile);
+    }
+
+    @NotNull
+    @Override
+    public CompletableFuture<Void> onRelease(@NotNull PlayerConnection connection) {
+        this.profiles.remove(connection.uniqueId());
+        return CompletableFuture.completedFuture(null);
     }
 }

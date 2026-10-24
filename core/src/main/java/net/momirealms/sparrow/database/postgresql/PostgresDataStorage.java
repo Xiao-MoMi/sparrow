@@ -2,8 +2,7 @@ package net.momirealms.sparrow.database.postgresql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
-import net.momirealms.sparrow.data.storage.DataStore;
-import net.momirealms.sparrow.player.PlayerProfile;
+import net.momirealms.sparrow.database.PlayerProfileStore;
 import net.momirealms.sparrow.database.postgresql.upgrade.PostgresSchemaMigration;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -13,9 +12,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
@@ -57,14 +53,8 @@ public final class PostgresDataStorage extends DataStorage {
 
     @NotNull
     @Override
-    public DataStore<String, PlayerProfile> playerProfileStore() {
+    public PlayerProfileStore playerProfileStore() {
         return this.profileStore;
-    }
-
-    @NotNull
-    @Override
-    public CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name) {
-        return this.profileStore.lookupUser(name);
     }
 
     @Override
