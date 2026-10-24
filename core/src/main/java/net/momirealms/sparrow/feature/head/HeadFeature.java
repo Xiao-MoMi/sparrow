@@ -3,75 +3,96 @@ package net.momirealms.sparrow.feature.head;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.util.DurationUtils;
+import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.http.HttpClient;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.function.Consumer;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 
-public final class HeadFeature extends Feature<HeadSettings> {
+public final class HeadFeature implements Feature {
     public static final String ID = "head";
 
-    private final SparrowPlugin plugin;
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
     private volatile Session session;
     private volatile long generation;
 
-    public HeadFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
-        this.plugin = plugin;
+    @NotNull
+    @Override
+    public String id() {
+        return ID;
     }
 
     @Override
-    public void loadConfig() {
-        HeadSettings settings = this.plugin.configurationManager().featuresConfig().config().head();
+    public boolean supportsHotEnable() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsHotDisable() {
+        return true;
+    }
+
+    @NotNull
+    private HeadSettings readConfig() {
+        Path path = this.plugin.dataFolderPath().resolve("features/head.yml");
+        HeadSettings settings;
+        try {
+            settings = YamlMapperFactory.builder()
+                    .sparrowYaml(this.plugin.configurationManager().sparrowYaml())
+                    .build()
+                    .create(HeadSettings.class, HeadSettings::new)
+                    .load(path)
+                    .value();
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to load " + path, exception);
+        }
         settings.validate();
-        super.config = settings;
+        return settings;
     }
 
+    @NotNull
     @Override
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-        register.accept(new HeadCommand(this.plugin.commandManager(), this.plugin));
+    public synchronized CompletableFuture<Void> onEnable() {
+        this.session = new Session(this.readConfig());
+        return CompletableFuture.completedFuture(null);
     }
 
+    @NotNull
     @Override
-    protected synchronized void onEnable() {
-        this.session = new Session(super.config);
-    }
-
-    @Override
-    protected synchronized void onDisable() {
-        this.generation++;
-        Session previous = this.session;
-        this.session = null;
-        if (previous != null) {
-            previous.close();
-        }
-    }
-
-    @Override
-    protected void onUnload() {
-        Session previous = this.session;
-        if (previous != null) {
-            previous.close();
-        }
+    public synchronized CompletableFuture<Void> onReload() {
+        HeadSettings settings = this.readConfig();
+        this.onDisable();
+        this.session = new Session(settings);
+        return CompletableFuture.completedFuture(null);
     }
 
     public long generation() {
         return this.generation;
     }
 
-    /** 异步查询名称; 无资料时为 null, force 跳过两层缓存并刷新成功结果. */
     @NotNull
     public CompletableFuture<@Nullable HeadData> fetchByName(@NotNull String name, boolean force) {
         return this.fetch(new Query("name:" + name.toLowerCase(Locale.ROOT), name, null), force);
     }
 
-    /** 异步查询 UUID; 无资料时为 null, force 跳过两层缓存并刷新成功结果. */
     @NotNull
     public CompletableFuture<@Nullable HeadData> fetchByUuid(@NotNull UUID uuid, boolean force) {
         return this.fetch(new Query("uuid:" + uuid, null, uuid), force);
@@ -79,19 +100,18 @@ public final class HeadFeature extends Feature<HeadSettings> {
 
     private CompletableFuture<HeadData> fetch(Query query, boolean force) {
         Session current = this.session;
-        if (current == null || !this.enabled()) {
+        if (current == null) {
             return CompletableFuture.failedFuture(new CancellationException("Head feature is disabled"));
         }
         return current.fetch(query, force);
     }
 
-    /** 在接收玩家线程分组掉落头颅; 请求已失效或玩家已退出时返回 false. */
     public synchronized boolean give(@NotNull Player player, @NotNull HeadData data, int amount, long expectedGeneration) {
-        if (!this.enabled() || this.generation != expectedGeneration) {
+        if (this.session == null || this.generation != expectedGeneration) {
             return false;
         }
-        BukkitSparrowPlayer receiver = this.plugin.playerManager().getPlayer(player);
-        if (receiver == null || !player.isOnline()) {
+        BukkitSparrowPlayer receiver = this.plugin.playerManager().getOnlinePlayer(player);
+        if (receiver == null) {
             return false;
         }
         int remaining = amount;
@@ -103,22 +123,24 @@ public final class HeadFeature extends Feature<HeadSettings> {
         return true;
     }
 
+    @Nullable
     private HeadData online(Query query) {
-        BukkitSparrowPlayer target = null;
-        if (query.uuid != null) {
-            target = this.plugin.playerManager().getPlayer(query.uuid);
-        } else {
-            for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
-                if (player.name().equalsIgnoreCase(query.name)) {
-                    target = player;
-                    break;
-                }
-            }
+        BukkitSparrowPlayer target = query.uuid == null
+                ? this.plugin.playerManager().getOnlinePlayer(query.name)
+                : this.plugin.playerManager().getOnlinePlayer(query.uuid);
+        return target == null ? null : HeadItems.fromProfile(target.nmsPlayer.getGameProfile());
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onDisable() {
+        this.generation++;
+        Session previous = this.session;
+        this.session = null;
+        if (previous != null) {
+            previous.close();
         }
-        if (target == null) {
-            return null;
-        }
-        return HeadItems.fromProfile(target.nmsPlayer().getGameProfile());
+        return CompletableFuture.completedFuture(null);
     }
 
     private record Query(String key, String name, UUID uuid) {
@@ -126,6 +148,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
 
     private final class Session implements AutoCloseable {
         private final HeadSettings settings;
+        private final long timeoutMillis;
         private final HeadCache cache;
         private final HttpClient http;
         private final ProfileClient profiles;
@@ -136,6 +159,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
 
         private Session(HeadSettings settings) {
             this.settings = settings;
+            this.timeoutMillis = DurationUtils.parsePositive(settings.requestTimeout()).toMillis();
             this.cache = new HeadCache(settings, settings.cache().redis().enabled() ? HeadFeature.this.plugin.redisConnector().connection() : null);
             this.http = HttpClient.newBuilder()
                     .connectTimeout(DurationUtils.parsePositive(settings.api().connectTimeout()))
@@ -155,8 +179,7 @@ public final class HeadFeature extends Feature<HeadSettings> {
             Request request = new Request(query, force);
             this.inFlight.put(query.key, request);
             this.requests.add(request);
-            long timeout = DurationUtils.parsePositive(this.settings.requestTimeout()).toMillis();
-            request.result.orTimeout(timeout, TimeUnit.MILLISECONDS).whenComplete((value, error) -> {
+            request.result.orTimeout(this.timeoutMillis, TimeUnit.MILLISECONDS).whenComplete((value, error) -> {
                 if (error != null) {
                     request.task.cancel(true);
                 }

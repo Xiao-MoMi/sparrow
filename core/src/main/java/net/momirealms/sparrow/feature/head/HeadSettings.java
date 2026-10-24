@@ -1,6 +1,5 @@
 package net.momirealms.sparrow.feature.head;
 
-import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.util.DurationUtils;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
@@ -9,9 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-public final class HeadSettings implements FeatureSettings {
-    private boolean enabled = true;
-
+public final class HeadSettings {
     @Comment("Sources in priority order: online, api. Online textures are not stored in the API cache.")
     @Comment(lang = "zh", value = "获取源优先顺序, 可选 online、api. 在线纹理不会写入 API 缓存.")
     private List<String> sourceOrder = List.of("online", "api");
@@ -23,22 +20,27 @@ public final class HeadSettings implements FeatureSettings {
     private CacheOptions cache = new CacheOptions();
     private ApiOptions api = new ApiOptions();
 
-    @Override
-    public boolean enabled() { return this.enabled; }
+    public List<String> sourceOrder() {
+        return this.sourceOrder;
+    }
 
-    @Override
-    public void enabled(boolean enabled) { this.enabled = enabled; }
+    public String requestTimeout() {
+        return this.requestTimeout;
+    }
 
-    public List<String> sourceOrder() { return this.sourceOrder; }
-    public String requestTimeout() { return this.requestTimeout; }
-    public CacheOptions cache() { return this.cache; }
-    public ApiOptions api() { return this.api; }
+    public CacheOptions cache() {
+        return this.cache;
+    }
+
+    public ApiOptions api() {
+        return this.api;
+    }
 
     // 配置错误在启用前报告, HTTP 模板也在这里验证.
     void validate() {
         if (this.sourceOrder.isEmpty() || this.sourceOrder.stream().anyMatch(source -> !source.equals("online") && !source.equals("api"))
                 || this.sourceOrder.stream().distinct().count() != this.sourceOrder.size()) {
-            throw new IllegalArgumentException("head.source-order must contain online and/or api without duplicates");
+            throw new IllegalArgumentException("source-order must contain online and/or api without duplicates");
         }
         DurationUtils.parsePositive(this.requestTimeout);
         DurationUtils.parsePositive(this.api.connectTimeout);
@@ -50,22 +52,19 @@ public final class HeadSettings implements FeatureSettings {
             DurationUtils.parsePositive(this.cache.redis.ttl);
         }
         if (this.cache.memory.maxSize <= 0) {
-            throw new IllegalArgumentException("head.cache.memory.max-size must be positive");
+            throw new IllegalArgumentException("cache.memory.max-size must be positive");
         }
         if (!this.api.nameUrl.contains("{name}") || !(this.api.profileUrl.contains("{uuid}") || this.api.profileUrl.contains("{uuid-dashed}"))) {
             throw new IllegalArgumentException("Head API URLs require {name} and {uuid} or {uuid-dashed}");
         }
         ProfileClient.endpoint(this.api.nameUrl.replace("{name}", "Player"));
-        ProfileClient.endpoint(
-                this.api.profileUrl.replace("{uuid}", "00000000000000000000000000000000").replace(
-                        "{uuid-dashed}",
-                        "00000000-0000-0000-0000-000000000000"
-                )
-        );
+        ProfileClient.endpoint(this.api.profileUrl
+                .replace("{uuid}", "00000000000000000000000000000000")
+                .replace("{uuid-dashed}", "00000000-0000-0000-0000-000000000000"));
         for (int i = 0; i < this.api.fallbackUrls.size(); i++) {
             String url = this.api.fallbackUrls.get(i);
             if (!url.contains("{player}")) {
-                throw new IllegalArgumentException("head.api.fallback-urls require {player}");
+                throw new IllegalArgumentException("api.fallback-urls require {player}");
             }
             ProfileClient.endpoint(url.replace("{player}", "Player"));
         }
@@ -76,8 +75,13 @@ public final class HeadSettings implements FeatureSettings {
         private MemoryOptions memory = new MemoryOptions();
         private RedisOptions redis = new RedisOptions();
 
-        public MemoryOptions memory() { return this.memory; }
-        public RedisOptions redis() { return this.redis; }
+        public MemoryOptions memory() {
+            return this.memory;
+        }
+
+        public RedisOptions redis() {
+            return this.redis;
+        }
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -90,9 +94,17 @@ public final class HeadSettings implements FeatureSettings {
 
         private int maxSize = 4096;
 
-        public boolean enabled() { return this.enabled; }
-        public String ttl() { return this.ttl; }
-        public int maxSize() { return this.maxSize; }
+        public boolean enabled() {
+            return this.enabled;
+        }
+
+        public String ttl() {
+            return this.ttl;
+        }
+
+        public int maxSize() {
+            return this.maxSize;
+        }
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -102,8 +114,13 @@ public final class HeadSettings implements FeatureSettings {
         private boolean enabled = true;
         private String ttl = "24h";
 
-        public boolean enabled() { return this.enabled; }
-        public String ttl() { return this.ttl; }
+        public boolean enabled() {
+            return this.enabled;
+        }
+
+        public String ttl() {
+            return this.ttl;
+        }
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -136,11 +153,28 @@ public final class HeadSettings implements FeatureSettings {
         @Comment(lang = "zh", value = "每次 HTTP 请求的超时时长.")
         private String requestTimeout = "5s";
 
-        public String nameUrl() { return this.nameUrl; }
-        public String profileUrl() { return this.profileUrl; }
-        public List<String> fallbackUrls() { return this.fallbackUrls; }
-        public Map<String, String> headers() { return this.headers; }
-        public String connectTimeout() { return this.connectTimeout; }
-        public String requestTimeout() { return this.requestTimeout; }
+        public String nameUrl() {
+            return this.nameUrl;
+        }
+
+        public String profileUrl() {
+            return this.profileUrl;
+        }
+
+        public List<String> fallbackUrls() {
+            return this.fallbackUrls;
+        }
+
+        public Map<String, String> headers() {
+            return this.headers;
+        }
+
+        public String connectTimeout() {
+            return this.connectTimeout;
+        }
+
+        public String requestTimeout() {
+            return this.requestTimeout;
+        }
     }
 }

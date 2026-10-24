@@ -17,15 +17,12 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 final class HeadCache {
     private final Cache<String, Entry> memory;
     private final StatefulRedisConnection<byte[], byte[]> redis;
     private final long memoryTtl;
     private final long redisTtl;
-    private final long timeoutMillis;
     private final String profilePrefix;
 
     HeadCache(HeadSettings settings, @Nullable StatefulRedisConnection<byte[], byte[]> redis) {
@@ -38,7 +35,6 @@ final class HeadCache {
                 .expireAfterWrite(Duration.ofMillis(Math.max(1, this.memoryTtl)))
                 .build();
         this.redis = redis;
-        this.timeoutMillis = DurationUtils.parsePositive(settings.api().requestTimeout()).toMillis();
         this.profilePrefix = "sparrow:head:v1:" + digest(
                 settings.api().nameUrl() + "\n" + settings.api().profileUrl() + "\n"
                         + GsonHelper.get().toJson(settings.api().fallbackUrls()) + "\n" + GsonHelper.get().toJson(
@@ -48,7 +44,7 @@ final class HeadCache {
     }
 
     @Nullable
-    HeadData get(String key) throws InterruptedException, ExecutionException, TimeoutException {
+    HeadData get(String key) throws InterruptedException, ExecutionException {
         long now = System.currentTimeMillis();
         Entry local = this.memory.getIfPresent(key);
         if (local != null && now < local.expiresAt && now - local.fetchedAt < this.memoryTtl) {
@@ -57,14 +53,11 @@ final class HeadCache {
         if (this.redis == null) {
             return null;
         }
-        byte[] bytes = this.redis.async().get(this.key(key)).get(this.timeoutMillis, TimeUnit.MILLISECONDS);
+        byte[] bytes = this.redis.async().get(this.key(key)).get();
         if (bytes == null) {
             return null;
         }
         Entry entry = GsonHelper.get().fromJson(new String(bytes, StandardCharsets.UTF_8), Entry.class);
-        if (entry == null || entry.data == null || entry.data.uuid() == null || entry.data.name() == null || entry.data.texture() == null) {
-            throw new IllegalArgumentException("Invalid head cache entry");
-        }
         now = System.currentTimeMillis();
         if (now >= entry.expiresAt || now - entry.fetchedAt >= this.redisTtl) {
             return null;
@@ -87,12 +80,11 @@ final class HeadCache {
             if (this.memoryTtl > 0) {
                 this.memory.put(key, entry);
             }
-            writes[i] = this.redis == null ? CompletableFuture.completedFuture(null)
-                    : this.redis.async()
-                            .set(this.key(key), value, SetArgs.Builder.px(this.redisTtl))
-                            .toCompletableFuture();
+            writes[i] = this.redis == null
+                    ? CompletableFuture.completedFuture(null)
+                    : this.redis.async().set(this.key(key), value, SetArgs.Builder.px(this.redisTtl)).toCompletableFuture();
         }
-        return CompletableFuture.allOf(writes).orTimeout(this.timeoutMillis, TimeUnit.MILLISECONDS);
+        return CompletableFuture.allOf(writes);
     }
 
     private byte[] key(String query) {
@@ -103,7 +95,7 @@ final class HeadCache {
         this.memory.invalidateAll();
     }
 
-    static String digest(String value) {
+    private static String digest(String value) {
         try {
             return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8)));
         } catch (NoSuchAlgorithmException exception) {
