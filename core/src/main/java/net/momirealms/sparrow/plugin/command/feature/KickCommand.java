@@ -2,23 +2,24 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.redis.proxy.DisconnectRequest;
-import net.momirealms.sparrow.redis.proxy.DisconnectResponse;
-import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.cluster.PlayerPresence;
+import net.momirealms.sparrow.player.OfflineSparrowPlayer;
+import net.momirealms.sparrow.player.message.proxy.DisconnectRequest;
+import net.momirealms.sparrow.player.message.proxy.DisconnectResponse;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
+import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
+import net.momirealms.sparrow.util.AdventureHelper;
+import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
@@ -29,32 +30,39 @@ public final class KickCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayersParser(this.plugin().playerDirectory()))
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
+        manager.command(builder.required("player", GlobalPlayerParser.clusterPlayersParser())
                 .optional("reason", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(this::execute));
     }
 
-    // -s 只隐藏给执行人的成功提示, 错误照常提示
     private void execute(CommandContext<CommandSender> context) {
         List<String> targets = context.get("player");
         String reason = context.getOrDefault("reason", "");
-        for (int i = 0, size = targets.size(); i < size; i++) {
-            this.kick(context, targets.get(i), reason);
+        for (String input : targets) {
+            this.kick(context, input, reason);
         }
     }
 
-    private void kick(CommandContext<CommandSender> context, String name, String reason) {
+    private void kick(CommandContext<CommandSender> context, String input, String reason) {
         CommandSender sender = context.sender();
-        PlayerPresence target = this.plugin().playerDirectory().find(name);
+        UUID uuid = UUIDUtils.parse(input);
+        OfflineSparrowPlayer target = uuid == null
+                ? this.plugin().playerManager().getGlobalOnlinePlayer(input)
+                : this.plugin().playerManager().getGlobalOnlinePlayer(uuid);
         if (target == null) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_KICK_OFFLINE, Component.text(name));
+            this.handleFeedback(sender, MessageConstants.COMMAND_KICK_OFFLINE, Component.text(input));
+            return;
+        }
+        String server = target.getCurrentServerId();
+        if (server == null) {
+            this.handleFeedback(sender, MessageConstants.COMMAND_KICK_OFFLINE, Component.text(target.name()));
             return;
         }
         Component text = reason.isEmpty() ? MessageConstants.KICK_REASON_NONE : Component.text(reason);
         Component screen = this.plugin().translationManager().render(MessageConstants.KICK_SCREEN.arguments(text, Component.text(sender.getName())), target.locale());
-        boolean self = sender instanceof Player player && player.getUniqueId().equals(target.uuid());
+        boolean self = sender instanceof Player player && player.getUniqueId().equals(target.uniqueId());
         this.disconnect(target, screen).whenComplete((disconnected, error) -> {
             if (error != null) {
                 this.plugin().logger().warn("Failed to kick " + target.name(), error);
@@ -66,15 +74,15 @@ public final class KickCommand extends BukkitCommandFeature {
                         context,
                         self ? MessageConstants.COMMAND_KICK_SUCCESS_SELF : MessageConstants.COMMAND_KICK_SUCCESS,
                         Component.text(target.name()),
-                        Component.text(target.server())
+                        Component.text(server)
                 );
             }
         });
     }
 
-    private CompletableFuture<Boolean> disconnect(PlayerPresence target, Component screen) {
+    private CompletableFuture<Boolean> disconnect(OfflineSparrowPlayer target, Component screen) {
         return this.plugin().messageBrokerManager().proxyBroker()
-                .publishTwoWay(new DisconnectRequest(target.uuid(), AdventureHelper.componentToJson(screen)), "proxy")
+                .publishTwoWay(new DisconnectRequest(target.uniqueId(), AdventureHelper.componentToJson(screen)), "proxy")
                 .orTimeout(5, TimeUnit.SECONDS)
                 .thenApply(DisconnectResponse::disconnected);
     }
