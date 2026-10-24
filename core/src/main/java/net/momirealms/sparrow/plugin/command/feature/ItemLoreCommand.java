@@ -42,7 +42,6 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
-                .flag(manager.flagBuilder("legacy-color").withAliases("l").build())
                 .flag(manager.flagBuilder("lore").withComponent(StringParser.greedyFlagYieldingStringParser()).build())
                 .flag(manager.flagBuilder("operation").withComponent(EnumParser.enumParser(Operation.class)).build())
                 .flag(manager.flagBuilder("line").withComponent(IntegerParser.integerParser(1)).build())
@@ -54,7 +53,7 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
         Runnable action = () -> {
-            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
+            ItemStack item = this.plugin().playerManager().getOnlinePlayer(player).nmsPlayer.getMainHandItem();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_ITEMLESS);
                 return;
@@ -104,7 +103,7 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
                     try {
                         Component parsed = context.flags().hasFlag("json")
                                 ? AdventureHelper.jsonToComponent(input)
-                                : AdventureHelper.miniMessage("<!i><white>" + input, context.flags().hasFlag("legacy-color"), player);
+                                : AdventureHelper.miniMessage("<!i><white>" + input, player);
                         text = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(parsed));
                     } catch (RuntimeException exception) {
                         this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_INVALID);
@@ -194,7 +193,7 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "item-lore";
+        return "item_lore";
     }
 
     public enum Operation {
