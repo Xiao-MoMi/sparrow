@@ -1,142 +1,242 @@
 package net.momirealms.sparrow.plugin.command.panel;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
+import net.kyori.adventure.text.TranslatableComponent;
+import net.kyori.adventure.text.TranslationArgument;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import net.momirealms.sparrow.locale.TranslationManager;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 import java.util.function.IntFunction;
 
-/**
- * 为一个接收者组装聊天栏面板. 每次展示创建一个实例, 按行添加内容, 最后发送或取出组件.
- * 数据查询、行内字段和操作确认由具体命令负责.
- */
 public final class CommandPanel {
-    public static final String MESSAGE_KEY = "command.panel.message";
+    private static final TextColor TITLE = TextColor.color(0xFFE08A);
+    private static final TextColor LABEL = TextColor.color(0xAAB4BE);
+    private static final TextColor VALUE = TextColor.color(0xF2F4FF);
+    static final TextColor ACCENT = TextColor.color(0xC7BCE7);
+    static final TextColor MUTED = TextColor.color(0x7D98BF);
 
-    private final CommandManager manager;
-    private final CommandSender sender;
-    private Component content = Component.empty();
-    private boolean hasLines;
+    private final Component title;
+    private final List<Row> rows;
+    private final List<PanelButton> buttons;
+    private final @Nullable Pagination pagination;
 
-    public CommandPanel(@NotNull CommandManager manager, @NotNull CommandSender sender) {
-        this.manager = manager;
-        this.sender = sender;
+    private CommandPanel(Builder builder) {
+        this.title = builder.title;
+        this.rows = List.copyOf(builder.rows);
+        this.buttons = List.copyOf(builder.buttons);
+        this.pagination = builder.pagination;
     }
 
     @NotNull
-    public CommandPanel header(@NotNull Component title, @NotNull TextPage<?> page) {
-        return this.line(Component.translatable(
-                "command.panel.header",
-                title,
-                Component.text(page.index() + 1),
-                Component.text(page.count()),
-                Component.text(page.total())
-        ));
+    public static Builder builder() {
+        return new Builder();
     }
 
-    // 同一行的片段按原样连接, 行之间自动换行.
-    @NotNull
-    public CommandPanel line(@NotNull Component... parts) {
-        if (this.hasLines) {
-            this.content = this.content.append(Component.newline());
+    public void send(@NotNull CommandSender receiver) {
+        RenderContext context = new RenderContext(receiver);
+        List<Component> lines = new ArrayList<>();
+        lines.add(Component.text("── ", MUTED)
+                .append(context.text(this.title, TITLE).decorate(TextDecoration.BOLD))
+                .append(Component.text(" ──", MUTED)));
+        if (this.rows.isEmpty()) {
+            lines.add(context.text(Component.translatable("command.panel.empty"), LABEL));
         }
-        for (int i = 0; i < parts.length; i++) {
-            this.content = this.content.append(parts[i]);
-        }
-        this.hasLines = true;
-        return this;
-    }
-
-    @NotNull
-    public CommandPanel empty() {
-        return this.line(Component.translatable("command.panel.empty"));
-    }
-
-    // 操作单独占一行, 按钮之间加空格.
-    @NotNull
-    public CommandPanel actions(@NotNull Component... buttons) {
-        Component row = Component.empty();
-        for (int i = 0; i < buttons.length; i++) {
-            if (i > 0) {
-                row = row.append(Component.space());
+        for (Row row : this.rows) {
+            switch (row) {
+                case Section section -> lines.add(Component.text("─ ", MUTED).append(context.text(section.title(), TITLE)));
+                case Field field -> {
+                    Component value = context.text(field.value(), VALUE);
+                    if (field.copyValue() != null && receiver instanceof Player) {
+                        value = value.clickEvent(ClickEvent.copyToClipboard(field.copyValue()))
+                                .hoverEvent(context.text(Component.translatable("command.panel.copy"), LABEL)
+                                        .append(Component.newline())
+                                        .append(Component.text(field.copyValue(), VALUE)));
+                    }
+                    lines.add(context.text(field.label(), LABEL).append(Component.text(": ", LABEL)).append(value));
+                }
             }
-            row = row.append(buttons[i]);
         }
-        return this.line(row);
+        if (!this.buttons.isEmpty()) {
+            lines.add(Component.join(JoinConfiguration.separator(Component.space()), this.buttons.stream().map(button -> button.render(context)).toList()));
+        }
+        if (this.pagination != null) {
+            lines.add(this.pagination.render(context));
+        }
+        context.manager.handleCommandFeedback(receiver, "command.panel.message", Component.join(JoinConfiguration.newlines(), lines));
     }
 
-    @NotNull
-    public PanelButton run(@NotNull Component caption, @NotNull String featureId, @NotNull String arguments) {
-        return new PanelButton(this.manager, this.sender, caption, featureId, arguments, false);
+    private sealed interface Row permits Field, Section {
     }
 
-    @NotNull
-    public PanelButton suggest(@NotNull Component caption, @NotNull String featureId, @NotNull String arguments) {
-        return new PanelButton(this.manager, this.sender, caption, featureId, arguments, true);
+    private record Field(Component label, Component value, @Nullable String copyValue) implements Row {
     }
 
-    /**
-     * 添加上一页、页码、下一页和刷新按钮. 翻页参数由具体命令提供, 可带回对象和筛选条件.
-     *
-     * @param pageArguments 输入从 1 开始的页码, 返回对应页的完整命令参数
-     */
-    @NotNull
-    public CommandPanel navigation(@NotNull String featureId, @NotNull TextPage<?> page, @NotNull IntFunction<String> pageArguments) {
-        return this.navigation(featureId, page, pageArguments, false);
+    private record Section(Component title) implements Row {
     }
 
-    @NotNull
-    public CommandPanel navigation(@NotNull String featureId, @NotNull TextPage<
-            ?> page, @NotNull IntFunction<String> pageArguments, boolean suggest) {
-        Component previous = new PanelButton(
-                this.manager,
-                this.sender,
-                label("previous"),
-                featureId,
-                page.hasPrevious() ? pageArguments.apply(page.index()) : "",
-                suggest
-        )
-                .style(PanelButton.Style.POSITIVE)
-                .disabled(page.hasPrevious() ? null : Component.translatable("command.panel.first_page"))
-                .build();
-        Component next = new PanelButton(
-                this.manager,
-                this.sender,
-                label("next"),
-                featureId,
-                page.hasNext() ? pageArguments.apply(page.index() + 2) : "",
-                suggest
-        )
-                .style(PanelButton.Style.POSITIVE)
-                .disabled(page.hasNext() ? null : Component.translatable("command.panel.last_page"))
-                .build();
-        Component refresh = new PanelButton(this.manager, this.sender, label("refresh"), featureId, pageArguments.apply(page.index()
-                + 1), suggest).build();
-        return this.line(
-                Component.translatable(
-                        "command.panel.navigation",
-                        previous,
-                        Component.text(page.index() + 1),
-                        Component.text(page.count()),
-                        next,
-                        refresh
-                )
-        );
+    private record Pagination(int page, int pages, String commandId, String previous, String next, String refresh) {
+
+        private Component render(RenderContext context) {
+            Component previous = PanelButton.run(Component.translatable("command.panel.previous"), this.commandId, this.previous)
+                    .disabledIf(this.page == 1, Component.translatable("command.panel.first-page"))
+                    .render(context);
+            Component next = PanelButton.run(Component.translatable("command.panel.next"), this.commandId, this.next)
+                    .disabledIf(this.page == this.pages, Component.translatable("command.panel.last-page"))
+                    .render(context);
+            Component refresh = PanelButton.run(Component.translatable("command.panel.refresh"), this.commandId, this.refresh).render(context);
+            return previous.append(Component.text(" " + this.page + "/" + this.pages + " ", TITLE))
+                    .append(next)
+                    .append(Component.space())
+                    .append(refresh);
+        }
     }
 
-    @NotNull
-    public Component build() {
-        return this.content;
+    static final class RenderContext {
+        final CommandManager manager;
+        final CommandSender receiver;
+        private final TranslationManager translations;
+        private final @Nullable Player player;
+        private final @Nullable Locale locale;
+
+        RenderContext(CommandSender receiver) {
+            SparrowPlugin plugin = SparrowPlugin.instance();
+            this.manager = plugin.commandManager();
+            this.receiver = receiver;
+            this.translations = plugin.translationManager();
+            this.player = receiver instanceof Player current ? current : null;
+            BukkitSparrowPlayer local = this.player == null ? null : plugin.playerManager().getOnlinePlayer(this.player);
+            this.locale = local == null ? null : local.locale();
+        }
+
+        Component text(Component component, TextColor color) {
+            return this.style(this.translations.render(component, this.locale, this.player), color, true);
+        }
+
+        Component caption(Component component, TextColor color) {
+            return this.style(this.translations.render(component, this.locale, this.player), color, false);
+        }
+
+        // 模板和参数展开后应用固定配色. 字段值保留交互, 按钮文字的交互统一由按钮生成.
+        private Component style(Component component, TextColor color, boolean interactive) {
+            Component result = component.color(color);
+            if (!interactive) {
+                result = result.clickEvent(null).hoverEvent(null);
+            }
+            if (result instanceof TranslatableComponent translated && !translated.arguments().isEmpty()) {
+                List<TranslationArgument> arguments = translated.arguments().stream()
+                        .map(argument -> argument.value() instanceof Component value ? TranslationArgument.component(this.style(value, color, interactive)) : argument)
+                        .toList();
+                result = translated.arguments(arguments);
+            }
+            return result.children(result.children().stream().map(child -> this.style(child, color, interactive)).toList());
+        }
     }
 
-    public void send() {
-        this.manager.handleCommandFeedback(this.sender, Component.translatable(MESSAGE_KEY), this.content);
-    }
+    public static final class Builder {
+        private Component title = Component.translatable("command.panel.title");
+        private final List<Row> rows = new ArrayList<>();
+        private final List<PanelButton> buttons = new ArrayList<>();
+        private @Nullable Pagination pagination;
 
-    // 共用按钮文字. 功能自己的文字直接作为 Component 传给 run 或 suggest.
-    @NotNull
-    public static Component label(@NotNull String key) {
-        return Component.translatable("command.panel.label." + key);
+        private Builder() {
+        }
+
+        @NotNull
+        public Builder title(@NotNull String title) {
+            return this.title(Component.text(title));
+        }
+
+        @NotNull
+        public Builder title(@NotNull Component title) {
+            this.title = title;
+            return this;
+        }
+
+        @NotNull
+        public Builder field(@NotNull String label, @NotNull String value) {
+            return this.field(Component.text(label), Component.text(value));
+        }
+
+        @NotNull
+        public Builder field(@NotNull String label, @NotNull Component value) {
+            return this.field(Component.text(label), value);
+        }
+
+        @NotNull
+        public Builder field(@NotNull Component label, @NotNull String value) {
+            return this.field(label, Component.text(value));
+        }
+
+        @NotNull
+        public Builder field(@NotNull Component label, @NotNull Component value) {
+            this.rows.add(new Field(label, value, null));
+            return this;
+        }
+
+        @NotNull
+        public Builder copyField(@NotNull String label, @NotNull String value) {
+            return this.copyField(Component.text(label), value);
+        }
+
+        @NotNull
+        public Builder copyField(@NotNull Component label, @NotNull String value) {
+            this.rows.add(new Field(label, Component.text(value), value));
+            return this;
+        }
+
+        @NotNull
+        public Builder section(@NotNull String title) {
+            return this.section(Component.text(title));
+        }
+
+        @NotNull
+        public Builder section(@NotNull Component title) {
+            this.rows.add(new Section(title));
+            return this;
+        }
+
+        @NotNull
+        public Builder buttons(@NotNull PanelButton... buttons) {
+            this.buttons.addAll(Arrays.asList(buttons));
+            return this;
+        }
+
+        // page 和 pages 均从 1 开始, 调用方提供有效页码; 参数工厂在构建时求值.
+        @NotNull
+        public Builder pagination(int page, int pages, @NotNull String commandId, @NotNull IntFunction<String> arguments) {
+            this.pagination = new Pagination(
+                    page,
+                    pages,
+                    commandId,
+                    page > 1 ? arguments.apply(page - 1) : "",
+                    page < pages ? arguments.apply(page + 1) : "",
+                    arguments.apply(page)
+            );
+            return this;
+        }
+
+        @NotNull
+        public Builder pagination(@NotNull TextPage<?> page, @NotNull String commandId, @NotNull IntFunction<String> arguments) {
+            return this.pagination(page.index() + 1, page.count(), commandId, arguments);
+        }
+
+        @NotNull
+        public CommandPanel build() {
+            return new CommandPanel(this);
+        }
     }
 }

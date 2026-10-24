@@ -4,162 +4,97 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
-import net.momirealms.sparrow.plugin.command.CommandManager;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public final class PanelButton {
-    private final CommandManager manager;
-    private final CommandSender sender;
     private final Component caption;
-    private final String featureId;
+    private final String commandId;
     private final String arguments;
     private final boolean suggest;
-    private Style style = Style.NORMAL;
-    private @Nullable Component description;
-    private @Nullable String permission;
-    private @Nullable Component disabled;
-    private boolean playersOnly;
+    private final @Nullable Component disabledReason;
 
-    PanelButton(
-            @NotNull CommandManager manager,
-            @NotNull CommandSender sender,
-            @NotNull Component caption,
-            @NotNull String featureId,
-            @NotNull String arguments,
-            boolean suggest
-    ) {
-        this.manager = manager;
-        this.sender = sender;
+    private PanelButton(Component caption, String commandId, String arguments, boolean suggest, @Nullable Component disabledReason) {
         this.caption = caption;
-        this.featureId = featureId;
+        this.commandId = commandId;
         this.arguments = arguments;
         this.suggest = suggest;
+        this.disabledReason = disabledReason;
     }
 
     @NotNull
-    public PanelButton style(@NotNull Style style) {
-        this.style = style;
-        return this;
+    public static PanelButton run(@NotNull String caption, @NotNull String commandId, @NotNull String arguments) {
+        return run(Component.text(caption), commandId, arguments);
     }
 
     @NotNull
-    public PanelButton description(@NotNull Component description) {
-        this.description = description;
-        return this;
-    }
-
-    // 子命令的完整权限节点, 与目标命令的基础权限同时检查.
-    @NotNull
-    public PanelButton permission(@NotNull String permission) {
-        this.permission = permission;
-        return this;
+    public static PanelButton run(@NotNull Component caption, @NotNull String commandId, @NotNull String arguments) {
+        return new PanelButton(caption, commandId, arguments, false, null);
     }
 
     @NotNull
-    public PanelButton playersOnly() {
-        this.playersOnly = true;
-        return this;
-    }
-
-    // 业务条件不满足时提供原因, 传 null 表示该条件允许操作.
-    @NotNull
-    public PanelButton disabled(@Nullable Component reason) {
-        this.disabled = reason;
-        return this;
-    }
-
-    // 可用于决定是否展示按钮; build 也会按当前配置和权限重新检查.
-    public boolean available() {
-        CommandConfig config = this.config();
-        return this.disabledReason(config, usage(config)) == null;
+    public static PanelButton suggest(@NotNull String caption, @NotNull String commandId, @NotNull String arguments) {
+        return suggest(Component.text(caption), commandId, arguments);
     }
 
     @NotNull
-    public Component build() {
-        CommandConfig config = this.config();
-        String usage = usage(config);
-        Component reason = this.disabledReason(config, usage);
-        if (reason != null) {
-            if (this.description != null) {
-                reason = this.description.append(Component.newline()).append(reason);
-            }
-            String disabledKey = this.style == Style.INFO ? "command.panel.disabled.info" : "command.panel.disabled";
-            return this.sender instanceof Player
-                    ? Component.translatable(disabledKey, this.caption).hoverEvent(reason)
-                    : Component.translatable("command.panel.console.disabled", this.caption, reason);
+    public static PanelButton suggest(@NotNull Component caption, @NotNull String commandId, @NotNull String arguments) {
+        return new PanelButton(caption, commandId, arguments, true, null);
+    }
+
+    @NotNull
+    public PanelButton disabledIf(boolean disabled, @NotNull String reason) {
+        return this.disabledIf(disabled, Component.text(reason));
+    }
+
+    @NotNull
+    public PanelButton disabledIf(boolean disabled, @NotNull Component reason) {
+        return disabled ? new PanelButton(this.caption, this.commandId, this.arguments, this.suggest, reason) : this;
+    }
+
+    Component render(CommandPanel.RenderContext context) {
+        CommandFeature command = context.manager.feature(this.commandId);
+        if (command == null) {
+            return this.renderDisabled(context, Component.translatable("command.panel.unavailable"));
         }
-        String command = this.arguments.isEmpty() ? usage : usage + " " + this.arguments;
-        if (!(this.sender instanceof Player)) {
-            return Component.translatable("command.panel.console.action", this.caption, Component.text(command));
+        CommandConfig config = command.commandConfig();
+        String permission = config.getPermission();
+        if (permission != null && !permission.isEmpty() && !context.receiver.hasPermission(permission)) {
+            return this.renderDisabled(context, Component.translatable("command.panel.no-permission"));
         }
-        String confirmKey = this.style == Style.INFO ? "command.panel.confirm.info" : "command.panel.confirm";
-        Component hover = this.suggest
-                ? Component.translatable(confirmKey, Component.text(command))
-                : Component.text(command);
-        if (this.description != null) {
-            hover = this.description.append(Component.newline()).append(hover);
+        if (this.disabledReason != null) {
+            return this.renderDisabled(context, this.disabledReason);
         }
-        ClickEvent<ClickEvent.Payload.Text> clickEvent = this.suggest
-                ? ClickEvent.suggestCommand(command)
-                : ClickEvent.runCommand(command);
-        return Component.translatable("command.panel.button." + this.style.key, this.caption)
-                .hoverEvent(hover)
-                .clickEvent(clickEvent);
-    }
-
-    @Nullable
-    private CommandConfig config() {
-        CommandFeature feature = this.manager.feature(this.featureId);
-        return feature == null ? null : feature.commandConfig();
-    }
-
-    @Nullable
-    private static String usage(@Nullable CommandConfig config) {
-        if (config == null || !config.isEnable()) return null;
-        List<String> usages = config.getUsages();
-        int size = usages.size();
-        for (int i = 0; i < size; i++) {
-            String candidate = usages.get(i);
-            if (candidate.startsWith("/")) {
-                return candidate.trim();
+        for (String usage : config.getUsages()) {
+            if (usage.startsWith("/")) {
+                String input = this.arguments.isEmpty() ? usage.trim() : usage.trim() + " " + this.arguments;
+                return this.renderEnabled(context, input);
             }
         }
-        return null;
+        return this.renderDisabled(context, Component.translatable("command.panel.unavailable"));
     }
 
-    @Nullable
-    private Component disabledReason(@Nullable CommandConfig config, @Nullable String usage) {
-        String basePermission = config == null ? null : config.getPermission();
-        if (basePermission != null && !basePermission.isEmpty() && !this.sender.hasPermission(basePermission)) {
-            return Component.translatable("command.panel.no_permission");
+    private Component renderEnabled(CommandPanel.RenderContext context, String command) {
+        Component caption = Component.text("[", CommandPanel.ACCENT)
+                .append(context.caption(this.caption, CommandPanel.ACCENT))
+                .append(Component.text("]", CommandPanel.ACCENT));
+        if (!(context.receiver instanceof Player)) {
+            return caption.append(Component.text(" " + command, CommandPanel.MUTED));
         }
-        if (this.permission != null && !this.permission.isEmpty() && !this.sender.hasPermission(this.permission)) {
-            return Component.translatable("command.panel.no_permission");
-        }
-        if (this.disabled != null) {
-            return this.disabled;
-        }
-        if (this.playersOnly && !(this.sender instanceof Player)) {
-            return Component.translatable("command.panel.player_required");
-        }
-        return usage == null ? Component.translatable("command.panel.unavailable") : null;
+        Component hover = context.text(Component.translatable(this.suggest ? "command.panel.suggest" : "command.panel.run"), CommandPanel.MUTED)
+                .append(Component.newline())
+                .append(Component.text(command, CommandPanel.ACCENT));
+        return caption.hoverEvent(hover).clickEvent(this.suggest ? ClickEvent.suggestCommand(command) : ClickEvent.runCommand(command));
     }
 
-    public enum Style {
-        NORMAL("normal"),
-        INFO("info"),
-        POSITIVE("positive"),
-        DANGER("danger");
-
-        private final String key;
-
-        Style(String key) {
-            this.key = key;
-        }
+    private Component renderDisabled(CommandPanel.RenderContext context, Component reason) {
+        Component caption = Component.text("[", CommandPanel.MUTED)
+                .append(context.caption(this.caption, CommandPanel.MUTED))
+                .append(Component.text("]", CommandPanel.MUTED));
+        Component explanation = context.text(reason, CommandPanel.MUTED);
+        return context.receiver instanceof Player
+                ? caption.hoverEvent(explanation)
+                : caption.append(Component.text(" (", CommandPanel.MUTED)).append(explanation).append(Component.text(")", CommandPanel.MUTED));
     }
 }
