@@ -137,12 +137,7 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
 
     @Override
     public boolean sendMessage(@NotNull String message, boolean overlay) {
-        SendMessageMessage request = new SendMessageMessage(this.uniqueId, message, overlay);
-        if (request.sendLocally()) return true;
-        String serverId = this.getCurrentServerId();
-        if (serverId == null) return false;
-        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
-        return true;
+        return this.sendMessageRequest(new SendMessageMessage(this.uniqueId, message, overlay));
     }
 
     @Override
@@ -167,12 +162,25 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
 
     @Override
     public boolean sendMessage(@NotNull TranslatableComponent message) {
-        return this.sendMessage(SparrowPlugin.instance().translationManager().render(message, this.locale()));
+        return this.sendTranslatedMessage(message);
     }
 
     @Override
     public boolean sendMessage(@NotNull TranslatableComponent key, @NotNull Component... arguments) {
-        return this.sendMessage(SparrowPlugin.instance().translationManager().render(key.arguments(arguments), this.locale()));
+        return this.sendTranslatedMessage(key.arguments(arguments));
+    }
+
+    @Override
+    public boolean sendTranslatedMessage(@NotNull Component message) {
+        return this.sendMessageRequest(SendMessageMessage.translated(this.uniqueId, message));
+    }
+
+    private boolean sendMessageRequest(SendMessageMessage request) {
+        if (request.sendLocally()) return true;
+        String serverId = this.getCurrentServerId();
+        if (serverId == null) return false;
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
+        return true;
     }
 
     @Override
@@ -187,22 +195,22 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
 
     @Override
     public boolean sendActionBar(@NotNull TranslatableComponent message) {
-        return this.sendMessage(SparrowPlugin.instance().translationManager().render(message, this.locale()), true);
+        return this.sendTranslatedActionBar(message);
     }
 
     @Override
     public boolean sendActionBar(@NotNull TranslatableComponent key, @NotNull Component... arguments) {
-        return this.sendMessage(SparrowPlugin.instance().translationManager().render(key.arguments(arguments), this.locale()), true);
+        return this.sendTranslatedActionBar(key.arguments(arguments));
+    }
+
+    @Override
+    public boolean sendTranslatedActionBar(@NotNull Component message) {
+        return this.sendMessageRequest(SendMessageMessage.translated(this.uniqueId, message, true));
     }
 
     @Override
     public boolean sendTitle(@NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
-        SendTitleMessage request = new SendTitleMessage(this.uniqueId, title, subtitle, fadeIn, stay, fadeOut);
-        if (request.sendLocally()) return true;
-        String serverId = this.getCurrentServerId();
-        if (serverId == null) return false;
-        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
-        return true;
+        return this.sendTitleRequest(new SendTitleMessage(this.uniqueId, title, subtitle, fadeIn, stay, fadeOut));
     }
 
     @Override
@@ -220,6 +228,24 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
         String serverId = this.getCurrentServerId();
         if (serverId == null) return false;
         plugin.messageBrokerManager().publishOneWay(new SendTitleMessage(this.uniqueId, title, subtitle, fadeIn, stay, fadeOut), serverId);
+        return true;
+    }
+
+    @Override
+    public boolean sendTitle(@NotNull TranslatableComponent title, @NotNull TranslatableComponent subtitle, int fadeIn, int stay, int fadeOut) {
+        return this.sendTranslatedTitle(title, subtitle, fadeIn, stay, fadeOut);
+    }
+
+    @Override
+    public boolean sendTranslatedTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut) {
+        return this.sendTitleRequest(SendTitleMessage.translated(this.uniqueId, title, subtitle, fadeIn, stay, fadeOut));
+    }
+
+    private boolean sendTitleRequest(SendTitleMessage request) {
+        if (request.sendLocally()) return true;
+        String serverId = this.getCurrentServerId();
+        if (serverId == null) return false;
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
         return true;
     }
 
@@ -300,29 +326,8 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
     }
 
     @Override
-    public boolean playSound(@NotNull Sound sound) {
-        SparrowPlugin plugin = SparrowPlugin.instance();
-        BukkitSparrowPlayer local = plugin.playerManager().getOnlinePlayer(this.uniqueId);
-        if (local != null) {
-            Holder<SoundEvent> event = Holder.direct(SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value())));
-            long seed = sound.seed().orElseGet(() -> ThreadLocalRandom.current().nextLong());
-            local.connection.sendPacket(new ClientboundSoundEntityPacket(event, AdventureHelper.toNmsSoundSource(sound.source()), local.nmsPlayer, sound.volume(), sound.pitch(), seed));
-            return true;
-        }
-        String serverId = this.getCurrentServerId();
-        if (serverId == null) return false;
-        plugin.messageBrokerManager().publishOneWay(new PlaySoundMessage(this.uniqueId, sound), serverId);
-        return true;
-    }
-
-    @Override
     public boolean sendToast(@NotNull String text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
-        SendToastMessage request = new SendToastMessage(this.uniqueId, text, icon, frame);
-        if (request.sendLocally()) return true;
-        String serverId = this.getCurrentServerId();
-        if (serverId == null) return false;
-        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
-        return true;
+        return this.sendToastRequest(new SendToastMessage(this.uniqueId, text, icon, frame));
     }
 
     @Override
@@ -395,6 +400,24 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
     }
 
     @Override
+    public boolean sendToast(@NotNull TranslatableComponent text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
+        return this.sendTranslatedToast(text, icon, frame);
+    }
+
+    @Override
+    public boolean sendTranslatedToast(@NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
+        return this.sendToastRequest(SendToastMessage.translated(this.uniqueId, text, icon, frame));
+    }
+
+    private boolean sendToastRequest(SendToastMessage request) {
+        if (request.sendLocally()) return true;
+        String serverId = this.getCurrentServerId();
+        if (serverId == null) return false;
+        SparrowPlugin.instance().messageBrokerManager().publishOneWay(request, serverId);
+        return true;
+    }
+
+    @Override
     public boolean sendTotemAnimation(@NotNull ItemStack totem) {
         SparrowPlugin plugin = SparrowPlugin.instance();
         BukkitSparrowPlayer local = plugin.playerManager().getOnlinePlayer(this.uniqueId);
@@ -424,6 +447,22 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
         String serverId = this.getCurrentServerId();
         if (serverId == null) return false;
         plugin.messageBrokerManager().publishOneWay(new SendTotemAnimationMessage(this.uniqueId, totem), serverId);
+        return true;
+    }
+
+    @Override
+    public boolean playSound(@NotNull Sound sound) {
+        SparrowPlugin plugin = SparrowPlugin.instance();
+        BukkitSparrowPlayer local = plugin.playerManager().getOnlinePlayer(this.uniqueId);
+        if (local != null) {
+            Holder<SoundEvent> event = Holder.direct(SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(sound.name().namespace(), sound.name().value())));
+            long seed = sound.seed().orElseGet(() -> ThreadLocalRandom.current().nextLong());
+            local.connection.sendPacket(new ClientboundSoundEntityPacket(event, AdventureHelper.toNmsSoundSource(sound.source()), local.nmsPlayer, sound.volume(), sound.pitch(), seed));
+            return true;
+        }
+        String serverId = this.getCurrentServerId();
+        if (serverId == null) return false;
+        plugin.messageBrokerManager().publishOneWay(new PlaySoundMessage(this.uniqueId, sound), serverId);
         return true;
     }
 

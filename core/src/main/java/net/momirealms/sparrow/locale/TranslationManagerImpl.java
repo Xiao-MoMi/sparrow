@@ -10,12 +10,14 @@ import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.locale.tag.IndexedArgumentTag;
+import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.FileUtils;
 import net.momirealms.sparrow.util.GsonHelper;
 import net.momirealms.sparrow.yaml.YamlDocument;
 import net.momirealms.sparrow.yaml.node.SequenceNode;
 import net.momirealms.sparrow.yaml.route.Route;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,16 +43,16 @@ public final class TranslationManagerImpl implements TranslationManager {
     // TranslationKey -> (Lang -> Value)
     private final Map<String, ServerLangData> serverLangData = new HashMap<>();
     private Map<Locale, CachedTranslation> cachedTranslations = Map.of();
-    // 本插件的翻译键渲染后再次遍历结果, 参数里嵌套的翻译键也会被翻译; 其他键交给 Adventure 默认处理
-    private final TranslatableComponentRenderer<Locale> renderer = new TranslatableComponentRenderer<>() {
+    // Adventure 先渲染组件参数, 再展开本插件模板; 模板结果中的子组件和悬浮文本继续沿用同一上下文.
+    private final TranslatableComponentRenderer<RenderContext> renderer = new TranslatableComponentRenderer<>() {
         @Override
         @NotNull
-        protected Component renderTranslatable(@NotNull TranslatableComponent component, @Nullable Locale locale) {
+        protected Component renderTranslatableInner(@NotNull TranslatableComponent component, @NotNull RenderContext context) {
             if (!TranslationManagerImpl.this.serverLangData.containsKey(component.key())) {
-                return super.renderTranslatable(component, locale);
+                return super.renderTranslatableInner(component, context);
             }
-            Component rendered = TranslationManagerImpl.this.renderTranslation(component, locale).mergeStyle(component);
-            return this.render(rendered, locale);
+            Component rendered = TranslationManagerImpl.this.renderTranslation(component, context).mergeStyle(component);
+            return this.render(rendered, context);
         }
     };
 
@@ -116,13 +118,19 @@ public final class TranslationManagerImpl implements TranslationManager {
     @Override
     @NotNull
     public Component render(@NotNull Component component, @Nullable Locale locale) {
-        return this.renderer.render(component, locale);
+        return this.render(component, locale, null);
     }
 
-    // 展开语言模板和参数, 结果中的翻译键由渲染器继续处理.
+    @Override
     @NotNull
-    private Component renderTranslation(@NotNull TranslatableComponent component, @Nullable Locale locale) {
-        String miniMessageTranslation = this.miniMessageTranslation(component.key(), locale);
+    public Component render(@NotNull Component component, @Nullable Locale locale, @Nullable Player receiver) {
+        return this.renderer.render(component, new RenderContext(locale, MessageContext.of(receiver)));
+    }
+
+    // 参数已由 Adventure 递归渲染, 以组件形式插入模板并保留样式和交互事件.
+    @NotNull
+    private Component renderTranslation(@NotNull TranslatableComponent component, @NotNull RenderContext context) {
+        String miniMessageTranslation = this.miniMessageTranslation(component.key(), context.locale());
         if (miniMessageTranslation == null) {
             return component;
         }
@@ -130,8 +138,8 @@ public final class TranslationManagerImpl implements TranslationManager {
             return Component.empty();
         }
         final Component resultingComponent = component.arguments().isEmpty()
-                ? AdventureHelper.miniMessage().deserialize(miniMessageTranslation)
-                : AdventureHelper.miniMessage().deserialize(miniMessageTranslation, new IndexedArgumentTag(component.arguments()));
+                ? AdventureHelper.miniMessage().deserialize(miniMessageTranslation, context.message())
+                : AdventureHelper.miniMessage().deserialize(miniMessageTranslation, context.message(), new IndexedArgumentTag(component.arguments()));
         if (component.children().isEmpty()) {
             return resultingComponent;
         } else {
@@ -390,5 +398,8 @@ public final class TranslationManagerImpl implements TranslationManager {
      * @param size 文件大小, 单位为字节
      */
     private record CachedTranslation(Map<String, String> translations, long lastModified, long size) {
+    }
+
+    private record RenderContext(@Nullable Locale locale, @NotNull MessageContext message) {
     }
 }

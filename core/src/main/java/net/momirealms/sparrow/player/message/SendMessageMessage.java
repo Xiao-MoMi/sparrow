@@ -11,7 +11,6 @@ import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.util.MessageText;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -42,6 +41,22 @@ public final class SendMessageMessage extends OneWayMessage<FriendlyByteBuf> {
         this.playerId = playerId;
         this.message = new MessageText(message);
         this.overlay = overlay;
+    }
+
+    private SendMessageMessage(@NotNull UUID playerId, @NotNull MessageText message, boolean overlay) {
+        this.playerId = playerId;
+        this.message = message;
+        this.overlay = overlay;
+    }
+
+    @NotNull
+    public static SendMessageMessage translated(@NotNull UUID playerId, @NotNull Component message) {
+        return translated(playerId, message, false);
+    }
+
+    @NotNull
+    public static SendMessageMessage translated(@NotNull UUID playerId, @NotNull Component message, boolean overlay) {
+        return new SendMessageMessage(playerId, MessageText.translated(message), overlay);
     }
 
     private SendMessageMessage(FriendlyByteBuf buffer) {

@@ -206,12 +206,20 @@ public abstract class AbstractCommandManager implements CommandManager {
     @Override
     public void handleCommandFeedback(CommandSender sender, TranslatableComponent key, Component... args) {
         TranslatableComponent component = key.arguments(args);
-        this.feedbackConsumer.accept(sender, component.key(), this.plugin.translationManager().render(component, this.getLocale(sender)));
+        this.feedbackConsumer.accept(
+                sender,
+                component.key(),
+                this.plugin.translationManager().render(component, this.getLocale(sender), sender instanceof Player player ? player : null)
+        );
     }
 
     @Override
     public void handleCommandFeedback(CommandSender sender, String node, Component component) {
-        this.feedbackConsumer.accept(sender, node, this.plugin.translationManager().render(component, this.getLocale(sender)));
+        this.feedbackConsumer.accept(
+                sender,
+                node,
+                this.plugin.translationManager().render(component, this.getLocale(sender), sender instanceof Player player ? player : null)
+        );
     }
 
     /**

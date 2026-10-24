@@ -13,7 +13,6 @@ import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.util.MessageText;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.jetbrains.annotations.NotNull;
 
@@ -47,6 +46,20 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
         this.fadeIn = fadeIn;
         this.stay = stay;
         this.fadeOut = fadeOut;
+    }
+
+    private SendTitleMessage(@NotNull UUID playerId, @NotNull MessageText title, @NotNull MessageText subtitle, int fadeIn, int stay, int fadeOut) {
+        this.playerId = playerId;
+        this.title = title;
+        this.subtitle = subtitle;
+        this.fadeIn = fadeIn;
+        this.stay = stay;
+        this.fadeOut = fadeOut;
+    }
+
+    @NotNull
+    public static SendTitleMessage translated(@NotNull UUID playerId, @NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut) {
+        return new SendTitleMessage(playerId, MessageText.translated(title), MessageText.translated(subtitle), fadeIn, stay, fadeOut);
     }
 
     private SendTitleMessage(FriendlyByteBuf buffer) {

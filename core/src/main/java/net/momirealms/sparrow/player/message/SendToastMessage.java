@@ -26,7 +26,6 @@ import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import net.momirealms.sparrow.util.AdventureHelper;
-import net.momirealms.sparrow.util.MessageText;
 import net.momirealms.sparrow.util.ItemUtils;
 import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
@@ -61,6 +60,18 @@ public final class SendToastMessage extends OneWayMessage<FriendlyByteBuf> {
         this.text = new MessageText(text);
         this.icon = ItemUtils.toNbt(CraftItemStack.unwrap(icon));
         this.frame = frame;
+    }
+
+    private SendToastMessage(@NotNull UUID playerId, @NotNull MessageText text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
+        this.playerId = playerId;
+        this.text = text;
+        this.icon = ItemUtils.toNbt(CraftItemStack.unwrap(icon));
+        this.frame = frame;
+    }
+
+    @NotNull
+    public static SendToastMessage translated(@NotNull UUID playerId, @NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
+        return new SendToastMessage(playerId, MessageText.translated(text), icon, frame);
     }
 
     private SendToastMessage(FriendlyByteBuf buffer) {

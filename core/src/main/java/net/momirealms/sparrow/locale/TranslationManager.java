@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.translation.Translator;
 import net.momirealms.sparrow.locale.tag.IndexedArgumentTag;
 import net.momirealms.sparrow.util.AdventureHelper;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -70,6 +71,12 @@ public interface TranslationManager {
      */
     @NotNull
     Component render(@NotNull Component component, @Nullable Locale locale);
+
+    /**
+     * 接收玩家同时用于模板中的 PAPI 和嵌套翻译, null 表示无玩家上下文.
+     */
+    @NotNull
+    Component render(@NotNull Component component, @Nullable Locale locale, @Nullable Player receiver);
 
     @NotNull
     default Component render(@NotNull Component component) {

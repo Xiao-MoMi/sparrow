@@ -47,6 +47,8 @@ public interface SparrowPlayer {
 
     boolean sendMessage(@NotNull TranslatableComponent key, @NotNull Component... arguments);
 
+    boolean sendTranslatedMessage(@NotNull Component message);
+
     boolean sendActionBar(@NotNull String message);
 
     boolean sendActionBar(@NotNull Component message);
@@ -55,9 +57,15 @@ public interface SparrowPlayer {
 
     boolean sendActionBar(@NotNull TranslatableComponent key, @NotNull Component... arguments);
 
+    boolean sendTranslatedActionBar(@NotNull Component message);
+
     boolean sendTitle(@NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut);
 
     boolean sendTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut);
+
+    boolean sendTitle(@NotNull TranslatableComponent title, @NotNull TranslatableComponent subtitle, int fadeIn, int stay, int fadeOut);
+
+    boolean sendTranslatedTitle(@NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut);
 
     boolean clearTitle();
 
@@ -69,18 +77,22 @@ public interface SparrowPlayer {
 
     boolean hideBossBar(@NotNull UUID id);
 
-    @NotNull
-    CompletableFuture<ConnectResult> connect(@NotNull String server);
-
-    boolean kick(boolean disconnectFromProxy, @Nullable Component reason);
-
-    boolean playSound(@NotNull Sound sound);
-
     boolean sendToast(@NotNull String text, @NotNull ItemStack icon, @NotNull AdvancementType frame);
 
     boolean sendToast(@NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementType frame);
 
+    boolean sendToast(@NotNull TranslatableComponent text, @NotNull ItemStack icon, @NotNull AdvancementType frame);
+
+    boolean sendTranslatedToast(@NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementType frame);
+
     boolean sendTotemAnimation(@NotNull ItemStack totem);
+
+    boolean playSound(@NotNull Sound sound);
+
+    @NotNull
+    CompletableFuture<ConnectResult> connect(@NotNull String server);
+
+    boolean kick(boolean disconnectFromProxy, @Nullable Component reason);
 
     boolean isOnlineLocally();
 
