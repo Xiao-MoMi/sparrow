@@ -413,6 +413,14 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        @YamlProperty("ip-history")
+        CommandConfig ipHistory = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " ip_history", "/ip_history"),
+                DependencyVersions.PROJECT_ID + ".command.ip_history"
+        );
+
+        @BlankLineBefore
         @YamlProperty("name-history")
         CommandConfig nameHistory = new CommandConfig(
                 true,
@@ -572,6 +580,7 @@ public final class CommandsConfig {
                 case "grindstone" -> this.grindstone;
                 case "hat" -> this.hat;
                 case "heal" -> this.heal;
+                case "ip_history" -> this.ipHistory;
                 case "item_damage" -> this.itemDamage;
                 case "item_data" -> this.itemData;
                 case "item_lore" -> this.itemLore;

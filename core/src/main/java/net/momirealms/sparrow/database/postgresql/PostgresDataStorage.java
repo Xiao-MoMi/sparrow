@@ -18,7 +18,9 @@ import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
 public final class PostgresDataStorage extends DataStorage {
-    private static final List<PostgresSchemaMigration> MIGRATIONS = List.of();
+    private static final List<PostgresSchemaMigration> DATA_MIGRATIONS = List.of();
+    private static final List<PostgresSchemaMigration> NAME_HISTORY_MIGRATIONS = List.of();
+    private static final List<PostgresSchemaMigration> IP_HISTORY_MIGRATIONS = List.of();
 
     private HikariDataSource pool;
     private PostgresPlayerProfileStore profileStore;
@@ -46,7 +48,7 @@ public final class PostgresDataStorage extends DataStorage {
             connected.setInitializationFailTimeout(10_000);
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
             Jdbi jdbi = Jdbi.create(connected);
-            new PostgresSchemaMigrator(this.logger, PostgresSchema.DATA_COMPONENT, PostgresSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, PostgresSchema::initializeData, MIGRATIONS).migrate(jdbi, this.namePrefix());
+            this.initializeSchemas(jdbi);
             this.pool = connected;
             this.profileStore = new PostgresPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new PostgresPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
@@ -55,6 +57,33 @@ public final class PostgresDataStorage extends DataStorage {
             connected.close();
             throw exception;
         }
+    }
+
+    private void initializeSchemas(@NotNull Jdbi jdbi) {
+        new PostgresSchemaMigrator(
+                this.logger,
+                PostgresSchema.DATA_COMPONENT,
+                PostgresSchema.DATA_TABLES,
+                DependencyVersions.DATA_SCHEMA_VERSION,
+                PostgresSchema::initializeData,
+                DATA_MIGRATIONS
+        ).migrate(jdbi, this.namePrefix());
+        new PostgresSchemaMigrator(
+                this.logger,
+                PostgresSchema.NAME_HISTORY_COMPONENT,
+                PostgresSchema.NAME_HISTORY_TABLES,
+                DependencyVersions.PLAYER_NAME_HISTORY_SCHEMA_VERSION,
+                PostgresSchema::initializeNameHistory,
+                NAME_HISTORY_MIGRATIONS
+        ).migrate(jdbi, this.namePrefix());
+        new PostgresSchemaMigrator(
+                this.logger,
+                PostgresSchema.IP_HISTORY_COMPONENT,
+                PostgresSchema.IP_HISTORY_TABLES,
+                DependencyVersions.PLAYER_IP_HISTORY_SCHEMA_VERSION,
+                PostgresSchema::initializeIpHistory,
+                IP_HISTORY_MIGRATIONS
+        ).migrate(jdbi, this.namePrefix());
     }
 
     @NotNull

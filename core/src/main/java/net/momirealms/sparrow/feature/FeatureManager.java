@@ -2,6 +2,10 @@ package net.momirealms.sparrow.feature;
 
 import net.momirealms.sparrow.feature.highlight.HighlightFeature;
 import net.momirealms.sparrow.feature.quickshulker.QuickShulkerFeature;
+import net.momirealms.sparrow.feature.playerlimit.PlayerLimitFeature;
+import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
+import net.momirealms.sparrow.feature.head.HeadFeature;
+import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ModulesConfig;
 import net.momirealms.sparrow.util.ExceptionCollector;
@@ -32,6 +36,10 @@ public final class FeatureManager {
     public FeatureManager() {
         this.features.put(HighlightFeature.ID, new Entry(new HighlightFeature()));
         this.features.put(QuickShulkerFeature.ID, new Entry(new QuickShulkerFeature()));
+        this.features.put(PlayerLimitFeature.ID, new Entry(new PlayerLimitFeature()));
+        this.features.put(MaintenanceFeature.ID, new Entry(new MaintenanceFeature()));
+        this.features.put(HeadFeature.ID, new Entry(new HeadFeature()));
+        this.features.put(PatrolFeature.ID, new Entry(new PatrolFeature()));
     }
 
     public void onLoad() {
@@ -201,7 +209,6 @@ public final class FeatureManager {
     public synchronized void refreshCommands() {
         if (this.closed || !this.plugin.javaPlugin().isEnabled()) return;
         for (Player player : Bukkit.getOnlinePlayers()) {
-            // Spigot 的命令树更新会触发同步 PlayerCommandSendEvent.
             this.plugin.scheduler().platform().run(player::updateCommands, () -> {}, player);
         }
     }

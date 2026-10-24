@@ -5,8 +5,6 @@ import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
 import net.momirealms.sparrow.database.mysql.MysqlPlayerProfileStore;
 import net.momirealms.sparrow.database.mysql.MysqlPlayerNameHistoryStore;
 import net.momirealms.sparrow.database.mysql.MysqlPlayerIpHistoryStore;
-import net.momirealms.sparrow.database.mysql.MysqlSchema;
-import net.momirealms.sparrow.database.mysql.MysqlSchemaMigrator;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
@@ -40,14 +38,7 @@ public final class MariaDbDataStorage extends MysqlDataStorage {
             connected.setInitializationFailTimeout(10_000);
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
             Jdbi jdbi = Jdbi.create(connected);
-            new MysqlSchemaMigrator(
-                    super.logger,
-                    MysqlSchema.DATA_COMPONENT,
-                    MysqlSchema.DATA_TABLES,
-                    DependencyVersions.DATA_SCHEMA_VERSION,
-                    MysqlSchema::initializeData,
-                    MIGRATIONS
-            ).migrate(jdbi, this.namePrefix());
+            this.initializeSchemas(jdbi);
             super.pool = connected;
             super.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             super.nameHistoryStore = new MysqlPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());

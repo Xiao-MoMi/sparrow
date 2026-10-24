@@ -20,7 +20,9 @@ import java.util.concurrent.Executor;
 @ApiStatus.Internal
 public class MysqlDataStorage extends DataStorage {
     private static final MysqlServerVersion MINIMUM_SERVER_VERSION = new MysqlServerVersion(8, 0, 0);
-    protected static final List<MysqlSchemaMigration> MIGRATIONS = List.of();
+    private static final List<MysqlSchemaMigration> DATA_MIGRATIONS = List.of();
+    private static final List<MysqlSchemaMigration> NAME_HISTORY_MIGRATIONS = List.of();
+    private static final List<MysqlSchemaMigration> IP_HISTORY_MIGRATIONS = List.of();
 
     protected HikariDataSource pool;
     protected MysqlPlayerProfileStore profileStore;
@@ -49,14 +51,7 @@ public class MysqlDataStorage extends DataStorage {
             connected.setTransactionIsolation("TRANSACTION_READ_COMMITTED");
             Jdbi jdbi = Jdbi.create(connected);
             this.verifyServerVersion(jdbi);
-            new MysqlSchemaMigrator(
-                    super.logger,
-                    MysqlSchema.DATA_COMPONENT,
-                    MysqlSchema.DATA_TABLES,
-                    DependencyVersions.DATA_SCHEMA_VERSION,
-                    MysqlSchema::initializeData,
-                    MIGRATIONS
-            ).migrate(jdbi, this.namePrefix());
+            this.initializeSchemas(jdbi);
             this.pool = connected;
             this.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new MysqlPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
@@ -65,6 +60,33 @@ public class MysqlDataStorage extends DataStorage {
             connected.close();
             throw exception;
         }
+    }
+
+    protected void initializeSchemas(@NotNull Jdbi jdbi) {
+        new MysqlSchemaMigrator(
+                this.logger,
+                MysqlSchema.DATA_COMPONENT,
+                MysqlSchema.DATA_TABLES,
+                DependencyVersions.DATA_SCHEMA_VERSION,
+                MysqlSchema::initializeData,
+                DATA_MIGRATIONS
+        ).migrate(jdbi, this.namePrefix());
+        new MysqlSchemaMigrator(
+                this.logger,
+                MysqlSchema.NAME_HISTORY_COMPONENT,
+                MysqlSchema.NAME_HISTORY_TABLES,
+                DependencyVersions.PLAYER_NAME_HISTORY_SCHEMA_VERSION,
+                MysqlSchema::initializeNameHistory,
+                NAME_HISTORY_MIGRATIONS
+        ).migrate(jdbi, this.namePrefix());
+        new MysqlSchemaMigrator(
+                this.logger,
+                MysqlSchema.IP_HISTORY_COMPONENT,
+                MysqlSchema.IP_HISTORY_TABLES,
+                DependencyVersions.PLAYER_IP_HISTORY_SCHEMA_VERSION,
+                MysqlSchema::initializeIpHistory,
+                IP_HISTORY_MIGRATIONS
+        ).migrate(jdbi, this.namePrefix());
     }
 
     private void verifyServerVersion(Jdbi jdbi) {

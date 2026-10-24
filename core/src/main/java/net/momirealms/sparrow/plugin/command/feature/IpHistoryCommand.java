@@ -1,28 +1,27 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
+import io.netty.util.NetUtil;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.momirealms.sparrow.database.PlayerData;
+import net.momirealms.sparrow.database.PlayerIpHistoryStore;
+import net.momirealms.sparrow.database.model.PlayerIpRecord;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.cluster.PlayerPresence;
+import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
-import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
 import net.momirealms.sparrow.util.DateTimeUtils;
-import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
+import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
+import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -30,98 +29,142 @@ import java.util.concurrent.CompletableFuture;
 
 public final class IpHistoryCommand extends BukkitCommandFeature {
     private static final int PAGE_SIZE = 8;
-    private static final String STATUS_SYMBOL = "●";
 
     public IpHistoryCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("target", ClusterPlayerParser.clusterPlayerOrTokenParser(this.plugin().playerDirectory()))
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
+        manager.command(builder.literal("player")
+                .required(
+                        "name",
+                        StringParser.stringParser(),
+                        (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().registry.suggestGlobalPlayers(input.peekString()))
+                )
                 .optional("page", IntegerParser.integerParser(1))
-                .handler(this::execute));
+                .futureHandler(this::byPlayer));
+        manager.command(builder.literal("uuid")
+                .required("uuid", StringParser.stringParser())
+                .optional("page", IntegerParser.integerParser(1))
+                .futureHandler(this::byUuid));
+        manager.command(builder.literal("ip")
+                .required("ip", StringParser.stringParser())
+                .optional("page", IntegerParser.integerParser(1))
+                .futureHandler(this::byIp));
     }
 
-    private void execute(CommandContext<CommandSender> context) {
-        CommandSender sender = context.sender();
-        String input = context.get("target");
-        int page = context.getOrDefault("page", 1);
-        CompletableFuture<Optional<IpRange>> resolved;
-        if (IpRange.looksLikeIp(input)) {
-            try {
-                resolved = CompletableFuture.completedFuture(Optional.of(IpRange.parse(input)));
-            } catch (IllegalArgumentException exception) {
-                this.handleFeedback(sender, MessageConstants.COMMAND_INVALID_IP, Component.text(input));
-                return;
-            }
-        } else {
-            // 输入是 UUID 时直接读取数据, 否则先按名字解析出 UUID
-            UUID uuid = UUIDUtils.parse(input);
-            CompletableFuture<Optional<PlayerData>> loading = uuid != null
-                    ? this.plugin().dataAccess().players().read(uuid)
-                    : this.plugin().playerLookup().resolvePlayer(input)
-                            .thenCompose(found -> found.isEmpty()
-                            ? CompletableFuture.completedFuture(Optional.empty())
-                            : found.get().loadData());
-            resolved = loading.thenApply(data -> data.map(PlayerData::lastLoginIp).map(IpRange::parse));
-        }
-        resolved.thenCompose(found -> {
+    @NotNull
+    private CompletableFuture<Void> byPlayer(@NotNull CommandContext<CommandSender> context) {
+        String name = context.get("name");
+        return this.plugin().playerManager().getPlayer(name).thenCompose(found -> {
             if (found.isEmpty()) {
-                this.handleFeedback(sender, MessageConstants.COMMAND_NO_ADDRESS, Component.text(input));
+                this.handleFeedback(context, MessageConstants.COMMAND_IP_HISTORY_UNKNOWN_PLAYER, Component.text(name));
                 return CompletableFuture.completedFuture(null);
             }
-            IpRange range = found.get();
-            return TextPage.load(
-                    () -> this.plugin().dataStorage().countPlayersOnIp(range),
-                    (offset, limit) -> this.plugin().dataStorage().listPlayersOnIp(range, offset, limit),
-                    page - 1,
-                    PAGE_SIZE
-            )
-                    .thenAccept(result -> this.render(sender, input, range, result));
-        }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to list players on IP " + input, error);
-            this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
-            return null;
+            SparrowPlayer player = found.get();
+            return this.showAddresses(context, player.uniqueId(), Component.text(player.name()), "player " + name);
         });
     }
 
-    private void render(CommandSender sender, String input, IpRange range, TextPage<PlayerData> page) {
-        Component title = MessageConstants.COMMAND_IP_HISTORY_TITLE
-                .arguments(Component.text(input), Component.text(range.toString()));
-        CommandPanel panel = new CommandPanel(this.commandManager(), sender).header(title, page);
-        List<PlayerData> players = page.content();
-        int size = players.size();
-        for (int i = 0; i < size; i++) {
-            panel.line(this.row(sender, players.get(i)));
+    @NotNull
+    private CompletableFuture<Void> byUuid(@NotNull CommandContext<CommandSender> context) {
+        String input = context.get("uuid");
+        UUID uuid = UUIDUtils.parse(input);
+        if (uuid == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_NAME_INVALID_UUID, Component.text(input));
+            return CompletableFuture.completedFuture(null);
         }
-        if (size == 0) {
-            panel.empty();
-        }
-        panel.navigation(this.getFeatureID(), page, index -> input + " " + index).send();
+        return this.plugin().playerManager().getPlayer(uuid).thenCompose(found -> this.showAddresses(
+                context,
+                uuid,
+                found.<Component>map(player -> Component.text(player.name())).orElse(MessageConstants.COMMAND_IP_HISTORY_UNKNOWN_NAME),
+                "uuid " + uuid
+        ));
     }
 
-    private Component row(CommandSender sender, PlayerData data) {
-        boolean player = sender instanceof Player;
-        PlayerPresence online = this.plugin().playerDirectory().find(data.player());
-        Component name = Component.text(data.name());
-        Component status = online != null
-                ? MessageConstants.COMMAND_IP_HISTORY_ONLINE.arguments(Component.text(online.server()))
-                : MessageConstants.COMMAND_IP_HISTORY_OFFLINE.arguments(
-                        Component.text(data.lastLogoutServer() == null ? "-" : data.lastLogoutServer())
-                );
-        String ip = data.lastLoginIp() == null ? "-" : data.lastLoginIp();
-        Component time = Component.text(player ? DateTimeUtils.shortTime(data.lastLogin()) : DateTimeUtils.fullTime(data.lastLogin()));
-        // 玩家看到固定宽度的圆点, 绿色在线, 灰色离线, 文字说明放进悬浮
-        if (player) {
-            name = name.hoverEvent(Component.text(data.player().toString())).clickEvent(ClickEvent.copyToClipboard(data.player().toString()));
-            status = Component.text(STATUS_SYMBOL, online != null ? NamedTextColor.GREEN : NamedTextColor.GRAY).hoverEvent(status);
-        }
-        return MessageConstants.COMMAND_IP_HISTORY_ROW.arguments(status, name, time, Component.text(ip));
+    @NotNull
+    private CompletableFuture<Void> showAddresses(@NotNull CommandContext<CommandSender> context, @NotNull UUID uuid, @NotNull Component name, @NotNull String arguments) {
+        PlayerIpHistoryStore store = this.plugin().dataStorage().playerIpHistoryStore();
+        int requestedPage = context.getOrDefault("page", 1);
+        return store.countAddresses(uuid).thenCompose(total -> {
+            if (total == 0) {
+                this.handleFeedback(context, MessageConstants.COMMAND_IP_HISTORY_NO_ADDRESSES, Component.text(uuid.toString()));
+                return CompletableFuture.completedFuture(null);
+            }
+            int page = (int) Math.min(requestedPage, (total + PAGE_SIZE - 1) / PAGE_SIZE);
+            CompletableFuture<Optional<PlayerIpRecord>> latest = store.findLatestByUuid(uuid);
+            return store.listAddresses(uuid, (page - 1) * PAGE_SIZE, PAGE_SIZE).thenAcceptBoth(latest, (records, recent) -> {
+                CommandPanel.Builder panel = CommandPanel.builder()
+                        .title(MessageConstants.COMMAND_IP_HISTORY_PLAYER_TITLE)
+                        .field(MessageConstants.COMMAND_IP_HISTORY_PLAYER, name)
+                        .copyField("UUID", uuid.toString())
+                        .copyField(MessageConstants.COMMAND_IP_HISTORY_RECENT, recent.orElseThrow().ip().getHostAddress())
+                        .field(MessageConstants.COMMAND_IP_HISTORY_ADDRESS_COUNT, Component.text(total))
+                        .section(MessageConstants.COMMAND_IP_HISTORY_ADDRESS_RECORDS);
+                for (int i = 0, size = records.size(); i < size; i++) {
+                    PlayerIpRecord record = records.get(i);
+                    panel.copyField(DateTimeUtils.fullTime(record.observedAt()), record.ip().getHostAddress());
+                }
+                panel.pagination(page, Math.toIntExact((total + PAGE_SIZE - 1) / PAGE_SIZE), this.getFeatureID(), index -> arguments + " " + index)
+                        .build()
+                        .send(context.sender());
+            });
+        });
     }
 
+    @NotNull
+    private CompletableFuture<Void> byIp(@NotNull CommandContext<CommandSender> context) {
+        String input = context.get("ip");
+        InetAddress ip = input.indexOf(':') >= 0 ? NetUtil.getByName(input) : NetUtil.createInetAddressFromIpAddressString(input);
+        if (ip == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_IP_HISTORY_INVALID_IP, Component.text(input));
+            return CompletableFuture.completedFuture(null);
+        }
+        PlayerIpHistoryStore store = this.plugin().dataStorage().playerIpHistoryStore();
+        int requestedPage = context.getOrDefault("page", 1);
+        return store.countPlayers(ip).thenCompose(total -> {
+            int page = (int) Math.min(requestedPage, Math.max(1, (total + PAGE_SIZE - 1) / PAGE_SIZE));
+            return store.listPlayers(ip, (page - 1) * PAGE_SIZE, PAGE_SIZE)
+                    .thenCompose(records -> this.showPlayers(context.sender(), ip, new TextPage<>(page - 1, PAGE_SIZE, total, records)));
+        });
+    }
+
+    @NotNull
+    private CompletableFuture<Void> showPlayers(@NotNull CommandSender sender, @NotNull InetAddress ip, @NotNull TextPage<PlayerIpRecord> page) {
+        List<PlayerIpRecord> records = page.content();
+        List<CompletableFuture<Optional<SparrowPlayer>>> players = new ArrayList<>(records.size());
+        for (int i = 0, size = records.size(); i < size; i++) {
+            players.add(this.plugin().playerManager().getPlayer(records.get(i).uuid()));
+        }
+        return CompletableFuture.allOf(players.toArray(CompletableFuture[]::new)).thenRun(() -> {
+            String address = ip.getHostAddress();
+            CommandPanel.Builder panel = CommandPanel.builder()
+                    .title(MessageConstants.COMMAND_IP_HISTORY_IP_TITLE)
+                    .copyField("IP", address)
+                    .field(MessageConstants.COMMAND_IP_HISTORY_PLAYER_COUNT, Component.text(page.total()));
+            if (records.isEmpty()) {
+                panel.field(MessageConstants.COMMAND_IP_HISTORY_PLAYERS, MessageConstants.COMMAND_IP_HISTORY_NO_PLAYERS);
+            } else {
+                panel.section(MessageConstants.COMMAND_IP_HISTORY_PLAYERS);
+                for (int i = 0, size = records.size(); i < size; i++) {
+                    PlayerIpRecord record = records.get(i);
+                    Component name = players.get(i).join()
+                            .<Component>map(player -> Component.text(player.name()))
+                            .orElse(MessageConstants.COMMAND_IP_HISTORY_UNKNOWN_NAME);
+                    Component label = MessageConstants.COMMAND_IP_HISTORY_PLAYER_ROW.arguments(name, Component.text(DateTimeUtils.fullTime(record.observedAt())));
+                    panel.copyField(label, record.uuid().toString());
+                }
+            }
+            panel.pagination(page, this.getFeatureID(), index -> "ip " + address + " " + index)
+                    .build()
+                    .send(sender);
+        });
+    }
+
+    @NotNull
     @Override
     public String getFeatureID() {
-        return "ip-history";
+        return "ip_history";
     }
 }
