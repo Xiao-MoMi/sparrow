@@ -44,7 +44,7 @@ public final class CommandsConfig {
         return this.configDefinition;
     }
 
-    @Configuration(naming = Configuration.Naming.SNAKE_CASE)
+    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class ConfigDefinition {
         @YamlProperty("__version__")
         @Comment("Do not modify this value")
@@ -68,37 +68,22 @@ public final class CommandsConfig {
         @BlankLineBefore
         CommandConfig featureEnable = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " feature-enable"),
+                List.of("/" + DependencyVersions.PROJECT_ID + " feature_enable"),
                 DependencyVersions.PROJECT_ID + ".command.admin.feature"
         );
 
         @BlankLineBefore
         CommandConfig featureDisable = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " feature-disable"),
+                List.of("/" + DependencyVersions.PROJECT_ID + " feature_disable"),
                 DependencyVersions.PROJECT_ID + ".command.admin.feature"
         );
 
         @BlankLineBefore
         CommandConfig featureList = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " feature-list"),
+                List.of("/" + DependencyVersions.PROJECT_ID + " feature_list"),
                 DependencyVersions.PROJECT_ID + ".command.admin.feature"
-        );
-
-        // a-z: 不属于任何模块的独立命令, 插件启用时注册
-        @BlankLineBefore
-        CommandConfig actionbar = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " actionbar", "/actionbar"),
-                DependencyVersions.PROJECT_ID + ".command.actionbar"
-        );
-
-        @BlankLineBefore
-        CommandConfig air = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " air", "/air"),
-                DependencyVersions.PROJECT_ID + ".command.air"
         );
 
         @BlankLineBefore
@@ -109,10 +94,62 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        CommandConfig broadcast = new CommandConfig(
+        @YamlProperty("cartography-table")
+        CommandConfig cartographyTable = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " broadcast", "/broadcast"),
-                DependencyVersions.PROJECT_ID + ".command.broadcast"
+                List.of("/" + DependencyVersions.PROJECT_ID + " cartography_table", "/cartography_table"),
+                DependencyVersions.PROJECT_ID + ".command.cartography_table"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("enchantment-table")
+        CommandConfig enchantmentTable = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " enchantment_table", "/enchantment_table"),
+                DependencyVersions.PROJECT_ID + ".command.enchantment_table"
+        );
+
+        @BlankLineBefore
+        CommandConfig grindstone = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"),
+                DependencyVersions.PROJECT_ID + ".command.grindstone"
+        );
+
+        @BlankLineBefore
+        CommandConfig loom = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " loom", "/loom"),
+                DependencyVersions.PROJECT_ID + ".command.loom"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("smithing-table")
+        CommandConfig smithingTable = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " smithing_table", "/smithing_table"),
+                DependencyVersions.PROJECT_ID + ".command.smithing_table"
+        );
+
+        @BlankLineBefore
+        CommandConfig stonecutter = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " stonecutter", "/stonecutter"),
+                DependencyVersions.PROJECT_ID + ".command.stonecutter"
+        );
+
+        @BlankLineBefore
+        CommandConfig workbench = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " workbench", "/workbench"),
+                DependencyVersions.PROJECT_ID + ".command.workbench"
+        );
+
+        @BlankLineBefore
+        CommandConfig air = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " air", "/air"),
+                DependencyVersions.PROJECT_ID + ".command.air"
         );
 
         @BlankLineBefore
@@ -123,42 +160,27 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        @YamlProperty("cartography-table")
-        CommandConfig cartographyTable = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " cartography-table", "/cartography-table"),
-                DependencyVersions.PROJECT_ID + ".command.cartography-table"
-        );
-
-        @BlankLineBefore
         @YamlProperty("clear-chat")
         CommandConfig clearChat = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " clear-chat", "/clear-chat"),
-                DependencyVersions.PROJECT_ID + ".command.clear-chat"
+                List.of("/" + DependencyVersions.PROJECT_ID + " clear_chat", "/clear_chat"),
+                DependencyVersions.PROJECT_ID + ".command.clear_chat"
         );
 
         @BlankLineBefore
         @YamlProperty("clear-ender")
         CommandConfig clearEnder = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " clear-ender", "/clear-ender"),
-                DependencyVersions.PROJECT_ID + ".command.clear-ender"
+                List.of("/" + DependencyVersions.PROJECT_ID + " clear_ender", "/clear_ender"),
+                DependencyVersions.PROJECT_ID + ".command.clear_ender"
         );
 
         @BlankLineBefore
         @YamlProperty("clear-inv")
         CommandConfig clearInv = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " clear-inv", "/clear-inv"),
-                DependencyVersions.PROJECT_ID + ".command.clear-inv"
-        );
-
-        @BlankLineBefore
-        CommandConfig color = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " color", "/color"),
-                DependencyVersions.PROJECT_ID + ".command.color"
+                List.of("/" + DependencyVersions.PROJECT_ID + " clear_inv", "/clear_inv"),
+                DependencyVersions.PROJECT_ID + ".command.clear_inv"
         );
 
         @BlankLineBefore
@@ -166,22 +188,6 @@ public final class CommandsConfig {
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " credits", "/credits"),
                 DependencyVersions.PROJECT_ID + ".command.credits"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("custom-model-data")
-        CommandConfig customModelData = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " custom_model_data", "/custom_model_data"),
-                DependencyVersions.PROJECT_ID + ".command.custom-model-data"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("custom-name")
-        CommandConfig customName = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " custom_name", "/custom_name"),
-                DependencyVersions.PROJECT_ID + ".command.custom-name"
         );
 
         @BlankLineBefore
@@ -199,26 +205,11 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        CommandConfig enchant = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " enchant", "/enchant"),
-                DependencyVersions.PROJECT_ID + ".command.enchant"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("enchantment-table")
-        CommandConfig enchantmentTable = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " enchantment-table", "/enchantment-table"),
-                DependencyVersions.PROJECT_ID + ".command.enchantment-table"
-        );
-
-        @BlankLineBefore
         @YamlProperty("ender-chest")
         CommandConfig enderChest = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " ender_chest", "/ender_chest"),
-                DependencyVersions.PROJECT_ID + ".command.ender-chest"
+                DependencyVersions.PROJECT_ID + ".command.ender_chest"
         );
 
         @BlankLineBefore
@@ -246,23 +237,16 @@ public final class CommandsConfig {
         @YamlProperty("fly-speed")
         CommandConfig flySpeed = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " fly-speed", "/fly-speed"),
-                DependencyVersions.PROJECT_ID + ".command.fly-speed"
+                List.of("/" + DependencyVersions.PROJECT_ID + " fly_speed", "/fly_speed"),
+                DependencyVersions.PROJECT_ID + ".command.fly_speed"
         );
 
         @BlankLineBefore
         @YamlProperty("force-say")
         CommandConfig forceSay = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " force-say", "/force-say"),
-                DependencyVersions.PROJECT_ID + ".command.force-say"
-        );
-
-        @BlankLineBefore
-        CommandConfig grindstone = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " grindstone", "/grindstone"),
-                DependencyVersions.PROJECT_ID + ".command.grindstone"
+                List.of("/" + DependencyVersions.PROJECT_ID + " force_say", "/force_say"),
+                DependencyVersions.PROJECT_ID + ".command.force_say"
         );
 
         @BlankLineBefore
@@ -280,60 +264,6 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        CommandConfig ip = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " ip", "/ip"),
-                DependencyVersions.PROJECT_ID + ".command.ip"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("ip-history")
-        CommandConfig ipHistory = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " ip-history", "/ip-history"),
-                DependencyVersions.PROJECT_ID + ".command.ip-history"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("item-damage")
-        CommandConfig itemDamage = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " item-damage", "/item-damage"),
-                DependencyVersions.PROJECT_ID + ".command.item-damage"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("item-data")
-        CommandConfig itemData = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " item_data", "/item_data"),
-                DependencyVersions.PROJECT_ID + ".command.item-data"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("item-lore")
-        CommandConfig itemLore = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " item_lore", "/item_lore"),
-                DependencyVersions.PROJECT_ID + ".command.item-lore"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("item-name")
-        CommandConfig itemName = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " item_name", "/item_name"),
-                DependencyVersions.PROJECT_ID + ".command.item-name"
-        );
-
-        @BlankLineBefore
-        CommandConfig kick = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " kick", "/kick"),
-                DependencyVersions.PROJECT_ID + ".command.kick"
-        );
-
-        @BlankLineBefore
         CommandConfig knockback = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " knockback", "/knockback"),
@@ -348,41 +278,10 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        CommandConfig loom = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " loom", "/loom"),
-                DependencyVersions.PROJECT_ID + ".command.loom"
-        );
-
-        @BlankLineBefore
         CommandConfig more = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " more", "/more"),
                 DependencyVersions.PROJECT_ID + ".command.more"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("player-info")
-        CommandConfig playerInfo = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " player-info", "/player-info", "/whois"),
-                DependencyVersions.PROJECT_ID + ".command.player-info"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("player-name")
-        CommandConfig playerName = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " player-name", "/player-name"),
-                DependencyVersions.PROJECT_ID + ".command.player-name"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("player-uuid")
-        CommandConfig playerUuid = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " player-uuid", "/player-uuid"),
-                DependencyVersions.PROJECT_ID + ".command.player-uuid"
         );
 
         @BlankLineBefore
@@ -396,8 +295,15 @@ public final class CommandsConfig {
         @YamlProperty("repair-all")
         CommandConfig repairAll = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " repair-all", "/repair-all"),
-                DependencyVersions.PROJECT_ID + ".command.repair-all"
+                List.of("/" + DependencyVersions.PROJECT_ID + " repair_all", "/repair_all"),
+                DependencyVersions.PROJECT_ID + ".command.repair_all"
+        );
+
+        @BlankLineBefore
+        CommandConfig server = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"),
+                DependencyVersions.PROJECT_ID + ".command.server"
         );
 
         @BlankLineBefore
@@ -405,21 +311,6 @@ public final class CommandsConfig {
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " smite", "/smite"),
                 DependencyVersions.PROJECT_ID + ".command.smite"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("smithing-table")
-        CommandConfig smithingTable = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " smithing-table", "/smithing-table"),
-                DependencyVersions.PROJECT_ID + ".command.smithing-table"
-        );
-
-        @BlankLineBefore
-        CommandConfig stonecutter = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " stonecutter", "/stonecutter"),
-                DependencyVersions.PROJECT_ID + ".command.stonecutter"
         );
 
         @BlankLineBefore
@@ -437,6 +328,136 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        @YamlProperty("top-block")
+        CommandConfig topBlock = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " top_block", "/top_block"),
+                DependencyVersions.PROJECT_ID + ".command.top_block"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("totem-animation")
+        CommandConfig totemAnimation = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " totem_animation", "/totem_animation"),
+                DependencyVersions.PROJECT_ID + ".command.totem_animation"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("walk-speed")
+        CommandConfig walkSpeed = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " walk_speed", "/walk_speed"),
+                DependencyVersions.PROJECT_ID + ".command.walk_speed"
+        );
+
+        @BlankLineBefore
+        CommandConfig color = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " color", "/color"),
+                DependencyVersions.PROJECT_ID + ".command.color"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("custom-model-data")
+        CommandConfig customModelData = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " custom_model_data", "/custom_model_data"),
+                DependencyVersions.PROJECT_ID + ".command.custom_model_data"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("custom-name")
+        CommandConfig customName = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " custom_name", "/custom_name"),
+                DependencyVersions.PROJECT_ID + ".command.custom_name"
+        );
+
+        @BlankLineBefore
+        CommandConfig enchant = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " enchant", "/enchant"),
+                DependencyVersions.PROJECT_ID + ".command.enchant"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("item-damage")
+        CommandConfig itemDamage = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " item_damage", "/item_damage"),
+                DependencyVersions.PROJECT_ID + ".command.item_damage"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("item-data")
+        CommandConfig itemData = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " item_data", "/item_data"),
+                DependencyVersions.PROJECT_ID + ".command.item_data"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("item-name")
+        CommandConfig itemName = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " item_name", "/item_name"),
+                DependencyVersions.PROJECT_ID + ".command.item_name"
+        );
+
+        @BlankLineBefore
+        CommandConfig kick = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " kick", "/kick"),
+                DependencyVersions.PROJECT_ID + ".command.kick"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("name-history")
+        CommandConfig nameHistory = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " name_history", "/name_history"),
+                DependencyVersions.PROJECT_ID + ".command.name_history"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("player-name")
+        CommandConfig playerName = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " player_name", "/player_name"),
+                DependencyVersions.PROJECT_ID + ".command.player_name"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("player-uuid")
+        CommandConfig playerUuid = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " player_uuid", "/player_uuid"),
+                DependencyVersions.PROJECT_ID + ".command.player_uuid"
+        );
+
+        @BlankLineBefore
+        CommandConfig respawn = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " respawn", "/respawn"),
+                DependencyVersions.PROJECT_ID + ".command.respawn"
+        );
+
+        @BlankLineBefore
+        CommandConfig world = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"),
+                DependencyVersions.PROJECT_ID + ".command.world"
+        );
+
+        @BlankLineBefore
+        CommandConfig actionbar = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " actionbar", "/actionbar"),
+                DependencyVersions.PROJECT_ID + ".command.actionbar"
+        );
+
+        @BlankLineBefore
         CommandConfig title = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " title", "/title"),
@@ -451,140 +472,41 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        @YamlProperty("top-block")
-        CommandConfig topBlock = new CommandConfig(
+        CommandConfig broadcast = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " top-block", "/top-block"),
-                DependencyVersions.PROJECT_ID + ".command.top-block"
+                List.of("/" + DependencyVersions.PROJECT_ID + " broadcast", "/broadcast"),
+                DependencyVersions.PROJECT_ID + ".command.broadcast"
         );
 
         @BlankLineBefore
-        @YamlProperty("totem-animation")
-        CommandConfig totemAnimation = new CommandConfig(
+        @YamlProperty("item-lore")
+        CommandConfig itemLore = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " totem-animation", "/totem-animation"),
-                DependencyVersions.PROJECT_ID + ".command.totem-animation"
+                List.of("/" + DependencyVersions.PROJECT_ID + " item_lore", "/item_lore"),
+                DependencyVersions.PROJECT_ID + ".command.item_lore"
         );
 
         @BlankLineBefore
         @YamlProperty("tp-offline")
         CommandConfig tpOffline = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " tp-offline", "/tp-offline"),
-                DependencyVersions.PROJECT_ID + ".command.tp-offline"
+                List.of("/" + DependencyVersions.PROJECT_ID + " tp_offline", "/tp_offline"),
+                DependencyVersions.PROJECT_ID + ".command.tp_offline"
         );
 
         @BlankLineBefore
-        @YamlProperty("walk-speed")
-        CommandConfig walkSpeed = new CommandConfig(
+        @YamlProperty("max-players")
+        CommandConfig maxPlayers = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " walk-speed", "/walk-speed"),
-                DependencyVersions.PROJECT_ID + ".command.walk-speed"
+                List.of("/" + DependencyVersions.PROJECT_ID + " max_players", "/max_players"),
+                DependencyVersions.PROJECT_ID + ".command.max_players"
         );
 
         @BlankLineBefore
-        CommandConfig workbench = new CommandConfig(
+        CommandConfig patrol = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " workbench", "/workbench"),
-                DependencyVersions.PROJECT_ID + ".command.workbench"
-        );
-
-        @BlankLineBefore
-        CommandConfig world = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " world", "/world"),
-                DependencyVersions.PROJECT_ID + ".command.world"
-        );
-
-        // feature: 模块自带的命令, 插件启用时全部注册, 模块未启用时对玩家隐藏, 按模块 ID 排序
-        @BlankLineBefore
-        CommandConfig back = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " back", "/back"),
-                DependencyVersions.PROJECT_ID + ".command.back"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("death-back")
-        CommandConfig deathBack = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " death-back", "/death-back"),
-                DependencyVersions.PROJECT_ID + ".command.death-back"
-        );
-
-        // ban 模块
-        @BlankLineBefore
-        CommandConfig ban = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " ban", "/ban"),
-                DependencyVersions.PROJECT_ID + ".command.ban"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("ban-history")
-        CommandConfig banHistory = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " ban-history", "/ban-history"),
-                DependencyVersions.PROJECT_ID + ".command.ban-history"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("ban-ip")
-        CommandConfig banIp = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " ban-ip", "/ban-ip"),
-                DependencyVersions.PROJECT_ID + ".command.ban-ip"
-        );
-
-        @BlankLineBefore
-        CommandConfig unban = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " unban", "/unban"),
-                DependencyVersions.PROJECT_ID + ".command.unban"
-        );
-
-        @BlankLineBefore
-        CommandConfig mute = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " mute", "/mute"),
-                DependencyVersions.PROJECT_ID + ".command.mute"
-        );
-
-        @BlankLineBefore
-        CommandConfig unmute = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " unmute", "/unmute"),
-                DependencyVersions.PROJECT_ID + ".command.unmute"
-        );
-
-        @BlankLineBefore
-        CommandConfig bed = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " bed", "/bed"),
-                DependencyVersions.PROJECT_ID + ".command.bed"
-        );
-
-        @BlankLineBefore
-        CommandConfig spawn = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " spawn", "/spawn"),
-                DependencyVersions.PROJECT_ID + ".command.spawn"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("set-spawn")
-        CommandConfig setSpawn = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " set-spawn", "/set-spawn"),
-                DependencyVersions.PROJECT_ID + ".command.set-spawn"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("del-spawn")
-        CommandConfig delSpawn = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " del-spawn", "/del-spawn"),
-                DependencyVersions.PROJECT_ID + ".command.del-spawn"
+                List.of("/" + DependencyVersions.PROJECT_ID + " patrol", "/patrol"),
+                DependencyVersions.PROJECT_ID + ".command.patrol"
         );
 
         @BlankLineBefore
@@ -595,13 +517,6 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        CommandConfig highlight = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " highlight", "/highlight"),
-                DependencyVersions.PROJECT_ID + ".command.highlight"
-        );
-
-        @BlankLineBefore
         CommandConfig maintenance = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " maintenance", "/maintenance"),
@@ -609,162 +524,10 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
-        CommandConfig patrol = new CommandConfig(
+        CommandConfig highlight = new CommandConfig(
                 true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " patrol", "/patrol"),
-                DependencyVersions.PROJECT_ID + ".command.patrol"
-        );
-
-        // player-limit 模块
-        @BlankLineBefore
-        @YamlProperty("max-players")
-        CommandConfig maxPlayers = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " max-players", "/max-players"),
-                DependencyVersions.PROJECT_ID + ".command.max-players"
-        );
-
-        @BlankLineBefore
-        CommandConfig server = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " server", "/server"),
-                DependencyVersions.PROJECT_ID + ".command.server"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("home")
-        CommandConfig home = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " home", "/home"),
-                DependencyVersions.PROJECT_ID + ".command.home"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("set-home")
-        CommandConfig setHome = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " set-home", "/set-home", "/sethome"),
-                DependencyVersions.PROJECT_ID + ".command.set-home"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("del-home")
-        CommandConfig delHome = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " del-home", "/del-home", "/delhome"),
-                DependencyVersions.PROJECT_ID + ".command.del-home"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("del-all-home")
-        CommandConfig delAllHome = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " del-all-home", "/del-all-home"),
-                DependencyVersions.PROJECT_ID + ".command.del-all-home"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("home-list")
-        CommandConfig homeList = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " home-list", "/home-list", "/homelist"),
-                DependencyVersions.PROJECT_ID + ".command.home-list"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("edit-home")
-        CommandConfig editHome = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " edit-home", "/edit-home", "/edithome"),
-                DependencyVersions.PROJECT_ID + ".command.edit-home"
-        );
-
-        // warp 模块
-        @BlankLineBefore
-        CommandConfig warp = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " warp", "/warp"),
-                DependencyVersions.PROJECT_ID + ".command.warp"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("set-warp")
-        CommandConfig setWarp = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " set-warp", "/set-warp"),
-                DependencyVersions.PROJECT_ID + ".command.set-warp"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("del-warp")
-        CommandConfig delWarp = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " del-warp", "/del-warp"),
-                DependencyVersions.PROJECT_ID + ".command.del-warp"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("warp-list")
-        CommandConfig warpList = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " warp-list", "/warp-list"),
-                DependencyVersions.PROJECT_ID + ".command.warp-list"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("edit-warp")
-        CommandConfig editWarp = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " edit-warp", "/edit-warp"),
-                DependencyVersions.PROJECT_ID + ".command.edit-warp"
-        );
-
-        // rtp 模块
-        @BlankLineBefore
-        CommandConfig rtp = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " rtp", "/rtp"),
-                DependencyVersions.PROJECT_ID + ".command.rtp"
-        );
-
-        // tpa 模块
-        @BlankLineBefore
-        CommandConfig tpa = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " tpa", "/tpa"),
-                DependencyVersions.PROJECT_ID + ".command.tpa"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("tpa-here")
-        CommandConfig tpaHere = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-here", "/tpa-here", "/tpahere"),
-                DependencyVersions.PROJECT_ID + ".command.tpa-here"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("tpa-accept")
-        CommandConfig tpaAccept = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-accept", "/tpa-accept", "/tpaccept"),
-                DependencyVersions.PROJECT_ID + ".command.tpa-accept"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("tpa-deny")
-        CommandConfig tpaDeny = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-deny", "/tpa-deny", "/tpdeny"),
-                DependencyVersions.PROJECT_ID + ".command.tpa-deny"
-        );
-
-        @BlankLineBefore
-        @YamlProperty("tpa-cancel")
-        CommandConfig tpaCancel = new CommandConfig(
-                true,
-                List.of("/" + DependencyVersions.PROJECT_ID + " tpa-cancel", "/tpa-cancel", "/tpacancel"),
-                DependencyVersions.PROJECT_ID + ".command.tpa-cancel"
+                List.of("/" + DependencyVersions.PROJECT_ID + " highlight", "/highlight"),
+                DependencyVersions.PROJECT_ID + ".command.highlight"
         );
 
         /**
@@ -786,94 +549,64 @@ public final class CommandsConfig {
                 case "actionbar" -> this.actionbar;
                 case "air" -> this.air;
                 case "anvil" -> this.anvil;
-                case "bed" -> this.bed;
                 case "broadcast" -> this.broadcast;
                 case "burn" -> this.burn;
-                case "cartography-table" -> this.cartographyTable;
-                case "clear-chat" -> this.clearChat;
-                case "clear-ender" -> this.clearEnder;
-                case "clear-inv" -> this.clearInv;
+                case "cartography_table" -> this.cartographyTable;
+                case "clear_chat" -> this.clearChat;
+                case "clear_ender" -> this.clearEnder;
+                case "clear_inv" -> this.clearInv;
                 case "color" -> this.color;
                 case "credits" -> this.credits;
-                case "custom-model-data" -> this.customModelData;
-                case "custom-name" -> this.customName;
+                case "custom_model_data" -> this.customModelData;
+                case "custom_name" -> this.customName;
                 case "demo" -> this.demo;
                 case "distance" -> this.distance;
                 case "enchant" -> this.enchant;
-                case "enchantment-table" -> this.enchantmentTable;
-                case "ender-chest" -> this.enderChest;
+                case "enchantment_table" -> this.enchantmentTable;
+                case "ender_chest" -> this.enderChest;
                 case "extinguish" -> this.extinguish;
                 case "feed" -> this.feed;
                 case "fly" -> this.fly;
-                case "fly-speed" -> this.flySpeed;
-                case "force-say" -> this.forceSay;
+                case "fly_speed" -> this.flySpeed;
+                case "force_say" -> this.forceSay;
                 case "grindstone" -> this.grindstone;
                 case "hat" -> this.hat;
                 case "heal" -> this.heal;
-                case "ip" -> this.ip;
-                case "ip-history" -> this.ipHistory;
-                case "item-damage" -> this.itemDamage;
-                case "item-data" -> this.itemData;
-                case "item-lore" -> this.itemLore;
-                case "item-name" -> this.itemName;
+                case "item_damage" -> this.itemDamage;
+                case "item_data" -> this.itemData;
+                case "item_lore" -> this.itemLore;
+                case "item_name" -> this.itemName;
                 case "kick" -> this.kick;
                 case "knockback" -> this.knockback;
                 case "look" -> this.look;
                 case "loom" -> this.loom;
                 case "more" -> this.more;
-                case "player-info" -> this.playerInfo;
-                case "player-name" -> this.playerName;
-                case "player-uuid" -> this.playerUuid;
+                case "name_history" -> this.nameHistory;
+                case "player_name" -> this.playerName;
+                case "player_uuid" -> this.playerUuid;
                 case "repair" -> this.repair;
-                case "repair-all" -> this.repairAll;
+                case "repair_all" -> this.repairAll;
+                case "server" -> this.server;
                 case "smite" -> this.smite;
-                case "smithing-table" -> this.smithingTable;
+                case "smithing_table" -> this.smithingTable;
                 case "stonecutter" -> this.stonecutter;
                 case "sudo" -> this.sudo;
                 case "suicide" -> this.suicide;
                 case "title" -> this.title;
                 case "toast" -> this.toast;
-                case "top-block" -> this.topBlock;
-                case "totem-animation" -> this.totemAnimation;
-                case "tp-offline" -> this.tpOffline;
-                case "walk-speed" -> this.walkSpeed;
+                case "top_block" -> this.topBlock;
+                case "totem_animation" -> this.totemAnimation;
+                case "tp_offline" -> this.tpOffline;
+                case "walk_speed" -> this.walkSpeed;
                 case "workbench" -> this.workbench;
+                case "respawn" -> this.respawn;
                 case "world" -> this.world;
                 // feature
-                case "back" -> this.back;
-                case "death-back" -> this.deathBack;
-                case "ban" -> this.ban;
-                case "ban-history" -> this.banHistory;
-                case "ban-ip" -> this.banIp;
-                case "unban" -> this.unban;
-                case "mute" -> this.mute;
-                case "unmute" -> this.unmute;
-                case "head" -> this.head;
                 case "highlight" -> this.highlight;
+                case "max_players" -> this.maxPlayers;
                 case "maintenance" -> this.maintenance;
+                case "head" -> this.head;
                 case "patrol" -> this.patrol;
-                case "max-players" -> this.maxPlayers;
-                case "server" -> this.server;
-                case "warp" -> this.warp;
-                case "spawn" -> this.spawn;
-                case "set-spawn" -> this.setSpawn;
-                case "del-spawn" -> this.delSpawn;
-                case "home" -> this.home;
-                case "set-home" -> this.setHome;
-                case "del-home" -> this.delHome;
-                case "del-all-home" -> this.delAllHome;
-                case "home-list" -> this.homeList;
-                case "edit-home" -> this.editHome;
-                case "set-warp" -> this.setWarp;
-                case "del-warp" -> this.delWarp;
-                case "warp-list" -> this.warpList;
-                case "edit-warp" -> this.editWarp;
-                case "tpa" -> this.tpa;
-                case "rtp" -> this.rtp;
-                case "tpa-here" -> this.tpaHere;
-                case "tpa-accept" -> this.tpaAccept;
-                case "tpa-deny" -> this.tpaDeny;
-                case "tpa-cancel" -> this.tpaCancel;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }

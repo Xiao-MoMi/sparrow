@@ -229,24 +229,25 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
         return this.registry.getGlobalOnlineCount();
     }
 
-    // 按 UUID 优先查询在线玩家, 离线时从数据库档案取得名字.
+    // 按 UUID 优先查询在线玩家, 离线时使用最近观察到的名字.
     @NotNull
     public CompletableFuture<Optional<SparrowPlayer>> getPlayer(@NotNull UUID uniqueId) {
         SparrowPlayer online = this.getGlobalOnlinePlayer(uniqueId);
         if (online != null) return CompletableFuture.completedFuture(Optional.of(online));
-        return this.plugin.dataStorage().playerProfileStore()
-                .lookupName(uniqueId)
-                .thenApply(found -> found.map(name -> this.getOrCreate(uniqueId, name)));
+        return this.plugin.dataStorage().playerNameHistoryStore()
+                .findLatestByUuid(uniqueId)
+                .thenApply(found -> found.map(record -> this.getOrCreate(uniqueId, record.name())));
     }
 
-    // 按名字优先查询在线玩家, 离线时沿用数据库的名字匹配规则, 未找到时结果为空.
+    // 当前名和曾用名均按最近记录确定 UUID, 返回该 UUID 当前已知的玩家名字.
     @NotNull
     public CompletableFuture<Optional<SparrowPlayer>> getPlayer(@NotNull String playerName) {
-        SparrowPlayer online = this.getGlobalOnlinePlayer(playerName);
-        if (online != null) return CompletableFuture.completedFuture(Optional.of(online));
-        return this.plugin.dataStorage().playerProfileStore()
-                .lookupUser(playerName)
-                .thenApply(found -> found.map(uniqueId -> this.getOrCreate(uniqueId, playerName)));
+        return this.plugin.dataStorage().playerNameHistoryStore()
+                .findLatestByName(playerName)
+                .thenCompose(found -> {
+                    if (found.isEmpty()) return CompletableFuture.completedFuture(Optional.empty());
+                    return this.getPlayer(found.get().uuid());
+                });
     }
 
     // 使用已有身份资料取得玩家对象, 优先返回管理器中的当前实例.

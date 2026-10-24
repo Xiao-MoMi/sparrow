@@ -6,14 +6,14 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
-// 按玩家名查询 UUID, 只查集群名单和本插件数据库
+import java.util.concurrent.CompletableFuture;
+
 public final class PlayerUuidCommand extends BukkitCommandFeature {
 
     public PlayerUuidCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
@@ -21,35 +21,38 @@ public final class PlayerUuidCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("player", ClusterPlayerParser.clusterPlayerParser(this.plugin().playerDirectory())).handler(this::execute));
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
+        manager.command(builder.required(
+                        "name",
+                        StringParser.stringParser(),
+                        (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().registry.suggestGlobalPlayers(input.peekString()))
+                )
+                .futureHandler(this::execute));
     }
 
-    private void execute(CommandContext<CommandSender> context) {
-        CommandSender sender = context.sender();
-        String name = context.get("player");
-        this.plugin().playerLookup().resolvePlayer(name).thenAccept(found -> {
+    @NotNull
+    private CompletableFuture<Void> execute(@NotNull CommandContext<CommandSender> context) {
+        String name = context.get("name");
+        return this.plugin().dataStorage().playerNameHistoryStore()
+                .findLatestByName(name)
+                .thenAccept(found -> {
                     if (found.isEmpty()) {
-                        this.handleFeedback(sender, MessageConstants.COMMAND_UNKNOWN_PLAYER, Component.text(name));
+                        this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_UUID_EMPTY, Component.text(name));
                         return;
                     }
-                    String uuid = found.get().uniqueId().toString();
+                    String uuid = found.get().uuid().toString();
                     this.handleFeedback(
-                            sender,
+                            context,
                             MessageConstants.COMMAND_PLAYER_UUID_SUCCESS,
                             Component.text(found.get().name()),
                             Component.text(uuid).hoverEvent(Component.text(uuid)).clickEvent(ClickEvent.copyToClipboard(uuid))
                     );
-                })
-                .exceptionally(error -> {
-                    this.plugin().logger().warn("Failed to query the UUID of " + name, error);
-                    this.handleFeedback(sender, MessageConstants.COMMAND_DATABASE_FAILED);
-                    return null;
                 });
     }
 
+    @NotNull
     @Override
     public String getFeatureID() {
-        return "player-uuid";
+        return "player_uuid";
     }
 }
