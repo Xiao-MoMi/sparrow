@@ -47,7 +47,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     private final ConcurrentChainedObject2ObjectHashTable<UUID, PlayerConnection> lockHolders = new ConcurrentChainedObject2ObjectHashTable<>(); // 本服持有玩家锁的连接
     private final PlayerLock lock = new PlayerLock();
     private final LoginPacketGate gate = new LoginPacketGate();
-    private final PlayerProfileService profiles = new PlayerProfileService();
+    private final PlayerRecordService records = new PlayerRecordService();
     private final HandlerList<PlayerPrepareListener> prepareListeners = new HandlerList<>();
     private final HandlerList<PlayerPreLoginListener> preLoginListeners = new HandlerList<>();
     private final HandlerList<PlayerJoinListener> joinListeners = new HandlerList<>();
@@ -60,7 +60,7 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     }
 
     public void onEnable() {
-        this.profiles.onEnable();
+        this.records.onEnable();
         JavaPlugin javaPlugin = this.plugin.javaPlugin();
         javaPlugin.getServer().getPluginManager().registerEvents(this, javaPlugin);
         this.gate.onEnable();

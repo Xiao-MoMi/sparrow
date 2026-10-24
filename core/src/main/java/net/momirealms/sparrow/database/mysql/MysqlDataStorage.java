@@ -3,6 +3,7 @@ package net.momirealms.sparrow.database.mysql;
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerProfileStore;
+import net.momirealms.sparrow.database.PlayerNameHistoryStore;
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
@@ -22,6 +23,7 @@ public class MysqlDataStorage extends DataStorage {
 
     protected HikariDataSource pool;
     protected MysqlPlayerProfileStore profileStore;
+    protected MysqlPlayerNameHistoryStore nameHistoryStore;
 
     public MysqlDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
@@ -55,6 +57,7 @@ public class MysqlDataStorage extends DataStorage {
             ).migrate(jdbi, this.namePrefix());
             this.pool = connected;
             this.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
+            this.nameHistoryStore = new MysqlPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;
@@ -77,6 +80,12 @@ public class MysqlDataStorage extends DataStorage {
     @Override
     public PlayerProfileStore playerProfileStore() {
         return this.profileStore;
+    }
+
+    @NotNull
+    @Override
+    public PlayerNameHistoryStore playerNameHistoryStore() {
+        return this.nameHistoryStore;
     }
 
     @Override

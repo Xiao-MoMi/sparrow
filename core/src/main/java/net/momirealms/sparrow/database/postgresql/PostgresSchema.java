@@ -9,7 +9,7 @@ import java.util.List;
 @ApiStatus.Internal
 public final class PostgresSchema {
     public static final String DATA_COMPONENT = "schema";
-    public static final List<String> DATA_TABLES = List.of("data");
+    public static final List<String> DATA_TABLES = List.of("data", "player_name_history");
 
     private PostgresSchema() {
     }
@@ -20,5 +20,12 @@ public final class PostgresSchema {
                 + "uuid UUID PRIMARY KEY, name VARCHAR(64) COLLATE \"C\" NOT NULL, "
                 + "login_at BIGINT NOT NULL, logout_at BIGINT NOT NULL DEFAULT 0, "
                 + "ip BYTEA, logout_location BYTEA)");
+
+        String history = "\"" + prefix + "player_name_history\"";
+        handle.execute("CREATE TABLE IF NOT EXISTS " + history + " ("
+                + "id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, uuid UUID NOT NULL, "
+                + "name VARCHAR(64) COLLATE \"C\" NOT NULL, name_key VARCHAR(64) COLLATE \"C\" NOT NULL, observed_at BIGINT NOT NULL)");
+        handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "player_name_history_uuid\" ON " + history + " (uuid, id)");
+        handle.execute("CREATE INDEX IF NOT EXISTS \"" + prefix + "player_name_history_name\" ON " + history + " (name_key, id)");
     }
 }

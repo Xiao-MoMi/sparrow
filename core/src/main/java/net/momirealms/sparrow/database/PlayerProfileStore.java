@@ -1,8 +1,11 @@
 package net.momirealms.sparrow.database;
 
-import net.momirealms.sparrow.player.PlayerProfile;
+import net.momirealms.sparrow.database.model.PlayerProfile;
+import net.momirealms.sparrow.util.ServerLocation;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -13,7 +16,10 @@ public interface PlayerProfileStore {
     CompletableFuture<Optional<PlayerProfile>> load(@NotNull UUID player);
 
     @NotNull
-    CompletableFuture<Void> save(@NotNull UUID player, @NotNull PlayerProfile profile);
+    CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long loginAt, @Nullable InetAddress ip);
+
+    @NotNull
+    CompletableFuture<Void> saveLogout(@NotNull UUID player, long logoutAt, @NotNull ServerLocation location);
 
     @NotNull
     CompletableFuture<Optional<UUID>> lookupUser(@NotNull String name);

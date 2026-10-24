@@ -1,7 +1,7 @@
 package net.momirealms.sparrow.database.postgresql;
 
 import net.momirealms.sparrow.database.PlayerProfileStore;
-import net.momirealms.sparrow.player.PlayerProfile;
+import net.momirealms.sparrow.database.model.PlayerProfile;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.nbt.NBT;
 import net.momirealms.sparrow.util.ServerLocation;
@@ -48,19 +48,29 @@ public final class PostgresPlayerProfileStore implements PlayerProfileStore {
 
     @NotNull
     @Override
-    public CompletableFuture<Void> save(@NotNull UUID key, @NotNull PlayerProfile profile) {
-        String statement = "INSERT INTO " + this.table + " (uuid, name, login_at, logout_at, ip, logout_location)"
-                + " VALUES (:uuid, :name, :login, :logout, :ip, :location)"
-                + " ON CONFLICT (uuid) DO UPDATE SET name = EXCLUDED.name, login_at = EXCLUDED.login_at, logout_at = EXCLUDED.logout_at,"
-                + " ip = EXCLUDED.ip, logout_location = EXCLUDED.logout_location";
+    public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long loginAt, @Nullable InetAddress ip) {
+        String statement = "INSERT INTO " + this.table + " (uuid, name, login_at, ip) VALUES (:uuid, :name, :login, :ip)"
+                + " ON CONFLICT (uuid) DO UPDATE SET name = EXCLUDED.name, login_at = EXCLUDED.login_at, ip = EXCLUDED.ip";
         return CompletableFuture.runAsync(
                 () -> this.sql.useHandle(handle -> handle.createUpdate(statement)
-                        .bind("uuid", key)
-                        .bind("name", profile.name())
-                        .bind("login", profile.loginAt())
-                        .bind("logout", profile.logoutAt())
-                        .bind("ip", profile.ip() == null ? null : profile.ip().getAddress())
-                        .bind("location", encodeLocation(profile.logoutLocation()))
+                        .bind("uuid", player)
+                        .bind("name", name)
+                        .bind("login", loginAt)
+                        .bind("ip", ip == null ? null : ip.getAddress())
+                        .execute()),
+                this.executor
+        );
+    }
+
+    @NotNull
+    @Override
+    public CompletableFuture<Void> saveLogout(@NotNull UUID player, long logoutAt, @NotNull ServerLocation location) {
+        String statement = "UPDATE " + this.table + " SET logout_at = :logout, logout_location = :location WHERE uuid = :uuid";
+        return CompletableFuture.runAsync(
+                () -> this.sql.useHandle(handle -> handle.createUpdate(statement)
+                        .bind("uuid", player)
+                        .bind("logout", logoutAt)
+                        .bind("location", encodeLocation(location))
                         .execute()),
                 this.executor
         );
@@ -97,8 +107,8 @@ public final class PostgresPlayerProfileStore implements PlayerProfileStore {
         }
     }
 
-    private static byte @Nullable [] encodeLocation(@Nullable ServerLocation location) {
-        if (location == null) return null;
+    @NotNull
+    private static byte[] encodeLocation(@NotNull ServerLocation location) {
         try {
             return NBT.toBytes(location.toNbt());
         } catch (IOException exception) {

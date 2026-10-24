@@ -1,4 +1,4 @@
-package net.momirealms.sparrow.player;
+package net.momirealms.sparrow.database.model;
 
 import net.momirealms.sparrow.util.ServerLocation;
 import org.jetbrains.annotations.NotNull;

@@ -3,6 +3,7 @@ package net.momirealms.sparrow.database.postgresql;
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerProfileStore;
+import net.momirealms.sparrow.database.PlayerNameHistoryStore;
 import net.momirealms.sparrow.database.postgresql.upgrade.PostgresSchemaMigration;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
@@ -20,6 +21,7 @@ public final class PostgresDataStorage extends DataStorage {
 
     private HikariDataSource pool;
     private PostgresPlayerProfileStore profileStore;
+    private PostgresPlayerNameHistoryStore nameHistoryStore;
 
     public PostgresDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
@@ -45,6 +47,7 @@ public final class PostgresDataStorage extends DataStorage {
             new PostgresSchemaMigrator(this.logger, PostgresSchema.DATA_COMPONENT, PostgresSchema.DATA_TABLES, DependencyVersions.DATA_SCHEMA_VERSION, PostgresSchema::initializeData, MIGRATIONS).migrate(jdbi, this.namePrefix());
             this.pool = connected;
             this.profileStore = new PostgresPlayerProfileStore(jdbi, super.executor, this.namePrefix());
+            this.nameHistoryStore = new PostgresPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;
@@ -55,6 +58,12 @@ public final class PostgresDataStorage extends DataStorage {
     @Override
     public PlayerProfileStore playerProfileStore() {
         return this.profileStore;
+    }
+
+    @NotNull
+    @Override
+    public PlayerNameHistoryStore playerNameHistoryStore() {
+        return this.nameHistoryStore;
     }
 
     @Override

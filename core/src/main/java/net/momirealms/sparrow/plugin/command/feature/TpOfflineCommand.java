@@ -2,7 +2,7 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerProfile;
+import net.momirealms.sparrow.database.model.PlayerProfile;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
