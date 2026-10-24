@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.PlayerProfileStore;
 import net.momirealms.sparrow.database.PlayerNameHistoryStore;
+import net.momirealms.sparrow.database.PlayerIpHistoryStore;
 import net.momirealms.sparrow.database.mysql.upgrade.MysqlSchemaMigration;
 import net.momirealms.sparrow.locale.LogConstants;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
@@ -24,6 +25,7 @@ public class MysqlDataStorage extends DataStorage {
     protected HikariDataSource pool;
     protected MysqlPlayerProfileStore profileStore;
     protected MysqlPlayerNameHistoryStore nameHistoryStore;
+    protected MysqlPlayerIpHistoryStore ipHistoryStore;
 
     public MysqlDataStorage(@NotNull PluginConfig.DatabaseOptions options, @NotNull Executor executor, @NotNull PluginLogger logger) {
         super(options, executor, logger);
@@ -58,6 +60,7 @@ public class MysqlDataStorage extends DataStorage {
             this.pool = connected;
             this.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new MysqlPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
+            this.ipHistoryStore = new MysqlPlayerIpHistoryStore(jdbi, super.executor, this.namePrefix());
         } catch (RuntimeException exception) {
             connected.close();
             throw exception;
@@ -86,6 +89,12 @@ public class MysqlDataStorage extends DataStorage {
     @Override
     public PlayerNameHistoryStore playerNameHistoryStore() {
         return this.nameHistoryStore;
+    }
+
+    @NotNull
+    @Override
+    public PlayerIpHistoryStore playerIpHistoryStore() {
+        return this.ipHistoryStore;
     }
 
     @Override

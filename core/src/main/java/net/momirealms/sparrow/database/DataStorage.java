@@ -37,6 +37,9 @@ public abstract class DataStorage implements AutoCloseable {
     @NotNull
     public abstract PlayerNameHistoryStore playerNameHistoryStore();
 
+    @NotNull
+    public abstract PlayerIpHistoryStore playerIpHistoryStore();
+
     // 建表时使用的名称前缀
     @NotNull
     protected String namePrefix() {
