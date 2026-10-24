@@ -1,157 +1,163 @@
 package net.momirealms.sparrow.feature.maintenance;
 
-import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.player.PlayerListener;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
-import net.momirealms.sparrow.util.AdventureHelper;
+import net.momirealms.sparrow.ui.Subscription;
+import net.momirealms.sparrow.yaml.mapper.YamlMapper;
+import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
-import java.util.function.Consumer;
+import java.util.concurrent.CompletableFuture;
 
-/**
- * 维护模式. 在登录阶段拒绝没有绕过权限的玩家, 使其无法进入配置阶段.
- * 登录阶段只能通过 LuckPerms 查询权限, 未接入时仅放行 OP.
- */
-public final class MaintenanceFeature extends Feature<MaintenanceSettings> implements PlayerListener {
+public final class MaintenanceFeature implements Feature {
     public static final String ID = "maintenance";
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.maintenance";
 
-    private final SparrowPlugin plugin;
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final UUID bossBarId = UUID.randomUUID();
-    private final ConcurrentChainedObject2ObjectHashTable<UUID, Boolean> bossBarViewers = new ConcurrentChainedObject2ObjectHashTable<>();
-    private volatile boolean active; // 登录线程异步读取
+    private final Set<UUID> bossBarViewers = new HashSet<>();
+    private MaintenanceSettings config;
+    private volatile boolean active;
+    private Subscription preLoginSubscription;
+    private Subscription joinSubscription;
+    private Subscription quitSubscription;
 
-    public MaintenanceFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
-        this.plugin = plugin;
+    @NotNull
+    @Override
+    public String id() {
+        return ID;
     }
 
     @Override
-    public void loadConfig() {
-        MaintenanceSettings settings = this.plugin.configurationManager().featuresConfig().config().maintenance();
+    public boolean supportsHotEnable() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsHotDisable() {
+        return true;
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onEnable() {
+        this.config = this.readConfig();
+        this.active = this.config.active();
+        this.preLoginSubscription = this.plugin.playerManager().registerPreLoginListener(this::onPreLogin);
+        this.joinSubscription = this.plugin.playerManager().registerJoinListener(this::apply);
+        this.quitSubscription = this.plugin.playerManager().registerQuitListener(this::onQuit);
+        this.refreshPlayers();
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @NotNull
+    private YamlMapper<MaintenanceSettings> createMapper() {
+        return YamlMapperFactory.builder()
+                .sparrowYaml(this.plugin.configurationManager().sparrowYaml())
+                .build()
+                .create(MaintenanceSettings.class, MaintenanceSettings::new);
+    }
+
+    @NotNull
+    private MaintenanceSettings readConfig() {
+        Path path = this.plugin.dataFolderPath().resolve("features/maintenance.yml");
+        MaintenanceSettings settings;
+        try {
+            settings = this.createMapper().load(path).value();
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to load " + path, exception);
+        }
         settings.validate();
-        super.config = settings;
+        return settings;
     }
 
+    @NotNull
     @Override
-    protected void onLoad() {
-        this.plugin.playerManager().registerListener(this);
+    public synchronized CompletableFuture<Void> onReload() {
+        this.config = this.readConfig();
+        this.active = this.config.active();
+        this.refreshPlayers();
+        return CompletableFuture.completedFuture(null);
     }
 
-    @Override
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-        register.accept(new MaintenanceCommand(this.plugin.commandManager(), this.plugin));
-    }
-
-    @Override
-    protected void onEnable() {
-        this.active = super.config.active();
-        if (this.active) {
-            this.applyToOnlinePlayers();
+    public synchronized void setActive(boolean active) {
+        this.config.active(active);
+        Path path = this.plugin.dataFolderPath().resolve("features/maintenance.yml");
+        try {
+            this.createMapper().save(path, this.config);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to save " + path, exception);
         }
-    }
-
-    // 停用模块时撤下 BossBar, 维护状态仍保留在配置中.
-    // 关服时插件已停用, Folia 不再接受新任务, BossBar 随玩家断开一并消失.
-    @Override
-    protected void onDisable() {
-        this.active = false;
-        if (this.plugin.javaPlugin().isEnabled()) {
-            this.applyToOnlinePlayers();
-        }
-    }
-
-    @Override
-    protected void onUnload() {
-        this.plugin.playerManager().unregisterListener(this);
-    }
-
-    // LuckPerms 在 LOW 优先级加载用户数据, 在它之后可以正常判断权限.
-    @Override
-    @SuppressWarnings("deprecation")
-    public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
-        if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-            return;
-        }
-        if (this.plugin.compatibilityManager().hasPermissionBeforeJoin(event.getUniqueId(), BYPASS_PERMISSION)) {
-            return;
-        }
-        event.disallow(
-                AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
-                AdventureHelper.componentToLegacy(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, null))
-        );
-    }
-
-    // 登录检查之后才开启维护的玩家在这里补查
-    @Override
-    public void onJoin(@NotNull BukkitSparrowPlayer player) {
-        if (this.active) {
-            this.apply(player);
-        }
-    }
-
-    @Override
-    public void onQuit(@NotNull BukkitSparrowPlayer player) {
-        this.bossBarViewers.remove(player.uniqueId());
-    }
-
-    /**
-     * 切换并保存维护状态. 开启时踢出没有绕过权限的在线玩家, 并向其余玩家显示 BossBar.
-     *
-     * @param active 是否开启维护
-     */
-    public void active(boolean active) {
-        this.plugin.configurationManager().featuresConfig().saveMaintenanceActive(active);
         this.active = active;
-        this.applyToOnlinePlayers();
+        this.refreshPlayers();
     }
 
     public boolean active() {
         return this.active;
     }
 
-    // 在各玩家所属线程上更新
-    private void applyToOnlinePlayers() {
+    private void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
+        if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+        if (this.plugin.compatibilityManager().hasPermission(event.getUniqueId(), BYPASS_PERMISSION)) return;
+        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK));
+    }
+
+    private void refreshPlayers() {
+        this.clearBossBars();
         for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
-            this.plugin.scheduler()
-                    .platform()
-                    .run(() -> this.apply(player), () -> {}, player.nmsPlayer().getBukkitEntity());
+            this.apply(player);
         }
     }
 
-    // 更新玩家的维护状态
-    private void apply(BukkitSparrowPlayer player) {
-        // 未开启
-        if (!this.active) {
-            if (this.bossBarViewers.remove(player.uniqueId()) != null) {
+    private synchronized void apply(@NotNull BukkitSparrowPlayer player) {
+        if (!this.active) return;
+        if (!player.hasPermission(BYPASS_PERMISSION)) {
+            player.kick(false, this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK, player.locale(), player.platformPlayer));
+            return;
+        }
+        MaintenanceSettings.BossBarOptions options = this.config.bossBar();
+        if (!options.enabled() || !this.bossBarViewers.add(player.uniqueId())) return;
+        Component title = this.plugin.translationManager().render(MessageConstants.MAINTENANCE_BOSS_BAR, player.locale(), player.platformPlayer);
+        player.showBossBar(this.bossBarId, title, 1.0f, options.getColor(), options.getOverlay());
+    }
+
+    @NotNull
+    private synchronized CompletableFuture<Void> onQuit(@NotNull BukkitSparrowPlayer player) {
+        this.bossBarViewers.remove(player.uniqueId());
+        return CompletableFuture.completedFuture(null);
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onDisable() {
+        this.active = false;
+        if (this.preLoginSubscription != null) this.preLoginSubscription.close();
+        if (this.joinSubscription != null) this.joinSubscription.close();
+        if (this.quitSubscription != null) this.quitSubscription.close();
+        this.preLoginSubscription = null;
+        this.joinSubscription = null;
+        this.quitSubscription = null;
+        this.clearBossBars();
+        return CompletableFuture.completedFuture(null);
+    }
+
+    private void clearBossBars() {
+        for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
+            if (this.bossBarViewers.contains(player.uniqueId())) {
                 player.hideBossBar(this.bossBarId);
             }
         }
-        // 有绕过权限
-        else if (player.hasPermission(BYPASS_PERMISSION)) {
-            this.showBossBar(player);
-        }
-        // 无权限, 踢出.
-        else {
-            player.kick(player.render(MessageConstants.MAINTENANCE_KICK), false);
-        }
-    }
-
-    // 标题按玩家语言渲染
-    private void showBossBar(BukkitSparrowPlayer player) {
-        MaintenanceSettings.BossBarOptions options = super.config.bossBar();
-        if (!options.enabled() || this.bossBarViewers.putIfAbsent(player.uniqueId(), Boolean.TRUE) != null) {
-            return;
-        }
-        Component title = player.render(MessageConstants.MAINTENANCE_BOSS_BAR);
-        player.showBossBar(this.bossBarId, title, 1.0f, options.color(), options.overlay());
+        this.bossBarViewers.clear();
     }
 }
