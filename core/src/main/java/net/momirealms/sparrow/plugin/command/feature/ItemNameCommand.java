@@ -31,7 +31,6 @@ public final class ItemNameCommand extends BukkitCommandFeature {
         manager.command(builder.required("player", PlayerParser.playerParser())
                 .optional("name", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("json").build())
-                .flag(manager.flagBuilder("legacy-color").withAliases("l").build())
                 .handler(this::execute));
     }
 
@@ -39,7 +38,7 @@ public final class ItemNameCommand extends BukkitCommandFeature {
         Player player = context.get("player");
         String input = context.getOrDefault("name", null);
         Runnable action = () -> {
-            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
+            ItemStack item = this.plugin().playerManager().getOnlinePlayer(player).nmsPlayer.getMainHandItem();
             if (item.isEmpty()) {
                 this.handleFeedback(
                         context,
@@ -54,7 +53,7 @@ public final class ItemNameCommand extends BukkitCommandFeature {
                 try {
                     name = context.flags().hasFlag("json")
                             ? AdventureHelper.jsonToComponent(input)
-                            : AdventureHelper.miniMessage("<!i>" + input, context.flags().hasFlag("legacy-color"), player);
+                            : AdventureHelper.miniMessage("<!i>" + input, player);
                     minecraftName = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(name));
                 } catch (RuntimeException exception) {
                     this.handleFeedback(context, MessageConstants.COMMAND_ITEM_NAME_INVALID);
@@ -107,6 +106,6 @@ public final class ItemNameCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "item-name";
+        return "item_name";
     }
 }

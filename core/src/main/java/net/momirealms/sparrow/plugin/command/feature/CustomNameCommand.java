@@ -31,7 +31,6 @@ public final class CustomNameCommand extends BukkitCommandFeature {
         manager.command(builder.required("player", PlayerParser.playerParser())
                 .optional("name", StringParser.greedyFlagYieldingStringParser())
                 .flag(manager.flagBuilder("json").build())
-                .flag(manager.flagBuilder("legacy-color").withAliases("l").build())
                 .handler(this::execute));
     }
 
@@ -39,12 +38,11 @@ public final class CustomNameCommand extends BukkitCommandFeature {
         Player player = context.get("player");
         String input = context.getOrDefault("name", null);
         Runnable action = () -> {
-            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
+            ItemStack item = this.plugin().playerManager().getOnlinePlayer(player).nmsPlayer.getMainHandItem();
             if (item.isEmpty()) {
                 this.handleFeedback(
                         context,
-                        (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_ITEMLESS_SELF
-                                : MessageConstants.COMMAND_CUSTOM_NAME_ITEMLESS),
+                        (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_ITEMLESS_SELF : MessageConstants.COMMAND_CUSTOM_NAME_ITEMLESS),
                         Component.text(player.getName())
                 );
                 return;
@@ -55,7 +53,7 @@ public final class CustomNameCommand extends BukkitCommandFeature {
                 try {
                     name = context.flags().hasFlag("json")
                             ? AdventureHelper.jsonToComponent(input)
-                            : AdventureHelper.miniMessage("<!i>" + input, context.flags().hasFlag("legacy-color"), player);
+                            : AdventureHelper.miniMessage("<!i>" + input, player);
                     minecraftName = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(name));
                 } catch (RuntimeException exception) {
                     this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_NAME_INVALID);
@@ -64,8 +62,7 @@ public final class CustomNameCommand extends BukkitCommandFeature {
                 item.set(DataComponents.CUSTOM_NAME, minecraftName);
                 this.handleFeedback(
                         context,
-                        (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS_SELF
-                                : MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS),
+                        (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS_SELF : MessageConstants.COMMAND_CUSTOM_NAME_SUCCESS),
                         name,
                         Component.text(player.getName())
                 );
@@ -75,8 +72,7 @@ public final class CustomNameCommand extends BukkitCommandFeature {
             if (name == null) {
                 this.handleFeedback(
                         context,
-                        (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED_SELF
-                                : MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED),
+                        (player == context.sender() ? MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED_SELF : MessageConstants.COMMAND_CUSTOM_NAME_UNNAMED),
                         Component.text(player.getName())
                 );
                 return;
@@ -110,6 +106,6 @@ public final class CustomNameCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "custom-name";
+        return "custom_name";
     }
 }

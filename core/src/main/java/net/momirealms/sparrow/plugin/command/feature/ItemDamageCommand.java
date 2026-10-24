@@ -62,6 +62,6 @@ public final class ItemDamageCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "item-damage";
+        return "item_damage";
     }
 }

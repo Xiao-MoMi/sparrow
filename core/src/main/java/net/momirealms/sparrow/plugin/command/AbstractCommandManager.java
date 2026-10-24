@@ -2,6 +2,7 @@ package net.momirealms.sparrow.plugin.command;
 
 import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.momirealms.sparrow.util.AdventureHelper;
+import net.md_5.bungee.chat.ComponentSerializer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.ComponentLike;
 import net.kyori.adventure.text.TranslatableComponent;
@@ -65,7 +66,7 @@ public abstract class AbstractCommandManager implements CommandManager {
                     pluginPlayer.sendMessage(component);
                 }
             } else {
-                sender.sendMessage(AdventureHelper.getLegacy().serialize(component));
+                sender.spigot().sendMessage(ComponentSerializer.parse(AdventureHelper.componentToJson(component)));
             }
         });
     }

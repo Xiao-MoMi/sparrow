@@ -17,13 +17,12 @@ import net.momirealms.sparrow.plugin.command.parser.EnchantmentParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.data.MultipleEntitySelector;
-import org.incendo.cloud.bukkit.parser.selector.MultipleEntitySelectorParser;
+import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
+import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.EnumParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
@@ -40,7 +39,7 @@ public final class EnchantCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        manager.command(builder.required("targets", MultipleEntitySelectorParser.multipleEntitySelectorParser())
+        manager.command(builder.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .required("enchantment", EnchantmentParser.enchantmentParser())
                 .optional("level", IntegerParser.integerParser())
                 .flag(manager.flagBuilder("slot").withComponent(EnumParser.enumParser(EquipmentSlot.class)))
@@ -49,9 +48,9 @@ public final class EnchantCommand extends BukkitCommandFeature {
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        MultipleEntitySelector selector = context.get("targets");
-        Collection<Entity> entities = selector.values();
-        if (entities.isEmpty()) {
+        MultiplePlayerSelector selector = context.get("targets");
+        Collection<Player> players = selector.values();
+        if (players.isEmpty()) {
             this.handleFeedback(context, MessageConstants.COMMAND_TARGETS_EMPTY);
             return;
         }
@@ -71,45 +70,25 @@ public final class EnchantCommand extends BukkitCommandFeature {
             );
             return;
         }
-        for (Entity entity : entities) {
-            this.plugin().scheduler().platform().run(() -> {
-                        if (!(entity instanceof LivingEntity livingEntity)) {
-                            this.handleFeedback(
-                                    context,
-                                    (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_ENTITY_SELF
-                                            : MessageConstants.COMMAND_ENCHANT_ENTITY),
-                                    Component.text(entity.getName())
-                            );
-                            return;
-                        }
-                        EntityEquipment equipment = livingEntity.getEquipment();
-                        if (equipment == null) {
-                            this.handleFeedback(
-                                    context,
-                                    (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_ENTITY_SELF
-                                            : MessageConstants.COMMAND_ENCHANT_ENTITY),
-                                    Component.text(entity.getName())
-                            );
-                            return;
-                        }
+        for (Player player : players) {
+            this.plugin().scheduler().platform().run(
+                    () -> {
+                        EntityEquipment equipment = player.getEquipment();
                         ItemStack item = CraftItemStack.asNMSCopy(equipment.getItem(slot));
                         if (item.isEmpty()) {
                             this.handleFeedback(
                                     context,
-                                    (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_ITEMLESS_SELF
-                                            : MessageConstants.COMMAND_ENCHANT_ITEMLESS),
-                                    Component.text(entity.getName())
+                                    (player == context.sender() ? MessageConstants.COMMAND_ENCHANT_ITEMLESS_SELF : MessageConstants.COMMAND_ENCHANT_ITEMLESS),
+                                    Component.text(player.getName())
                             );
                             return;
                         }
-                        DataComponentType<ItemEnchantments> component = item.is(Items.ENCHANTED_BOOK)
-                                ? DataComponents.STORED_ENCHANTMENTS : DataComponents.ENCHANTMENTS;
+                        DataComponentType<ItemEnchantments> component = item.is(Items.ENCHANTED_BOOK) ? DataComponents.STORED_ENCHANTMENTS : DataComponents.ENCHANTMENTS;
                         if (check && !applicable(minecraftEnchantment, item, item.getOrDefault(component, ItemEnchantments.EMPTY))) {
                             this.handleFeedback(
                                     context,
-                                    (entity == context.sender() ? MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE_SELF
-                                            : MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE),
-                                    Component.text(entity.getName()),
+                                    (player == context.sender() ? MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE_SELF : MessageConstants.COMMAND_ENCHANT_INCOMPATIBLE),
+                                    Component.text(player.getName()),
                                     Component.text(enchantment.getKey().toString())
                             );
                             return;
@@ -123,27 +102,32 @@ public final class EnchantCommand extends BukkitCommandFeature {
                             setEnchantment(item, component, minecraftEnchantment, level);
                         }
                         equipment.setItem(slot, CraftItemStack.asBukkitCopy(item));
-                        boolean self = entity == context.sender();
-                        TranslatableComponent message = level < 0
-                                ? (self ? MessageConstants.COMMAND_ENCHANT_REMOVED_SELF : MessageConstants.COMMAND_ENCHANT_REMOVED)
-                                : (level == 0 ? (self ? MessageConstants.COMMAND_ENCHANT_ZERO_SELF : MessageConstants.COMMAND_ENCHANT_ZERO)
-                                : (self ? MessageConstants.COMMAND_ENCHANT_SUCCESS_SELF : MessageConstants.COMMAND_ENCHANT_SUCCESS));
+                        boolean self = player == context.sender();
+                        TranslatableComponent message;
+                        if (level < 0) {
+                            message = self ? MessageConstants.COMMAND_ENCHANT_REMOVED_SELF : MessageConstants.COMMAND_ENCHANT_REMOVED;
+                        } else if (level == 0) {
+                            message = self ? MessageConstants.COMMAND_ENCHANT_ZERO_SELF : MessageConstants.COMMAND_ENCHANT_ZERO;
+                        } else {
+                            message = self ? MessageConstants.COMMAND_ENCHANT_SUCCESS_SELF : MessageConstants.COMMAND_ENCHANT_SUCCESS;
+                        }
                         this.handleFeedback(
                                 context,
                                 message,
-                                Component.text(entity.getName()),
+                                Component.text(player.getName()),
                                 Component.text(enchantment.getKey().toString()),
                                 Component.text(level)
                         );
-                    }, () -> {}, entity);
+                    },
+                    () -> {},
+                    player
+            );
         }
     }
 
     // 物品需在附魔的适用范围内, 且与已有附魔都不冲突. 已有同一附魔也视为冲突.
     private static boolean applicable(Holder<Enchantment> enchantment, ItemStack item, ItemEnchantments existing) {
-        if (!enchantment.value().canEnchant(item)) {
-            return false;
-        }
+        if (!enchantment.value().canEnchant(item)) return false;
         for (Holder<Enchantment> other : existing.keySet()) {
             if (!Enchantment.areCompatible(enchantment, other)) {
                 return false;

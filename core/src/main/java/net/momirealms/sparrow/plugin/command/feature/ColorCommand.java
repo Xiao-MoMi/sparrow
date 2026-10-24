@@ -44,7 +44,7 @@ public final class ColorCommand extends BukkitCommandFeature {
         TextColor color = context.get("color");
         Component slotName = Component.text("hand");
         this.plugin().scheduler().platform().run(() -> {
-                    ItemStack item = this.plugin().playerManager().getPlayer(player).nmsPlayer().getItemBySlot(EquipmentSlot.MAINHAND);
+                    ItemStack item = this.plugin().playerManager().getOnlinePlayer(player).nmsPlayer.getItemBySlot(EquipmentSlot.MAINHAND);
                     if (item.isEmpty()) {
                         this.handleFeedback(
                                 context,

@@ -8,11 +8,11 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.command.parser.ModelDataParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.parser.standard.FloatParser;
 import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
@@ -28,15 +28,15 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
-                .optional("value", ModelDataParser.modelDataParser())
+                .optional("value", FloatParser.floatParser())
                 .handler(this::execute));
     }
 
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
-        Number value = context.getOrDefault("value", null);
+        Float value = context.getOrDefault("value", null);
         Runnable action = () -> {
-            ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
+            ItemStack item = this.plugin().playerManager().getOnlinePlayer(player).nmsPlayer.getMainHandItem();
             if (item.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_MODEL_DATA_ITEMLESS);
                 return;
@@ -53,9 +53,9 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
             }
             List<Float> floats = new ArrayList<>(data.floats());
             if (floats.isEmpty()) {
-                floats.add(value.floatValue());
+                floats.add(value);
             } else {
-                floats.set(0, value.floatValue());
+                floats.set(0, value);
             }
             item.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.copyOf(floats), data.flags(), data.strings(), data.colors()));
             this.handleFeedback(context, MessageConstants.COMMAND_CUSTOM_MODEL_DATA_SUCCESS, Component.text(floats.getFirst().toString()));
@@ -69,6 +69,6 @@ public final class CustomModelDataCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "custom-model-data";
+        return "custom_model_data";
     }
 }

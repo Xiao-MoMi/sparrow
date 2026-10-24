@@ -79,11 +79,6 @@ public final class PluginConfig {
         @Comment("Database connection settings. Changes take effect after a server restart.")
         @Comment(lang = "zh", value = "数据库连接设置, 修改后需要重启服务器.")
         DatabaseOptions database = new DatabaseOptions();
-
-        @BlankLineBefore
-        @Comment("Default text parsing options for actionbar, broadcast, title and toast commands.")
-        @Comment(lang = "zh", value = "ActionBar、广播、标题和进度提示命令的默认文本解析选项.")
-        TextOptions textOptions = new TextOptions();
     }
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
@@ -220,21 +215,6 @@ public final class PluginConfig {
         public String collectionPrefix() {
             return this.collectionPrefix;
         }
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static class TextOptions {
-        @Comment("Parse legacy color codes by default. --legacy-color/-l also enables parsing for an individual command.")
-        @Comment(lang = "zh", value = "默认解析传统颜色代码. 命令中的 --legacy-color/-l 也可单独启用解析.")
-        boolean parseLegacyColor = false;
-
-        public boolean parseLegacyColor() {
-            return this.parseLegacyColor;
-        }
-    }
-
-    public static TextOptions text() {
-        return config.textOptions;
     }
 
     public static RedisOptions redis() {

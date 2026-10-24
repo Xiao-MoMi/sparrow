@@ -38,7 +38,7 @@ public final class ItemDataCommand extends BukkitCommandFeature {
 
     private void execute(CommandContext<Player> context) {
         Player player = context.sender();
-        ItemStack item = this.plugin().playerManager().getPlayer(player).getItemInMainHand();
+        ItemStack item = this.plugin().playerManager().getOnlinePlayer(player).nmsPlayer.getMainHandItem();
         if (item.isEmpty()) {
             this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DATA_ITEMLESS);
             return;
@@ -69,6 +69,6 @@ public final class ItemDataCommand extends BukkitCommandFeature {
 
     @Override
     public String getFeatureID() {
-        return "item-data";
+        return "item_data";
     }
 }

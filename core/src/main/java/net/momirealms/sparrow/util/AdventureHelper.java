@@ -7,7 +7,6 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.sounds.SoundSource;
 import net.momirealms.sparrow.locale.tag.ExpressionTag;
 import net.momirealms.sparrow.locale.tag.MessageContext;
@@ -15,8 +14,6 @@ import net.momirealms.sparrow.locale.tag.NamedArgumentTag;
 import net.momirealms.sparrow.locale.tag.PlaceholderTag;
 import net.momirealms.sparrow.message.MiniMessage;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
-import net.momirealms.sparrow.reflection.clazz.SparrowClass;
-import net.momirealms.sparrow.reflection.field.matcher.FieldMatcher;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,17 +30,8 @@ public final class AdventureHelper {
     private final MiniMessage miniMessageStrict;
     private final MiniMessage miniMessageCustom;
     private final GsonComponentSerializer gsonComponentSerializer;
-    private final LegacyComponentSerializer legacyComponentSerializer;
-    private final LegacyComponentSerializer legacyHexSerializer;
     // 文本替换配置, 将字符串中的换行符 '\n' 替换为 Adventure 的换行组件.
     private static final TextReplacementConfig REPLACE_LF = TextReplacementConfig.builder().matchLiteral("\n").replacement(Component.newline()).build();
-
-    static {
-        SparrowClass.of(SparrowClass.findNoRemap("net.kyori.adventure.text.TextComponentImpl"))
-                .getDeclaredSparrowField(FieldMatcher.named("WARN_WHEN_LEGACY_FORMATTING_DETECTED"))
-                .mh()
-                .set(null, false);
-    }
 
     /**
      * 私有构造方法, 初始化所有序列化器实例.
@@ -53,8 +41,6 @@ public final class AdventureHelper {
         this.miniMessage = MiniMessage.builder().tags(TagResolver.resolver(TagResolver.standard(), sparrowTags)).build();
         this.miniMessageStrict = MiniMessage.builder().strict(true).build();
         this.miniMessageCustom = MiniMessage.builder().tags(sparrowTags).build();
-        this.legacyComponentSerializer = LegacyComponentSerializer.builder().build();
-        this.legacyHexSerializer = LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
         this.gsonComponentSerializer = GsonComponentSerializer.builder().build();
     }
 
@@ -77,13 +63,13 @@ public final class AdventureHelper {
     }
 
     @NotNull
-    public static Component miniMessage(@NotNull String text, boolean legacy) {
-        return miniMessage().deserialize(legacy ? legacyToMiniMessage(text) : text);
+    public static Component miniMessage(@NotNull String text) {
+        return miniMessage().deserialize(text);
     }
 
     @NotNull
-    public static Component miniMessage(@NotNull String text, boolean legacy, @Nullable Player player) {
-        return miniMessage().deserialize(legacy ? legacyToMiniMessage(text) : text, MessageContext.of(player));
+    public static Component miniMessage(@NotNull String text, @Nullable Player player) {
+        return miniMessage().deserialize(text, MessageContext.of(player));
     }
 
     public static MiniMessage strictMiniMessage() {
@@ -104,10 +90,6 @@ public final class AdventureHelper {
         return getInstance().gsonComponentSerializer;
     }
 
-    public static LegacyComponentSerializer getLegacy() {
-        return getInstance().legacyComponentSerializer;
-    }
-
     @NotNull
     public static SoundSource toNmsSoundSource(@NotNull Sound.Source source) {
         return switch (source) {
@@ -123,17 +105,6 @@ public final class AdventureHelper {
             case VOICE -> SoundSource.VOICE;
             case UI -> SoundSource.UI;
         };
-    }
-
-    /**
-     * 将组件转换为 § 格式的旧版文本, RGB 颜色使用 Bukkit 可识别的 §x§r§r§g§g§b§b 格式.
-     * 用于只接受字符串的 Bukkit 接口, 例如登录拒绝.
-     *
-     * @param component 需要转换的组件
-     * @return 旧版格式文本, 点击和悬浮等交互内容会丢失
-     */
-    public static String componentToLegacy(Component component) {
-        return getInstance().legacyHexSerializer.serialize(component);
     }
 
     /**
@@ -238,128 +209,6 @@ public final class AdventureHelper {
             result.add(line.compact());
         }
         return result;
-    }
-
-    /**
-     * 判断一个字符是否为旧版颜色代码前缀.
-     * 当前支持 `§` 与 `&` 两种前缀.
-     *
-     * @param c 需要判断的字符
-     * @return 若字符是旧版颜色代码前缀则返回 true, 否则返回 false
-     */
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-    public static boolean isLegacyColorCode(char c) {
-        return c == '§' || c == '&';
-    }
-
-    /**
-     * 判断一个字符是否为十六进制颜色值字符.
-     * 支持 `0-9`, `a-f`, `A-F`.
-     *
-     * @param c 需要判断的字符
-     * @return 若字符可作为十六进制颜色位则返回 true, 否则返回 false
-     */
-    public static boolean isHexColorCode(char c) {
-        return (c >= '0' && c <= '9') ||
-                (c >= 'a' && c <= 'f') ||
-                (c >= 'A' && c <= 'F');
-    }
-
-    /**
-     * 将旧版颜色代码字符串转换为 MiniMessage 字符串.
-     * 该方法按字符扫描输入内容, 识别普通颜色代码, 格式代码以及 `&#RRGGBB` 和 `&x&R&R&G&G&B&B` 两种十六进制颜色格式, 并替换为对应的 MiniMessage 标签.
-     * 若遇到不完整或非法的颜色代码片段, 方法会尽量保留原始字符.
-     *
-     * @param legacy 旧版颜色代码字符串
-     * @return 转换后的 MiniMessage 字符串
-     */
-    public static String legacyToMiniMessage(String legacy) {
-        StringBuilder stringBuilder = new StringBuilder();
-        char[] chars = legacy.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            if (!isLegacyColorCode(chars[i])) {
-                stringBuilder.append(chars[i]);
-                continue;
-            }
-            if (i + 1 >= chars.length) {
-                stringBuilder.append(chars[i]);
-                continue;
-            }
-            switch (chars[i+1]) {
-                case '0' -> stringBuilder.append("<black>");
-                case '1' -> stringBuilder.append("<dark_blue>");
-                case '2' -> stringBuilder.append("<dark_green>");
-                case '3' -> stringBuilder.append("<dark_aqua>");
-                case '4' -> stringBuilder.append("<dark_red>");
-                case '5' -> stringBuilder.append("<dark_purple>");
-                case '6' -> stringBuilder.append("<gold>");
-                case '7' -> stringBuilder.append("<gray>");
-                case '8' -> stringBuilder.append("<dark_gray>");
-                case '9' -> stringBuilder.append("<blue>");
-                case 'a' -> stringBuilder.append("<green>");
-                case 'b' -> stringBuilder.append("<aqua>");
-                case 'c' -> stringBuilder.append("<red>");
-                case 'd' -> stringBuilder.append("<light_purple>");
-                case 'e' -> stringBuilder.append("<yellow>");
-                case 'f' -> stringBuilder.append("<white>");
-                case 'r' -> stringBuilder.append("<reset><!i>");
-                case 'l' -> stringBuilder.append("<b>");
-                case 'm' -> stringBuilder.append("<st>");
-                case 'o' -> stringBuilder.append("<i>");
-                case 'n' -> stringBuilder.append("<u>");
-                case 'k' -> stringBuilder.append("<obf>");
-                case '#' -> {
-                    if (i + 7 >= chars.length
-                            || !isHexColorCode(chars[i+2])
-                            || !isHexColorCode(chars[i+3])
-                            || !isHexColorCode(chars[i+4])
-                            || !isHexColorCode(chars[i+5])
-                            || !isHexColorCode(chars[i+6])
-                            || !isHexColorCode(chars[i+7])) {
-                        stringBuilder.append(chars[i]);
-                        continue;
-                    }
-                    stringBuilder
-                            .append("<#")
-                            .append(chars[i+2])
-                            .append(chars[i+3])
-                            .append(chars[i+4])
-                            .append(chars[i+5])
-                            .append(chars[i+6])
-                            .append(chars[i+7])
-                            .append(">");
-                    i += 6;
-                }
-                case 'x' -> {
-                    if (i + 13 >= chars.length
-                            || !isLegacyColorCode(chars[i+2])
-                            || !isLegacyColorCode(chars[i+4])
-                            || !isLegacyColorCode(chars[i+6])
-                            || !isLegacyColorCode(chars[i+8])
-                            || !isLegacyColorCode(chars[i+10])
-                            || !isLegacyColorCode(chars[i+12])) {
-                        stringBuilder.append(chars[i]);
-                        continue;
-                    }
-                    stringBuilder
-                            .append("<#")
-                            .append(chars[i+3])
-                            .append(chars[i+5])
-                            .append(chars[i+7])
-                            .append(chars[i+9])
-                            .append(chars[i+11])
-                            .append(chars[i+13])
-                            .append(">");
-                    i += 12;
-                }
-                default -> {
-                    stringBuilder.append(chars[i]);
-                    continue;
-                }
-            }
-            i++;
-        }
-        return stringBuilder.toString();
     }
 
     /**
