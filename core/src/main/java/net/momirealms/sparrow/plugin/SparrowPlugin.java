@@ -122,7 +122,7 @@ public class SparrowPlugin implements Plugin {
 
     @Override
     public void onPluginLoad() {
-        if (!SpigotConfig.bungee && !(VersionHelper.hasPaperPatch && GlobalConfiguration.get().proxies.velocity.enabled)) {
+        if (!SpigotConfig.bungee && !GlobalConfiguration.get().proxies.velocity.enabled) {
             this.logger.error(LogConstants.PROXY_REQUIRED);
             Bukkit.getServer().shutdown();
             return;
@@ -396,9 +396,7 @@ public class SparrowPlugin implements Plugin {
      */
     private List<String> getPatches() {
         List<String> patches = new ArrayList<>();
-        if (VersionHelper.hasPaperPatch) {
-            patches.add("paper");
-        }
+        patches.add("paper");
         if (VersionHelper.hasFoliaPatch) {
             patches.add("folia");
         }

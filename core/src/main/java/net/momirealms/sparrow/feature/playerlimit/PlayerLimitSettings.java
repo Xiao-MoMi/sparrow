@@ -1,26 +1,13 @@
 package net.momirealms.sparrow.feature.playerlimit;
 
-import net.momirealms.sparrow.feature.FeatureSettings;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-public final class PlayerLimitSettings implements FeatureSettings {
-    private boolean enabled = true;
-
-    @Comment("Maximum number of players. -1 keeps max-players from server.properties. Saved automatically by /max-players.")
-    @Comment(lang = "zh", value = "服务器人数上限, -1 表示沿用 server.properties 的 max-players. 使用 /max-players 修改时自动保存.")
+public final class PlayerLimitSettings {
+    @Comment("Maximum players. -1 restores the limit from before this module was enabled. /max_players saves changes here. The effective limit is also written to server.properties.")
+    @Comment(lang = "zh", value = "人数上限, -1 表示恢复模块启用前的上限. /max_players 修改后保存在此处. 生效的人数上限也会写入 server.properties.")
     private int maxPlayers = -1;
-
-    @Override
-    public boolean enabled() {
-        return this.enabled;
-    }
-
-    @Override
-    public void enabled(boolean enabled) {
-        this.enabled = enabled;
-    }
 
     public int maxPlayers() {
         return this.maxPlayers;
@@ -28,12 +15,5 @@ public final class PlayerLimitSettings implements FeatureSettings {
 
     public void maxPlayers(int maxPlayers) {
         this.maxPlayers = maxPlayers;
-    }
-
-    // 配置错误在启用前报告.
-    void validate() {
-        if (this.maxPlayers < -1) {
-            throw new IllegalArgumentException("player-limit.max-players must be -1 or at least 0");
-        }
     }
 }

@@ -5,12 +5,12 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 public final class MaxPlayersCommand extends BukkitCommandFeature {
 
@@ -19,30 +19,33 @@ public final class MaxPlayersCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         manager.command(builder.optional("amount", IntegerParser.integerParser(-1))
-                .handler(this::execute));
+                .handler(context -> this.plugin().scheduler().platform().execute(() -> this.execute(context))));
     }
 
-    // 不带参数时查询, -1 恢复为 server.properties 的值
-    private void execute(CommandContext<CommandSender> context) {
+    private void execute(@NotNull CommandContext<CommandSender> context) {
         PlayerLimitFeature feature = this.plugin().featureManager().feature(PlayerLimitFeature.ID, PlayerLimitFeature.class);
         Integer amount = context.getOrDefault("amount", null);
         if (amount == null) {
-            Component online = Component.text(this.plugin().playerManager().getOnlinePlayers().size());
-            this.handleFeedback(context, MessageConstants.COMMAND_MAX_PLAYERS_QUERY, online, Component.text(feature.maxPlayers()));
+            this.handleFeedback(
+                    context,
+                    MessageConstants.COMMAND_MAX_PLAYERS_QUERY,
+                    Component.text(this.plugin().playerManager().getOnlinePlayers().size()),
+                    Component.text(Bukkit.getMaxPlayers())
+            );
             return;
         }
-        feature.maxPlayers(amount);
+        feature.setMaxPlayers(amount);
         this.handleFeedback(
                 context,
-                amount < 0 ? MessageConstants.COMMAND_MAX_PLAYERS_RESET : MessageConstants.COMMAND_MAX_PLAYERS_SUCCESS,
-                Component.text(feature.maxPlayers())
+                amount == -1 ? MessageConstants.COMMAND_MAX_PLAYERS_RESET : MessageConstants.COMMAND_MAX_PLAYERS_SUCCESS,
+                Component.text(Bukkit.getMaxPlayers())
         );
     }
 
     @Override
     public String getFeatureID() {
-        return "max-players";
+        return "max_players";
     }
 }

@@ -1,83 +1,111 @@
 package net.momirealms.sparrow.feature.playerlimit;
 
+import io.papermc.paper.event.player.PlayerServerFullCheckEvent;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
-import net.momirealms.sparrow.util.VersionHelper;
+import net.momirealms.sparrow.yaml.mapper.YamlMapper;
+import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
-import java.util.function.Consumer;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 
-/**
- * 动态调整服务器人数上限, 并允许拥有绕过权限的玩家在满员时进入.
- * 上限保存在 features.yml, 不会改写 server.properties.
- */
-public final class PlayerLimitFeature extends Feature<PlayerLimitSettings> {
-    public static final String ID = "player-limit";
-    public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.player-limit";
+public final class PlayerLimitFeature implements Feature, Listener {
+    public static final String ID = "player_limit";
 
-    private final SparrowPlugin plugin;
-    private int defaultMaxPlayers; // 安装时生效的上限, 即 server.properties 的值
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
+    private int originalMaxPlayers;
 
-    public PlayerLimitFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
-        this.plugin = plugin;
+    @NotNull
+    @Override
+    public String id() {
+        return ID;
     }
 
     @Override
-    public void loadConfig() {
-        PlayerLimitSettings settings = this.plugin.configurationManager().featuresConfig().config().playerLimit();
-        settings.validate();
-        super.config = settings;
-    }
-
-    // Paper 1.21.7 起监听 PlayerLoginEvent 会禁用重新配置 API, 因此 Paper 上使用满员检查事件
-    @Override
-    protected void onLoad() {
-        this.defaultMaxPlayers = Bukkit.getMaxPlayers();
-        Listener listener = VersionHelper.hasPaperPatch ? new PaperPlayerLimitListener(this) : new SpigotPlayerLimitListener(this);
-        Bukkit.getPluginManager().registerEvents(listener, this.plugin.javaPlugin());
+    public boolean supportsHotEnable() {
+        return true;
     }
 
     @Override
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-        register.accept(new MaxPlayersCommand(this.plugin.commandManager(), this.plugin));
+    public boolean supportsHotDisable() {
+        return true;
     }
 
+    @NotNull
     @Override
-    protected void onEnable() {
-        this.apply();
+    public CompletableFuture<Void> onEnable() {
+        this.originalMaxPlayers = Bukkit.getMaxPlayers();
+        this.applyLimit(this.readConfig().maxPlayers());
+        this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        return CompletableFuture.completedFuture(null);
     }
 
+    @NotNull
+    private YamlMapper<PlayerLimitSettings> createMapper() {
+        return YamlMapperFactory.builder()
+                .sparrowYaml(this.plugin.configurationManager().sparrowYaml())
+                .build()
+                .create(PlayerLimitSettings.class, PlayerLimitSettings::new);
+    }
+
+    @NotNull
+    private PlayerLimitSettings readConfig() {
+        Path path = this.plugin.dataFolderPath().resolve("features/player_limit.yml");
+        PlayerLimitSettings settings;
+        try {
+            settings = this.createMapper().load(path).value();
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to load " + path, exception);
+        }
+        if (settings.maxPlayers() < -1) throw new IllegalArgumentException("max-players must be at least -1");
+        return settings;
+    }
+
+    @NotNull
     @Override
-    protected void onDisable() {
-        Bukkit.setMaxPlayers(this.defaultMaxPlayers);
+    public CompletableFuture<Void> onReload() {
+        this.applyLimit(this.readConfig().maxPlayers());
+        return CompletableFuture.completedFuture(null);
     }
 
-    public void maxPlayers(int maxPlayers) {
-        this.plugin.configurationManager().featuresConfig().saveMaxPlayers(maxPlayers);
-        this.apply();
+    public void setMaxPlayers(int maxPlayers) {
+        PlayerLimitSettings settings = new PlayerLimitSettings();
+        settings.maxPlayers(maxPlayers);
+        Path path = this.plugin.dataFolderPath().resolve("features/player_limit.yml");
+        try {
+            this.createMapper().save(path, settings);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to save " + path, exception);
+        }
+        this.applyLimit(maxPlayers);
     }
 
-    public int maxPlayers() {
-        return Bukkit.getMaxPlayers();
+    private void applyLimit(int maxPlayers) {
+        Bukkit.setMaxPlayers(maxPlayers == -1 ? this.originalMaxPlayers : maxPlayers);
     }
 
-    public int defaultMaxPlayers() {
-        return this.defaultMaxPlayers;
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onFullCheck(@NotNull PlayerServerFullCheckEvent event) {
+        if (event.isAllowed()) return;
+        if (this.plugin.compatibilityManager().hasPermission(event.getPlayerProfile().getId(), DependencyVersions.PROJECT_ID + ".bypass.player_limit")) {
+            event.allow(true);
+        }
     }
 
-    // 登录阶段尚无玩家实体, 通过权限插件的缓存判断
-    boolean bypassBeforeJoin(@NotNull UUID uniqueId) {
-        return this.plugin.compatibilityManager().hasPermissionBeforeJoin(uniqueId, BYPASS_PERMISSION);
-    }
-
-    private void apply() {
-        int configured = super.config.maxPlayers();
-        Bukkit.setMaxPlayers(configured < 0 ? this.defaultMaxPlayers : configured);
+    @NotNull
+    @Override
+    public CompletableFuture<Void> onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.setMaxPlayers(this.originalMaxPlayers);
+        return CompletableFuture.completedFuture(null);
     }
 }
