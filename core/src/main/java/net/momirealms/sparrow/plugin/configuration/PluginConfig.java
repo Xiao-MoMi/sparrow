@@ -102,42 +102,17 @@ public final class PluginConfig {
 
     @Configuration(naming = Configuration.Naming.KEBAB_CASE)
     public static class DatabaseOptions {
-        @Comment("Select MONGODB, MYSQL, MARIADB or POSTGRESQL.")
-        @Comment(lang = "zh", value = "可选 MONGODB、MYSQL、MARIADB 或 POSTGRESQL.")
-        DatabaseType type = DatabaseType.MONGODB;
-
-        MysqlOptions mysql = new MysqlOptions();
-        MariaDbOptions mariadb = new MariaDbOptions();
-        PostgresOptions postgresql = new PostgresOptions();
-        MongoOptions mongodb = new MongoOptions();
+        @Comment("Select MYSQL, MARIADB or POSTGRESQL. Update the JDBC URL and credentials when changing the type.")
+        @Comment(lang = "zh", value = "可选 MYSQL、MARIADB 或 POSTGRESQL. 切换类型时需同时调整 JDBC 地址和账号信息.")
+        DatabaseType type = DatabaseType.MYSQL;
+        String url = "jdbc:mysql://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
+        String username = "root";
+        String password = "";
+        String tablePrefix = "sparrow_";
 
         public DatabaseType type() {
             return this.type;
         }
-
-        public MysqlOptions mysql() {
-            return this.mysql;
-        }
-
-        public MariaDbOptions mariadb() {
-            return this.mariadb;
-        }
-
-        public PostgresOptions postgresql() {
-            return this.postgresql;
-        }
-
-        public MongoOptions mongodb() {
-            return this.mongodb;
-        }
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static class SqlOptions {
-        String url;
-        String username;
-        String password = "";
-        String tablePrefix = "sparrow_";
 
         public String url() {
             return this.url;
@@ -153,67 +128,6 @@ public final class PluginConfig {
 
         public String tablePrefix() {
             return this.tablePrefix;
-        }
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static class MysqlOptions extends SqlOptions {
-
-        public MysqlOptions() {
-            super.url = "jdbc:mysql://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
-            super.username = "root";
-        }
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static class MariaDbOptions extends SqlOptions {
-
-        public MariaDbOptions() {
-            super.url = "jdbc:mariadb://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
-            super.username = "root";
-        }
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static class PostgresOptions extends SqlOptions {
-
-        public PostgresOptions() {
-            super.url = "jdbc:postgresql://localhost:5432/minecraft?connectTimeout=5&socketTimeout=10";
-            super.username = "postgres";
-        }
-    }
-
-    @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-    public static class MongoOptions {
-        String url = "mongodb://localhost:27017";
-        String database = "minecraft";
-        String username = "";
-        String password = "";
-        String authSource = "admin";
-        String collectionPrefix = "sparrow_";
-
-        public String url() {
-            return this.url;
-        }
-
-        public String database() {
-            return this.database;
-        }
-
-        public String username() {
-            return this.username;
-        }
-
-        public String password() {
-            return this.password;
-        }
-
-        public String authSource() {
-            return this.authSource;
-        }
-
-        public String collectionPrefix() {
-            return this.collectionPrefix;
         }
     }
 

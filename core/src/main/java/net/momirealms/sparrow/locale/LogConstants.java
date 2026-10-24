@@ -23,8 +23,6 @@ public enum LogConstants {
     TRANSLATION_READ_FAILED("log.translation.read_failed"),
     TRANSLATION_DIRECTORY_FAILED("log.translation.directory_failed"),
     TRANSLATION_LOCALE_MISSING("log.translation.locale_missing"),
-    STORAGE_STALE_INDEX_DROPPED("log.storage.stale_index_dropped"),
-    STORAGE_SCHEMA_TOO_NEW("log.storage.schema_too_new"),
     STORAGE_MYSQL_SCHEMA_INITIALIZING("log.storage.mysql_schema_initializing"),
     STORAGE_MYSQL_SCHEMA_MIGRATING("log.storage.mysql_schema_migrating"),
     STORAGE_MYSQL_VERSION_UNSUPPORTED("log.storage.mysql_version_unsupported"),

@@ -31,7 +31,7 @@ public final class PostgresDataStorage extends DataStorage {
 
     @Override
     public void initialize() {
-        PluginConfig.SqlOptions sqlOptions = super.options.postgresql();
+        PluginConfig.DatabaseOptions sqlOptions = super.options;
         HikariDataSource connected = new HikariDataSource();
         try {
             connected.setPoolName("sparrow-postgresql");

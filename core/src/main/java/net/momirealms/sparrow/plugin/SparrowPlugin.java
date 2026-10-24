@@ -334,9 +334,6 @@ public class SparrowPlugin implements Plugin {
         // Adventure
         dependencies.addAll(Dependencies.ADVENTURE_DEPENDENCIES);
         switch (PluginConfig.database().type()) {
-            case MONGODB -> dependencies.addAll(List.of(
-                    Dependencies.MONGODB_DRIVER_BSON, Dependencies.MONGODB_DRIVER_CORE, Dependencies.MONGODB_DRIVER_SYNC
-            ));
             case MYSQL -> dependencies.addAll(List.of(
                     Dependencies.JDBI_CORE, Dependencies.HIKARI_CP, Dependencies.MYSQL_DRIVER
             ));

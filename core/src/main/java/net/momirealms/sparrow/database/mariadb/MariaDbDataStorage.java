@@ -23,7 +23,7 @@ public final class MariaDbDataStorage extends MysqlDataStorage {
 
     @Override
     public void initialize() {
-        PluginConfig.SqlOptions sqlOptions = super.options.mariadb();
+        PluginConfig.DatabaseOptions sqlOptions = super.options;
         HikariDataSource connected = new HikariDataSource();
         try {
             connected.setPoolName("sparrow-mariadb");

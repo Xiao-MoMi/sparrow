@@ -25,6 +25,9 @@ import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
 import org.incendo.cloud.bukkit.parser.WorldParser;
 import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
+import org.incendo.cloud.exception.NoPermissionException;
+import org.incendo.cloud.permission.Permission;
+import org.incendo.cloud.permission.PermissionResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -46,13 +49,20 @@ public final class WorldCommand extends BukkitCommandFeature {
 
     @Override
     public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
-        Command.Builder<CommandSender> command = builder.required("world", WorldParser.worldParser())
+        Permission otherPermission = this.otherPermission(builder);
+        manager.command(builder.required("world", WorldParser.worldParser())
+                .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
                 .flag(manager.flagBuilder("location").withComponent(LocationFlagParser.locationFlagParser()))
-                .flag(manager.flagBuilder("unsafe"));
-        manager.command(command.required("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
-                .permission(this.otherPermission(command))
-                .handler(this::execute));
-        manager.command(command.handler(this::execute));
+                .flag(manager.flagBuilder("unsafe"))
+                .handler(context -> {
+                    if (context.contains("targets")) {
+                        PermissionResult permission = manager.testPermission(context.sender(), otherPermission);
+                        if (!permission.allowed()) {
+                            throw new NoPermissionException(permission, context.sender(), List.copyOf(context.command().components()));
+                        }
+                    }
+                    this.execute(context);
+                }));
     }
 
     private void execute(CommandContext<CommandSender> context) {

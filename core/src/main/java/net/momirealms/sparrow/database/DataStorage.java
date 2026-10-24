@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.database;
 
 import net.momirealms.sparrow.database.mariadb.MariaDbDataStorage;
-import net.momirealms.sparrow.database.mongo.MongoDataStorage;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
 import net.momirealms.sparrow.database.postgresql.PostgresDataStorage;
 import net.momirealms.sparrow.data.storage.DataStore;
@@ -32,7 +31,6 @@ public abstract class DataStorage implements AutoCloseable {
             case MYSQL -> new MysqlDataStorage(options, executor, logger);
             case MARIADB -> new MariaDbDataStorage(options, executor, logger);
             case POSTGRESQL -> new PostgresDataStorage(options, executor, logger);
-            case MONGODB -> new MongoDataStorage(options, executor, logger);
         };
     }
 
@@ -52,15 +50,10 @@ public abstract class DataStorage implements AutoCloseable {
         });
     }
 
-    // 建表或建集合时使用的名称前缀
+    // 建表时使用的名称前缀
     @NotNull
     protected String namePrefix() {
-        return switch (this.options.type()) {
-            case MYSQL -> this.options.mysql().tablePrefix();
-            case MARIADB -> this.options.mariadb().tablePrefix();
-            case POSTGRESQL -> this.options.postgresql().tablePrefix();
-            case MONGODB -> this.options.mongodb().collectionPrefix();
-        };
+        return this.options.tablePrefix();
     }
 
     @Override
