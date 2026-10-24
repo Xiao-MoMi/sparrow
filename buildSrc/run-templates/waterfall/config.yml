@@ -9,7 +9,6 @@ listeners:
     priorities:
       - paper
       - folia
-      - spigot
     force_default_server: false
     forced_hosts: {}
     query_enabled: false
@@ -27,8 +26,4 @@ servers:
   folia:
     address: 127.0.0.1:25567
     motd: 'Folia Test'
-    restricted: false
-  spigot:
-    address: 127.0.0.1:25568
-    motd: 'Spigot Test'
     restricted: false

@@ -3,25 +3,19 @@ package net.momirealms.sparrow.teleport.search;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.TicketType;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
-import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ImposterProtoChunk;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.proxy.minecraft.world.level.ChunkPosProxy;
 import net.momirealms.sparrow.util.Dimensions;
-import net.momirealms.sparrow.util.VersionHelper;
 import org.bukkit.craftbukkit.CraftChunk;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -114,8 +108,7 @@ public final class SearchChunks implements CollisionGetter {
     }
 
     /**
-     * 按平台支持的方式取得一个完整区块, 已加载区块直接返回.
-     * Paper 使用异步区块接口, Spigot 的区块源操作通过插件调度器切换到所需线程.
+     * 取得一个完整区块, 已加载区块直接返回, 其余通过 Paper 异步区块接口加载.
      *
      * @param x 区块 X 坐标
      * @param z 区块 Z 坐标
@@ -123,38 +116,10 @@ public final class SearchChunks implements CollisionGetter {
      */
     @NotNull
     private CompletableFuture<@Nullable LevelChunk> load(int x, int z) {
-        LevelChunk loaded = VersionHelper.hasPaperPatch ? this.world.getChunkSource().getChunkAtIfLoadedImmediately(x, z) : this.world.getChunkSource().getChunkNow(x, z);
+        LevelChunk loaded = this.world.getChunkSource().getChunkAtIfLoadedImmediately(x, z);
         if (loaded != null) return CompletableFuture.completedFuture(loaded);
-        if (VersionHelper.hasPaperPatch) {
-            return this.world.getWorld().getChunkAtAsync(x, z, this.policy == ChunkPolicy.ALLOW_GENERATION)
-                    .thenApply(chunk -> chunk == null ? null : (LevelChunk) ((CraftChunk) chunk).getHandle(ChunkStatus.FULL));
-        }
-        if (this.policy == ChunkPolicy.ALLOW_GENERATION) {
-            // Spigot 为每个加载任务持有独立且不过期的票据, 完成后在主线程释放.
-            TicketType ticket = new TicketType(TicketType.NO_TIMEOUT, TicketType.FLAG_LOADING);
-            ChunkPos position = new ChunkPos(x, z);
-            return CompletableFuture.runAsync(
-                    () -> this.world.getChunkSource().addTicketWithRadius(ticket, position, 0),
-                    SparrowPlugin.instance().scheduler().platform()
-            ).thenComposeAsync(
-                    // 主线程中的 getChunkFuture 会等待区块, 工作线程入口会将请求投递给区块源.
-                    ignored -> this.world.getChunkSource().getChunkFuture(x, z, ChunkStatus.FULL, true),
-                    SparrowPlugin.instance().scheduler().async()
-            ).thenApply(result -> {
-                ChunkAccess chunk = result.orElse(null);
-                if (chunk == null) throw new IllegalStateException("Failed to load destination chunk " + x + "," + z + ": " + result.getError());
-                return (LevelChunk) chunk;
-            }).whenCompleteAsync(
-                    (chunk, error) -> this.world.getChunkSource().removeTicketWithRadius(ticket, position, 0),
-                    SparrowPlugin.instance().scheduler().platform()
-            );
-        }
-        // EMPTY 阶段可以读取磁盘中的已有地形, 未完成生成的区块不推进到 FULL.
-        return CompletableFuture.supplyAsync(() -> {
-            ChunkAccess chunk = this.world.getChunkSource().getChunk(x, z, ChunkStatus.EMPTY, true);
-            if (chunk instanceof ImposterProtoChunk wrapper) return wrapper.getWrapped();
-            return chunk instanceof LevelChunk full ? full : null;
-        }, SparrowPlugin.instance().scheduler().platform());
+        return this.world.getWorld().getChunkAtAsync(x, z, this.policy == ChunkPolicy.ALLOW_GENERATION)
+                .thenApply(chunk -> chunk == null ? null : (LevelChunk) ((CraftChunk) chunk).getHandle(ChunkStatus.FULL));
     }
 
     @Override
