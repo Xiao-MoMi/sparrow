@@ -5,6 +5,8 @@ import net.kyori.adventure.sound.Sound;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.plugin.configuration.serializer.KeySerializer;
 import net.momirealms.sparrow.plugin.configuration.serializer.SoundSerializer;
+import net.momirealms.sparrow.plugin.configuration.serializer.TeleportProfileSerializer;
+import net.momirealms.sparrow.teleport.profile.TeleportProfiles;
 import net.momirealms.sparrow.yaml.SparrowYaml;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,6 +27,7 @@ public class ConfigurationManager {
         // 序列化器
         this.sparrowYaml.serializers().register(Key.class, KeySerializer.INSTANCE.serializer());
         this.sparrowYaml.serializers().register(Sound.class, SoundSerializer.INSTANCE.serializer());
+        this.sparrowYaml.serializers().register(TeleportProfiles.class, TeleportProfileSerializer.INSTANCE.serializer());
         // 配置文件
         this.pluginConfig = new PluginConfig(plugin, this.sparrowYaml);
         this.serverConfig = new ServerConfig(plugin.dataFolderPath(), this.sparrowYaml);

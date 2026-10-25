@@ -25,6 +25,17 @@ public final class DurationUtils {
      */
     @NotNull
     public static Duration parsePositive(@NotNull String value) {
+        long millis = parseMillis(value);
+        if (millis <= 0) throw new IllegalArgumentException("Invalid positive duration: " + value);
+        return Duration.ofMillis(millis);
+    }
+
+    @NotNull
+    public static Duration parseNonNegative(@NotNull String value) {
+        return Duration.ofMillis(parseMillis(value));
+    }
+
+    private static long parseMillis(String value) {
         Matcher matcher = PART.matcher(value);
         BigDecimal millis = BigDecimal.ZERO;
         int end = 0;
@@ -45,11 +56,11 @@ public final class DurationUtils {
             millis = millis.add(new BigDecimal(matcher.group(1)).multiply(BigDecimal.valueOf(multiplier)));
             end = matcher.end();
         }
-        long result = millis.setScale(0, RoundingMode.HALF_UP).longValueExact();
-        if (end != value.length() || result <= 0) {
-            throw new IllegalArgumentException("Invalid positive duration: " + value);
+        // 至少要有一段带单位的数值, 并且要一直匹配到末尾
+        if (end == 0 || end != value.length()) {
+            throw new IllegalArgumentException("Invalid duration: " + value);
         }
-        return Duration.ofMillis(result);
+        return millis.setScale(0, RoundingMode.HALF_UP).longValueExact();
     }
 
     /** 按 {@link #parsePositive} 能读回的写法输出时长, 精确到秒并省略为 0 的单位, 例如 1d2h30m. 不足一秒时输出 0s. */

@@ -105,6 +105,12 @@ public final class PluginConfig {
         @Comment("Select MYSQL, MARIADB or POSTGRESQL. Update the JDBC URL and credentials when changing the type.")
         @Comment(lang = "zh", value = "可选 MYSQL、MARIADB 或 POSTGRESQL. 切换类型时需同时调整 JDBC 地址和账号信息.")
         DatabaseType type = DatabaseType.MYSQL;
+        @Comment(value = {
+                "MYSQL: jdbc:mysql://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8",
+                "MARIADB: jdbc:mariadb://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8",
+                "POSTGRESQL: jdbc:postgresql://localhost:5432/minecraft?connectTimeout=5&socketTimeout=10"
+            }
+        )
         String url = "jdbc:mysql://localhost:3306/minecraft?connectTimeout=5000&socketTimeout=10000&characterEncoding=UTF-8";
         String username = "root";
         String password = "";
