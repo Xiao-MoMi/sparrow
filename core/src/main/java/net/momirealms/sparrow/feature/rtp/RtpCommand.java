@@ -19,8 +19,8 @@ public final class RtpCommand extends AbstractRtpCommand {
     public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         Permission otherPermission = this.otherPermission(builder);
         manager.command(builder
+                .required("player", PlayerParser.playerParser())
                 .required("region", RtpRegionParser.rtpRegionParser())
-                .optional("player", PlayerParser.playerParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(context -> {
                     this.checkOtherPermission(manager, otherPermission, context);

@@ -28,11 +28,11 @@ public final class RtpRangeCommand extends AbstractRtpCommand {
     public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         Permission otherPermission = this.otherPermission(builder);
         manager.command(builder
+                .required("player", PlayerParser.playerParser())
                 .required("server", ServerParser.all())
                 .required("world", ServerWorldParser.byServerId(context -> context.<String>get("server")))
                 .required("min-radius", IntegerParser.integerParser(0))
                 .required("max-radius", IntegerParser.integerParser(0))
-                .optional("player", PlayerParser.playerParser())
                 .flag(manager.flagBuilder("center-x").withComponent(IntegerParser.integerParser()))
                 .flag(manager.flagBuilder("center-z").withComponent(IntegerParser.integerParser()))
                 .flag(manager.flagBuilder("min-y").withComponent(DoubleParser.doubleParser()))

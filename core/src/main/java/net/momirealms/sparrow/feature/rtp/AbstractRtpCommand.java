@@ -25,9 +25,9 @@ abstract class AbstractRtpCommand extends BukkitCommandFeature {
         super(commandManager, plugin);
     }
 
-    // 指定了其他玩家时还需要 .other 权限
+    // 传送别人时还需要 .other 权限
     void checkOtherPermission(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Permission otherPermission, @NotNull CommandContext<CommandSender> context) {
-        if (!context.contains("player")) return;
+        if (context.<Player>get("player") == context.sender()) return;
         PermissionResult permission = manager.testPermission(context.sender(), otherPermission);
         if (!permission.allowed()) throw new NoPermissionException(permission, context.sender(), List.copyOf(context.command().components()));
     }
@@ -40,11 +40,7 @@ abstract class AbstractRtpCommand extends BukkitCommandFeature {
             @Nullable String server,
             @NotNull List<RtpArea> areas
     ) {
-        Player player = context.getOrDefault("player", context.sender() instanceof Player sender ? sender : null);
-        if (player == null) {
-            this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
-            return;
-        }
+        Player player = context.get("player");
         BukkitSparrowPlayer traveler = this.plugin().playerManager().getOnlinePlayer(player);
         CompletableFuture<@Nullable Component> outcome;
         // 区域权限按被传送者判断
