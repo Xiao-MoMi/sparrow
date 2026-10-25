@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.teleport.profile;
 
+import net.momirealms.sparrow.teleport.condition.ConditionFactory;
 import net.momirealms.sparrow.teleport.processor.post.PostProcessor;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
 import org.bukkit.permissions.Permissible;

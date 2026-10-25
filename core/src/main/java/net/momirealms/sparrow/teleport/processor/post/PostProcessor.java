@@ -12,6 +12,7 @@ public interface PostProcessor extends TeleportCodec {
     TeleportCodecRegistry<PostProcessor> TYPES = new TeleportCodecRegistry<>() {{
         this.register(PlaySound.TYPE, PlaySound::fromNbt);
         this.register(Invulnerability.TYPE, Invulnerability::fromNbt);
+        this.register(SetCooldown.TYPE, SetCooldown::fromNbt);
     }};
 
     /**

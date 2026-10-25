@@ -3,6 +3,8 @@ package net.momirealms.sparrow.plugin;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.teleport.TeleportService;
+import net.momirealms.sparrow.service.countdown.CountdownService;
+import net.momirealms.sparrow.service.cooldown.CooldownService;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.data.DataAccess;
 import net.momirealms.sparrow.player.PlayerManager;
@@ -77,6 +79,10 @@ public interface Plugin {
     PlayerManager playerManager();
 
     TeleportService teleportService();
+
+    CountdownService countdownService();
+
+    CooldownService cooldownService();
 
     FeatureManager featureManager();
 }

@@ -1,10 +1,18 @@
 package net.momirealms.sparrow.plugin.configuration.serializer;
 
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.minecraft.world.BossEvent;
+import net.momirealms.sparrow.service.countdown.CountdownDisplay;
+import net.momirealms.sparrow.service.countdown.CountdownSettings;
+import net.momirealms.sparrow.teleport.condition.ConditionFactory;
+import net.momirealms.sparrow.teleport.condition.CooldownCondition;
+import net.momirealms.sparrow.teleport.condition.WarmupCondition;
 import net.momirealms.sparrow.teleport.processor.post.Invulnerability;
 import net.momirealms.sparrow.teleport.processor.post.PlaySound;
 import net.momirealms.sparrow.teleport.processor.post.PostProcessor;
+import net.momirealms.sparrow.teleport.processor.post.SetCooldown;
 import net.momirealms.sparrow.teleport.processor.target.PositionProcessor;
-import net.momirealms.sparrow.teleport.profile.ConditionFactory;
 import net.momirealms.sparrow.teleport.profile.ProfileVariant;
 import net.momirealms.sparrow.teleport.profile.TeleportProfile;
 import net.momirealms.sparrow.teleport.profile.TeleportProfiles;
@@ -16,10 +24,21 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Duration;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 public final class TeleportProfileSerializer {
+    private static final CountdownSettings WARMUP_DEFAULTS = new CountdownSettings( // warmup 没写的选项取这里的值
+            Duration.ZERO,
+            true,
+            true,
+            CountdownDisplay.ACTION_BAR,
+            BossEvent.BossBarColor.YELLOW,
+            BossEvent.BossBarOverlay.PROGRESS,
+            Sound.sound(Key.key("block.note_block.banjo"), Sound.Source.MASTER, 1.0F, 1.0F),
+            Sound.sound(Key.key("entity.item.break"), Sound.Source.MASTER, 1.0F, 1.0F)
+    );
     public static final TeleportProfileSerializer INSTANCE = new TeleportProfileSerializer();
 
     private final NodeSerializer<TeleportProfiles> serializer;
@@ -33,10 +52,45 @@ public final class TeleportProfileSerializer {
         NodeSerializer<Invulnerability> invulnerability = duration.xmap(Invulnerability.class, value -> new Invulnerability((int) value.toSeconds()), effect -> Duration.ofSeconds(effect.seconds()))
                 .withAlternative(invulnerabilityMapping);
         NodeSerializer<PlaySound> sound = SoundSerializer.INSTANCE.serializer().xmap(PlaySound.class, PlaySound::new, PlaySound::sound);
+        NodeSerializer<WarmupCondition> warmup = NodeSerializers.mapping(WarmupCondition.class)
+                .group(
+                        duration.required("duration").forGetter(effect -> effect.settings().duration()),
+                        NodeSerializers.BOOLEAN.optional("cancel_on_move", WARMUP_DEFAULTS.cancelOnMove()).forGetter(effect -> effect.settings().cancelOnMove()),
+                        NodeSerializers.BOOLEAN.optional("cancel_on_damage", WARMUP_DEFAULTS.cancelOnDamage()).forGetter(effect -> effect.settings().cancelOnDamage()),
+                        lowerEnum(CountdownDisplay.class).optional("display", WARMUP_DEFAULTS.display()).forGetter(effect -> effect.settings().display()),
+                        lowerEnum(BossEvent.BossBarColor.class).optional("boss_bar_color", WARMUP_DEFAULTS.bossBarColor()).forGetter(effect -> effect.settings().bossBarColor()),
+                        lowerEnum(BossEvent.BossBarOverlay.class).optional("boss_bar_overlay", WARMUP_DEFAULTS.bossBarOverlay()).forGetter(effect -> effect.settings().bossBarOverlay()),
+                        SoundSerializer.INSTANCE.serializer().optional("tick_sound", WARMUP_DEFAULTS.tickSound()).forGetter(effect -> effect.settings().tickSound()),
+                        SoundSerializer.INSTANCE.serializer().optional("cancel_sound", WARMUP_DEFAULTS.cancelSound()).forGetter(effect -> effect.settings().cancelSound())
+                )
+                .apply((value, cancelOnMove, cancelOnDamage, display, bossBarColor, bossBarOverlay, tickSound, cancelSound) -> new WarmupCondition(
+                        new CountdownSettings(value, cancelOnMove, cancelOnDamage, display, bossBarColor, bossBarOverlay, tickSound, cancelSound)
+                ))
+                .withAlternative(duration, value -> new WarmupCondition(new CountdownSettings(
+                        value,
+                        WARMUP_DEFAULTS.cancelOnMove(),
+                        WARMUP_DEFAULTS.cancelOnDamage(),
+                        WARMUP_DEFAULTS.display(),
+                        WARMUP_DEFAULTS.bossBarColor(),
+                        WARMUP_DEFAULTS.bossBarOverlay(),
+                        WARMUP_DEFAULTS.tickSound(),
+                        WARMUP_DEFAULTS.cancelSound()
+                )));
+        // 冷却分成两半: before 段只检查, after 段在到达后开始计时; 两处的 id 都必须写
+        NodeSerializer<CooldownCondition> cooldownCheck = NodeSerializers.STRING.xmap(CooldownCondition.class, CooldownCondition::new, CooldownCondition::id)
+                .withAlternative(NodeSerializers.mapping(CooldownCondition.class)
+                        .group(NodeSerializers.STRING.required("id").forGetter(CooldownCondition::id))
+                        .apply(CooldownCondition::new));
+        NodeSerializer<SetCooldown> cooldownStart = NodeSerializers.mapping(SetCooldown.class)
+                .group(
+                        NodeSerializers.STRING.required("id").forGetter(SetCooldown::id),
+                        duration.required("duration").forGetter(SetCooldown::duration)
+                )
+                .apply(SetCooldown::new);
         // 每段一张效果表, 键是配置里写的效果名
-        Map<String, NodeSerializer<? extends ConditionFactory>> beforeEffects = Map.of();
+        Map<String, NodeSerializer<? extends ConditionFactory>> beforeEffects = Map.of("warmup", warmup, "cooldown", cooldownCheck);
         Map<String, NodeSerializer<? extends PositionProcessor>> targetEffects = Map.of();
-        Map<String, NodeSerializer<? extends PostProcessor>> afterEffects = Map.of("invulnerability", invulnerability, "sound", sound);
+        Map<String, NodeSerializer<? extends PostProcessor>> afterEffects = Map.of("invulnerability", invulnerability, "sound", sound, "cooldown", cooldownStart);
         NodeSerializer<Map<String, ConditionFactory>> before = stage("before", beforeEffects);
         NodeSerializer<Map<String, PositionProcessor>> target = stage("target", targetEffects);
         NodeSerializer<Map<String, PostProcessor>> after = stage("after", afterEffects);
@@ -107,6 +161,11 @@ public final class TeleportProfileSerializer {
             if (!keys.contains(key)) throw new IllegalArgumentException("Unknown " + kind + ": " + key);
             return key;
         }, key -> key);
+    }
+
+    // 枚举值写成小写, 读取时不区分大小写
+    private static <E extends Enum<E>> NodeSerializer<E> lowerEnum(Class<E> type) {
+        return NodeSerializers.scalar(type, value -> Enum.valueOf(type, value.toUpperCase(Locale.ROOT)), value -> value.name().toLowerCase(Locale.ROOT));
     }
 
     // 纯数字按秒, 其余按 DurationUtils 的写法, 允许 0

@@ -5,6 +5,8 @@ import org.spigotmc.SpigotConfig;
 import net.momirealms.sparrow.player.PlayerManager;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.teleport.TeleportService;
+import net.momirealms.sparrow.service.countdown.CountdownService;
+import net.momirealms.sparrow.service.cooldown.CooldownService;
 import net.momirealms.sparrow.plugin.command.BukkitCommandManager;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
@@ -73,6 +75,8 @@ public class SparrowPlugin implements Plugin {
     private final CompatibilityManager compatibilityManager;
     private final PlayerManager playerManager;
     private final TeleportService teleportService;
+    private final CountdownService countdownService;
+    private final CooldownService cooldownService;
 
     private CommandManager commandManager;
     private TranslationManager translationManager;
@@ -107,6 +111,8 @@ public class SparrowPlugin implements Plugin {
         this.compatibilityManager = new CompatibilityManager(this);
         this.playerManager = new PlayerManager();
         this.teleportService = new TeleportService();
+        this.countdownService = new CountdownService();
+        this.cooldownService = new CooldownService();
         this.featureManager = new FeatureManager();
 
         ((Logger) LogManager.getRootLogger()).addFilter(new DisconnectLogFilter());
@@ -204,6 +210,7 @@ public class SparrowPlugin implements Plugin {
         this.compatibilityManager.onEnable();
         this.playerManager.onEnable();
         this.teleportService.onEnable();
+        this.countdownService.onEnable();
         this.featureManager.onEnable().join();
         this.serverManager.onEnable();
         // 延迟初始化事件
@@ -226,6 +233,7 @@ public class SparrowPlugin implements Plugin {
         failures.runCatching(this.playerManager::closeSessions);
         failures.runCatching(this.featureManager::onPluginShutdown);
         failures.runCatching(this.teleportService::shutdown);
+        failures.runCatching(this.countdownService::shutdown);
         failures.runCatching(this.playerManager::shutdown);
         failures.runCatching(this.playerManager::closeRegistry);
         failures.runCatching(this.serverManager::shutdown);
@@ -583,6 +591,18 @@ public class SparrowPlugin implements Plugin {
     @NotNull
     public TeleportService teleportService() {
         return this.teleportService;
+    }
+
+    @Override
+    @NotNull
+    public CountdownService countdownService() {
+        return this.countdownService;
+    }
+
+    @Override
+    @NotNull
+    public CooldownService cooldownService() {
+        return this.cooldownService;
     }
 
     @Override
