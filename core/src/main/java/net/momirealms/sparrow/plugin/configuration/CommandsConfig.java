@@ -538,6 +538,21 @@ public final class CommandsConfig {
                 DependencyVersions.PROJECT_ID + ".command.highlight"
         );
 
+        @BlankLineBefore
+        CommandConfig rtp = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " rtp", "/rtp"),
+                DependencyVersions.PROJECT_ID + ".command.rtp"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("rtp-range")
+        CommandConfig rtpRange = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " rtp_range", "/rtp_range"),
+                DependencyVersions.PROJECT_ID + ".command.rtp_range"
+        );
+
         /**
          * 返回指定内置 Feature 的命令配置.
          *
@@ -616,6 +631,8 @@ public final class CommandsConfig {
                 case "maintenance" -> this.maintenance;
                 case "head" -> this.head;
                 case "patrol" -> this.patrol;
+                case "rtp" -> this.rtp;
+                case "rtp_range" -> this.rtpRange;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);
             };
         }

@@ -1,46 +1,41 @@
 package net.momirealms.sparrow.feature.rtp;
 
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.command.parser.ServerParser;
-import net.momirealms.sparrow.plugin.command.parser.ServerWorldParser;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
+import org.incendo.cloud.bukkit.parser.PlayerParser;
 import org.incendo.cloud.context.CommandContext;
-import org.incendo.cloud.parser.ParserDescriptor;
-import org.incendo.cloud.parser.standard.DoubleParser;
-import org.incendo.cloud.parser.standard.IntegerParser;
+import org.incendo.cloud.permission.Permission;
 import org.jetbrains.annotations.NotNull;
 
-public final class RtpCommand extends BukkitCommandFeature {
+public final class RtpCommand extends AbstractRtpCommand {
 
     public RtpCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NotNull CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
-        manager.command(builder.senderType(Player.class)
-                .required("server", ParserDescriptor.of(new ServerParser<>(server -> true, true), String.class))
-                .required("world", ServerWorldParser.serverWorldParser("server"))
-                .required("min-radius", DoubleParser.doubleParser(0))
-                .required("max-radius", DoubleParser.doubleParser(0))
-                .flag(manager.flagBuilder("center-x").withComponent(DoubleParser.doubleParser()).build())
-                .flag(manager.flagBuilder("center-z").withComponent(DoubleParser.doubleParser()).build())
-                .flag(manager.flagBuilder("min-y").withComponent(IntegerParser.integerParser()).build())
-                .flag(manager.flagBuilder("max-y").withComponent(IntegerParser.integerParser()).build())
-                .handler(this::execute));
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
+        Permission otherPermission = this.otherPermission(builder);
+        manager.command(builder
+                .required("region", RtpRegionParser.rtpRegionParser())
+                .optional("player", PlayerParser.playerParser())
+                .flag(manager.flagBuilder("silent").withAliases("s"))
+                .handler(context -> {
+                    this.checkOtherPermission(manager, otherPermission, context);
+                    this.execute(context);
+                }));
     }
 
-    private void execute(CommandContext<Player> context) {
-        // TODO 接入新的传送配置与处理器后实现
+    private void execute(@NotNull CommandContext<CommandSender> context) {
+        RtpConfig.Region region = context.get("region");
+        this.start(context, region.name(), region.permission(), region.server(), region.areas());
     }
 
     @NotNull
     @Override
     public String getFeatureID() {
-        return RtpFeature.ID;
+        return "rtp";
     }
 }
