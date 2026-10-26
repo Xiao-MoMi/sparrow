@@ -117,8 +117,6 @@ public final class BackFeature implements Feature, Listener {
         if (!this.enabled) return;
         BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(event.getPlayer());
         if (player == null) return;
-        // Sparrow 本服传送由到达事件记录, 平台事件负责其余可观察的传送
-        if (event.getCause() == TeleportCause.PLUGIN && this.plugin.teleportService().isExecutingLocally(player)) return;
         ServerLocation from = ServerLocation.from(ServerConfig.serverId(), event.getFrom());
         ServerLocation to = ServerLocation.from(ServerConfig.serverId(), event.getTo());
         if (!this.shouldRecord(from, to, event.getCause(), player.connection.connectedAt(), System.currentTimeMillis())) return;

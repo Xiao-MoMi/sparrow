@@ -141,7 +141,7 @@ final class TeleportTarget implements Listener {
                     .thenComposeAsync(location -> {
                         Location target = location.resolve();
                         if (target == null) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_REJECTED_INVALID));
-                        return this.moveLocally(request.requestId(), player, target, request.context());
+                        return this.moveLocally(player, target);
                     }, this.plugin.scheduler().async())
                     .orTimeout(LOCAL_EXECUTION_SECONDS, TimeUnit.SECONDS)
                     .whenComplete((outcome, error) -> {
@@ -167,22 +167,17 @@ final class TeleportTarget implements Listener {
         return arrival.result;
     }
 
-    private CompletableFuture<TeleportResult> moveLocally(UUID requestId, BukkitSparrowPlayer player, Location target, TeleportContext context) {
-        TeleportService service = this.plugin.teleportService();
+    private CompletableFuture<TeleportResult> moveLocally(BukkitSparrowPlayer player, Location target) {
         CompletableFuture<CompletableFuture<TeleportResult>> scheduled = new CompletableFuture<>();
         scheduled.completeAsync(
                 () -> {
                     if (this.plugin.playerManager().getOnlinePlayer(player.platformPlayer) != player) {
                         return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_UNAVAILABLE));
                     }
-                    if (!service.beginLocal(player, scheduled)) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_BUSY));
-                    context.captureDeparture(player);
                     return player.platformPlayer.teleportAsync(target, TeleportCause.PLUGIN)
-                            .whenComplete((moved, error) -> service.endLocal(player, scheduled))
                             .thenApply(moved -> {
                                 if (!moved) return new TeleportResult.Fail(MessageConstants.TELEPORT_FAILED);
                                 if (this.plugin.playerManager().getOnlinePlayer(player.platformPlayer) != player) return new TeleportResult.Fail(MessageConstants.TELEPORT_UNAVAILABLE);
-                                this.fireArriveEvent(requestId, player, context);
                                 return new TeleportResult.Success();
                             });
                 },
@@ -192,7 +187,7 @@ final class TeleportTarget implements Listener {
                         player.platformPlayer
                 )
         );
-        return scheduled.thenCompose(moved -> moved).whenComplete((ignored, error) -> service.endLocal(player, scheduled));
+        return scheduled.thenCompose(moved -> moved);
     }
 
     // 玩家进入本服时, 如果玩家有待到达的传送时, 把出生点换成目的地.
