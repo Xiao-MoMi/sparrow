@@ -320,6 +320,19 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_TPA_CANCEL_NONE = Component.translatable("command.tpa-cancel.none");
     TranslatableComponent COMMAND_TPA_CANCEL_NONE_TO = Component.translatable("command.tpa-cancel.none-to");
 
+    TranslatableComponent COMMAND_WARP_UNKNOWN = Component.translatable("command.warp.unknown");
+    TranslatableComponent COMMAND_WARP_NO_PERMISSION = Component.translatable("command.warp.no-permission");
+    TranslatableComponent COMMAND_WARP_SUCCESS_SELF = Component.translatable("command.warp.success-self");
+    TranslatableComponent COMMAND_WARP_SUCCESS = Component.translatable("command.warp.success");
+    TranslatableComponent COMMAND_WARP_FAILED = Component.translatable("command.warp.failed");
+    TranslatableComponent COMMAND_WARP_STORAGE_FAILED = Component.translatable("command.warp.storage-failed");
+    TranslatableComponent COMMAND_WARP_EXISTS = Component.translatable("command.warp.exists");
+    TranslatableComponent COMMAND_WARP_INVALID_NAME = Component.translatable("command.warp.invalid-name");
+    TranslatableComponent COMMAND_SET_WARP_CREATED = Component.translatable("command.set-warp.created");
+    TranslatableComponent COMMAND_DEL_WARP_SUCCESS = Component.translatable("command.del-warp.success");
+    TranslatableComponent COMMAND_EDIT_WARP_RENAMED = Component.translatable("command.edit-warp.renamed");
+    TranslatableComponent COMMAND_EDIT_WARP_RELOCATED = Component.translatable("command.edit-warp.relocated");
+
     TranslatableComponent COMMAND_SPAWN_NOT_SET = Component.translatable("command.spawn.not-set");
     TranslatableComponent COMMAND_SPAWN_SUCCESS = Component.translatable("command.spawn.success");
 

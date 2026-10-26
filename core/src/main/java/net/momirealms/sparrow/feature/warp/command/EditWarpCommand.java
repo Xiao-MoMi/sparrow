@@ -19,237 +19,127 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
-import org.incendo.cloud.parser.standard.StringParser;
-import org.incendo.cloud.parser.standard.UUIDParser;
 import org.incendo.cloud.permission.Permission;
 import org.incendo.cloud.suggestion.SuggestionProvider;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class EditWarpCommand extends BukkitCommandFeature {
     private final WarpFeature feature;
 
-    public EditWarpCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin, @NotNull WarpFeature feature) {
-        super(commandManager, plugin);
+    public EditWarpCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull WarpFeature feature) {
+        super(manager, plugin);
         this.feature = feature;
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         Command.Builder<CommandSender> named = builder.required(
                 "name",
                 TokenParser.tokenParser(),
-                SuggestionProvider.blockingStrings((context, input) -> this.feature.suggest(context.sender(), input.peekString()))
+                SuggestionProvider.blockingStrings((context, input) -> this.feature.registry().complete(input.peekString(), warp -> true))
         );
-        manager.command(named.handler(this::execute));
+        manager.command(named.handler(context -> {
+            Warp warp = this.find(context);
+            if (warp != null) this.show(context.sender(), warp);
+        }));
         manager.command(named.literal("rename")
                 .permission(Permission.allOf(builder.commandPermission(), Permission.of(this.permission("rename"))))
-                .required("new_name", StringParser.greedyStringParser())
+                .required("new_name", TokenParser.tokenParser())
                 .handler(this::rename));
-        manager.command(named.literal("description")
-                .permission(Permission.allOf(builder.commandPermission(), Permission.of(this.permission("description"))))
-                .required("text", StringParser.greedyStringParser())
-                .handler(this::description));
         manager.command(named.literal("relocate")
-                .permission(Permission.allOf(builder.commandPermission(), Permission.of(this.permission("relocate"))))
                 .senderType(Player.class)
+                .permission(Permission.allOf(builder.commandPermission(), Permission.of(this.permission("relocate"))))
                 .handler(this::relocate));
-        Command.Builder<CommandSender> delete = named.literal("delete").permission(
-                Permission.allOf(builder.commandPermission(), Permission.of(this.permission("delete")))
-        );
-        manager.command(delete.handler(this::confirmDelete));
-        manager.command(delete.literal("confirm").required("id", UUIDParser.uuidParser()).handler(this::delete));
     }
 
-    @NotNull
-    private String permission(@NotNull String operation) {
+    private String permission(String operation) {
         return this.commandConfig().getPermission() + "." + operation;
     }
 
     @Nullable
-    private Warp find(@NotNull CommandContext<? extends CommandSender> context) {
+    private Warp find(CommandContext<? extends CommandSender> context) {
         String name = context.get("name");
         Warp warp = this.feature.registry().get(name);
-        if (warp == null || !this.feature.visible(context.sender(), warp)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
-            return null;
-        }
+        if (warp == null) this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
         return warp;
     }
 
-    private void execute(CommandContext<CommandSender> context) {
-        Warp warp = this.find(context);
-        if (warp != null) {
-            this.show(context.sender(), warp);
-        }
-    }
-
-    private void show(@NotNull CommandSender sender, @NotNull Warp warp) {
+    private void show(CommandSender sender, Warp warp) {
         WorldLocation location = warp.location();
-        CommandPanel panel = new CommandPanel(this.commandManager(), sender);
-        panel.line(Component.translatable(
-                "command.edit-warp.info",
-                Component.text(warp.name()),
-                Component.text(warp.id().toString()),
-                Component.text(warp.key()),
-                Component.text(warp.description()),
-                Component.text(warp.server()),
-                Component.text(location.world()),
-                Component.text(location.x()),
-                Component.text(location.y()),
-                Component.text(location.z()),
-                Component.text(location.yaw()),
-                Component.text(location.pitch()),
-                warp.creator() == null ? Component.translatable("command.edit-warp.console") : Component.text(warp.creator().toString()),
-                Component.text(DateTimeUtils.fullTime(warp.createdAt())),
-                Component.text(DateTimeUtils.fullTime(warp.updatedAt()))
-        ));
-        panel.actions(
-                panel.suggest(CommandPanel.label("rename"), this.getFeatureID(), warp.name() + " rename ")
-                        .permission(this.permission("rename"))
-                        .build(),
-                panel.suggest(CommandPanel.label("description"), this.getFeatureID(), warp.name() + " description ")
-                        .permission(this.permission("description"))
-                        .build(),
-                panel.run(CommandPanel.label("relocate"), this.getFeatureID(), warp.name() + " relocate")
-                        .style(PanelButton.Style.POSITIVE)
-                        .permission(this.permission("relocate"))
-                        .playersOnly()
-                        .build(),
-                panel.run(CommandPanel.label("delete"), this.getFeatureID(), warp.name() + " delete")
-                        .style(PanelButton.Style.DANGER)
-                        .permission(this.permission("delete"))
-                        .build()
-        );
-        panel.send();
+        String coordinates = location.x() + " " + location.y() + " " + location.z() + " " + location.yaw() + " " + location.pitch();
+        Component creator = warp.creator() == null ? Component.translatable("command.edit-warp.console") : Component.text(warp.creator().toString());
+        Component noPermission = Component.translatable("command.panel.no-permission");
+        CommandPanel.builder()
+                .title(Component.translatable("command.edit-warp.title", Component.text(warp.name())))
+                .copyField(Component.translatable("command.edit-warp.name"), warp.name())
+                .copyField(Component.translatable("command.edit-warp.id"), warp.id().toString())
+                .field(Component.translatable("command.edit-warp.server"), warp.server())
+                .field(Component.translatable("command.edit-warp.world"), location.world())
+                .copyField(Component.translatable("command.edit-warp.location"), coordinates)
+                .field(Component.translatable("command.edit-warp.creator"), creator)
+                .field(Component.translatable("command.edit-warp.created-at"), DateTimeUtils.fullTime(warp.createdAt()))
+                .field(Component.translatable("command.edit-warp.updated-at"), DateTimeUtils.fullTime(warp.updatedAt()))
+                .buttons(
+                        PanelButton.run(Component.translatable("command.warp.button.teleport"), "warp", warp.name()).disabledIf(!this.feature.visible(sender, warp), noPermission),
+                        PanelButton.suggest(Component.translatable("command.warp.button.rename"), "edit_warp", warp.name() + " rename ").disabledIf(!sender.hasPermission(this.permission("rename")), noPermission),
+                        PanelButton.run(Component.translatable("command.warp.button.relocate"), "edit_warp", warp.name() + " relocate")
+                                .disabledIf(!sender.hasPermission(this.permission("relocate")), noPermission)
+                                .disabledIf(!(sender instanceof Player), MessageConstants.COMMAND_PLAYER_REQUIRED),
+                        PanelButton.run(Component.translatable("command.warp.button.delete"), "del_warp", warp.name())
+                )
+                .build()
+                .send(sender);
     }
 
     private void rename(CommandContext<CommandSender> context) {
         Warp warp = this.find(context);
-        if (warp == null) {
-            return;
-        }
+        if (warp == null) return;
         String name = context.get("new_name");
         this.save(
                 context,
-                name,
                 this.feature.service().rename(warp.id(), name),
+                name,
                 MessageConstants.COMMAND_EDIT_WARP_RENAMED,
                 Component.text(warp.name()),
                 Component.text(name)
         );
     }
 
-    private void description(CommandContext<CommandSender> context) {
-        Warp warp = this.find(context);
-        if (warp == null) {
-            return;
-        }
-        String text = context.get("text");
-        this.save(
-                context,
-                warp.name(),
-                this.feature.service().setDescription(warp.id(), text),
-                MessageConstants.COMMAND_EDIT_WARP_DESCRIPTION,
-                Component.text(warp.name())
-        );
-    }
-
     private void relocate(CommandContext<Player> context) {
         Warp warp = this.find(context);
-        if (warp == null) {
-            return;
-        }
+        if (warp == null) return;
         this.save(
                 context,
-                warp.name(),
                 this.feature.service().relocate(warp.id(), ServerConfig.serverId(), WorldLocation.from(context.sender().getLocation())),
-                MessageConstants.COMMAND_SET_WARP_MOVED,
+                warp.name(),
+                MessageConstants.COMMAND_EDIT_WARP_RELOCATED,
                 Component.text(warp.name())
         );
     }
 
-    private void save(
-            @NotNull CommandContext<? extends CommandSender> context,
-            @NotNull String name,
-            @NotNull CompletableFuture<WarpService.Result> operation,
-            @NotNull TranslatableComponent message,
-            @NotNull Component... arguments
-    ) {
-        operation.thenAccept(result -> {
-            switch (result.status()) {
-                case UPDATED -> {
-                    this.handleFeedback(context, message, arguments);
-                    this.show(context.sender(), result.warp());
-                }
-                case DUPLICATE_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_SET_WARP_EXISTS, Component.text(name));
-                case NOT_FOUND -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
-                case INVALID_NAME -> this.handleFeedback(
-                        context,
-                        MessageConstants.COMMAND_WARP_INVALID_NAME,
-                        Component.text(name),
-                        Component.text(Warp.MAX_NAME_LENGTH)
-                );
-                case DESCRIPTION_TOO_LONG -> this.handleFeedback(
-                        context,
-                        MessageConstants.COMMAND_EDIT_WARP_DESCRIPTION_TOO_LONG,
-                        Component.text(Warp.MAX_DESCRIPTION_LENGTH)
-                );
-                case CREATED -> throw new AssertionError();
+    private void save(CommandContext<?> context, CompletableFuture<WarpService.Result> operation, String name, TranslatableComponent success, Component... arguments) {
+        operation.whenComplete((result, error) -> {
+            if (error != null) {
+                this.plugin().logger().warn("Failed to edit warp " + name, error);
+                this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(name));
+                return;
             }
-        }).exceptionally(error -> {
-            this.plugin().logger().warn("Failed to save warp " + name, error);
-            this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(name));
-            return null;
+            switch (result.status()) {
+                case UPDATED -> this.handleFeedback(context, success, arguments);
+                case DUPLICATE_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_EXISTS, Component.text(name));
+                case NOT_FOUND -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(name));
+                case INVALID_NAME -> this.handleFeedback(context, MessageConstants.COMMAND_WARP_INVALID_NAME, Component.text(name), Component.text(Warp.MAX_NAME_LENGTH));
+                case CREATED -> throw new IllegalStateException("Unexpected edit result: " + result.status());
+            }
         });
     }
 
-    private void confirmDelete(CommandContext<CommandSender> context) {
-        Warp warp = this.find(context);
-        if (warp == null) return;
-        CommandPanel panel = new CommandPanel(this.commandManager(), context.sender());
-        panel.line(Component.translatable("command.edit-warp.confirm-delete", Component.text(warp.name())))
-                .actions(
-                        panel.run(CommandPanel.label("confirm_delete"), this.getFeatureID(), warp.name() + " delete confirm " + warp.id())
-                        .style(PanelButton.Style.DANGER)
-                        .permission(this.permission("delete"))
-                        .build(),
-                        panel.run(CommandPanel.label("cancel"), this.getFeatureID(), warp.name()).build()
-                );
-        panel.send();
-    }
-
-    private void delete(CommandContext<CommandSender> context) {
-        Warp warp = this.find(context);
-        if (warp == null) return;
-        UUID id = context.get("id");
-        // 确认按钮绑定记录的 UUID, 原记录被删后重建同名 warp 不会被旧按钮删除.
-        if (!warp.id().equals(id)) {
-            this.handleFeedback(context, MessageConstants.COMMAND_WARP_UNKNOWN, Component.text(warp.name()));
-            return;
-        }
-        this.feature.service()
-                .delete(id)
-                .thenAccept(deleted -> {
-                    this.handleFeedback(
-                            context,
-                            deleted ? MessageConstants.COMMAND_DEL_WARP_SUCCESS : MessageConstants.COMMAND_WARP_UNKNOWN,
-                            Component.text(warp.name())
-                    );
-                })
-                .exceptionally(error -> {
-                    this.plugin().logger().warn("Failed to delete warp " + warp.name(), error);
-                    this.handleFeedback(context, MessageConstants.COMMAND_WARP_STORAGE_FAILED, Component.text(warp.name()));
-                    return null;
-                });
-    }
-
+    @NotNull
     @Override
     public String getFeatureID() {
-        return "edit-warp";
+        return "edit_warp";
     }
 }

@@ -557,6 +557,45 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig warp = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " warp", "/warp"),
+                DependencyVersions.PROJECT_ID + ".command.warp"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("set-warp")
+        CommandConfig setWarp = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " set_warp", "/set_warp"),
+                DependencyVersions.PROJECT_ID + ".command.set_warp"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("del-warp")
+        CommandConfig delWarp = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " del_warp", "/del_warp"),
+                DependencyVersions.PROJECT_ID + ".command.del_warp"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("edit-warp")
+        CommandConfig editWarp = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " edit_warp", "/edit_warp"),
+                DependencyVersions.PROJECT_ID + ".command.edit_warp"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("warp-list")
+        CommandConfig warpList = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " warp_list", "/warp_list"),
+                DependencyVersions.PROJECT_ID + ".command.warp_list"
+        );
+
+        @BlankLineBefore
         CommandConfig spawn = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " spawn", "/spawn"),
@@ -692,6 +731,11 @@ public final class CommandsConfig {
                 case "maintenance" -> this.maintenance;
                 case "head" -> this.head;
                 case "spawn" -> this.spawn;
+                case "warp" -> this.warp;
+                case "set_warp" -> this.setWarp;
+                case "del_warp" -> this.delWarp;
+                case "edit_warp" -> this.editWarp;
+                case "warp_list" -> this.warpList;
                 case "tpa" -> this.tpa;
                 case "tpa_here" -> this.tpaHere;
                 case "tpa_accept" -> this.tpaAccept;

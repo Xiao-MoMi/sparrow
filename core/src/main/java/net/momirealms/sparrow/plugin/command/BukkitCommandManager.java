@@ -10,6 +10,12 @@ import net.momirealms.sparrow.feature.head.HeadCommand;
 import net.momirealms.sparrow.feature.head.HeadFeature;
 import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.feature.tpa.TpaFeature;
+import net.momirealms.sparrow.feature.warp.WarpFeature;
+import net.momirealms.sparrow.feature.warp.command.WarpCommand;
+import net.momirealms.sparrow.feature.warp.command.SetWarpCommand;
+import net.momirealms.sparrow.feature.warp.command.DelWarpCommand;
+import net.momirealms.sparrow.feature.warp.command.EditWarpCommand;
+import net.momirealms.sparrow.feature.warp.command.WarpListCommand;
 import net.momirealms.sparrow.feature.tpa.TpaRequest;
 import net.momirealms.sparrow.feature.tpa.command.TpaCommand;
 import net.momirealms.sparrow.feature.tpa.command.TpaReplyCommand;
@@ -229,6 +235,14 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.registerFeature(new TpaReplyCommand(tpa, "tpa_accept", true), tpaPermission);
         this.registerFeature(new TpaReplyCommand(tpa, "tpa_deny", false), tpaPermission);
         this.registerFeature(new TpaCancelCommand(tpa), tpaPermission);
+
+        WarpFeature warp = this.plugin.featureManager().feature(WarpFeature.ID, WarpFeature.class);
+        FeaturePermission warpPermission = new FeaturePermission(WarpFeature.ID, () -> this.plugin.featureManager().isEnabled(WarpFeature.ID));
+        this.registerFeature(new WarpCommand(this, this.plugin, warp), warpPermission);
+        this.registerFeature(new SetWarpCommand(this, this.plugin, warp), warpPermission);
+        this.registerFeature(new DelWarpCommand(this, this.plugin, warp), warpPermission);
+        this.registerFeature(new EditWarpCommand(this, this.plugin, warp), warpPermission);
+        this.registerFeature(new WarpListCommand(this, this.plugin, warp), warpPermission);
     }
 
     @Override
