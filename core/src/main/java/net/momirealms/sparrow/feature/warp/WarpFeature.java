@@ -1,77 +1,87 @@
 package net.momirealms.sparrow.feature.warp;
 
+import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.feature.Feature;
-import net.momirealms.sparrow.feature.warp.command.*;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
-import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.List;
-import java.util.function.Consumer;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
+import java.util.concurrent.CompletableFuture;
 
-public final class WarpFeature extends Feature<WarpSettings> {
+public final class WarpFeature implements Feature {
     public static final String ID = "warp";
-    public static final String PERMISSION_PREFIX = DependencyVersions.PROJECT_ID + ".warp."; // 开启权限限制后, 加上小写名称即为该 warp 的权限
+    private static final String USE_PERMISSION = DependencyVersions.PROJECT_ID + ".warp.use.";
 
-    private final SparrowPlugin plugin;
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
+    private volatile WarpConfig config;
     private volatile WarpRegistry registry;
     private WarpService service;
 
-    public WarpFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
-        this.plugin = plugin;
+    @NotNull
+    @Override
+    public String id() {
+        return ID;
     }
 
-    // 配置写错时在启用前报告
     @Override
-    public void loadConfig() {
-        WarpSettings settings = this.plugin.configurationManager().featuresConfig().config().warp();
-        if (settings.suggestionLimit() < 1) throw new IllegalArgumentException("warp.suggestion-limit must be at least 1");
+    public boolean supportsHotEnable() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsHotDisable() {
+        return true;
+    }
+
+    private WarpConfig readConfig() {
+        Path path = this.plugin.dataFolderPath().resolve("features/warp.yml");
         try {
-            Pattern.compile(settings.namePattern());
-        } catch (PatternSyntaxException exception) {
-            throw new IllegalArgumentException("warp.name-pattern is not a valid regular expression: " + settings.namePattern(), exception);
+            return YamlMapperFactory.builder()
+                    .sparrowYaml(this.plugin.configurationManager().sparrowYaml())
+                    .build()
+                    .create(WarpSettings.class, WarpSettings::new)
+                    .load(path)
+                    .value()
+                    .toConfig();
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to load " + path, exception);
         }
-        super.config = settings;
     }
 
+    @NotNull
     @Override
-    protected void onLoad() {
-        this.registry = new WarpRegistry();
-        this.service = new WarpService();
+    public CompletableFuture<Void> onEnable() {
+        WarpConfig loaded = this.readConfig();
+        WarpStore store = this.plugin.dataStorage().warpStore();
+        WarpRegistry registry = new WarpRegistry(store);
+        this.config = loaded;
+        this.registry = registry;
+        this.service = new WarpService(this, store, registry);
+        return registry.load().whenComplete((ignored, error) -> {
+            if (error != null) registry.close();
+        });
     }
 
+    @NotNull
     @Override
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-        CommandManager manager = this.plugin.commandManager();
-        register.accept(new WarpCommand(manager, this.plugin, this));
-        register.accept(new SetWarpCommand(manager, this.plugin, this));
-        register.accept(new DelWarpCommand(manager, this.plugin, this));
-        register.accept(new WarpListCommand(manager, this.plugin, this));
-        register.accept(new EditWarpCommand(manager, this.plugin, this));
+    public CompletableFuture<Void> onReload() {
+        this.config = this.readConfig();
+        return CompletableFuture.completedFuture(null);
     }
 
-    // 停用期间收不到其他服务器的变更, 每次启用都整表重读. 读完之前阻塞, 启用后的查找一定能命中
+    @NotNull
     @Override
-    protected void onEnable() {
-        this.registry.load();
-    }
-
-    @Override
-    protected void onDisable() {
-        this.registry.close();
-    }
-
-    void accept(@NotNull WarpMessage message) {
+    public CompletableFuture<Void> onDisable() {
         WarpRegistry registry = this.registry;
-        if (registry != null) {
-            registry.accept(message);
-        }
+        if (registry != null) registry.close();
+        return CompletableFuture.completedFuture(null);
     }
 
     @NotNull
@@ -84,16 +94,24 @@ public final class WarpFeature extends Feature<WarpSettings> {
         return this.service;
     }
 
-    /**
-     * 开启权限限制时, 只有拥有对应权限的执行者能看到和使用该 warp.
-     */
-    public boolean visible(@NotNull CommandSender sender, @NotNull Warp warp) {
-        return !super.config.permissionRestrict() || sender.hasPermission(PERMISSION_PREFIX + warp.key());
+    WarpConfig config() {
+        return this.config;
     }
 
-    // 补全只读内存, 按前缀最多返回 suggestion-limit 个
+    public boolean visible(@NotNull CommandSender sender, @NotNull Warp warp) {
+        return !this.config.permissionRestrict() || sender.hasPermission(USE_PERMISSION + warp.getNameKey());
+    }
+
     @NotNull
     public List<String> suggest(@NotNull CommandSender sender, @NotNull String input) {
-        return this.registry.complete(input, warp -> this.visible(sender, warp), super.config.suggestionLimit());
+        return this.registry.complete(input, warp -> this.visible(sender, warp));
+    }
+
+    void accept(WarpMessage message) {
+        WarpRegistry registry = this.registry;
+        if (registry == null || message.origin().equals(ServerConfig.serverId())) return;
+        registry.refresh(message.warpId()).whenComplete((ignored, error) -> {
+            if (error != null) this.plugin.logger().warn("Failed to refresh warp " + message.warpId(), error);
+        });
     }
 }

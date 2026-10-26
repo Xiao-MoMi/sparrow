@@ -4,6 +4,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.data.message.DataChangedMessage;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceMessage;
 import net.momirealms.sparrow.feature.tpa.TpaMessage;
+import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.feature.patrol.PatrolCandidatesRequest;
 import net.momirealms.sparrow.feature.patrol.PatrolCandidatesResponse;
 import net.momirealms.sparrow.player.message.BroadcastMessage;
@@ -90,6 +91,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(DataChangedMessage.ID, DataChangedMessage.CODEC);
         this.broker.registry().register(MaintenanceMessage.ID, MaintenanceMessage.CODEC);
         this.broker.registry().register(TpaMessage.ID, TpaMessage.CODEC);
+        this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
         this.broker.registry().register(PatrolCandidatesRequest.ID, PatrolCandidatesRequest.CODEC);
         this.broker.registry().register(PatrolCandidatesResponse.ID, PatrolCandidatesResponse.CODEC);
         this.broker.registry().register(OpenContainerMessage.ID, OpenContainerMessage.CODEC);

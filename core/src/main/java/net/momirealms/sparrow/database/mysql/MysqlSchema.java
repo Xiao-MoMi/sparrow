@@ -15,12 +15,23 @@ public final class MysqlSchema {
     public static final String IP_HISTORY_COMPONENT = "player_ip_history";
     public static final List<String> IP_HISTORY_TABLES = List.of("player_ip_history");
 
+    public static final String WARP_COMPONENT = "warp_schema";
+    public static final List<String> WARP_TABLES = List.of("warps");
+
     public static final String BACK_COMPONENT = "back";
     public static final List<String> BACK_TABLES = List.of("back");
 
     private static final String TABLE_OPTIONS = " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin";
 
     private MysqlSchema() {
+    }
+
+    public static void initializeWarps(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "warps` ("
+                + "id BINARY(16) PRIMARY KEY, name_key VARCHAR(64) NOT NULL, name VARCHAR(32) NOT NULL, "
+                + "server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE NOT NULL, y DOUBLE NOT NULL, z DOUBLE NOT NULL, "
+                + "yaw FLOAT NOT NULL, pitch FLOAT NOT NULL, creator BINARY(16), created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL, "
+                + "UNIQUE KEY warps_name (name_key))" + TABLE_OPTIONS);
     }
 
     public static void initializeBack(@NotNull Handle handle, @NotNull String prefix) {

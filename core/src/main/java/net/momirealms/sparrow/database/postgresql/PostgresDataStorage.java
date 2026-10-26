@@ -3,6 +3,7 @@ package net.momirealms.sparrow.database.postgresql;
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
 import net.momirealms.sparrow.database.BackStore;
+import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.database.PlayerProfileStore;
 import net.momirealms.sparrow.database.PlayerNameHistoryStore;
 import net.momirealms.sparrow.database.PlayerIpHistoryStore;
@@ -26,6 +27,7 @@ public final class PostgresDataStorage extends DataStorage {
     private HikariDataSource pool;
     private PostgresPlayerProfileStore profileStore;
     private PostgresBackStore backStore;
+    private PostgresWarpStore warpStore;
     private PostgresPlayerNameHistoryStore nameHistoryStore;
     private PostgresPlayerIpHistoryStore ipHistoryStore;
 
@@ -53,6 +55,7 @@ public final class PostgresDataStorage extends DataStorage {
             this.initializeSchemas(jdbi);
             this.pool = connected;
             this.backStore = new PostgresBackStore(jdbi, super.executor, this.namePrefix());
+            this.warpStore = new PostgresWarpStore(jdbi, super.executor, this.namePrefix());
             this.profileStore = new PostgresPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new PostgresPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
             this.ipHistoryStore = new PostgresPlayerIpHistoryStore(jdbi, super.executor, this.namePrefix());
@@ -63,6 +66,14 @@ public final class PostgresDataStorage extends DataStorage {
     }
 
     private void initializeSchemas(@NotNull Jdbi jdbi) {
+        new PostgresSchemaMigrator(
+                this.logger,
+                PostgresSchema.WARP_COMPONENT,
+                PostgresSchema.WARP_TABLES,
+                DependencyVersions.WARP_SCHEMA_VERSION,
+                PostgresSchema::initializeWarps,
+                List.of()
+        ).migrate(jdbi, this.namePrefix());
         new PostgresSchemaMigrator(
                 this.logger,
                 PostgresSchema.BACK_COMPONENT,
@@ -95,6 +106,12 @@ public final class PostgresDataStorage extends DataStorage {
                 PostgresSchema::initializeIpHistory,
                 IP_HISTORY_MIGRATIONS
         ).migrate(jdbi, this.namePrefix());
+    }
+
+    @NotNull
+    @Override
+    public WarpStore warpStore() {
+        return this.warpStore;
     }
 
     @NotNull

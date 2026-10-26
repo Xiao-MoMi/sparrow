@@ -1,194 +1,159 @@
 package net.momirealms.sparrow.feature.warp;
 
 import net.momirealms.sparrow.database.WarpStore;
-import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.TreeMap;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 
 public final class WarpRegistry implements AutoCloseable {
     private final WarpStore store;
-    private final String serverId;
-    private volatile Snapshot snapshot = Snapshot.EMPTY;
-    private volatile @Nullable Session session;
+    private @Nullable Session session;
 
-    public WarpRegistry() {
-        this.store = SparrowPlugin.instance().dataStorage().warpStore();
-        this.serverId = ServerConfig.serverId();
-    }
-
-    /**
-     * 建立本次启用的完整目录.
-     * <strong>会阻塞调用线程直到读取完成</strong>.
-     */
-    public void load() {
-        Session session = new Session();
-        synchronized (this) {
-            this.session = session;
-            this.snapshot = Snapshot.EMPTY;
-        }
-        try {
-            this.refresh().join();
-        } catch (RuntimeException failure) {
-            this.close(session);
-            throw failure;
-        }
-    }
-
-    @Nullable
-    public Warp get(@NotNull String name) {
-        return this.snapshot.byKey.get(Warp.key(name));
-    }
-
-    @Nullable
-    public Warp get(@NotNull UUID id) {
-        return this.snapshot.byId.get(id);
-    }
-
-    public int size() {
-        return this.snapshot.warps.size();
+    WarpRegistry(WarpStore store) {
+        this.store = store;
     }
 
     @NotNull
-    public List<Warp> all() {
-        return this.snapshot.warps;
+    synchronized CompletableFuture<Void> load() {
+        Session loading = new Session();
+        this.session = loading;
+        this.store.loadAll().whenComplete((warps, error) -> {
+            synchronized (this) {
+                if (this.session != loading) return;
+                if (error != null) {
+                    this.session = null;
+                    loading.ready.completeExceptionally(error);
+                    for (Refresh refresh : loading.pending.values()) {
+                        refresh.result().completeExceptionally(error);
+                    }
+                    loading.pending.clear();
+                    return;
+                }
+                for (int i = 0, size = warps.size(); i < size; i++) {
+                    Warp warp = warps.get(i);
+                    loading.byId.put(warp.id(), warp);
+                    loading.byName.put(warp.getNameKey(), warp);
+                }
+                loading.initializing = false;
+            }
+            this.drain(loading);
+        });
+        return loading.ready.copy();
     }
 
-    /**
-     * 按前缀补全名称, 忽略大小写, 按名称键顺序最多返回 {@code limit} 个.
-     *
-     * @param visible 只有通过筛选的 warp 会出现在结果中
-     */
+    @Nullable
+    public synchronized Warp get(@NotNull UUID id) {
+        return this.session == null ? null : this.session.byId.get(id);
+    }
+
+    @Nullable
+    public synchronized Warp get(@NotNull String name) {
+        return this.session == null ? null : this.session.byName.get(Warp.key(name));
+    }
+
     @NotNull
-    public List<String> complete(@NotNull String input, @NotNull Predicate<Warp> visible, int limit) {
-        Snapshot snapshot = this.snapshot;
+    public synchronized List<Warp> all() {
+        return this.session == null ? List.of() : List.copyOf(this.session.byName.values());
+    }
+
+    @NotNull
+    public synchronized List<String> complete(@NotNull String input, @NotNull Predicate<Warp> visible) {
+        if (this.session == null) return List.of();
         String prefix = Warp.key(input);
-        int start = Collections.binarySearch(snapshot.keys, prefix);
-        if (start < 0) {
-            start = -start - 1;
+        List<String> names = new ArrayList<>();
+        for (Map.Entry<String, Warp> entry : this.session.byName.tailMap(prefix).entrySet()) {
+            if (!entry.getKey().startsWith(prefix)) break;
+            if (visible.test(entry.getValue())) names.add(entry.getValue().name());
         }
-        List<String> result = new ArrayList<>(Math.min(limit, 16));
-        int size = snapshot.keys.size();
-        for (int i = start; i < size && result.size() < limit; i++) {
-            if (!snapshot.keys.get(i).startsWith(prefix)) break;
-            Warp warp = snapshot.warps.get(i);
-            if (visible.test(warp)) {
-                result.add(warp.name());
-            }
-        }
-        return result;
-    }
-
-    /**
-     * 处理其他服务器的变更通知, 在 Redis 线程上调用.
-     */
-    public void accept(@NotNull WarpMessage message) {
-        if (message.origin().equals(this.serverId)) return;
-        this.refresh(true);
+        return names;
     }
 
     @NotNull
-    CompletableFuture<Void> refresh() {
-        return this.refresh(false);
+    CompletableFuture<Void> refresh(UUID id) {
+        Session current;
+        Refresh refresh;
+        synchronized (this) {
+            current = this.session;
+            if (current == null) return CompletableFuture.completedFuture(null);
+            refresh = current.pending.computeIfAbsent(id, key -> new Refresh(key, new CompletableFuture<>()));
+        }
+        this.drain(current);
+        return refresh.result().copy();
     }
 
-    private CompletableFuture<Void> refresh(boolean reportFailure) {
-        Session session;
-        CompletableFuture<Void> future;
+    private void drain(Session current) {
+        Refresh refresh;
         synchronized (this) {
-            session = this.session;
-            if (session == null) return CompletableFuture.completedFuture(null);
-            if (session.loading != null) {
-                session.dirty = true;
-                return session.loading.copy();
+            if (this.session != current || current.initializing || current.reading != null) return;
+            if (current.pending.isEmpty()) {
+                current.ready.complete(null);
+                return;
             }
-            future = new CompletableFuture<>();
-            session.loading = future;
+            refresh = current.pending.pollFirstEntry().getValue();
+            current.reading = refresh;
         }
-        this.read(session, future, reportFailure);
-        return future.copy();
+        // 全量加载期间的变更与运行期变更共用队列, 查询开始顺序也是目录应用顺序.
+        this.store.find(refresh.id()).whenComplete((warp, error) -> this.finish(current, refresh, warp, error));
     }
 
-    private void read(Session session, CompletableFuture<Void> future, boolean reportFailure) {
+    private void finish(Session current, Refresh refresh, @Nullable Optional<Warp> found, @Nullable Throwable error) {
         synchronized (this) {
-            if (this.session != session) return;
-            session.dirty = false;
+            if (this.session != current) return;
+            current.reading = null;
+            if (error == null) {
+                Warp previous = current.byId.remove(refresh.id());
+                if (previous != null) current.byName.remove(previous.getNameKey(), previous);
+                if (found.isPresent()) {
+                    Warp warp = found.get();
+                    current.byId.put(warp.id(), warp);
+                    current.byName.put(warp.getNameKey(), warp);
+                }
+            } else {
+                current.ready.completeExceptionally(error);
+            }
         }
-        // 查询与快照构建在锁外执行, 发布时核对期间收到的变更.
-        this.store.loadAll()
-                .thenApply(Snapshot::of)
-                .whenComplete((loaded, failure) -> {
-                    boolean reread;
-                    synchronized (this) {
-                        if (this.session != session) return;
-                        reread = failure == null && session.dirty;
-                        if (!reread) {
-                            session.loading = null;
-                            if (failure == null) {
-                                this.snapshot = loaded;
-                            }
-                        }
-                    }
-                    if (reread) {
-                        this.read(session, future, reportFailure);
-                    } else if (failure != null) {
-                        future.completeExceptionally(failure);
-                        if (reportFailure) {
-                            SparrowPlugin.instance().logger().warn("Failed to refresh warp directory", failure);
-                        }
-                    } else {
-                        future.complete(null);
-                    }
-                });
+        if (error == null) {
+            refresh.result().complete(null);
+        } else {
+            refresh.result().completeExceptionally(error);
+        }
+        this.drain(current);
     }
 
     @Override
-    public void close() {
-        this.close(this.session);
-    }
-
-    private void close(@Nullable Session session) {
-        CompletableFuture<Void> pending;
-        synchronized (this) {
-            if (session == null || this.session != session) return;
-            this.session = null;
-            this.snapshot = Snapshot.EMPTY;
-            pending = session.loading;
+    public synchronized void close() {
+        Session previous = this.session;
+        if (previous == null) return;
+        this.session = null;
+        previous.byId.clear();
+        previous.byName.clear();
+        previous.ready.cancel(false);
+        if (previous.reading != null) previous.reading.result().cancel(false);
+        for (Refresh refresh : previous.pending.values()) {
+            refresh.result().cancel(false);
         }
-        if (pending != null) {
-            pending.cancel(false);
-        }
+        previous.pending.clear();
     }
 
     private static final class Session {
-        private @Nullable CompletableFuture<Void> loading;
-        private boolean dirty;
+        private final Map<UUID, Warp> byId = new HashMap<>();
+        private final TreeMap<String, Warp> byName = new TreeMap<>();
+        private final LinkedHashMap<UUID, Refresh> pending = new LinkedHashMap<>();
+        private final CompletableFuture<Void> ready = new CompletableFuture<>();
+        private boolean initializing = true;
+        private @Nullable Refresh reading;
     }
 
-    private record Snapshot(Map<UUID, Warp> byId, Map<String, Warp> byKey, List<Warp> warps, List<String> keys) {
-        private static final Snapshot EMPTY = new Snapshot(Map.of(), Map.of(), List.of(), List.of());
-
-        private static Snapshot of(List<Warp> values) {
-            Map<UUID, Warp> byId = new HashMap<>();
-            Map<String, Warp> byKey = new HashMap<>();
-            int size = values.size();
-            for (int i = 0; i < size; i++) {
-                Warp warp = values.get(i);
-                byId.put(warp.id(), warp);
-                byKey.put(warp.key(), warp);
-            }
-            List<String> keys = byKey.keySet().stream().sorted().toList();
-            List<Warp> warps = keys.stream().map(byKey::get).toList();
-            return new Snapshot(Map.copyOf(byId), Map.copyOf(byKey), warps, keys);
-        }
+    private record Refresh(UUID id, CompletableFuture<Void> result) {
     }
 }

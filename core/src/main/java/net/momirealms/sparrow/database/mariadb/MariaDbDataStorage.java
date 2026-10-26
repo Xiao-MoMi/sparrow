@@ -3,6 +3,7 @@ package net.momirealms.sparrow.database.mariadb;
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
 import net.momirealms.sparrow.database.mysql.MysqlBackStore;
+import net.momirealms.sparrow.database.mysql.MysqlWarpStore;
 import net.momirealms.sparrow.database.mysql.MysqlPlayerProfileStore;
 import net.momirealms.sparrow.database.mysql.MysqlPlayerNameHistoryStore;
 import net.momirealms.sparrow.database.mysql.MysqlPlayerIpHistoryStore;
@@ -42,6 +43,7 @@ public final class MariaDbDataStorage extends MysqlDataStorage {
             this.initializeSchemas(jdbi);
             super.pool = connected;
             super.backStore = new MysqlBackStore(jdbi, super.executor, this.namePrefix());
+            super.warpStore = new MysqlWarpStore(jdbi, super.executor, this.namePrefix());
             super.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             super.nameHistoryStore = new MysqlPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
             super.ipHistoryStore = new MysqlPlayerIpHistoryStore(jdbi, super.executor, this.namePrefix());

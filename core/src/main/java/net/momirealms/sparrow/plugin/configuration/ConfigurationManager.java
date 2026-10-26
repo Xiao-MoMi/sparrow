@@ -4,6 +4,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.momirealms.sparrow.feature.back.BackSettings;
 import net.momirealms.sparrow.feature.tpa.TpaSettings;
+import net.momirealms.sparrow.feature.warp.WarpSettings;
 import net.momirealms.sparrow.feature.rtp.RtpSettings;
 import net.momirealms.sparrow.plugin.Plugin;
 import net.momirealms.sparrow.plugin.configuration.serializer.KeySerializer;
@@ -38,6 +39,8 @@ public class ConfigurationManager {
         serializers.registerUnsafe(BackSettings.WarmupOptions.class, backWarmup.withAlternative(NodeSerializers.STRING, BackSettings.WarmupOptions::of));
         NodeSerializer<TpaSettings.WarmupOptions> tpaWarmup = serializers.register(TpaSettings.WarmupOptions.class);
         serializers.registerUnsafe(TpaSettings.WarmupOptions.class, tpaWarmup.withAlternative(NodeSerializers.STRING, TpaSettings.WarmupOptions::of));
+        NodeSerializer<WarpSettings.WarmupOptions> warpWarmup = serializers.register(WarpSettings.WarmupOptions.class);
+        serializers.registerUnsafe(WarpSettings.WarmupOptions.class, warpWarmup.withAlternative(NodeSerializers.STRING, WarpSettings.WarmupOptions::of));
         // 配置文件
         this.pluginConfig = new PluginConfig(plugin, this.sparrowYaml);
         this.serverConfig = new ServerConfig(plugin.dataFolderPath(), this.sparrowYaml);

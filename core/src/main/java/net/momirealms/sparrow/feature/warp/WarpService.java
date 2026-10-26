@@ -10,168 +10,69 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.LongSupplier;
-import java.util.function.UnaryOperator;
-import java.util.regex.Pattern;
 
 public final class WarpService {
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
+    private final WarpFeature feature;
     private final WarpStore store;
     private final WarpRegistry registry;
-    private final String serverId;
-    private final WarpFeature feature;
-    private final LongSupplier clock = System::currentTimeMillis;
 
-    public WarpService() {
-        SparrowPlugin plugin = SparrowPlugin.instance();
-        this.store = plugin.dataStorage().warpStore();
-        this.feature = plugin.featureManager().feature(WarpFeature.ID, WarpFeature.class);
-        this.registry = this.feature.registry();
-        this.serverId = ServerConfig.serverId();
+    WarpService(WarpFeature feature, WarpStore store, WarpRegistry registry) {
+        this.feature = feature;
+        this.store = store;
+        this.registry = registry;
     }
 
-    // 覆盖或新建一个 Warp.
     @NotNull
-    public CompletableFuture<Result> set(@NotNull String name, @NotNull String server, @NotNull WorldLocation location, @Nullable UUID creator) {
-        if (!this.validName(name)) {
-            return this.result(Status.INVALID_NAME);
-        }
-        return this.store.findByName(name).thenCompose(existing -> {
-            long now = this.clock.getAsLong();
-            if (existing.isEmpty()) {
-                Warp warp = new Warp(UUIDUtils.createV7(), name, "", server, location, creator, now, now);
-                return this.save(this.store.create(warp), Status.CREATED);
-            }
-            if (!this.feature.config().overwriteExisting()) {
-                return this.result(Status.DUPLICATE_NAME);
-            }
-            Warp warp = existing.get();
-            return this.save(
-                    this.store.update(new Warp(warp.id(), name, warp.description(), server, location, warp.creator(), warp.createdAt(), now)),
-                    Status.UPDATED
-            );
-        });
+    public CompletableFuture<Result> create(@NotNull String name, @NotNull String server, @NotNull WorldLocation location, @Nullable UUID creator) {
+        if (!this.validName(name)) return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
+        long now = System.currentTimeMillis();
+        Warp warp = new Warp(UUIDUtils.createV7(), name, server, location, creator, now, now);
+        return this.saved(this.store.create(warp), warp.id(), Status.CREATED);
     }
 
-    // 按 Warp UUID 改名.
     @NotNull
     public CompletableFuture<Result> rename(@NotNull UUID id, @NotNull String name) {
-        if (!this.validName(name)) {
-            return this.result(Status.INVALID_NAME);
-        }
-        return this.edit(
-                id,
-                warp -> new Warp(
-                        warp.id(),
-                        name,
-                        warp.description(),
-                        warp.server(),
-                        warp.location(),
-                        warp.creator(),
-                        warp.createdAt(),
-                        this.clock.getAsLong()
-                )
-        );
+        if (!this.validName(name)) return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, id));
+        return this.saved(this.store.rename(id, name, System.currentTimeMillis()), id, Status.UPDATED);
     }
 
-    // 修改描述, 空字符串用于清空描述.
-    @NotNull
-    public CompletableFuture<Result> setDescription(@NotNull UUID id, @NotNull String description) {
-        if (description.length() > Warp.MAX_DESCRIPTION_LENGTH) {
-            return this.result(Status.DESCRIPTION_TOO_LONG);
-        }
-        return this.edit(
-                id,
-                warp -> new Warp(
-                        warp.id(),
-                        warp.name(),
-                        description,
-                        warp.server(),
-                        warp.location(),
-                        warp.creator(),
-                        warp.createdAt(),
-                        this.clock.getAsLong()
-                )
-        );
-    }
-
-    // 修改服务器与位置.
     @NotNull
     public CompletableFuture<Result> relocate(@NotNull UUID id, @NotNull String server, @NotNull WorldLocation location) {
-        return this.edit(
-                id,
-                warp -> new Warp(
-                        warp.id(),
-                        warp.name(),
-                        warp.description(),
-                        server,
-                        location,
-                        warp.creator(),
-                        warp.createdAt(),
-                        this.clock.getAsLong()
-                )
-        );
+        return this.saved(this.store.relocate(id, server, location, System.currentTimeMillis()), id, Status.UPDATED);
     }
 
     private boolean validName(String name) {
-        return name.length() <= Warp.MAX_NAME_LENGTH && Pattern.matches(this.feature.config().namePattern(), name);
+        return !name.isEmpty() && name.length() <= Warp.MAX_NAME_LENGTH
+                && name.codePoints().noneMatch(character -> Character.isWhitespace(character) || Character.isSpaceChar(character))
+                && this.feature.config().namePattern().matcher(name).matches();
     }
 
-    private CompletableFuture<Result> edit(UUID id, UnaryOperator<Warp> edit) {
-        return this.store.find(id).thenCompose(found -> found.isEmpty()
-                ? this.result(Status.NOT_FOUND) : this.save(this.store.update(edit.apply(found.get())), Status.UPDATED));
-    }
-
-    private CompletableFuture<Result> result(Status status) {
-        return CompletableFuture.completedFuture(new Result(status, null));
-    }
-
-    private CompletableFuture<Result> save(CompletableFuture<WarpStore.SaveResult> write, Status success) {
-        return write.thenCompose(saved -> {
-            if (saved.status() != WarpStore.Status.SUCCESS) {
-                Status status = switch (saved.status()) {
-                    case DUPLICATE_NAME -> Status.DUPLICATE_NAME;
-                    case NOT_FOUND -> Status.NOT_FOUND;
-                    case SUCCESS -> throw new AssertionError();
-                };
-                return this.result(status);
-            }
-            return this.committed().thenApply(ignored -> new Result(success, saved.warp()));
+    private CompletableFuture<Result> saved(CompletableFuture<WarpStore.Status> operation, UUID id, Status success) {
+        return operation.thenCompose(status -> switch (status) {
+            case SUCCESS -> this.committed(id).thenApply(ignored -> new Result(success, id));
+            case DUPLICATE_NAME -> CompletableFuture.completedFuture(new Result(Status.DUPLICATE_NAME, id));
+            case NOT_FOUND -> CompletableFuture.completedFuture(new Result(Status.NOT_FOUND, id));
         });
     }
 
-    // 删除指定 Warp
     @NotNull
     public CompletableFuture<Boolean> delete(@NotNull UUID id) {
-        return this.store.delete(id).thenCompose(deleted -> deleted ? this.committed().thenApply(ignored -> true) : CompletableFuture.completedFuture(false));
+        return this.store.delete(id).thenCompose(deleted -> deleted
+                ? this.committed(id).thenApply(ignored -> true)
+                : CompletableFuture.completedFuture(false));
     }
 
-    // 删除指定服务器和世界的记录, 返回数据库实际删除数量.
-    @NotNull
-    public CompletableFuture<Integer> deleteByWorld(@NotNull String server, @NotNull String world) {
-        return this.store.deleteByWorld(server, world).thenCompose(this::reloadAfterBulkDelete);
-    }
-
-    // 删除指定服务器的记录, 返回数据库实际删除数量.
-    @NotNull
-    public CompletableFuture<Integer> deleteByServer(@NotNull String server) {
-        return this.store.deleteByServer(server).thenCompose(this::reloadAfterBulkDelete);
-    }
-
-    private CompletableFuture<Integer> reloadAfterBulkDelete(int deleted) {
-        if (deleted == 0) return CompletableFuture.completedFuture(0);
-        return this.committed().thenApply(ignored -> deleted);
-    }
-
-    private CompletableFuture<Void> committed() {
-        CompletableFuture<Void> refreshed = this.registry.refresh();
-        CompletableFuture<Long> published = SparrowPlugin.instance().messageBrokerManager().publishOneWay(new WarpMessage(this.serverId), "");
+    private CompletableFuture<Void> committed(UUID id) {
+        CompletableFuture<Void> refreshed = this.registry.refresh(id);
+        CompletableFuture<Long> published = this.plugin.messageBrokerManager().publishOneWay(new WarpMessage(ServerConfig.serverId(), id), "");
         return CompletableFuture.allOf(refreshed, published);
     }
 
     public enum Status {
-        CREATED, UPDATED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, DESCRIPTION_TOO_LONG
+        CREATED, UPDATED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME
     }
 
-    public record Result(@NotNull Status status, @Nullable Warp warp) {
+    public record Result(@NotNull Status status, @Nullable UUID id) {
     }
 }

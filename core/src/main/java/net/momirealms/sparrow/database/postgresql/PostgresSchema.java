@@ -17,10 +17,22 @@ public final class PostgresSchema {
     public static final String IP_HISTORY_COMPONENT = "player_ip_history";
     public static final List<String> IP_HISTORY_TABLES = List.of("player_ip_history");
 
+    public static final String WARP_COMPONENT = "warp_schema";
+    public static final List<String> WARP_TABLES = List.of("warps");
+
     public static final String BACK_COMPONENT = "back";
     public static final List<String> BACK_TABLES = List.of("back");
 
     private PostgresSchema() {
+    }
+
+    public static void initializeWarps(@NotNull Handle handle, @NotNull String prefix) {
+        String warps = "\"" + prefix + "warps\"";
+        handle.execute("CREATE TABLE IF NOT EXISTS " + warps + " ("
+                + "id UUID PRIMARY KEY, name_key VARCHAR(64) COLLATE \"C\" NOT NULL, name VARCHAR(32) NOT NULL, "
+                + "server VARCHAR(255) NOT NULL, world VARCHAR(255) NOT NULL, x DOUBLE PRECISION NOT NULL, y DOUBLE PRECISION NOT NULL, z DOUBLE PRECISION NOT NULL, "
+                + "yaw REAL NOT NULL, pitch REAL NOT NULL, creator UUID, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL)");
+        handle.execute("CREATE UNIQUE INDEX IF NOT EXISTS \"" + prefix + "warps_name\" ON " + warps + " (name_key)");
     }
 
     public static void initializeBack(@NotNull Handle handle, @NotNull String prefix) {
