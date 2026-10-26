@@ -518,6 +518,13 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig spawn = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " spawn", "/spawn"),
+                DependencyVersions.PROJECT_ID + ".command.spawn"
+        );
+
+        @BlankLineBefore
         CommandConfig head = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " head", "/head"),
@@ -645,6 +652,7 @@ public final class CommandsConfig {
                 case "max_players" -> this.maxPlayers;
                 case "maintenance" -> this.maintenance;
                 case "head" -> this.head;
+                case "spawn" -> this.spawn;
                 case "patrol" -> this.patrol;
                 case "back" -> this.back;
                 case "death-back" -> this.deathBack;

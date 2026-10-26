@@ -8,6 +8,8 @@ import net.momirealms.sparrow.feature.maintenance.MaintenanceCommand;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
 import net.momirealms.sparrow.feature.head.HeadCommand;
 import net.momirealms.sparrow.feature.head.HeadFeature;
+import net.momirealms.sparrow.feature.spawn.SpawnFeature;
+import net.momirealms.sparrow.feature.spawn.command.SpawnCommand;
 import net.momirealms.sparrow.feature.patrol.PatrolCommand;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.rtp.RtpCommand;
@@ -208,6 +210,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.registerFeature(new MaxPlayersCommand(this, this.plugin), new FeaturePermission(PlayerLimitFeature.ID, () -> this.plugin.featureManager().isEnabled(PlayerLimitFeature.ID)));
         this.registerFeature(new MaintenanceCommand(this, this.plugin), new FeaturePermission(MaintenanceFeature.ID, () -> this.plugin.featureManager().isEnabled(MaintenanceFeature.ID)));
         this.registerFeature(new HeadCommand(this, this.plugin), new FeaturePermission(HeadFeature.ID, () -> this.plugin.featureManager().isEnabled(HeadFeature.ID)));
+        this.registerFeature(new SpawnCommand(this, this.plugin), new FeaturePermission(SpawnFeature.ID, () -> this.plugin.featureManager().isEnabled(SpawnFeature.ID)));
         this.registerFeature(new PatrolCommand(this, this.plugin), new FeaturePermission(PatrolFeature.ID, () -> this.plugin.featureManager().isEnabled(PatrolFeature.ID)));
         this.registerFeature(new BackCommand(this, this.plugin), new FeaturePermission(BackFeature.ID, () -> this.plugin.featureManager().isEnabled(BackFeature.ID)));
         this.registerFeature(new DeathBackCommand(this, this.plugin), new FeaturePermission(BackFeature.ID, () -> this.plugin.featureManager().isEnabled(BackFeature.ID)));

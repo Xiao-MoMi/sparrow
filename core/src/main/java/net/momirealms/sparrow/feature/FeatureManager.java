@@ -8,6 +8,7 @@ import net.momirealms.sparrow.feature.head.HeadFeature;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.rtp.RtpFeature;
 import net.momirealms.sparrow.feature.back.BackFeature;
+import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ModulesConfig;
 import net.momirealms.sparrow.util.ExceptionCollector;
@@ -44,6 +45,7 @@ public final class FeatureManager {
         this.features.put(PatrolFeature.ID, new Entry(new PatrolFeature()));
         this.features.put(RtpFeature.ID, new Entry(new RtpFeature()));
         this.features.put(BackFeature.ID, new Entry(new BackFeature()));
+        this.features.put(SpawnFeature.ID, new Entry(new SpawnFeature()));
     }
 
     public void onLoad() {
