@@ -275,6 +275,36 @@ final class TeleportSource {
         }
 
         private void execute() {
+            CompletableFuture<Void> scheduled = new CompletableFuture<>();
+            scheduled.completeAsync(
+                    () -> {
+                        synchronized (this) {
+                            if (this.state != State.EXECUTING) return null;
+                        }
+                        if (TeleportSource.this.plugin.playerManager().getOnlinePlayer(this.player.platformPlayer) != this.player) {
+                            this.finish(new TeleportResult.Fail(MessageConstants.TELEPORT_UNAVAILABLE), null);
+                            return null;
+                        }
+                        if (!this.server.equals(TeleportSource.this.serverId)) {
+                            this.context.captureDeparture(this.player);
+                        }
+                        this.sendExecute();
+                        return null;
+                    },
+                    task -> TeleportSource.this.plugin.scheduler().platform().run(
+                            task,
+                            () -> {
+                                this.finish(new TeleportResult.Fail(MessageConstants.TELEPORT_UNAVAILABLE), null);
+                                scheduled.complete(null);
+                            },
+                            this.player.platformPlayer
+                    )
+            ).whenComplete((ignored, error) -> {
+                if (error != null) this.finish(null, ThrowableUtils.unwrap(error));
+            });
+        }
+
+        private void sendExecute() {
             TeleportExecuteRequest request = new TeleportExecuteRequest(this.requestId, this.context, this.location, this.postProcessors);
             request.setSourceServer(TeleportSource.this.serverId);
             request.setTargetServer(this.server);

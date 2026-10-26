@@ -15,6 +15,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import net.momirealms.sparrow.proxy.paper.connection.ReadablePlayerCookieConnectionProxy;
+import net.momirealms.sparrow.teleport.event.TeleportArriveEvent;
 import net.momirealms.sparrow.teleport.event.TeleportReadyEvent;
 import net.momirealms.sparrow.teleport.event.TeleportRequestEvent;
 import net.momirealms.sparrow.teleport.message.TeleportExecuteRequest;
@@ -127,7 +128,7 @@ final class TeleportTarget implements Listener {
     CompletableFuture<TeleportResult> acceptTeleportExecute(@NotNull TeleportExecuteRequest request) {
         UUID playerId = request.context().toNbt().getUUID(TeleportContext.PLAYER_UUID);
         BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(playerId);
-        Arrival arrival = player == null ? new Arrival(playerId, request.location(), request.context(), request.postProcessors()) : null;
+        Arrival arrival = player == null ? new Arrival(request.requestId(), playerId, request.location(), request.context(), request.postProcessors()) : null;
         TeleportService service = this.plugin.teleportService();
         synchronized (service.stateLock()) {
             if (!service.running()) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_DISABLED));
@@ -140,8 +141,7 @@ final class TeleportTarget implements Listener {
                     .thenComposeAsync(location -> {
                         Location target = location.resolve();
                         if (target == null) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_REJECTED_INVALID));
-                        return player.platformPlayer.teleportAsync(target, TeleportCause.PLUGIN)
-                                .thenApply(moved -> moved ? new TeleportResult.Success() : new TeleportResult.Fail(MessageConstants.TELEPORT_FAILED));
+                        return this.moveLocally(request.requestId(), player, target, request.context());
                     }, this.plugin.scheduler().async())
                     .orTimeout(LOCAL_EXECUTION_SECONDS, TimeUnit.SECONDS)
                     .whenComplete((outcome, error) -> {
@@ -165,6 +165,34 @@ final class TeleportTarget implements Listener {
         // 远程服务器
         arrival.start(request.sourceServer());
         return arrival.result;
+    }
+
+    private CompletableFuture<TeleportResult> moveLocally(UUID requestId, BukkitSparrowPlayer player, Location target, TeleportContext context) {
+        TeleportService service = this.plugin.teleportService();
+        CompletableFuture<CompletableFuture<TeleportResult>> scheduled = new CompletableFuture<>();
+        scheduled.completeAsync(
+                () -> {
+                    if (this.plugin.playerManager().getOnlinePlayer(player.platformPlayer) != player) {
+                        return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_UNAVAILABLE));
+                    }
+                    if (!service.beginLocal(player, scheduled)) return CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_BUSY));
+                    context.captureDeparture(player);
+                    return player.platformPlayer.teleportAsync(target, TeleportCause.PLUGIN)
+                            .whenComplete((moved, error) -> service.endLocal(player, scheduled))
+                            .thenApply(moved -> {
+                                if (!moved) return new TeleportResult.Fail(MessageConstants.TELEPORT_FAILED);
+                                if (this.plugin.playerManager().getOnlinePlayer(player.platformPlayer) != player) return new TeleportResult.Fail(MessageConstants.TELEPORT_UNAVAILABLE);
+                                this.fireArriveEvent(requestId, player, context);
+                                return new TeleportResult.Success();
+                            });
+                },
+                task -> this.plugin.scheduler().platform().run(
+                        task,
+                        () -> scheduled.complete(CompletableFuture.completedFuture(new TeleportResult.Fail(MessageConstants.TELEPORT_UNAVAILABLE))),
+                        player.platformPlayer
+                )
+        );
+        return scheduled.thenCompose(moved -> moved).whenComplete((ignored, error) -> service.endLocal(player, scheduled));
     }
 
     // 玩家进入本服时, 如果玩家有待到达的传送时, 把出生点换成目的地.
@@ -199,10 +227,24 @@ final class TeleportTarget implements Listener {
         if (arrival == null) return;
         // 连接对不上说明是另一次登录, 和这次传送无关
         synchronized (arrival) {
-            if (arrival.channel != player.connection.channel() || arrival.arrived != null) return;
+            if (arrival.result.isDone() || arrival.channel != player.connection.channel() || arrival.arrived != null) return;
             arrival.arrived = player;
+            // 事件在代理确认之前也可触发, 监听器提交的操作先于后续进服回调和 post
+            this.fireArriveEvent(arrival.requestId, player, arrival.context);
         }
         arrival.complete();
+    }
+
+    private void fireArriveEvent(UUID requestId, BukkitSparrowPlayer player, TeleportContext context) {
+        Bukkit.getPluginManager().callEvent(new TeleportArriveEvent(
+                requestId,
+                player.uniqueId(),
+                player.name(),
+                context.getDepartureLocation(),
+                player.getServerLocation(),
+                context.getSourceConnectedAt(),
+                context.getDepartedAt()
+        ));
     }
 
     // 在异步线程上依次执行后处理器.
@@ -244,6 +286,7 @@ final class TeleportTarget implements Listener {
 
     // 目标服上一次待到达的跨服传送. 代理确认切服成功, 并且玩家真的进了服才算到达.
     private final class Arrival {
+        private final UUID requestId;
         private final UUID playerId;                                                        // 要到达的玩家
         private final WorldLocation location;                                               // 目的地坐标, 玩家选出生点时使用
         private final TeleportContext context;                                              // 传送上下文, 交给后处理器
@@ -253,7 +296,8 @@ final class TeleportTarget implements Listener {
         private @Nullable BukkitSparrowPlayer arrived; // 已经进服的玩家, 进服前为 null
         private boolean connected;                     // 代理是否已经确认切服成功
 
-        private Arrival(UUID playerId, WorldLocation location, TeleportContext context, List<PostProcessor> postProcessors) {
+        private Arrival(UUID requestId, UUID playerId, WorldLocation location, TeleportContext context, List<PostProcessor> postProcessors) {
+            this.requestId = requestId;
             this.playerId = playerId;
             this.location = location;
             this.context = context;
@@ -305,7 +349,7 @@ final class TeleportTarget implements Listener {
                 if (!this.connected || this.arrived == null) return;
                 player = this.arrived;
             }
-            if (result.complete(new TeleportResult.Success())) {
+            if (this.result.complete(new TeleportResult.Success())) {
                 TeleportTarget.this.runPost(player, this.context, this.postProcessors);
             }
         }

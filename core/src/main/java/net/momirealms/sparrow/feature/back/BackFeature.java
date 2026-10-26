@@ -4,16 +4,13 @@ import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
-import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.teleport.TeleportContext;
-import net.momirealms.sparrow.teleport.TeleportExecutionListener;
+import net.momirealms.sparrow.teleport.event.TeleportArriveEvent;
 import net.momirealms.sparrow.ui.Subscription;
 import net.momirealms.sparrow.util.ServerLocation;
 import net.momirealms.sparrow.util.ThrowableUtils;
-import net.momirealms.sparrow.util.WorldLocation;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -32,9 +29,8 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 
-public final class BackFeature implements Feature, Listener, TeleportExecutionListener {
+public final class BackFeature implements Feature, Listener {
     public static final String ID = "back";
-    private static final String DEPARTURE = "sparrow_back_departure";
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final BackOperations operations = new BackOperations();
@@ -43,7 +39,6 @@ public final class BackFeature implements Feature, Listener, TeleportExecutionLi
     private long generation;
     private BackService back;
     private DeathBackService deathback;
-    private Subscription executionSubscription;
     private Subscription quitSubscription;
 
     @NotNull
@@ -85,7 +80,6 @@ public final class BackFeature implements Feature, Listener, TeleportExecutionLi
             BackStore store = this.plugin.dataStorage().backStore();
             this.back = new BackService(this, store, this.operations);
             this.deathback = new DeathBackService(this, store, this.operations);
-            this.executionSubscription = this.plugin.teleportService().registerExecutionListener(this);
             this.quitSubscription = this.plugin.playerManager().registerQuitListener(player -> this.operations.await(player.uniqueId()));
         }
         this.config = loaded;
@@ -123,11 +117,11 @@ public final class BackFeature implements Feature, Listener, TeleportExecutionLi
         if (!this.enabled) return;
         BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(event.getPlayer());
         if (player == null) return;
-        // Sparrow 本服传送由执行成功通知记录, 平台事件负责其余可观察的传送
+        // Sparrow 本服传送由到达事件记录, 平台事件负责其余可观察的传送
         if (event.getCause() == TeleportCause.PLUGIN && this.plugin.teleportService().isExecutingLocally(player)) return;
         ServerLocation from = ServerLocation.from(ServerConfig.serverId(), event.getFrom());
-        WorldLocation to = WorldLocation.from(event.getTo());
-        if (!this.shouldRecord(player, from, ServerConfig.serverId(), to, event.getCause())) return;
+        ServerLocation to = ServerLocation.from(ServerConfig.serverId(), event.getTo());
+        if (!this.shouldRecord(from, to, event.getCause(), player.connection.connectedAt(), System.currentTimeMillis())) return;
         this.back.record(player, from).whenComplete((ignored, error) -> {
             if (error != null) this.plugin.logger().warn("Failed to record back location for " + player.name(), ThrowableUtils.unwrap(error));
         });
@@ -143,29 +137,23 @@ public final class BackFeature implements Feature, Listener, TeleportExecutionLi
         });
     }
 
-    @Override
-    public synchronized void onStart(@NotNull BukkitSparrowPlayer player, @NotNull String server, @NotNull WorldLocation destination, @NotNull TeleportContext context) {
-        context.remove(DEPARTURE);
+    @EventHandler(priority = EventPriority.MONITOR)
+    public synchronized void onArrive(@NotNull TeleportArriveEvent event) {
         if (!this.enabled) return;
-        ServerLocation from = player.getServerLocation();
-        if (!this.shouldRecord(player, from, server, destination, TeleportCause.PLUGIN)) return;
-        context.put(DEPARTURE, from.toNbt());
+        BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(event.playerId());
+        if (player == null) return;
+        if (!this.shouldRecord(event.from(), event.to(), TeleportCause.PLUGIN, event.sourceConnectedAt(), event.departedAt())) return;
+        // 在事件返回前登记异步写入, 本服后续查询与退出等待即可覆盖这次操作
+        this.back.record(player, event.from()).whenComplete((ignored, error) -> {
+            if (error != null) this.plugin.logger().warn("Failed to record back location for " + player.name(), ThrowableUtils.unwrap(error));
+        });
     }
 
-    @NotNull
-    @Override
-    public synchronized CompletableFuture<Void> onSuccess(@NotNull BukkitSparrowPlayer player, @NotNull TeleportContext context) {
-        if (!(context.get(DEPARTURE) instanceof CompoundTag origin)) return CompletableFuture.completedFuture(null);
-        context.remove(DEPARTURE);
-        // 标记来自启用期间接受的执行, 跨服时由目标会话先提交写入, 再处理后续游戏操作
-        return this.back.record(player, ServerLocation.fromNbt(origin));
-    }
-
-    private boolean shouldRecord(BukkitSparrowPlayer player, ServerLocation from, String server, WorldLocation to, TeleportCause cause) {
+    private boolean shouldRecord(ServerLocation from, ServerLocation to, TeleportCause cause, long connectedAt, long departedAt) {
         BackConfig current = this.config;
         if (!current.causes().contains(cause)) return false;
-        if (System.currentTimeMillis() - player.connection.connectedAt() < current.joinGraceMillis()) return false;
-        if (!from.server().equals(server) || !from.world().equals(to.world())) return true;
+        if (departedAt - connectedAt < current.joinGraceMillis()) return false;
+        if (!from.server().equals(to.server()) || !from.world().equals(to.world())) return true;
         double x = from.x() - to.x();
         double y = from.y() - to.y();
         double z = from.z() - to.z();
@@ -184,7 +172,6 @@ public final class BackFeature implements Feature, Listener, TeleportExecutionLi
     @NotNull
     @Override
     public synchronized CompletableFuture<Void> onPluginShutdown() {
-        if (this.executionSubscription != null) this.executionSubscription.close();
         if (this.quitSubscription != null) this.quitSubscription.close();
         return this.operations.awaitAll();
     }
