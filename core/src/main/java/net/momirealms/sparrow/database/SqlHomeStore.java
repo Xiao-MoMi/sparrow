@@ -1,251 +1,106 @@
 package net.momirealms.sparrow.database;
 
+import net.momirealms.sparrow.data.storage.DataStore;
 import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jdbi.v3.core.Jdbi;
-import org.jdbi.v3.core.statement.SqlStatement;
-import org.jdbi.v3.core.statement.Update;
-import org.jdbi.v3.core.statement.UnableToExecuteStatementException;
+import org.jdbi.v3.core.statement.PreparedBatch;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.function.Supplier;
 
 @ApiStatus.Internal
-public abstract class SqlHomeStore implements HomeStore {
-    private static final String COLUMNS = "name_key = :name_key, name = :name, server = :server, world = :world, "
-            + "x = :x, y = :y, z = :z, yaw = :yaw, pitch = :pitch, updated_at = :updated_at";
-
-    private final Supplier<Jdbi> jdbi;
+public abstract class SqlHomeStore implements DataStore<UUID, Home> {
+    private final Jdbi sql;
     private final Executor executor;
-    private final String homes;
-    private volatile boolean initialized;
+    private final String table;
 
-    // 表名由调用方按方言加好引号.
-    protected SqlHomeStore(@NotNull Supplier<Jdbi> jdbi, @NotNull Executor executor, @NotNull String homes) {
-        this.jdbi = jdbi;
+    protected SqlHomeStore(@NotNull Jdbi sql, @NotNull Executor executor, @NotNull String table) {
+        this.sql = sql;
         this.executor = executor;
-        this.homes = homes;
+        this.table = table;
     }
 
-    protected abstract void migrate(@NotNull Jdbi jdbi);
-
     @NotNull
-    protected abstract Object uuidValue(@NotNull UUID uuid);
-
-    @NotNull
-    protected abstract UUID readUuid(@NotNull ResultSet result, @NotNull String column) throws SQLException;
-
-    protected abstract boolean duplicateName(@NotNull SQLException exception);
-
     @Override
-    @NotNull
-    public CompletableFuture<Void> initialize() {
-        return CompletableFuture.runAsync(this::sql, this.executor);
-    }
-
-    private Jdbi sql() {
-        Jdbi jdbi = this.jdbi.get();
-        if (!this.initialized) {
-            synchronized (this) {
-                if (!this.initialized) {
-                    this.migrate(jdbi);
-                    this.initialized = true;
-                }
+    public CompletableFuture<Map<UUID, Home>> load(@NotNull UUID owner) {
+        String query = "SELECT id, name, server, world, x, y, z, yaw, pitch, created_at, updated_at FROM " + this.table + " WHERE owner = :owner";
+        return CompletableFuture.supplyAsync(() -> this.sql.withHandle(handle -> {
+            List<Home> homes = handle.createQuery(query)
+                    .bind("owner", this.encodeUuid(owner))
+                    .map((row, context) -> this.read(row, owner))
+                    .list();
+            Map<UUID, Home> entries = new HashMap<>(homes.size());
+            for (int i = 0, size = homes.size(); i < size; i++) {
+                Home home = homes.get(i);
+                entries.put(home.id(), home);
             }
-        }
-        return jdbi;
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<List<Home>> loadByOwner(@NotNull UUID owner) {
-        String sql = "SELECT * FROM " + this.homes + " WHERE owner = :owner ORDER BY name_key";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner)
-                .map((result, context) -> this.readHome(result))
-                .list()), this.executor);
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<Optional<Home>> find(@NotNull UUID id) {
-        String sql = "SELECT * FROM " + this.homes + " WHERE id = :id";
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "id", id)
-                .map((result, context) -> this.readHome(result))
-                .findOne()), this.executor);
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<Optional<Home>> findByName(@NotNull UUID owner, @NotNull String nameIgnoreCase) {
-        String sql = "SELECT * FROM " + this.homes + " WHERE owner = :owner AND name_key = :name_key";
-        return CompletableFuture.supplyAsync(
-                () -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner)
-                        .bind("name_key", Home.key(nameIgnoreCase))
-                        .map((result, context) -> this.readHome(result))
-                        .findOne()),
-                this.executor
-        );
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<Long> countByOwner(@NotNull UUID owner) {
-        String sql = "SELECT COUNT(*) FROM " + this.homes + " WHERE owner = :owner";
-        return CompletableFuture.supplyAsync(
-                () -> this.sql().withHandle(handle -> this.bindUuid(handle.createQuery(sql), "owner", owner).mapTo(Long.class).one()),
-                this.executor
-        );
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<SaveResult> create(@NotNull Home home) {
-        String insert = "INSERT INTO " + this.homes + " (id, owner, name_key, name, server, world, x, y, z, yaw, pitch, created_at, updated_at)"
-                + " VALUES (:id, :owner, :name_key, :name, :server, :world, :x, :y, :z, :yaw, :pitch, :created_at, :updated_at)";
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                this.sql().useHandle(handle -> this.bindHome(handle.createUpdate(insert), home).bind("created_at", home.createdAt()).execute());
-                return new SaveResult(Status.SUCCESS, home);
-            } catch (UnableToExecuteStatementException exception) {
-                if (!(exception.getCause() instanceof SQLException cause) || !this.duplicateName(cause)) {
-                    throw exception;
-                }
-                return new SaveResult(Status.DUPLICATE_NAME, null);
-            }
-        }, this.executor);
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<SaveResult> update(@NotNull Home home) {
-        String update = "UPDATE " + this.homes + " SET " + COLUMNS + " WHERE owner = :owner AND id = :id";
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                return this.sql().inTransaction(handle -> {
-                            // 锁定同一记录, 返回本次写入保留的创建时间.
-                            Home current = this.bindUuid(
-                                    this.bindUuid(
-                                            handle.createQuery("SELECT * FROM " + this.homes + " WHERE owner = :owner AND id = :id FOR UPDATE"),
-                                            "owner",
-                                            home.owner()
-                                    ),
-                                    "id",
-                                    home.id()
-                            )
-                                    .map((result, context) -> this.readHome(result))
-                                    .findOne()
-                                    .orElse(null);
-                            if (current == null) {
-                                return new SaveResult(Status.NOT_FOUND, null);
-                            }
-                            this.bindHome(handle.createUpdate(update), home).execute();
-                            Home saved = new Home(
-                                    current.id(),
-                                    current.owner(),
-                                    home.name(),
-                                    home.server(),
-                                    home.location(),
-                                    current.createdAt(),
-                                    home.updatedAt()
-                            );
-                            return new SaveResult(Status.SUCCESS, saved);
-                        });
-            } catch (UnableToExecuteStatementException exception) {
-                if (!(exception.getCause() instanceof SQLException cause) || !this.duplicateName(cause)) {
-                    throw exception;
-                }
-                return new SaveResult(Status.DUPLICATE_NAME, null);
-            }
-        }, this.executor);
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
-        return CompletableFuture.supplyAsync(() -> this.sql()
-                .withHandle(handle ->
-                this.bindUuid(
-                        this.bindUuid(handle.createUpdate("DELETE FROM " + this.homes + " WHERE owner = :owner AND id = :id"), "owner", owner),
-                        "id",
-                        id
-                ).execute() > 0), this.executor);
-    }
-
-    @Override
-    @NotNull
-    public CompletableFuture<Long> deleteAll(@NotNull Filter filter) {
-        List<String> conditions = new ArrayList<>();
-        if (filter.owner() != null) {
-            conditions.add("owner = :owner");
-        }
-        if (filter.server() != null) {
-            conditions.add("server = :server");
-        }
-        if (filter.world() != null) {
-            conditions.add("world = :world");
-        }
-        String sql = "DELETE FROM " + this.homes + " WHERE " + String.join(" AND ", conditions);
-        return CompletableFuture.supplyAsync(() -> this.sql().withHandle(handle -> {
-            Update statement = handle.createUpdate(sql);
-            if (filter.owner() != null) {
-                this.bindUuid(statement, "owner", filter.owner());
-            }
-            if (filter.server() != null) {
-                statement.bind("server", filter.server());
-            }
-            if (filter.world() != null) {
-                statement.bind("world", filter.world());
-            }
-            return (long) statement.execute();
+            return entries;
         }), this.executor);
     }
 
-    private <S extends SqlStatement<S>> S bindHome(S statement, Home home) {
-        WorldLocation location = home.location();
-        this.bindUuid(statement, "id", home.id());
-        this.bindUuid(statement, "owner", home.owner());
-        return statement.bind("name_key", home.key())
-                .bind("name", home.name())
-                .bind("server", home.server())
-                .bind("world", location.world())
-                .bind("x", location.x())
-                .bind("y", location.y())
-                .bind("z", location.z())
-                .bind("yaw", location.yaw())
-                .bind("pitch", location.pitch())
-                .bind("updated_at", home.updatedAt());
+    @NotNull
+    @Override
+    public CompletableFuture<Void> save(@NotNull UUID owner, @NotNull Map<UUID, Home> upserts, @NotNull Set<UUID> removals) {
+        if (upserts.isEmpty() && removals.isEmpty()) return CompletableFuture.completedFuture(null);
+        return CompletableFuture.runAsync(() -> this.sql.useTransaction(handle -> {
+            Set<UUID> changed = new HashSet<>(removals);
+            changed.addAll(upserts.keySet());
+            // 同批次的最终名称可能互换, 先释放受影响记录的旧名称, 再插入最终值; 事务外只看到提交后的结果.
+            handle.createUpdate("DELETE FROM " + this.table + " WHERE owner = :owner AND id IN (<ids>)")
+                    .bind("owner", this.encodeUuid(owner))
+                    .bindList("ids", changed.stream().map(this::encodeUuid).toList())
+                    .execute();
+            if (upserts.isEmpty()) return;
+            String insert = "INSERT INTO " + this.table + " (id, owner, name, name_key, server, world, x, y, z, yaw, pitch, created_at, updated_at)"
+                    + " VALUES (:id, :owner, :name, :name_key, :server, :world, :x, :y, :z, :yaw, :pitch, :created_at, :updated_at)";
+            try (PreparedBatch batch = handle.prepareBatch(insert)) {
+                for (Map.Entry<UUID, Home> entry : upserts.entrySet()) {
+                    Home home = entry.getValue();
+                    WorldLocation location = home.location();
+                    batch.bind("id", this.encodeUuid(entry.getKey()))
+                            .bind("owner", this.encodeUuid(owner))
+                            .bind("name", home.name())
+                            .bind("name_key", home.getNameKey())
+                            .bind("server", home.server())
+                            .bind("world", location.world())
+                            .bind("x", location.x())
+                            .bind("y", location.y())
+                            .bind("z", location.z())
+                            .bind("yaw", location.yaw())
+                            .bind("pitch", location.pitch())
+                            .bind("created_at", home.createdAt())
+                            .bind("updated_at", home.updatedAt())
+                            .add();
+                }
+                batch.execute();
+            }
+        }), this.executor);
     }
 
-    private <S extends SqlStatement<S>> S bindUuid(S statement, String name, @NotNull UUID uuid) {
-        return statement.bind(name, this.uuidValue(uuid));
-    }
-
-    private Home readHome(ResultSet result) throws SQLException {
-        WorldLocation location = new WorldLocation(
-                result.getString("world"),
-                result.getDouble("x"),
-                result.getDouble("y"),
-                result.getDouble("z"),
-                result.getFloat("yaw"),
-                result.getFloat("pitch")
-        );
+    private Home read(ResultSet row, UUID owner) throws SQLException {
         return new Home(
-                this.readUuid(result, "id"),
-                this.readUuid(result, "owner"),
-                result.getString("name"),
-                result.getString("server"),
-                location,
-                result.getLong("created_at"),
-                result.getLong("updated_at")
+                this.readUuid(row, "id"),
+                owner,
+                row.getString("name"),
+                row.getString("server"),
+                new WorldLocation(row.getString("world"), row.getDouble("x"), row.getDouble("y"), row.getDouble("z"), row.getFloat("yaw"), row.getFloat("pitch")),
+                row.getLong("created_at"),
+                row.getLong("updated_at")
         );
     }
+
+    protected abstract Object encodeUuid(UUID uuid);
+
+    protected abstract UUID readUuid(ResultSet row, String column) throws SQLException;
 }

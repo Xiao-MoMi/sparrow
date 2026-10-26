@@ -1,60 +1,179 @@
 package net.momirealms.sparrow.feature.home;
 
-import net.momirealms.sparrow.feature.FeatureSettings;
-import org.jetbrains.annotations.NotNull;
-import java.util.regex.Pattern;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
+import net.minecraft.world.BossEvent;
+import net.momirealms.sparrow.service.countdown.CountdownDisplay;
+import net.momirealms.sparrow.service.countdown.CountdownSettings;
+import net.momirealms.sparrow.util.DurationUtils;
+import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
+import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
 
 @Configuration(naming = Configuration.Naming.KEBAB_CASE)
-public final class HomeSettings implements FeatureSettings {
-    private boolean enabled = true;
+public final class HomeSettings {
+    private static final Sound DEFAULT_WARMUP_SOUND = Sound.sound(Key.key("block.note_block.banjo"), Sound.Source.MASTER, 1.0F, 1.0F);
+    private static final Sound DEFAULT_CANCEL_SOUND = Sound.sound(Key.key("entity.item.break"), Sound.Source.MASTER, 1.0F, 1.0F);
 
-    @Comment("Default home name used by /set-home and preferred by /home.")
-    @Comment(lang = "zh", value = "/set-home 的默认名称, /home 优先前往这个家.")
+    @Comment("Default name for set_home and the preferred destination for home without a name.")
+    @Comment(lang = "zh", value = "set_home 的默认名称, 也是 home 省略名称时优先使用的家.")
     private String defaultName = "home";
-
-    @Comment("Default home limit. sparrow.max-homes.<number> overrides it; sparrow.max-homes.unlimited removes it.")
-    @Comment(lang = "zh", value = "默认 Home 上限. sparrow.max-homes.<数字> 覆盖此值, sparrow.max-homes.unlimited 表示无限.")
+    @Comment("Default home limit. sparrow.home.limit.<number> overrides it; unlimited removes the limit. 0 prevents new homes.")
+    @Comment(lang = "zh", value = "默认数量上限, sparrow.home.limit.<数量> 覆盖此值, .unlimited 表示无限. 0 表示不能新建.")
     private int maxHomes = 3;
-
-    @Comment("Allowed names, up to 32 characters. Whitespace, dots and a leading - are always forbidden.")
-    @Comment(lang = "zh", value = "名称规则, 最长 32 个字符. 始终禁止空白、点号和以 - 开头.")
+    @Comment("Allowed names, up to 32 characters. Whitespace is not allowed.")
+    @Comment(lang = "zh", value = "允许的名称格式, 最长 32 个字符, 不允许空白字符.")
     private String namePattern = "[\\p{L}\\p{N}_][\\p{L}\\p{N}_-]*";
-    private int suggestionLimit = 100;
+    @BlankLineBefore
+    private TeleportOptions teleportOptions = new TeleportOptions();
 
-    @Override
-    public boolean enabled() {
-        return this.enabled;
+    HomeConfig toConfig() {
+        if (this.maxHomes < 0) throw new IllegalArgumentException("max-homes must be nonnegative");
+        HomeConfig config = new HomeConfig(this.defaultName, this.maxHomes, Pattern.compile(this.namePattern), this.teleportOptions.toPolicy("teleport-options"));
+        if (!config.validName(this.defaultName)) throw new IllegalArgumentException("default-name must be a valid home name");
+        return config;
     }
 
-    @Override
-    public void enabled(boolean enabled) {
-        this.enabled = enabled;
+    private static Duration parseDuration(String path, String text) {
+        try {
+            if (!text.isEmpty() && text.chars().allMatch(c -> c >= '0' && c <= '9')) return Duration.ofSeconds(Long.parseLong(text));
+            return DurationUtils.parseNonNegative(text);
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException(path + ": invalid duration '" + text + "'", exception);
+        }
     }
 
-    @NotNull
-    public String defaultName() {
-        return this.defaultName;
+    private static <E extends Enum<E>> E parseEnum(String path, Class<E> type, String text) {
+        for (E constant : type.getEnumConstants()) {
+            if (constant.name().equalsIgnoreCase(text)) return constant;
+        }
+        throw new IllegalArgumentException(path + ": unknown value '" + text + "'");
     }
 
-    public int maxHomes() {
-        return this.maxHomes;
+    @Configuration(naming = Configuration.Naming.SNAKE_CASE)
+    public static final class TeleportOptions {
+        @Comment("Cooldown starts after success and is shared across servers for this command. 0s bypasses it.")
+        @Comment(lang = "zh", value = "成功后开始本命令的跨服冷却. 0s 跳过冷却检查和写入.")
+        private String cooldown = "5m";
+        private WarmupOptions warmup = WarmupOptions.defaults();
+        private String invulnerability = "5s";
+        private Sound afterSound = Sound.sound(Key.key("entity.enderman.teleport"), Sound.Source.MASTER, 1.0F, 1.0F);
+        @Comment("First matching permission wins. Omitted options inherit; a written warmup replaces the whole option.")
+        @Comment(lang = "zh", value = "采用第一条匹配权限的覆盖. 未写选项继承基础值, 写出的 warmup 整体替换.")
+        private List<OverrideOptions> overrides = List.of(
+                OverrideOptions.of("sparrow.home.teleport.staff", "0s", "0s"),
+                OverrideOptions.of("sparrow.home.teleport.vip", "1m", "3s")
+        );
+
+        private HomeConfig.Policy toPolicy(String path) {
+            HomeConfig.Options base = new HomeConfig.Options(
+                    parseDuration(path + ".cooldown", this.cooldown),
+                    this.warmup.toSettings(path + ".warmup"),
+                    parseDuration(path + ".invulnerability", this.invulnerability),
+                    this.afterSound
+            );
+            List<HomeConfig.PermissionOverride> overrides = new ArrayList<>(this.overrides.size());
+            for (int i = 0, size = this.overrides.size(); i < size; i++) {
+                overrides.add(this.overrides.get(i).merge(base, path + ".overrides[" + i + "]"));
+            }
+            return new HomeConfig.Policy(base, List.copyOf(overrides));
+        }
     }
 
-    public int suggestionLimit() {
-        return this.suggestionLimit;
+    @Configuration(naming = Configuration.Naming.SNAKE_CASE)
+    public static final class WarmupOptions {
+        private String duration = "0s";
+        @Comment("Cancel when the player moves more than half a block or changes world.")
+        @Comment(lang = "zh", value = "玩家移动超过半格或切换世界时取消.")
+        private @Nullable Boolean cancelOnMove;
+        @Comment("Cancel when the player takes damage.")
+        @Comment(lang = "zh", value = "玩家受到伤害时取消.")
+        private @Nullable Boolean cancelOnDamage;
+        @Comment("action_bar, title, boss_bar, chat or none.")
+        @Comment(lang = "zh", value = "倒计时显示位置: action_bar、title、boss_bar、chat 或 none.")
+        private @Nullable String display;
+        @Comment("Used with boss_bar: pink, blue, red, green, yellow, purple or white.")
+        @Comment(lang = "zh", value = "display 为 boss_bar 时使用: pink、blue、red、green、yellow、purple 或 white.")
+        private @Nullable String bossBarColor;
+        @Comment("Used with boss_bar: progress, notched_6, notched_10, notched_12 or notched_20.")
+        @Comment(lang = "zh", value = "display 为 boss_bar 时使用: progress、notched_6、notched_10、notched_12 或 notched_20.")
+        private @Nullable String bossBarOverlay;
+        @Comment("Played every second of the countdown.")
+        @Comment(lang = "zh", value = "倒计时每秒播放.")
+        private @Nullable Sound warmupSound;
+        @Comment("Played when moving or taking damage cancels the countdown.")
+        @Comment(lang = "zh", value = "因移动或受伤取消时播放.")
+        private @Nullable Sound cancelSound;
+
+        // 只写时长时其余选项留空, 转换时取默认值
+        @NotNull
+        @ApiStatus.Internal
+        public static WarmupOptions of(@NotNull String duration) {
+            WarmupOptions options = new WarmupOptions();
+            options.duration = duration;
+            return options;
+        }
+
+        // 生成默认文件时写出全部选项
+        static WarmupOptions defaults() {
+            WarmupOptions options = of("5s");
+            options.cancelOnMove = true;
+            options.cancelOnDamage = true;
+            options.display = "action_bar";
+            options.bossBarColor = "yellow";
+            options.bossBarOverlay = "progress";
+            options.warmupSound = DEFAULT_WARMUP_SOUND;
+            options.cancelSound = DEFAULT_CANCEL_SOUND;
+            return options;
+        }
+
+        private CountdownSettings toSettings(String path) {
+            return new CountdownSettings(
+                    parseDuration(path + ".duration", this.duration),
+                    this.cancelOnMove == null || this.cancelOnMove,
+                    this.cancelOnDamage == null || this.cancelOnDamage,
+                    this.display == null ? CountdownDisplay.ACTION_BAR : parseEnum(path + ".display", CountdownDisplay.class, this.display),
+                    this.bossBarColor == null ? BossEvent.BossBarColor.YELLOW : parseEnum(path + ".boss_bar_color", BossEvent.BossBarColor.class, this.bossBarColor),
+                    this.bossBarOverlay == null ? BossEvent.BossBarOverlay.PROGRESS : parseEnum(path + ".boss_bar_overlay", BossEvent.BossBarOverlay.class, this.bossBarOverlay),
+                    this.warmupSound == null ? DEFAULT_WARMUP_SOUND : this.warmupSound,
+                    this.cancelSound == null ? DEFAULT_CANCEL_SOUND : this.cancelSound
+            );
+        }
     }
 
-    public boolean validName(@NotNull String name) {
-        return !name.isEmpty() && name.length() <= Home.MAX_NAME_LENGTH && !name.startsWith("-") && !name.contains(".")
-                && name.codePoints().noneMatch(c -> Character.isWhitespace(c) || Character.isSpaceChar(c)) && Pattern.matches(this.namePattern, name);
-    }
+    // 覆盖条目中没写的选项为 null, 沿用原始设置
+    @Configuration(naming = Configuration.Naming.SNAKE_CASE)
+    public static final class OverrideOptions {
+        private @Nullable String permission;
+        private @Nullable String cooldown;
+        private @Nullable WarmupOptions warmup;
+        private @Nullable String invulnerability;
+        private @Nullable Sound afterSound;
 
-    public void validate() {
-        Pattern.compile(this.namePattern);
-        if (this.suggestionLimit < 1 || this.maxHomes < 0 || !this.validName(this.defaultName)) {
-            throw new IllegalArgumentException("Invalid home settings: check limits, timings and default-name");
+        static OverrideOptions of(String permission, String cooldown, String warmup) {
+            OverrideOptions options = new OverrideOptions();
+            options.permission = permission;
+            options.cooldown = cooldown;
+            options.warmup = WarmupOptions.of(warmup);
+            return options;
+        }
+
+        private HomeConfig.PermissionOverride merge(HomeConfig.Options base, String path) {
+            if (this.permission == null || this.permission.isEmpty()) throw new IllegalArgumentException(path + ": permission is required");
+            return new HomeConfig.PermissionOverride(this.permission, new HomeConfig.Options(
+                    this.cooldown == null ? base.cooldown() : parseDuration(path + ".cooldown", this.cooldown),
+                    this.warmup == null ? base.warmup() : this.warmup.toSettings(path + ".warmup"),
+                    this.invulnerability == null ? base.invulnerability() : parseDuration(path + ".invulnerability", this.invulnerability),
+                    this.afterSound == null ? base.afterSound() : this.afterSound
+            ));
         }
     }
 }

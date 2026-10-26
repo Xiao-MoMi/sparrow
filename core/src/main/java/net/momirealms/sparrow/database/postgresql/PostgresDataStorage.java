@@ -2,6 +2,8 @@ package net.momirealms.sparrow.database.postgresql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.data.storage.DataStore;
+import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.database.PlayerProfileStore;
@@ -16,6 +18,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
@@ -28,6 +31,7 @@ public final class PostgresDataStorage extends DataStorage {
     private PostgresPlayerProfileStore profileStore;
     private PostgresBackStore backStore;
     private PostgresWarpStore warpStore;
+    private PostgresHomeStore homeStore;
     private PostgresPlayerNameHistoryStore nameHistoryStore;
     private PostgresPlayerIpHistoryStore ipHistoryStore;
 
@@ -56,6 +60,7 @@ public final class PostgresDataStorage extends DataStorage {
             this.pool = connected;
             this.backStore = new PostgresBackStore(jdbi, super.executor, this.namePrefix());
             this.warpStore = new PostgresWarpStore(jdbi, super.executor, this.namePrefix());
+            this.homeStore = new PostgresHomeStore(jdbi, super.executor, this.namePrefix());
             this.profileStore = new PostgresPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new PostgresPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
             this.ipHistoryStore = new PostgresPlayerIpHistoryStore(jdbi, super.executor, this.namePrefix());
@@ -66,6 +71,14 @@ public final class PostgresDataStorage extends DataStorage {
     }
 
     private void initializeSchemas(@NotNull Jdbi jdbi) {
+        new PostgresSchemaMigrator(
+                this.logger,
+                PostgresSchema.HOME_COMPONENT,
+                PostgresSchema.HOME_TABLES,
+                DependencyVersions.HOME_SCHEMA_VERSION,
+                PostgresSchema::initializeHomes,
+                List.of()
+        ).migrate(jdbi, this.namePrefix());
         new PostgresSchemaMigrator(
                 this.logger,
                 PostgresSchema.WARP_COMPONENT,
@@ -106,6 +119,12 @@ public final class PostgresDataStorage extends DataStorage {
                 PostgresSchema::initializeIpHistory,
                 IP_HISTORY_MIGRATIONS
         ).migrate(jdbi, this.namePrefix());
+    }
+
+    @NotNull
+    @Override
+    public DataStore<UUID, Home> homeStore() {
+        return this.homeStore;
     }
 
     @NotNull

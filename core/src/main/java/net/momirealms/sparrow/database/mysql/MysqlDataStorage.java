@@ -2,6 +2,8 @@ package net.momirealms.sparrow.database.mysql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.data.storage.DataStore;
+import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.database.PlayerProfileStore;
@@ -17,6 +19,7 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
@@ -30,6 +33,7 @@ public class MysqlDataStorage extends DataStorage {
     protected MysqlPlayerProfileStore profileStore;
     protected MysqlBackStore backStore;
     protected MysqlWarpStore warpStore;
+    protected MysqlHomeStore homeStore;
     protected MysqlPlayerNameHistoryStore nameHistoryStore;
     protected MysqlPlayerIpHistoryStore ipHistoryStore;
 
@@ -59,6 +63,7 @@ public class MysqlDataStorage extends DataStorage {
             this.pool = connected;
             this.backStore = new MysqlBackStore(jdbi, super.executor, this.namePrefix());
             this.warpStore = new MysqlWarpStore(jdbi, super.executor, this.namePrefix());
+            this.homeStore = new MysqlHomeStore(jdbi, super.executor, this.namePrefix());
             this.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new MysqlPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
             this.ipHistoryStore = new MysqlPlayerIpHistoryStore(jdbi, super.executor, this.namePrefix());
@@ -69,6 +74,14 @@ public class MysqlDataStorage extends DataStorage {
     }
 
     protected void initializeSchemas(@NotNull Jdbi jdbi) {
+        new MysqlSchemaMigrator(
+                this.logger,
+                MysqlSchema.HOME_COMPONENT,
+                MysqlSchema.HOME_TABLES,
+                DependencyVersions.HOME_SCHEMA_VERSION,
+                MysqlSchema::initializeHomes,
+                List.of()
+        ).migrate(jdbi, this.namePrefix());
         new MysqlSchemaMigrator(
                 this.logger,
                 MysqlSchema.WARP_COMPONENT,
@@ -121,6 +134,12 @@ public class MysqlDataStorage extends DataStorage {
         throw new IllegalStateException(
                 "MySQL server version " + reported + " is not supported, MySQL " + MINIMUM_SERVER_VERSION + " or later is required"
         );
+    }
+
+    @NotNull
+    @Override
+    public DataStore<UUID, Home> homeStore() {
+        return this.homeStore;
     }
 
     @NotNull
