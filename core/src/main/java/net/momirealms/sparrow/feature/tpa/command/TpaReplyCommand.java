@@ -9,7 +9,9 @@ import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public final class TpaReplyCommand extends BukkitCommandFeature {
     private final TpaFeature feature;
@@ -24,18 +26,22 @@ public final class TpaReplyCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
                 .optional(
                         "player",
                         TokenParser.tokenParser(),
-                        (context, input) -> this.feature.service().suggest(context.sender().getUniqueId(), input.peekString(), true)
+                        (context, input) -> !this.feature.enabled() ? CompletableFuture.completedFuture(List.of()) : this.feature.service().suggest(context.sender().getUniqueId(), input.peekString(), true)
                 )
                 .handler(this::execute));
     }
 
     private void execute(CommandContext<Player> context) {
-        // TODO 重构 TPA 请求流程并接入传送 API
+        Player player = context.sender();
+        this.plugin().scheduler().platform().run(() -> {
+            if (!this.feature.enabled()) return;
+            this.feature.service().reply(this.plugin().playerManager().getOnlinePlayer(player), context.getOrDefault("player", null), this.accept);
+        }, () -> {}, player);
     }
 
     @NotNull

@@ -518,6 +518,45 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig tpa = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa", "/tpa"),
+                DependencyVersions.PROJECT_ID + ".command.tpa"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-here")
+        CommandConfig tpaHere = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa_here", "/tpa_here"),
+                DependencyVersions.PROJECT_ID + ".command.tpa_here"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-accept")
+        CommandConfig tpaAccept = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa_accept", "/tpa_accept"),
+                DependencyVersions.PROJECT_ID + ".command.tpa_accept"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-deny")
+        CommandConfig tpaDeny = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa_deny", "/tpa_deny"),
+                DependencyVersions.PROJECT_ID + ".command.tpa_deny"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("tpa-cancel")
+        CommandConfig tpaCancel = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " tpa_cancel", "/tpa_cancel"),
+                DependencyVersions.PROJECT_ID + ".command.tpa_cancel"
+        );
+
+        @BlankLineBefore
         CommandConfig spawn = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " spawn", "/spawn"),
@@ -653,6 +692,11 @@ public final class CommandsConfig {
                 case "maintenance" -> this.maintenance;
                 case "head" -> this.head;
                 case "spawn" -> this.spawn;
+                case "tpa" -> this.tpa;
+                case "tpa_here" -> this.tpaHere;
+                case "tpa_accept" -> this.tpaAccept;
+                case "tpa_deny" -> this.tpaDeny;
+                case "tpa_cancel" -> this.tpaCancel;
                 case "patrol" -> this.patrol;
                 case "back" -> this.back;
                 case "death-back" -> this.deathBack;

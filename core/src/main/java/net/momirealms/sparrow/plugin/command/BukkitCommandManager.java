@@ -9,6 +9,11 @@ import net.momirealms.sparrow.feature.maintenance.MaintenanceFeature;
 import net.momirealms.sparrow.feature.head.HeadCommand;
 import net.momirealms.sparrow.feature.head.HeadFeature;
 import net.momirealms.sparrow.feature.spawn.SpawnFeature;
+import net.momirealms.sparrow.feature.tpa.TpaFeature;
+import net.momirealms.sparrow.feature.tpa.TpaRequest;
+import net.momirealms.sparrow.feature.tpa.command.TpaCommand;
+import net.momirealms.sparrow.feature.tpa.command.TpaReplyCommand;
+import net.momirealms.sparrow.feature.tpa.command.TpaCancelCommand;
 import net.momirealms.sparrow.feature.spawn.command.SpawnCommand;
 import net.momirealms.sparrow.feature.patrol.PatrolCommand;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
@@ -216,6 +221,14 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.registerFeature(new DeathBackCommand(this, this.plugin), new FeaturePermission(BackFeature.ID, () -> this.plugin.featureManager().isEnabled(BackFeature.ID)));
         this.registerFeature(new RtpCommand(this, this.plugin), new FeaturePermission(RtpFeature.ID, () -> this.plugin.featureManager().isEnabled(RtpFeature.ID)));
         this.registerFeature(new RtpRangeCommand(this, this.plugin), new FeaturePermission(RtpFeature.ID, () -> this.plugin.featureManager().isEnabled(RtpFeature.ID)));
+
+        TpaFeature tpa = this.plugin.featureManager().feature(TpaFeature.ID, TpaFeature.class);
+        FeaturePermission tpaPermission = new FeaturePermission(TpaFeature.ID, () -> this.plugin.featureManager().isEnabled(TpaFeature.ID));
+        this.registerFeature(new TpaCommand(tpa, "tpa", TpaRequest.Direction.TO_TARGET), tpaPermission);
+        this.registerFeature(new TpaCommand(tpa, "tpa_here", TpaRequest.Direction.TO_REQUESTER), tpaPermission);
+        this.registerFeature(new TpaReplyCommand(tpa, "tpa_accept", true), tpaPermission);
+        this.registerFeature(new TpaReplyCommand(tpa, "tpa_deny", false), tpaPermission);
+        this.registerFeature(new TpaCancelCommand(tpa), tpaPermission);
     }
 
     @Override

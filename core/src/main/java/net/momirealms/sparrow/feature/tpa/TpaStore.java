@@ -1,151 +1,154 @@
 package net.momirealms.sparrow.feature.tpa;
 
-import io.lettuce.core.SetArgs;
+import io.lettuce.core.ScriptOutputType;
 import io.lettuce.core.api.async.RedisAsyncCommands;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 final class TpaStore {
-    private static final String INCOMING_PREFIX = "sparrow:tpa:in:";       // 后接目标 UUID, 哈希的字段是发起者 UUID
-    private static final String OUTGOING_PREFIX = "sparrow:tpa:out:";      // 后接发起者 UUID, 哈希的字段是目标 UUID
-    private static final String COOLDOWN_PREFIX = "sparrow:tpa:cooldown:"; // 后接发起者 UUID, 过期即可以再次发起
-    private static final String DENIED_PREFIX = "sparrow:tpa:denied:";     // 后接发起者与目标的 UUID, 过期即可以再次向他发起
-    private static final long GRACE_MILLIS = 10_000L;                      // 记录比请求多保留的时间, 请求正常由过期任务删除
-    private static final byte[] MARK = {1};                                // 两种冷却只看键在不在, 值没有含义
+    private static final String PREFIX = "sparrow:tpa:v2:";
+    private static final long CLEANUP_GRACE = 10_000L;
+    // 请求、两个索引与发送冷却一起写入; 索引过期时间取其中最晚的一条.
+    private static final String CREATE = """
+            local now = tonumber(ARGV[1])
+            local expires = tonumber(ARGV[2])
+            if redis.call('ZSCORE', KEYS[2], ARGV[4]) then
+                local old = tonumber(redis.call('ZSCORE', KEYS[2], ARGV[4]))
+                if old > now and redis.call('EXISTS', KEYS[1]) == 1 then return {0, 0} end
+            end
+            if ARGV[8] == '0' then
+                local denied = redis.call('PTTL', KEYS[5])
+                if denied > 0 then return {-1, denied} end
+                if tonumber(ARGV[7]) > 0 then
+                    local cooldown = redis.call('PTTL', KEYS[4])
+                    if cooldown > 0 then return {-2, cooldown} end
+                end
+            end
+            redis.call('SET', KEYS[1], ARGV[3], 'PXAT', expires + tonumber(ARGV[6]))
+            redis.call('ZADD', KEYS[2], expires, ARGV[4])
+            redis.call('ZADD', KEYS[3], expires, ARGV[5])
+            for i = 2, 3 do
+                local last = redis.call('ZREVRANGE', KEYS[i], 0, 0, 'WITHSCORES')
+                redis.call('PEXPIREAT', KEYS[i], tonumber(last[2]) + tonumber(ARGV[6]))
+            end
+            if ARGV[8] == '0' and tonumber(ARGV[7]) > 0 then
+                redis.call('SET', KEYS[4], '1', 'PX', ARGV[7])
+            end
+            return {1, 0}
+            """;
+    // 比较完整记录中的独立请求 ID, 旧回调不能消费同一对玩家的新请求.
+    private static final String TAKE = """
+            if redis.call('GET', KEYS[1]) ~= ARGV[1] then return 0 end
+            local expired = tonumber(ARGV[2]) <= tonumber(ARGV[3])
+            if (ARGV[4] == '1') ~= expired then return 0 end
+            redis.call('DEL', KEYS[1])
+            redis.call('ZREM', KEYS[2], ARGV[5])
+            redis.call('ZREM', KEYS[3], ARGV[6])
+            if tonumber(ARGV[7]) > 0 then redis.call('SET', KEYS[4], '1', 'PX', ARGV[7]) end
+            return 1
+            """;
+    private static final String LIST = """
+            redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', ARGV[1])
+            return redis.call('ZREVRANGE', KEYS[1], 0, -1)
+            """;
 
-    private final SparrowPlugin plugin = SparrowPlugin.instance();
-    private final TpaFeature feature = this.plugin.featureManager().feature(TpaFeature.ID, TpaFeature.class);
+    private final RedisAsyncCommands<byte[], byte[]> redis = SparrowPlugin.instance().redisConnector().connection().async();
 
-    // 把请求记进目标的收到列表和发起者的发出列表
-    @NotNull
-    CompletableFuture<Void> save(@NotNull TpaRequest request) {
-        RedisAsyncCommands<byte[], byte[]> redis = this.redis();
-        byte[] incoming = key(INCOMING_PREFIX, request.target());
-        byte[] outgoing = key(OUTGOING_PREFIX, request.requester());
-        byte[] value = request.encode();
-        // 两个键的过期时间随每次写入顺延, 只在没有人来删的时候起作用
-        long ttl = this.expireMillis() + GRACE_MILLIS;
-        return CompletableFuture.allOf(
-                redis.hset(incoming, field(request.requester()), value).toCompletableFuture(),
-                redis.pexpire(incoming, ttl).toCompletableFuture(),
-                redis.hset(outgoing, field(request.target()), value).toCompletableFuture(),
-                redis.pexpire(outgoing, ttl).toCompletableFuture()
-        );
+    CompletableFuture<CreateResult> create(TpaRequest request, long cooldownMillis, boolean bypass) {
+        return this.redis.<List<Object>>eval(
+                CREATE,
+                ScriptOutputType.MULTI,
+                new byte[][]{
+                        requestKey(request.requester(), request.target()),
+                        incomingKey(request.target()),
+                        outgoingKey(request.requester()),
+                        bytes(PREFIX + "cooldown:" + request.requester()),
+                        deniedKey(request.requester(), request.target())
+                },
+                bytes(Long.toString(System.currentTimeMillis())),
+                bytes(Long.toString(request.expiresAt())),
+                request.encode(),
+                bytes(request.requester().toString()),
+                bytes(request.target().toString()),
+                bytes(Long.toString(CLEANUP_GRACE)),
+                bytes(Long.toString(cooldownMillis)),
+                bytes(bypass ? "1" : "0")
+        ).toCompletableFuture().thenApply(result -> new CreateResult(((Number) result.get(0)).intValue(), ((Number) result.get(1)).longValue()));
     }
 
-    // 结果为这次调用是否真的删掉了请求. 接受、拒绝、取消和过期同时发生时, 只有删成功的一方生效
-    @NotNull
-    CompletableFuture<Boolean> take(@NotNull TpaRequest request) {
-        RedisAsyncCommands<byte[], byte[]> redis = this.redis();
-        return redis.hdel(key(INCOMING_PREFIX, request.target()), field(request.requester()))
-                .toCompletableFuture()
-                .thenApply(removed -> {
-                    if (removed == 0) return false;
-                    // 谁删成功由收到列表决定, 发出列表跟着清掉这一项
-                    redis.hdel(key(OUTGOING_PREFIX, request.requester()), field(request.target()));
-                    return true;
-                });
+    CompletableFuture<Boolean> take(TpaRequest request, boolean expired, long denyMillis) {
+        return this.redis.<Long>eval(
+                TAKE,
+                ScriptOutputType.INTEGER,
+                new byte[][]{
+                        requestKey(request.requester(), request.target()),
+                        incomingKey(request.target()),
+                        outgoingKey(request.requester()),
+                        deniedKey(request.requester(), request.target())
+                },
+                request.encode(),
+                bytes(Long.toString(request.expiresAt())),
+                bytes(Long.toString(System.currentTimeMillis())),
+                bytes(expired ? "1" : "0"),
+                bytes(request.requester().toString()),
+                bytes(request.target().toString()),
+                bytes(Long.toString(denyMillis))
+        ).toCompletableFuture().thenApply(taken -> taken == 1);
     }
 
-    // 查询发起者发给目标的那一条请求, 没有或已经超过有效期时为 null
-    @NotNull
-    CompletableFuture<@Nullable TpaRequest> find(@NotNull UUID requester, @NotNull UUID target) {
-        return this.redis().hget(key(INCOMING_PREFIX, target), field(requester))
-                .toCompletableFuture()
-                .thenApply(value -> {
-                    if (value == null) return null;
-                    TpaRequest request = TpaRequest.decode(requester, target, value);
-                    return this.expired(request) ? null : request;
-                });
+    CompletableFuture<List<TpaRequest>> list(UUID player, boolean incoming) {
+        return this.redis.<List<byte[]>>eval(
+                LIST,
+                ScriptOutputType.MULTI,
+                new byte[][]{incoming ? incomingKey(player) : outgoingKey(player)},
+                bytes(Long.toString(System.currentTimeMillis()))
+        ).toCompletableFuture().thenCompose(members -> {
+            List<CompletableFuture<byte[]>> values = new ArrayList<>(members.size());
+            for (int i = 0, size = members.size(); i < size; i++) {
+                UUID other = UUID.fromString(new String(members.get(i), StandardCharsets.UTF_8));
+                values.add(this.redis.get(incoming ? requestKey(other, player) : requestKey(player, other)).toCompletableFuture());
+            }
+            return CompletableFuture.allOf(values.toArray(CompletableFuture[]::new)).thenApply(ignored -> {
+                List<TpaRequest> requests = new ArrayList<>();
+                long now = System.currentTimeMillis();
+                for (int i = 0, size = values.size(); i < size; i++) {
+                    byte[] value = values.get(i).join();
+                    if (value == null) continue;
+                    TpaRequest request = TpaRequest.decode(value);
+                    if (request.expiresAt() > now) requests.add(request);
+                }
+                requests.sort(Comparator.comparingLong(TpaRequest::createdAt).reversed());
+                return requests;
+            });
+        });
     }
 
-    // 目标收到的、还在有效期内的全部请求
-    @NotNull
-    CompletableFuture<List<TpaRequest>> incoming(@NotNull UUID target) {
-        return this.redis().hgetall(key(INCOMING_PREFIX, target))
-                .toCompletableFuture()
-                .thenApply(entries -> this.pending(entries, (requester, value) -> TpaRequest.decode(requester, target, value)));
+    private static byte[] requestKey(UUID from, UUID to) {
+        return bytes(PREFIX + "request:" + from + ":" + to);
     }
 
-    // 发起者发出的、还在有效期内的全部请求
-    @NotNull
-    CompletableFuture<List<TpaRequest>> outgoing(@NotNull UUID requester) {
-        return this.redis().hgetall(key(OUTGOING_PREFIX, requester))
-                .toCompletableFuture()
-                .thenApply(entries -> this.pending(entries, (target, value) -> TpaRequest.decode(requester, target, value)));
+    private static byte[] incomingKey(UUID player) {
+        return bytes(PREFIX + "in:" + player);
     }
 
-    // 占用发起冷却. 结果为 0 时占用成功, 否则是还要等待的毫秒数
-    @NotNull
-    CompletableFuture<Long> claimCooldown(@NotNull UUID requester) {
-        long millis = this.feature.config().requestCooldownSeconds() * 1000L;
-        if (millis <= 0) return CompletableFuture.completedFuture(0L);
-        RedisAsyncCommands<byte[], byte[]> redis = this.redis();
-        byte[] key = key(COOLDOWN_PREFIX, requester);
-        // 键不存在时写入成功就是占用成功, 已经存在时读出它的剩余时间, 至少算 1 毫秒
-        return redis.set(key, MARK, SetArgs.Builder.nx().px(millis))
-                .toCompletableFuture()
-                .thenCompose(claimed -> claimed != null ? CompletableFuture.completedFuture(0L) : redis.pttl(key).toCompletableFuture().thenApply(left -> Math.max(left, 1L)));
+    private static byte[] outgoingKey(UUID player) {
+        return bytes(PREFIX + "out:" + player);
     }
 
-    // 目标拒绝发起者后调用, 开始这两人之间的单人冷却
-    void markDenied(@NotNull UUID requester, @NotNull UUID target) {
-        long millis = this.feature.config().denyCooldownSeconds() * 1000L;
-        if (millis > 0) this.redis().set(deniedKey(requester, target), MARK, SetArgs.Builder.px(millis));
+    private static byte[] deniedKey(UUID from, UUID to) {
+        return bytes(PREFIX + "denied:" + from + ":" + to);
     }
 
-    // 被目标拒绝后还要等待的毫秒数, 没有被拒绝过时为 0
-    @NotNull
-    CompletableFuture<Long> deniedMillis(@NotNull UUID requester, @NotNull UUID target) {
-        return this.redis().pttl(deniedKey(requester, target)).toCompletableFuture().thenApply(left -> Math.max(left, 0L));
+    private static byte[] bytes(String value) {
+        return value.getBytes(StandardCharsets.UTF_8);
     }
 
-    // 把哈希里的各项读成请求, 跳过已经超过有效期的
-    private List<TpaRequest> pending(Map<byte[], byte[]> entries, Decoder decoder) {
-        List<TpaRequest> requests = new ArrayList<>(entries.size());
-        for (Map.Entry<byte[], byte[]> entry : entries.entrySet()) {
-            TpaRequest request = decoder.decode(UUID.fromString(new String(entry.getKey(), StandardCharsets.UTF_8)), entry.getValue());
-            if (!this.expired(request)) requests.add(request);
-        }
-        return requests;
-    }
-
-    // 请求到期时由过期任务删除. 安排任务的服务器停掉后它会留在哈希里, 超过有效期加宽限时间就当作不存在
-    private boolean expired(TpaRequest request) {
-        return request.createdAt() + this.expireMillis() + GRACE_MILLIS < System.currentTimeMillis();
-    }
-
-    private long expireMillis() {
-        return this.feature.config().expireSeconds() * 1000L;
-    }
-
-    private RedisAsyncCommands<byte[], byte[]> redis() {
-        return this.plugin.redisConnector().connection().async();
-    }
-
-    private static byte[] key(String prefix, UUID player) {
-        return (prefix + player).getBytes(StandardCharsets.UTF_8);
-    }
-
-    private static byte[] deniedKey(UUID requester, UUID target) {
-        return (DENIED_PREFIX + requester + ":" + target).getBytes(StandardCharsets.UTF_8);
-    }
-
-    private static byte[] field(UUID player) {
-        return player.toString().getBytes(StandardCharsets.UTF_8);
-    }
-
-    // 哈希的字段是另一位玩家的 UUID, 它是发起者还是目标由调用方决定
-    @FunctionalInterface
-    private interface Decoder {
-        TpaRequest decode(UUID other, byte[] value);
+    record CreateResult(int status, long remainingMillis) {
     }
 }

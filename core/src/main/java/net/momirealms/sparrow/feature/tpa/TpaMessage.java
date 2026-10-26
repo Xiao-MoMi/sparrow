@@ -10,10 +10,9 @@ import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import org.jetbrains.annotations.NotNull;
 
 public final class TpaMessage extends OneWayMessage<FriendlyByteBuf> {
-    public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "tpa");
+    public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "tpa_event");
     public static final MessageCodec<FriendlyByteBuf, TpaMessage> CODEC = RedisMessage.codec(TpaMessage::write, TpaMessage::new);
 
-    private final TpaFeature feature = SparrowPlugin.instance().featureManager().feature(TpaFeature.ID, TpaFeature.class);
     private final Event event;
     private final TpaRequest request;
     private final String server; // 请求被接受时传送要去的服务器, 其余事件为空
@@ -27,14 +26,7 @@ public final class TpaMessage extends OneWayMessage<FriendlyByteBuf> {
     private TpaMessage(@NotNull FriendlyByteBuf buffer) {
         super(buffer);
         this.event = Event.values()[buffer.readByte()];
-        this.request = new TpaRequest(
-                buffer.readUUID(),
-                ByteBufHelper.readUtf8(buffer, 64),
-                buffer.readUUID(),
-                ByteBufHelper.readUtf8(buffer, 64),
-                TpaRequest.Direction.values()[buffer.readByte()],
-                buffer.readLong()
-        );
+        this.request = TpaRequest.decode(buffer.readByteArray());
         this.server = ByteBufHelper.readUtf8(buffer, 255);
     }
 
@@ -42,12 +34,7 @@ public final class TpaMessage extends OneWayMessage<FriendlyByteBuf> {
     protected void write(@NotNull FriendlyByteBuf buffer) {
         super.write(buffer);
         buffer.writeByte(this.event.ordinal());
-        buffer.writeUUID(this.request.requester());
-        ByteBufHelper.writeUtf8(buffer, this.request.requesterName(), 64);
-        buffer.writeUUID(this.request.target());
-        ByteBufHelper.writeUtf8(buffer, this.request.targetName(), 64);
-        buffer.writeByte(this.request.direction().ordinal());
-        buffer.writeLong(this.request.createdAt());
+        buffer.writeByteArray(this.request.encode());
         ByteBufHelper.writeUtf8(buffer, this.server, 255);
     }
 
@@ -74,7 +61,8 @@ public final class TpaMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @Override
     protected void handle() {
-        this.feature.accept(this);
+        TpaFeature feature = SparrowPlugin.instance().featureManager().feature(TpaFeature.ID, TpaFeature.class);
+        if (feature.enabled()) feature.service().handle(this);
     }
 
     // 序号会写进消息, 新增的事件只能加在末尾

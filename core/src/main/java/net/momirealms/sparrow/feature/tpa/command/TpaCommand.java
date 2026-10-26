@@ -4,13 +4,12 @@ import net.momirealms.sparrow.feature.tpa.TpaFeature;
 import net.momirealms.sparrow.feature.tpa.TpaRequest;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
-import net.momirealms.sparrow.plugin.command.parser.ClusterPlayerParser;
+import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 public final class TpaCommand extends BukkitCommandFeature {
     private final TpaFeature feature;
@@ -25,14 +24,18 @@ public final class TpaCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
-                .required("player", ClusterPlayerParser.clusterPlayerNameParser(this.plugin().playerDirectory()))
+                .required("player", GlobalPlayerParser.clusterPlayerParser())
                 .handler(this::execute));
     }
 
     private void execute(CommandContext<Player> context) {
-        // TODO 重构 TPA 请求流程并接入传送 API
+        Player player = context.sender();
+        this.plugin().scheduler().platform().run(() -> {
+            if (!this.feature.enabled()) return;
+            this.feature.service().request(this.plugin().playerManager().getOnlinePlayer(player), context.get("player"), this.direction);
+        }, () -> {}, player);
     }
 
     @NotNull
