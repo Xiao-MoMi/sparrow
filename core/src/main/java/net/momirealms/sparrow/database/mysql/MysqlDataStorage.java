@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.mysql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.database.PlayerProfileStore;
 import net.momirealms.sparrow.database.PlayerNameHistoryStore;
 import net.momirealms.sparrow.database.PlayerIpHistoryStore;
@@ -26,6 +27,7 @@ public class MysqlDataStorage extends DataStorage {
 
     protected HikariDataSource pool;
     protected MysqlPlayerProfileStore profileStore;
+    protected MysqlBackStore backStore;
     protected MysqlPlayerNameHistoryStore nameHistoryStore;
     protected MysqlPlayerIpHistoryStore ipHistoryStore;
 
@@ -53,6 +55,7 @@ public class MysqlDataStorage extends DataStorage {
             this.verifyServerVersion(jdbi);
             this.initializeSchemas(jdbi);
             this.pool = connected;
+            this.backStore = new MysqlBackStore(jdbi, super.executor, this.namePrefix());
             this.profileStore = new MysqlPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new MysqlPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
             this.ipHistoryStore = new MysqlPlayerIpHistoryStore(jdbi, super.executor, this.namePrefix());
@@ -63,6 +66,14 @@ public class MysqlDataStorage extends DataStorage {
     }
 
     protected void initializeSchemas(@NotNull Jdbi jdbi) {
+        new MysqlSchemaMigrator(
+                this.logger,
+                MysqlSchema.BACK_COMPONENT,
+                MysqlSchema.BACK_TABLES,
+                DependencyVersions.BACK_SCHEMA_VERSION,
+                MysqlSchema::initializeBack,
+                List.of()
+        ).migrate(jdbi, this.namePrefix());
         new MysqlSchemaMigrator(
                 this.logger,
                 MysqlSchema.DATA_COMPONENT,
@@ -99,6 +110,12 @@ public class MysqlDataStorage extends DataStorage {
         throw new IllegalStateException(
                 "MySQL server version " + reported + " is not supported, MySQL " + MINIMUM_SERVER_VERSION + " or later is required"
         );
+    }
+
+    @NotNull
+    @Override
+    public BackStore backStore() {
+        return this.backStore;
     }
 
     @NotNull

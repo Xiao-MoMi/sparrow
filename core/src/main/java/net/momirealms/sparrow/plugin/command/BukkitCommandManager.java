@@ -12,6 +12,9 @@ import net.momirealms.sparrow.feature.patrol.PatrolCommand;
 import net.momirealms.sparrow.feature.patrol.PatrolFeature;
 import net.momirealms.sparrow.feature.rtp.RtpCommand;
 import net.momirealms.sparrow.feature.rtp.RtpFeature;
+import net.momirealms.sparrow.feature.back.BackFeature;
+import net.momirealms.sparrow.feature.back.BackCommand;
+import net.momirealms.sparrow.feature.back.DeathBackCommand;
 import net.momirealms.sparrow.feature.rtp.RtpRangeCommand;
 import net.momirealms.sparrow.plugin.command.feature.AnvilCommand;
 import net.momirealms.sparrow.plugin.command.feature.CartographyTableCommand;
@@ -206,6 +209,8 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.registerFeature(new MaintenanceCommand(this, this.plugin), new FeaturePermission(MaintenanceFeature.ID, () -> this.plugin.featureManager().isEnabled(MaintenanceFeature.ID)));
         this.registerFeature(new HeadCommand(this, this.plugin), new FeaturePermission(HeadFeature.ID, () -> this.plugin.featureManager().isEnabled(HeadFeature.ID)));
         this.registerFeature(new PatrolCommand(this, this.plugin), new FeaturePermission(PatrolFeature.ID, () -> this.plugin.featureManager().isEnabled(PatrolFeature.ID)));
+        this.registerFeature(new BackCommand(this, this.plugin), new FeaturePermission(BackFeature.ID, () -> this.plugin.featureManager().isEnabled(BackFeature.ID)));
+        this.registerFeature(new DeathBackCommand(this, this.plugin), new FeaturePermission(BackFeature.ID, () -> this.plugin.featureManager().isEnabled(BackFeature.ID)));
         this.registerFeature(new RtpCommand(this, this.plugin), new FeaturePermission(RtpFeature.ID, () -> this.plugin.featureManager().isEnabled(RtpFeature.ID)));
         this.registerFeature(new RtpRangeCommand(this, this.plugin), new FeaturePermission(RtpFeature.ID, () -> this.plugin.featureManager().isEnabled(RtpFeature.ID)));
     }

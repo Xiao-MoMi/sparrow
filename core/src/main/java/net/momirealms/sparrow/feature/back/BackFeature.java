@@ -1,167 +1,191 @@
 package net.momirealms.sparrow.feature.back;
 
-import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
-import net.momirealms.sparrow.database.PlayerData;
+import net.kyori.adventure.text.Component;
+import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.feature.Feature;
-import net.momirealms.sparrow.player.PlayerListener;
+import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
+import net.momirealms.sparrow.teleport.TeleportContext;
+import net.momirealms.sparrow.teleport.TeleportExecutionListener;
+import net.momirealms.sparrow.ui.Subscription;
+import net.momirealms.sparrow.util.ServerLocation;
+import net.momirealms.sparrow.util.ThrowableUtils;
 import net.momirealms.sparrow.util.WorldLocation;
-import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
-import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Path;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
+import java.util.function.Supplier;
 
-public final class BackFeature extends Feature<BackSettings> implements Listener, PlayerListener {
+public final class BackFeature implements Feature, Listener, TeleportExecutionListener {
     public static final String ID = "back";
-    private static final double MIN_DISTANCE_SQUARED = 1.0;  // 原地转视角这类短距离传送不记录
+    private static final String DEPARTURE = "sparrow_back_departure";
 
-    private final SparrowPlugin plugin;
-    private final ConcurrentChainedObject2ObjectHashTable<UUID, WorldLocation> points = new ConcurrentChainedObject2ObjectHashTable<>();
-    private final ConcurrentChainedObject2ObjectHashTable<UUID, CompletableFuture<Void>> deathWrites = new ConcurrentChainedObject2ObjectHashTable<>();
-    private volatile Set<TeleportCause> causes = Set.of();
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
+    private final BackOperations operations = new BackOperations();
+    private volatile BackConfig config;
+    private volatile boolean enabled;
+    private long generation;
+    private BackService back;
+    private DeathBackService deathback;
+    private Subscription executionSubscription;
+    private Subscription quitSubscription;
 
-    public BackFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
-        this.plugin = plugin;
+    @NotNull
+    @Override
+    public String id() {
+        return ID;
     }
 
     @Override
-    public void loadConfig() {
-        BackSettings settings = this.plugin.configurationManager().featuresConfig().config().back();
-        this.causes = parseCauses(settings.teleportCauses());
-        super.config = settings;
+    public boolean supportsHotEnable() {
+        return true;
     }
 
     @Override
-    protected void onLoad() {
-        this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
-        this.plugin.playerManager().registerListener(this);
+    public boolean supportsHotDisable() {
+        return true;
     }
 
-    @Override
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-        register.accept(new BackCommand(this.plugin.commandManager(), this.plugin));
-        register.accept(new DeathBackCommand(this.plugin.commandManager(), this.plugin));
-    }
-
-    @Override
-    protected void onDisable() {
-        this.points.clear();
-    }
-
-    @Override
-    protected void onUnload() {
-        this.plugin.playerManager().unregisterListener(this);
-    }
-
-    @Override
-    public void onQuit(@NotNull BukkitSparrowPlayer player) {
-        this.points.remove(player.uniqueId());
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onTeleport(@NotNull PlayerTeleportEvent event) {
-        this.recordTeleport(event.getPlayer(), event.getFrom(), event.getTo(), event.getCause());
-    }
-
-    @ApiStatus.Internal
-    public void recordTeleport(@NotNull Player platformPlayer, @NotNull Location from, @NotNull Location to, @NotNull TeleportCause cause) {
-        if (!this.enabled() || !this.causes.contains(cause)) {
-            return;
+    private BackConfig readConfig() {
+        Path path = this.plugin.dataFolderPath().resolve("features/back.yaml");
+        try {
+            return YamlMapperFactory.builder()
+                    .sparrowYaml(this.plugin.configurationManager().sparrowYaml())
+                    .build()
+                    .create(BackSettings.class, BackSettings::new)
+                    .load(path)
+                    .value()
+                    .toConfig();
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to load " + path, exception);
         }
-        // 还没完成进服处理, 或者还在进服保护期内, 这时的传送多半是其他插件把玩家送到出生点
-        BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(platformPlayer);
-        if (player == null || System.currentTimeMillis() - player.connection().connectedAt() < super.config.joinGraceSeconds() * 1000L) {
-            return;
-        }
-        if (from.getWorld() == to.getWorld() && from.distanceSquared(to) < MIN_DISTANCE_SQUARED) {
-            return;
-        }
-        this.points.put(player.uniqueId(), WorldLocation.from(from));
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onDeath(@NotNull PlayerDeathEvent event) {
-        if (!this.enabled() || !super.config.recordDeath()) {
-            return;
-        }
-        Player player = event.getEntity();
-        UUID uniqueId = player.getUniqueId();
-        String name = player.getName();
-        WorldLocation location = WorldLocation.from(player.getLocation());
-        CompletableFuture<Void> write = this.plugin.dataAccess().players().saveDeath(uniqueId, name, System.currentTimeMillis(), ServerConfig.serverId(), location);
-        this.deathWrites.put(uniqueId, write);
-        write.whenComplete((ignored, failure) -> {
-            this.deathWrites.remove(uniqueId, write);
-            if (failure != null) {
-                this.plugin.logger().warn("Failed to save death location for " + name, failure);
-            }
-        });
-    }
-
-    @Nullable
-    public WorldLocation point(@NotNull UUID player) {
-        return this.points.get(player);
     }
 
     @NotNull
-    public CompletableFuture<Optional<PlayerData>> loadDeath(@NotNull UUID player) {
-        CompletableFuture<Void> write = this.deathWrites.get(player);
-        CompletableFuture<Void> ready = write == null ? CompletableFuture.completedFuture(null) : write;
-        return ready.thenCompose(ignored -> this.plugin.dataAccess().players()
-                .read(player)
-                .whenComplete((found, failure) -> {
-                    if (failure != null) {
-                        this.plugin.logger().warn("Failed to load death location for " + player, failure);
-                    }
-                }));
+    @Override
+    public synchronized CompletableFuture<Void> onEnable() {
+        BackConfig loaded = this.readConfig();
+        if (this.back == null) {
+            BackStore store = this.plugin.dataStorage().backStore();
+            this.back = new BackService(this, store, this.operations);
+            this.deathback = new DeathBackService(this, store, this.operations);
+            this.executionSubscription = this.plugin.teleportService().registerExecutionListener(this);
+            this.quitSubscription = this.plugin.playerManager().registerQuitListener(player -> this.operations.await(player.uniqueId()));
+        }
+        this.config = loaded;
+        this.enabled = true;
+        this.plugin.javaPlugin().getServer().getPluginManager().registerEvents(this, this.plugin.javaPlugin());
+        return CompletableFuture.completedFuture(null);
     }
 
-    /**
-     * 判断玩家是否刚从下线记录里的服务器切换过来, 是的话 /back 可以回到那里.
-     * 重新登录的玩家下线时间远早于连上本服的时间, 不算切服.
-     */
-    public boolean switchedFrom(@NotNull BukkitSparrowPlayer player, @NotNull PlayerData data) {
-        if (data.lastLogoutLocation() == null || data.lastLogoutServer() == null) {
-            return false;
-        }
-        if (ServerConfig.serverId().equals(data.lastLogoutServer())) {
-            return false;
-        }
-        // 代理先让玩家进入新服务器再断开旧服务器, 下线时间可能略晚于连上本服的时间
-        return Math.abs(data.lastLogout() - player.connection().connectedAt()) <= super.config.serverSwitchWindowSeconds() * 1000L;
+    @NotNull
+    @Override
+    public CompletableFuture<Void> onReload() {
+        this.config = this.readConfig();
+        return CompletableFuture.completedFuture(null);
     }
 
-    // 配置写错时在启用前报告
-    private static Set<TeleportCause> parseCauses(List<String> names) {
-        Set<TeleportCause> causes = EnumSet.noneOf(TeleportCause.class);
-        for (int i = 0; i < names.size(); i++) {
-            String name = names.get(i);
-            try {
-                causes.add(TeleportCause.valueOf(name.toUpperCase(Locale.ROOT)));
-            } catch (IllegalArgumentException exception) {
-                throw new IllegalArgumentException("back.teleport-causes contains an unknown cause: " + name, exception);
-            }
+    synchronized CompletableFuture<@Nullable Component> back(BukkitSparrowPlayer player) {
+        if (!this.enabled) return CompletableFuture.completedFuture(MessageConstants.TELEPORT_DISABLED);
+        return this.back.teleport(player, this.config.back().select(player.platformPlayer), this.generation);
+    }
+
+    synchronized CompletableFuture<@Nullable Component> deathback(BukkitSparrowPlayer player) {
+        if (!this.enabled) return CompletableFuture.completedFuture(MessageConstants.TELEPORT_DISABLED);
+        return this.deathback.teleport(player, this.config.deathback().select(player.platformPlayer), this.generation);
+    }
+
+    synchronized <T> CompletableFuture<T> withPlayer(BukkitSparrowPlayer player, long generation, Supplier<CompletableFuture<T>> operation) {
+        if (!this.enabled || this.generation != generation || this.plugin.playerManager().getOnlinePlayer(player.platformPlayer) != player) {
+            return CompletableFuture.failedFuture(new CancellationException("Back request session is no longer active"));
         }
-        return causes;
+        return operation.get();
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public synchronized void onTeleport(@NotNull PlayerTeleportEvent event) {
+        if (!this.enabled) return;
+        BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(event.getPlayer());
+        if (player == null) return;
+        // Sparrow 本服传送由执行成功通知记录, 平台事件负责其余可观察的传送
+        if (event.getCause() == TeleportCause.PLUGIN && this.plugin.teleportService().isExecutingLocally(player)) return;
+        ServerLocation from = ServerLocation.from(ServerConfig.serverId(), event.getFrom());
+        WorldLocation to = WorldLocation.from(event.getTo());
+        if (!this.shouldRecord(player, from, ServerConfig.serverId(), to, event.getCause())) return;
+        this.back.record(player, from).whenComplete((ignored, error) -> {
+            if (error != null) this.plugin.logger().warn("Failed to record back location for " + player.name(), ThrowableUtils.unwrap(error));
+        });
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public synchronized void onDeath(@NotNull PlayerDeathEvent event) {
+        if (!this.enabled || !this.config.recordDeath()) return;
+        BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(event.getEntity());
+        if (player == null) return;
+        this.deathback.record(player, player.getServerLocation()).whenComplete((ignored, error) -> {
+            if (error != null) this.plugin.logger().warn("Failed to record death location for " + player.name(), ThrowableUtils.unwrap(error));
+        });
+    }
+
+    @Override
+    public synchronized void onStart(@NotNull BukkitSparrowPlayer player, @NotNull String server, @NotNull WorldLocation destination, @NotNull TeleportContext context) {
+        context.remove(DEPARTURE);
+        if (!this.enabled) return;
+        ServerLocation from = player.getServerLocation();
+        if (!this.shouldRecord(player, from, server, destination, TeleportCause.PLUGIN)) return;
+        context.put(DEPARTURE, from.toNbt());
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onSuccess(@NotNull BukkitSparrowPlayer player, @NotNull TeleportContext context) {
+        if (!(context.get(DEPARTURE) instanceof CompoundTag origin)) return CompletableFuture.completedFuture(null);
+        context.remove(DEPARTURE);
+        // 标记来自启用期间接受的执行, 跨服时由目标会话先提交写入, 再处理后续游戏操作
+        return this.back.record(player, ServerLocation.fromNbt(origin));
+    }
+
+    private boolean shouldRecord(BukkitSparrowPlayer player, ServerLocation from, String server, WorldLocation to, TeleportCause cause) {
+        BackConfig current = this.config;
+        if (!current.causes().contains(cause)) return false;
+        if (System.currentTimeMillis() - player.connection.connectedAt() < current.joinGraceMillis()) return false;
+        if (!from.server().equals(server) || !from.world().equals(to.world())) return true;
+        double x = from.x() - to.x();
+        double y = from.y() - to.y();
+        double z = from.z() - to.z();
+        return x * x + y * y + z * z >= 1.0;
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onDisable() {
+        this.enabled = false;
+        this.generation++;
+        HandlerList.unregisterAll(this);
+        return this.operations.awaitAll();
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onPluginShutdown() {
+        if (this.executionSubscription != null) this.executionSubscription.close();
+        if (this.quitSubscription != null) this.quitSubscription.close();
+        return this.operations.awaitAll();
     }
 }

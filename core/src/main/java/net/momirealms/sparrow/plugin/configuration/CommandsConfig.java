@@ -539,6 +539,21 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig back = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " back", "/back"),
+                DependencyVersions.PROJECT_ID + ".command.back"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("death-back")
+        CommandConfig deathBack = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " death-back", "/death-back"),
+                DependencyVersions.PROJECT_ID + ".command.death-back"
+        );
+
+        @BlankLineBefore
         CommandConfig rtp = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " rtp", "/rtp"),
@@ -631,6 +646,8 @@ public final class CommandsConfig {
                 case "maintenance" -> this.maintenance;
                 case "head" -> this.head;
                 case "patrol" -> this.patrol;
+                case "back" -> this.back;
+                case "death-back" -> this.deathBack;
                 case "rtp" -> this.rtp;
                 case "rtp_range" -> this.rtpRange;
                 default -> throw new IllegalArgumentException("Unknown default command feature: " + featureID);

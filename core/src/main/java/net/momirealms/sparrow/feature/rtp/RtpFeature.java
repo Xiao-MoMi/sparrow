@@ -54,7 +54,6 @@ public final class RtpFeature implements Feature {
     @NotNull
     private RtpConfig readConfig() {
         Path path = this.plugin.dataFolderPath().resolve("features/rtp.yml");
-        RtpSettings.registerSerializers(this.plugin.configurationManager().sparrowYaml());
         try {
             return YamlMapperFactory.builder()
                     .sparrowYaml(this.plugin.configurationManager().sparrowYaml())

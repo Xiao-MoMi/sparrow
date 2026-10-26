@@ -15,9 +15,17 @@ public final class MysqlSchema {
     public static final String IP_HISTORY_COMPONENT = "player_ip_history";
     public static final List<String> IP_HISTORY_TABLES = List.of("player_ip_history");
 
+    public static final String BACK_COMPONENT = "back";
+    public static final List<String> BACK_TABLES = List.of("back");
+
     private static final String TABLE_OPTIONS = " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin";
 
     private MysqlSchema() {
+    }
+
+    public static void initializeBack(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "back` ("
+                + "uuid BINARY(16) PRIMARY KEY, back_location BLOB, death_location BLOB)" + TABLE_OPTIONS);
     }
 
     public static void initializeData(@NotNull Handle handle, @NotNull String prefix) {

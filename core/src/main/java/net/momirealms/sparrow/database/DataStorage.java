@@ -32,6 +32,9 @@ public abstract class DataStorage implements AutoCloseable {
     public abstract void initialize();
 
     @NotNull
+    public abstract BackStore backStore();
+
+    @NotNull
     public abstract PlayerProfileStore playerProfileStore();
 
     @NotNull

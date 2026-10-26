@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.postgresql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.database.PlayerProfileStore;
 import net.momirealms.sparrow.database.PlayerNameHistoryStore;
 import net.momirealms.sparrow.database.PlayerIpHistoryStore;
@@ -24,6 +25,7 @@ public final class PostgresDataStorage extends DataStorage {
 
     private HikariDataSource pool;
     private PostgresPlayerProfileStore profileStore;
+    private PostgresBackStore backStore;
     private PostgresPlayerNameHistoryStore nameHistoryStore;
     private PostgresPlayerIpHistoryStore ipHistoryStore;
 
@@ -50,6 +52,7 @@ public final class PostgresDataStorage extends DataStorage {
             Jdbi jdbi = Jdbi.create(connected);
             this.initializeSchemas(jdbi);
             this.pool = connected;
+            this.backStore = new PostgresBackStore(jdbi, super.executor, this.namePrefix());
             this.profileStore = new PostgresPlayerProfileStore(jdbi, super.executor, this.namePrefix());
             this.nameHistoryStore = new PostgresPlayerNameHistoryStore(jdbi, super.executor, this.namePrefix());
             this.ipHistoryStore = new PostgresPlayerIpHistoryStore(jdbi, super.executor, this.namePrefix());
@@ -60,6 +63,14 @@ public final class PostgresDataStorage extends DataStorage {
     }
 
     private void initializeSchemas(@NotNull Jdbi jdbi) {
+        new PostgresSchemaMigrator(
+                this.logger,
+                PostgresSchema.BACK_COMPONENT,
+                PostgresSchema.BACK_TABLES,
+                DependencyVersions.BACK_SCHEMA_VERSION,
+                PostgresSchema::initializeBack,
+                List.of()
+        ).migrate(jdbi, this.namePrefix());
         new PostgresSchemaMigrator(
                 this.logger,
                 PostgresSchema.DATA_COMPONENT,
@@ -84,6 +95,12 @@ public final class PostgresDataStorage extends DataStorage {
                 PostgresSchema::initializeIpHistory,
                 IP_HISTORY_MIGRATIONS
         ).migrate(jdbi, this.namePrefix());
+    }
+
+    @NotNull
+    @Override
+    public BackStore backStore() {
+        return this.backStore;
     }
 
     @NotNull

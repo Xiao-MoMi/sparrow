@@ -7,14 +7,11 @@ import net.momirealms.sparrow.service.countdown.CountdownDisplay;
 import net.momirealms.sparrow.service.countdown.CountdownSettings;
 import net.momirealms.sparrow.teleport.position.rtp.RtpArea;
 import net.momirealms.sparrow.util.DurationUtils;
-import net.momirealms.sparrow.yaml.SparrowYaml;
-import net.momirealms.sparrow.yaml.serializer.NodeSerializer;
-import net.momirealms.sparrow.yaml.serializer.NodeSerializers;
-import net.momirealms.sparrow.yaml.serializer.SerializerRegistry;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.BlankLineBefore;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Comment;
 import net.momirealms.sparrow.yaml.serializer.auto.annotation.Configuration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
@@ -65,14 +62,6 @@ public final class RtpSettings {
             "同一区域内的所有世界必须在同一台服务器上."
     })
     private Map<String, RegionOptions> regions = Map.of("wild", RegionOptions.defaults());
-
-    // warmup 可以只写一个时长, 自动映射的写法之外再接受这种简写
-    static void registerSerializers(@NotNull SparrowYaml sparrowYaml) {
-        SerializerRegistry registry = sparrowYaml.serializers();
-        if (registry.get(WarmupOptions.class) != null) return;
-        NodeSerializer<WarmupOptions> mapping = registry.register(WarmupOptions.class);
-        registry.registerUnsafe(WarmupOptions.class, mapping.withAlternative(NodeSerializers.STRING, WarmupOptions::of));
-    }
 
     // 校验并转换成运行时使用的不可变配置
     @NotNull
@@ -157,7 +146,9 @@ public final class RtpSettings {
         private @Nullable Sound cancelSound;
 
         // 只写时长时其余选项留空, 转换时取默认值
-        static WarmupOptions of(String duration) {
+        @NotNull
+        @ApiStatus.Internal
+        public static WarmupOptions of(@NotNull String duration) {
             WarmupOptions options = new WarmupOptions();
             options.duration = duration;
             return options;
