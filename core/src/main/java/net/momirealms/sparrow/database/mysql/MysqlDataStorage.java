@@ -2,8 +2,7 @@ package net.momirealms.sparrow.database.mysql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
-import net.momirealms.sparrow.data.storage.DataStore;
-import net.momirealms.sparrow.feature.home.Home;
+import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.database.WarpStore;
 import net.momirealms.sparrow.database.PlayerProfileStore;
@@ -19,7 +18,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
@@ -138,7 +136,7 @@ public class MysqlDataStorage extends DataStorage {
 
     @NotNull
     @Override
-    public DataStore<UUID, Home> homeStore() {
+    public HomeStore homeStore() {
         return this.homeStore;
     }
 

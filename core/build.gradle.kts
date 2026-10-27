@@ -1,3 +1,4 @@
+import net.minecrell.pluginyml.bukkit.BukkitPluginDescription
 import org.gradle.kotlin.dsl.buildConfigField
 import net.minecrell.pluginyml.paper.PaperPluginDescription
 import java.text.SimpleDateFormat
@@ -11,9 +12,7 @@ val proxyJarName = "$projectName-proxy.jarinjar"
 // Plugin
 plugins {
     id("sparrow.run-servers")
-    id("sparrow.run-spigot")
     alias(libs.plugins.plugin.yml)
-    alias(libs.plugins.bukkit.plugin.yml)
     alias(libs.plugins.buildconfig)
 }
 
@@ -44,7 +43,6 @@ dependencies {
     compileOnly(libs.sparrow.reflection)
     compileOnly(libs.datafixerupper)
     compileOnly(libs.lettuce.core)
-    compileOnly(libs.mongodb.driver.sync)
     compileOnly(libs.jdbi.core)
     compileOnly(libs.hikari.cp)
 }
@@ -55,16 +53,12 @@ buildConfig {
     className = "DependencyVersions"
 
     buildConfigField("DATA_SCHEMA_VERSION", libs.versions.data.schema.version.get().toInt())
-    buildConfigField("MONGODB_DATA_INDEX_VERSION", libs.versions.mongodb.data.index.version.get().toInt())
+    buildConfigField("BACK_SCHEMA_VERSION", libs.versions.back.schema.version.get().toInt())
     buildConfigField("BAN_SCHEMA_VERSION", libs.versions.ban.schema.version.get().toInt())
-    buildConfigField("MUTE_SCHEMA_VERSION", libs.versions.mute.schema.version.get().toInt())
-    buildConfigField("MONGODB_MUTE_INDEX_VERSION", libs.versions.mongodb.mute.index.version.get().toInt())
-    buildConfigField("MONGODB_BAN_INDEX_VERSION", libs.versions.mongodb.ban.index.version.get().toInt())
     buildConfigField("WARP_SCHEMA_VERSION", libs.versions.warp.schema.version.get().toInt())
-    buildConfigField("MONGODB_WARP_INDEX_VERSION", libs.versions.mongodb.warp.index.version.get().toInt())
     buildConfigField("HOME_SCHEMA_VERSION", libs.versions.home.schema.version.get().toInt())
-    buildConfigField("SPAWN_SCHEMA_VERSION", libs.versions.spawn.schema.version.get().toInt())
-    buildConfigField("MONGODB_HOME_INDEX_VERSION", libs.versions.mongodb.home.index.version.get().toInt())
+    buildConfigField("PLAYER_NAME_HISTORY_SCHEMA_VERSION", libs.versions.player.name.history.schema.version.get().toInt())
+    buildConfigField("PLAYER_IP_HISTORY_SCHEMA_VERSION", libs.versions.player.ip.history.schema.version.get().toInt())
 
     buildConfigField("PROJECT_ID", projectId)
     buildConfigField("PROJECT_PACKAGE", projectPackage)
@@ -73,7 +67,6 @@ buildConfig {
     buildConfigField("COMPILE_TIME", SimpleDateFormat("yyyyMMdd_HHmm").format(Date()))
     buildConfigField("CONFIG_VERSION", libs.versions.config.version.get())
     buildConfigField("COMMANDS_CONFIG_VERSION", libs.versions.commands.config.version.get())
-    buildConfigField("FEATURES_CONFIG_VERSION", libs.versions.features.config.version.get())
     buildConfigField("SERVER_CONFIG_VERSION", libs.versions.server.config.version.get())
     buildConfigField("LANG_VERSION", libs.versions.lang.version.get())
     // ASM
@@ -123,20 +116,10 @@ tasks {
     }
 }
 
-// plugin.yml
-bukkit {
-    name = projectName
-    main = "$projectPackage.plugin.SpigotJavaPlugin"
-    apiVersion = "1.21.11"
-    authors = listOf("XiaoMoMi")
-    contributors = listOf("g2213swo", "jhqwqmc")
-    softDepend = listOf("PlaceholderAPI", "LuckPerms")
-    foliaSupported = true
-}
-
 // paper-plugin.yml
 paper {
     name = projectName
+    load = BukkitPluginDescription.PluginLoadOrder.STARTUP
     bootstrapper = "$projectPackage.plugin.PaperBootstrap"
     main = "$projectPackage.plugin.PaperJavaPlugin"
     apiVersion = "1.21.11"

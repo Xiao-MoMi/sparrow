@@ -580,6 +580,14 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        @YamlProperty("del-all-homes")
+        CommandConfig delAllHomes = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " del_all_homes", "/spr del_all_homes"),
+                DependencyVersions.PROJECT_ID + ".command.del_all_homes"
+        );
+
+        @BlankLineBefore
         @YamlProperty("edit-home")
         CommandConfig editHome = new CommandConfig(
                 true,
@@ -773,6 +781,7 @@ public final class CommandsConfig {
                 case "home" -> this.home;
                 case "set_home" -> this.setHome;
                 case "del_home" -> this.delHome;
+                case "del_all_homes" -> this.delAllHomes;
                 case "edit_home" -> this.editHome;
                 case "home_list" -> this.homeList;
                 case "warp" -> this.warp;

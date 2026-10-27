@@ -1,15 +1,18 @@
 package net.momirealms.sparrow.database;
 
-import net.momirealms.sparrow.data.storage.DataStore;
 import net.momirealms.sparrow.feature.home.Home;
+import net.momirealms.sparrow.feature.home.HomeFilter;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jdbi.v3.core.Jdbi;
 import org.jdbi.v3.core.statement.PreparedBatch;
+import org.jdbi.v3.core.statement.Query;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +23,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 @ApiStatus.Internal
-public abstract class SqlHomeStore implements DataStore<UUID, Home> {
+public abstract class SqlHomeStore implements HomeStore {
     private final Jdbi sql;
     private final Executor executor;
     private final String table;
@@ -29,6 +32,41 @@ public abstract class SqlHomeStore implements DataStore<UUID, Home> {
         this.sql = sql;
         this.executor = executor;
         this.table = table;
+    }
+
+    @NotNull
+    @Override
+    public CompletableFuture<List<UUID>> findOwners(@NotNull HomeFilter filter, @Nullable UUID after, int limit) {
+        List<String> conditions = new ArrayList<>();
+        if (filter.owner() != null) {
+            conditions.add("owner = :owner");
+        }
+        if (filter.server() != null) {
+            conditions.add("server = :server");
+        }
+        if (filter.world() != null) {
+            conditions.add("world = :world");
+        }
+        if (after != null) {
+            conditions.add("owner > :after");
+        }
+        String sql = "SELECT DISTINCT owner FROM " + this.table + " WHERE " + String.join(" AND ", conditions) + " ORDER BY owner LIMIT :limit";
+        return CompletableFuture.supplyAsync(() -> this.sql.withHandle(handle -> {
+            Query query = handle.createQuery(sql).bind("limit", limit);
+            if (filter.owner() != null) {
+                query.bind("owner", this.encodeUuid(filter.owner()));
+            }
+            if (filter.server() != null) {
+                query.bind("server", filter.server());
+            }
+            if (filter.world() != null) {
+                query.bind("world", filter.world());
+            }
+            if (after != null) {
+                query.bind("after", this.encodeUuid(after));
+            }
+            return query.map((row, context) -> this.readUuid(row, "owner")).list();
+        }), this.executor);
     }
 
     @NotNull

@@ -20,6 +20,7 @@ import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.feature.home.command.HomeCommand;
 import net.momirealms.sparrow.feature.home.command.SetHomeCommand;
 import net.momirealms.sparrow.feature.home.command.DelHomeCommand;
+import net.momirealms.sparrow.feature.home.command.DelAllHomeCommand;
 import net.momirealms.sparrow.feature.home.command.EditHomeCommand;
 import net.momirealms.sparrow.feature.home.command.HomeListCommand;
 import net.momirealms.sparrow.feature.tpa.TpaRequest;
@@ -255,6 +256,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.registerFeature(new HomeCommand(this, this.plugin, home), homePermission);
         this.registerFeature(new SetHomeCommand(this, this.plugin, home), homePermission);
         this.registerFeature(new DelHomeCommand(this, this.plugin, home), homePermission);
+        this.registerFeature(new DelAllHomeCommand(this, this.plugin, home), homePermission);
         this.registerFeature(new EditHomeCommand(this, this.plugin, home), homePermission);
         this.registerFeature(new HomeListCommand(this, this.plugin, home), homePermission);
     }

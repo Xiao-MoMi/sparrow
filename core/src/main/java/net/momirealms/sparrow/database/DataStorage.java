@@ -1,15 +1,12 @@
 package net.momirealms.sparrow.database;
 
 import net.momirealms.sparrow.database.mariadb.MariaDbDataStorage;
-import net.momirealms.sparrow.data.storage.DataStore;
-import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
 import net.momirealms.sparrow.database.postgresql.PostgresDataStorage;
 import net.momirealms.sparrow.plugin.configuration.PluginConfig;
 import net.momirealms.sparrow.plugin.logger.PluginLogger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
 import java.util.concurrent.Executor;
 
 public abstract class DataStorage implements AutoCloseable {
@@ -35,7 +32,7 @@ public abstract class DataStorage implements AutoCloseable {
     public abstract void initialize();
 
     @NotNull
-    public abstract DataStore<UUID, Home> homeStore();
+    public abstract HomeStore homeStore();
 
     @NotNull
     public abstract WarpStore warpStore();

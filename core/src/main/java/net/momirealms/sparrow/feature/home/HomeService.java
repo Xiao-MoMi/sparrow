@@ -5,6 +5,7 @@ import net.momirealms.sparrow.compatibility.CompatibilityManager.PermissionValue
 import net.momirealms.sparrow.data.access.EntryEdit;
 import net.momirealms.sparrow.data.access.EntryView;
 import net.momirealms.sparrow.data.access.MultiWriterEntries;
+import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.PlayerConnection;
 import net.momirealms.sparrow.player.listener.PlayerJoinListener;
@@ -33,7 +34,9 @@ import java.util.function.Supplier;
 
 public final class HomeService implements PlayerPrepareListener, PlayerJoinListener {
     private static final String LIMIT_PERMISSION = DependencyVersions.PROJECT_ID + ".home.limit";
+    private static final int OWNER_BATCH_SIZE = 100;
 
+    private final HomeStore store = SparrowPlugin.instance().dataStorage().homeStore();
     private final HomeData data;
     private final Supplier<HomeConfig> config;
     private final Map<UUID, Set<CompletableFuture<?>>> active = new HashMap<>();
@@ -153,6 +156,49 @@ public final class HomeService implements PlayerPrepareListener, PlayerJoinListe
         });
     }
 
+    @NotNull
+    public CompletableFuture<Long> deleteAll(@NotNull HomeFilter filter) {
+        // 跨所有者操作以 null 登记, 模块停用等待整个批量删除及保存结束.
+        return this.execute(filter.owner(), () -> filter.owner() == null
+                ? this.deleteBatch(filter, null, 0)
+                : this.deleteMatching(filter.owner(), filter));
+    }
+
+    private CompletableFuture<Long> deleteBatch(HomeFilter filter, @Nullable UUID after, long deleted) {
+        return this.store.findOwners(filter, after, OWNER_BATCH_SIZE).thenCompose(owners -> {
+            CompletableFuture<Long> deleting = CompletableFuture.completedFuture(deleted);
+            for (int i = 0, size = owners.size(); i < size; i++) {
+                UUID owner = owners.get(i);
+                deleting = deleting.thenCompose(total -> this.deleteMatching(owner, filter).thenApply(count -> total + count));
+            }
+            if (owners.size() < OWNER_BATCH_SIZE) return deleting;
+            // 删除会改变 SQL 结果集, 下一页从上一页末尾的所有者继续查询.
+            UUID cursor = owners.getLast();
+            return deleting.thenCompose(total -> this.deleteBatch(filter, cursor, total));
+        });
+    }
+
+    private CompletableFuture<Long> deleteMatching(UUID owner, HomeFilter filter) {
+        MultiWriterEntries<UUID, Home> entries = this.data.entries(owner);
+        return entries.modify(edit -> {
+            List<UUID> matching = new ArrayList<>();
+            edit.forEach((id, home) -> {
+                if (filter.matches(home)) {
+                    matching.add(id);
+                }
+            });
+            long deleted = 0;
+            for (int i = 0, size = matching.size(); i < size; i++) {
+                if (edit.remove(matching.get(i))) {
+                    deleted++;
+                }
+            }
+            return deleted;
+        }).thenCompose(deleted -> deleted == 0
+                ? CompletableFuture.completedFuture(0L)
+                : entries.save().thenApply(ignored -> deleted));
+    }
+
     private CompletableFuture<Result> modify(UUID owner, Function<EntryEdit<UUID, Home>, Result> operation) {
         return this.execute(owner, () -> {
             MultiWriterEntries<UUID, Home> entries = this.data.entries(owner);
@@ -173,7 +219,7 @@ public final class HomeService implements PlayerPrepareListener, PlayerJoinListe
         return found[0];
     }
 
-    private <T> CompletableFuture<T> execute(UUID owner, Supplier<CompletableFuture<T>> operation) {
+    private <T> CompletableFuture<T> execute(@Nullable UUID owner, Supplier<CompletableFuture<T>> operation) {
         CompletableFuture<T> result = new CompletableFuture<>();
         synchronized (this) {
             if (!this.accepting) return CompletableFuture.failedFuture(new CancellationException("Home service is disabled"));
