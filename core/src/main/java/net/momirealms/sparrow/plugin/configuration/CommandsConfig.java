@@ -557,6 +557,44 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig ban = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " ban", "/spr ban", "/ban"),
+                DependencyVersions.PROJECT_ID + ".command.ban"
+        );
+
+        @BlankLineBefore
+        CommandConfig unban = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " unban", "/spr unban", "/unban"),
+                DependencyVersions.PROJECT_ID + ".command.unban"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("unban-id")
+        CommandConfig unbanId = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " unban_id", "/spr unban_id", "/unban_id"),
+                DependencyVersions.PROJECT_ID + ".command.unban_id"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("ban-info")
+        CommandConfig banInfo = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " ban_info", "/spr ban_info", "/ban_info"),
+                DependencyVersions.PROJECT_ID + ".command.ban_info"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("ban-history")
+        CommandConfig banHistory = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " ban_history", "/spr ban_history", "/ban_history"),
+                DependencyVersions.PROJECT_ID + ".command.ban_history"
+        );
+
+        @BlankLineBefore
         CommandConfig home = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " home", "/spr home", "/home"),
@@ -778,6 +816,11 @@ public final class CommandsConfig {
                 case "maintenance" -> this.maintenance;
                 case "head" -> this.head;
                 case "spawn" -> this.spawn;
+                case "ban" -> this.ban;
+                case "unban" -> this.unban;
+                case "unban_id" -> this.unbanId;
+                case "ban_info" -> this.banInfo;
+                case "ban_history" -> this.banHistory;
                 case "home" -> this.home;
                 case "set_home" -> this.setHome;
                 case "del_home" -> this.delHome;

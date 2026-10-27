@@ -23,6 +23,12 @@ import net.momirealms.sparrow.feature.home.command.DelHomeCommand;
 import net.momirealms.sparrow.feature.home.command.DelAllHomeCommand;
 import net.momirealms.sparrow.feature.home.command.EditHomeCommand;
 import net.momirealms.sparrow.feature.home.command.HomeListCommand;
+import net.momirealms.sparrow.feature.ban.BanFeature;
+import net.momirealms.sparrow.feature.ban.command.BanCommand;
+import net.momirealms.sparrow.feature.ban.command.UnbanCommand;
+import net.momirealms.sparrow.feature.ban.command.UnbanIdCommand;
+import net.momirealms.sparrow.feature.ban.command.BanInfoCommand;
+import net.momirealms.sparrow.feature.ban.command.BanHistoryCommand;
 import net.momirealms.sparrow.feature.tpa.TpaRequest;
 import net.momirealms.sparrow.feature.tpa.command.TpaCommand;
 import net.momirealms.sparrow.feature.tpa.command.TpaReplyCommand;
@@ -259,6 +265,14 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.registerFeature(new DelAllHomeCommand(this, this.plugin, home), homePermission);
         this.registerFeature(new EditHomeCommand(this, this.plugin, home), homePermission);
         this.registerFeature(new HomeListCommand(this, this.plugin, home), homePermission);
+
+        BanFeature ban = this.plugin.featureManager().feature(BanFeature.ID, BanFeature.class);
+        FeaturePermission banPermission = new FeaturePermission(BanFeature.ID, () -> this.plugin.featureManager().isEnabled(BanFeature.ID));
+        this.registerFeature(new BanCommand(this, this.plugin, ban), banPermission);
+        this.registerFeature(new UnbanCommand(this, this.plugin, ban), banPermission);
+        this.registerFeature(new UnbanIdCommand(this, this.plugin, ban), banPermission);
+        this.registerFeature(new BanInfoCommand(this, this.plugin, ban), banPermission);
+        this.registerFeature(new BanHistoryCommand(this, this.plugin, ban), banPermission);
     }
 
     @Override

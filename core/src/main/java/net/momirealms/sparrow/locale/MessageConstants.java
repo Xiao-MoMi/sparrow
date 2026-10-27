@@ -386,6 +386,22 @@ public interface MessageConstants {
     TranslatableComponent BAN_REASON_NONE = Component.translatable("ban.reason.none");
     TranslatableComponent BAN_EXPIRY_PERMANENT = Component.translatable("ban.expiry.permanent");
     TranslatableComponent BAN_EXPIRY_TEMPORARY = Component.translatable("ban.expiry.temporary");
+    TranslatableComponent BAN_STATUS_ACTIVE = Component.translatable("ban.status.active");
+    TranslatableComponent BAN_STATUS_EXPIRED = Component.translatable("ban.status.expired");
+    TranslatableComponent BAN_STATUS_REVOKED = Component.translatable("ban.status.revoked");
+    TranslatableComponent COMMAND_BAN_CREATED = Component.translatable("command.ban.created");
+    TranslatableComponent COMMAND_BAN_REPLACED = Component.translatable("command.ban.replaced");
+    TranslatableComponent COMMAND_BAN_ALREADY_BANNED = Component.translatable("command.ban.already-banned");
+    TranslatableComponent COMMAND_BAN_ALREADY_BANNED_ID = Component.translatable("command.ban.already-banned-id");
+    TranslatableComponent COMMAND_BAN_UNKNOWN_PLAYER = Component.translatable("command.ban.unknown-player");
+    TranslatableComponent COMMAND_BAN_NO_ADDRESS = Component.translatable("command.ban.no-address");
+    TranslatableComponent COMMAND_BAN_UNSUPPORTED_ADDRESS = Component.translatable("command.ban.unsupported-address");
+    TranslatableComponent COMMAND_BAN_INVALID_IP = Component.translatable("command.ban.invalid-ip");
+    TranslatableComponent COMMAND_BAN_INVALID_DURATION = Component.translatable("command.ban.invalid-duration");
+    TranslatableComponent COMMAND_BAN_REASON_TOO_LONG = Component.translatable("command.ban.reason-too-long");
+    TranslatableComponent COMMAND_UNBAN_SUCCESS = Component.translatable("command.unban.success");
+    TranslatableComponent COMMAND_UNBAN_NONE = Component.translatable("command.unban.none");
+    TranslatableComponent COMMAND_BAN_INFO_UNKNOWN = Component.translatable("command.ban-info.unknown");
 
     TranslatableComponent COMMAND_MAX_PLAYERS_QUERY = Component.translatable("command.max-players.query");
     TranslatableComponent COMMAND_MAX_PLAYERS_SUCCESS = Component.translatable("command.max-players.success");

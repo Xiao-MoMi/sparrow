@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -168,6 +169,27 @@ public final class BanService {
     private CompletableFuture<Void> changed(BanRecord record, boolean silent) {
         return this.plugin.messageBrokerManager().publishOneWay(new BanMessage(ServerConfig.serverId(), record, silent), "")
                 .thenRun(() -> this.feature.accept(record, silent));
+    }
+
+    @NotNull
+    public CompletableFuture<Optional<BanTarget.PlayerTarget>> resolvePlayerTarget(@NotNull String input) {
+        return this.execute(() -> this.resolvePlayer(input)
+                .thenApply(player -> player == null ? Optional.empty() : Optional.of(new BanTarget.PlayerTarget(player.uuid()))));
+    }
+
+    @NotNull
+    public CompletableFuture<Optional<BanRecord>> find(long id) {
+        return this.execute(() -> this.store.find(id));
+    }
+
+    @NotNull
+    public CompletableFuture<Long> count(@NotNull BanQuery query) {
+        return this.execute(() -> this.store.count(query));
+    }
+
+    @NotNull
+    public CompletableFuture<List<BanRecord>> list(@NotNull BanQuery query, int offset, int limit) {
+        return this.execute(() -> this.store.list(query, offset, limit));
     }
 
     CompletableFuture<Optional<BanRecord>> findActive(UUID player, long ip) {

@@ -1,49 +1,6 @@
 __version__: '${lang_version}'
 
-# command.air
-command.air.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set remaining air for <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>/<color:#C7BCE7><arg:2></color> ticks</color>'
-
-# command.clear-ender
-command.clear-ender.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared the Ender Chest of <color:#C7BCE7><arg:0></color></color>'
-
-# command.clear-inv
-command.clear-inv.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared the inventory, equipment, offhand and cursor item of <color:#C7BCE7><arg:0></color></color>'
-
-# command.force-say
-command.force-say.command: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Chat text cannot start with /. Use sudo to execute commands</color>'
-command.force-say.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Enter a chat message to send</color>'
-command.force-say.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Submitted a chat message as <color:#C7BCE7><arg:0></color></color>'
-
-# command.item-damage
-command.item-damage.broken: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>The main-hand item of <color:#C7BCE7><arg:0></color> reached its damage limit and broke</color>'
-command.item-damage.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no item in their main hand</color>'
-command.item-damage.not-damageable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#C7BCE7><arg:0></color> has no durability</color>'
-command.item-damage.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand item damage of <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>, with <color:#C7BCE7><arg:2></color>/<color:#C7BCE7><arg:3></color> durability remaining</color>'
-
-# command.repair-all
-command.repair-all.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Repaired <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>, restoring <color:#C7BCE7><arg:2></color> durability in total</color>'
-
-# command.smite
-command.smite.effect: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a lightning effect at the location of <color:#C7BCE7><arg:0></color></color>'
-command.smite.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Struck lightning at the location of <color:#C7BCE7><arg:0></color></color>'
-
-# mute
-command.mute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Muted <color:#C7BCE7><arg:0></color> for <color:#C7BCE7><arg:1></color>.</color>'
-command.mute.already-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> is already muted. Unmute them before applying another mute.</color>'
-command.mute.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The reason must contain at most <color:#C7BCE7><arg:0></color> characters.</color>'
-command.mute.time-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The mute duration exceeds the supported date range.</color>'
-command.unmute.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Unmuted <color:#C7BCE7><arg:0></color>.</color>'
-command.unmute.not-muted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no active mute.</color>'
-mute.blocked: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are muted for another <color:#C7BCE7><arg:3></color>. Reason: <color:#C7BCE7><arg:1></color></color>'
-mute.applied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>You have been muted by <color:#C7BCE7><arg:2></color> until <color:#C7BCE7><arg:4></color> (<color:#C7BCE7><arg:3></color> remaining). Reason: <color:#C7BCE7><arg:1></color></color>'
-mute.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> has removed your mute.</color>'
-mute.notify.applied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> muted <color:#C7BCE7><arg:0></color> until <color:#C7BCE7><arg:4></color>. Reason: <color:#C7BCE7><arg:1></color></color>'
-mute.notify.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:2></color> unmuted <color:#C7BCE7><arg:0></color>.</color>'
-mute.no-reason: 'No reason provided'
-command.player-info.mute: '<color:#C8E4E9>Mute: </color><color:#F2F4FF><arg:0></color>'
-command.player-info.not-muted: 'Not muted'
-command.player-info.mute-disabled: 'Mute feature disabled'
-command.player-info.muted: 'Muted until <arg:4> (<arg:3> remaining). By <arg:2>. Reason: <arg:1>. ID: <arg:5>'
+player.data-not-ready: '<red>Your data is not ready. Please reconnect shortly.</red>'
 
 # exception
 exception.invalid_argument: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid argument: <color:#F2F4FF><arg:0></color></color>'
@@ -69,201 +26,17 @@ argument.parse.failure.flag.no_flag_started: '<color:#FFB6CB>Unrecognized flag: 
 argument.parse.failure.flag.no_permission: '<color:#FFB6CB>You do not have permission to use flag <color:#F2F4FF><arg:0></color></color>'
 argument.parse.failure.flag.unknown: '<color:#FFB6CB>Unknown flag: <color:#F2F4FF><arg:0></color></color>'
 
-argument.parse.failure.server-offline: '<color:#FFB6CB>Server <arg:0> is offline.</color>'
-argument.parse.failure.server-world: '<color:#FFB6CB>World <arg:0> does not exist on server <arg:1>.</color>'
-
-# command.rtp
-command.rtp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to a random destination.</color>'
-command.rtp.invalid-area: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Random teleport failed: the search area is invalid. Use finite center coordinates and radii. min-radius must be non-negative and smaller than max-radius; min-y must not exceed max-y.</color>'
-command.rtp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: The destination world is no longer available.</color>'
-command.rtp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: Server <arg:0> is offline.</color>'
-command.rtp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the request timed out; the teleport result could not be confirmed.</color>'
-teleport.rejected.rtp-unsupported: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the destination server does not support random teleportation.</color>'
-teleport.rejected.rtp-disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: random teleportation is disabled on the destination server.</color>'
-
-# command.actionbar
-command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent an action bar to <color:#C7BCE7><arg:0></color></color>'
-command.actionbar.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent an action bar to you</color>'
-
-# command.anvil
-command.anvil.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened anvil for <color:#C7BCE7><arg:0></color></color>'
-command.anvil.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an anvil for you</color>'
-
-# command.back
-command.back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: The world of the previous location no longer exists</color>'
-command.back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no location to go back to</color>'
-command.back.none-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no location to go back to</color>'
-command.back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: Server <color:#F2F4FF><arg:1></color> is offline, cannot go back</color>'
-command.back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> back to the previous location</color>'
-command.back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent you back to the previous location</color>'
-command.back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the request timed out; the teleport result could not be confirmed.</color>'
-
-# command.ban
-command.ban.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The ban reason cannot be longer than <color:#F2F4FF><arg:0></color> characters.</color>'
-command.ban.replaced: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Replaced the previous ban on <color:#C7BCE7><arg:0></color>.</color>'
-command.ban.replaced-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Replaced the previous ban on you.</color>'
-command.ban.replacement-rejected: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> already has an active ban <arg:1>.<newline>Add <color:#F2F4FF>--force</color> to replace it.</color>'
-command.ban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Banned <color:#C7BCE7><arg:0></color></color> <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:1></color> <color:#C8E4E9>Expires: </color><arg:2> <color:#C8E4E9>ID: </color><color:#F2F4FF><arg:3></color>'
-command.ban.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>You have been banned. Reason: <color:#C7BCE7><arg:1></color> Expires: <color:#C7BCE7><arg:2></color> ID: <color:#C7BCE7><arg:3></color></color>'
-
-# command.ban-history
-command.ban-history.filter-active: ' · active only'
-command.ban-history.filter-operator: ' · by <arg:0>'
-command.ban-history.filter-within: ' · last <arg:0>'
-command.ban-history.hover: '<color:#F2F4FF>Punishment ID: <arg:0></color><newline><color:#C8E4E9>Target: </color><color:#F2F4FF><arg:1></color><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:2></color><newline><color:#C8E4E9>By: <arg:3> @ <arg:4></color><newline><color:#FFE3A3><arg:5></color><newline><color:#C8E4E9>Expires: </color><arg:6><newline><arg:7>'
-command.ban-history.revoked: '<color:#FFE3A3>Revoked by <arg:0> at <arg:1></color>'
-command.ban-history.row: '<arg:2> <color:#C7BCE7><arg:0></color> <color:#FFE3A3><arg:1></color> <color:#F2F4FF><arg:3></color> <color:#C8E4E9><arg:4></color> <arg:5>'
-command.ban-history.title: 'Bans of <arg:0>'
-command.ban-history.title-all: 'All bans'
-
-# command.player-info
-command.player-info.ban: '<color:#AAAAAA>Ban: </color><arg:0>'
-command.player-info.ban-history: '[Bans]'
-command.player-info.ban-history-hover: '<color:#FFAA00>Ban history</color>'
-command.player-info.banned: '<color:#FF5555>Active <arg:0></color> <arg:1>'
-command.player-info.banned-short: '<color:#FF5555>Active <arg:0></color>'
-command.player-info.copy: '<color:#FFFFFF><arg:0></color><newline><color:#FFAA00>Click to copy the full value</color>'
-command.player-info.current-location: '<color:#AAAAAA>Pos: </color><arg:0>'
-command.player-info.ip: '<color:#AAAAAA>IP: </color><color:#FFFFFF><arg:0></color>'
-command.player-info.ip-history: '[IPs]'
-command.player-info.ip-history-hover: '<color:#FFAA00>IP history</color>'
-command.player-info.last-login: '<color:#AAAAAA>Login: </color><color:#FFFFFF><arg:0></color><arg:1>'
-command.player-info.last-logout: '<color:#AAAAAA>Left: </color><color:#FFFFFF><arg:0></color>'
-command.player-info.location: '<color:#FFFFFF><arg:0> <arg:1> <arg:2> <arg:3></color>'
-command.player-info.location-detail: '<color:#AAAAAA>World </color><color:#FFFFFF><arg:0></color><newline><color:#AAAAAA>X </color><color:#FFFFFF><arg:1></color><newline><color:#AAAAAA>Y </color><color:#FFFFFF><arg:2></color><newline><color:#AAAAAA>Z </color><color:#FFFFFF><arg:3></color>'
-command.player-info.logout-location: '<color:#AAAAAA>Last: </color><arg:0>'
-command.player-info.not-banned: '<color:#FFFFFF>None</color>'
-command.player-info.offline: '<color:#AAAAAA>Offline</color>'
-command.player-info.online: '<color:#55FF55>Online</color>'
-command.player-info.ping: '<color:#AAAAAA> | </color><color:#FFFFFF><arg:0></color><color:#AAAAAA>ms</color>'
-command.player-info.refresh: '[Refresh]'
-command.player-info.refresh-hover: '<color:#FFAA00>Refresh player info</color>'
-command.player-info.session: '<color:#AAAAAA>  Online </color><color:#FFFFFF><arg:0></color>'
-command.player-info.status: '<arg:0><color:#AAAAAA> | </color><color:#FFFFFF><arg:1></color>'
-command.player-info.teleport: '[TP]'
-command.player-info.teleport-hover: '<color:#FFAA00>Teleport to the last logout location</color>'
-command.player-info.title: '<color:#FFAA00>Player info » </color><color:#FFFFFF><arg:0></color>'
-command.player-info.unknown: '<color:#AAAAAA>Unknown</color>'
-command.player-info.uuid: '<color:#AAAAAA>UUID: </color><color:#FFFFFF><arg:0></color>'
-
-# command.spawn
-command.spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Returned to spawn</color>'
-command.spawn.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: The spawn server <color:#C7BCE7><arg:0></color> is offline</color>'
-command.spawn.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: The spawn world or location is unavailable. Ask an administrator to set it again</color>'
-command.spawn.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the request timed out; the teleport result could not be confirmed.</color>'
-command.spawn.not-set: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Spawn has not been set</color>'
-command.spawn.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Failed to save spawn. Check the console</color>'
-command.set-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the network-wide spawn to your current location on <color:#C7BCE7><arg:0></color></color>'
-command.del-spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared the network-wide spawn</color>'
-
-# command.bed
-command.bed.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no bed to return to</color>'
-command.bed.missing-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no bed to return to</color>'
-command.bed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to their bed</color>'
-command.bed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to your bed</color>'
-
-# command.broadcast
-command.broadcast.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Broadcast sent to all servers</color>'
-
-# command.burn
-command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color> on fire for <color:#C7BCE7><arg:1></color> ticks</color>'
-command.burn.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set you on fire for <color:#C7BCE7><arg:1></color> ticks</color>'
-
-# command.cartography-table
-command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened cartography table for <color:#C7BCE7><arg:0></color></color>'
-command.cartography-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a cartography table for you</color>'
-
-# command.color
-command.color.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The <color:#F2F4FF><arg:1></color> slot of <color:#F2F4FF><arg:0></color> is empty.</color>'
-command.color.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your <color:#F2F4FF><arg:1></color> slot is empty.</color>'
-command.color.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the dyed color of the item in the <color:#C7BCE7><arg:2></color> slot of <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>.</color>'
-command.color.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the dyed color of the item in your <color:#C7BCE7><arg:2></color> slot to <color:#C7BCE7><arg:1></color>.</color>'
-
-# command.credits
-command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the credits for <color:#C7BCE7><arg:0></color></color>'
-command.credits.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the credits for you</color>'
-
-# command.custom-model-data
-command.custom-model-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main hand is empty.</color>'
-command.custom-model-data.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item in your main hand has no numeric custom model data.</color>'
-command.custom-model-data.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Custom model data: <color:#C7BCE7><arg:0></color>.</color>'
-command.custom-model-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set custom model data to <color:#C7BCE7><arg:0></color>.</color>'
-
-# command.custom-name
-command.custom-name.edit: '<color:#F2F4FF>Click to edit the name</color>'
-command.custom-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid name format. Check the JSON or text tags.</color>'
-command.custom-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
-command.custom-name.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are not holding an item in the main hand.</color>'
-command.custom-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Main-hand custom name of <color:#C7BCE7><arg:3></color>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
-command.custom-name.query-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Your main-hand custom name: <color:#C7BCE7><arg:0></color><newline>JSON: <color:#C7BCE7><arg:1></color><newline>MiniMessage: <color:#C7BCE7><arg:2></color></color>'
-command.custom-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand custom name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
-command.custom-name.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your main-hand custom name to <color:#C7BCE7><arg:0></color>.</color>'
-command.custom-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no custom display name.</color>'
-command.custom-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main-hand item has no custom display name.</color>'
-
-# command.del-warp
-command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Deleted warp <color:#C7BCE7><arg:0></color></color>'
-
-# command.death-back
-command.death-back.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: Server <color:#C7BCE7><arg:1></color> is offline; cannot return to the death location</color>'
-command.death-back.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the request timed out; the teleport result could not be confirmed.</color>'
-command.death-back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> back to their last death location</color>'
-command.death-back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent you back to your last death location</color>'
-command.death-back.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no recorded death location</color>'
-command.death-back.none-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no recorded death location</color>'
-command.death-back.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: The world of the last death location no longer exists</color>'
-
-# command.demo
-command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for <color:#C7BCE7><arg:0></color></color>'
-command.demo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for you</color>'
-
-# command.distance
-command.distance.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No target block found within <color:#F2F4FF><arg:0></color> blocks along your line of sight.</color>'
-command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Euclidean distance: <color:#C7BCE7><arg:0></color> blocks, Manhattan distance: <color:#C7BCE7><arg:1></color> blocks.</color>'
-
-# command.edit-warp
-command.edit-warp.confirm-delete: '<color:#FFB6CB>Delete warp <color:#C7BCE7><arg:0></color>?</color>'
-command.edit-warp.console: 'Console'
-command.edit-warp.description: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Updated the description of warp <color:#C7BCE7><arg:0></color></color>'
-command.edit-warp.description-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Descriptions can contain at most <arg:0> characters</color>'
-command.edit-warp.info: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>· Warp</color> <color:#C7BCE7><arg:0></color><newline><color:#C8E4E9>UUID:</color> <color:#F2F4FF><arg:1></color> <color:#C8E4E9>Name key:</color> <color:#F2F4FF><arg:2></color><newline><color:#C8E4E9>Description:</color> <color:#F2F4FF><arg:3></color><newline><color:#C8E4E9>Server / world:</color> <color:#F2F4FF><arg:4> / <arg:5></color><newline><color:#C8E4E9>Position:</color> <color:#F2F4FF><arg:6>, <arg:7>, <arg:8></color><newline><color:#C8E4E9>Rotation:</color> <color:#F2F4FF><arg:9>, <arg:10></color><newline><color:#C8E4E9>Creator:</color> <color:#F2F4FF><arg:11></color><newline><color:#C8E4E9>Created:</color> <color:#F2F4FF><arg:12></color><newline><color:#C8E4E9>Updated:</color> <color:#F2F4FF><arg:13></color>'
-command.edit-warp.renamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Renamed warp <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color></color>'
-
-# command.enchant
-command.enchant.entity: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> has no equipment slots.</color>'
-command.enchant.entity-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no equipment slots.</color>'
-command.enchant.incompatible: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item of <color:#F2F4FF><arg:0></color> cannot take <color:#F2F4FF><arg:1></color> or conflicts with its existing enchantments.</color>'
-command.enchant.incompatible-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your item cannot take <color:#F2F4FF><arg:1></color> or conflicts with its existing enchantments.</color>'
-command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selected equipment slot of <color:#F2F4FF><arg:0></color> is empty.</color>'
-command.enchant.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your selected equipment slot is empty.</color>'
-command.enchant.level: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Level <color:#F2F4FF><arg:0></color> is higher than the maximum level <color:#F2F4FF><arg:2></color> of <color:#F2F4FF><arg:1></color>.</color>'
-command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Removed <color:#C7BCE7><arg:1></color> from <color:#C7BCE7><arg:0></color>''s equipment.</color>'
-command.enchant.removed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Removed <color:#C7BCE7><arg:1></color> from your equipment.</color>'
-command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied <color:#C7BCE7><arg:1></color> level <color:#C7BCE7><arg:2></color> to <color:#C7BCE7><arg:0></color>''s equipment.</color>'
-command.enchant.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied <color:#C7BCE7><arg:1></color> level <color:#C7BCE7><arg:2></color> to your equipment.</color>'
-command.enchant.zero: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:0></color>''s equipment to level 0.</color>'
-command.enchant.zero-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:1></color> on your equipment to level 0.</color>'
-
-# command.enchantment-table
-command.enchantment-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an enchanting table for <color:#C7BCE7><arg:0></color>.</color>'
-command.enchantment-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an enchanting table for you.</color>'
-
-# command.ender-chest
-command.ender-chest.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not open the ender chest for <color:#F2F4FF><arg:0></color>.</color>'
-command.ender-chest.failed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not open your ender chest.</color>'
-command.ender-chest.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the ender chest for <color:#C7BCE7><arg:0></color>.</color>'
-command.ender-chest.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened your ender chest.</color>'
-
-# command.extinguish
-command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Extinguished <color:#C7BCE7><arg:0></color></color>'
-command.extinguish.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Extinguished you</color>'
+argument.parse.failure.server-offline: '<color:#FFB6CB>No matching servers are online.</color>'
+argument.parse.failure.server-unknown: '<color:#FFB6CB>Server <arg:0> is not available among the matching online servers.</color>'
+argument.parse.failure.rtp-region-unknown: '<color:#FFB6CB>Region <arg:0> does not exist.</color>'
+argument.parse.failure.server-world: '<color:#FFB6CB>World <arg:0> does not exist on any matching online server.</color>'
 
 # command.feature
-command.feature.busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>A reload is in progress. Please wait before switching features</color>'
+command.feature.operation_busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>A feature operation is in progress. Please wait before switching features</color>'
 command.feature.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Feature <color:#F2F4FF><arg:0></color> is not enabled</color>'
 command.feature.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Failed to switch <color:#F2F4FF><arg:0></color>. Check the console log</color>'
 command.feature.restart_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Feature <color:#F2F4FF><arg:0></color> requires a server restart to change its state</color>'
-command.feature.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1><color:#C8E4E9> · Setting saved</color></color>'
+command.feature.runtime_success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1><color:#C8E4E9> · Temporary state</color></color>'
 command.feature.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Feature <color:#F2F4FF><arg:0></color> was not found</color>'
 
 # command.features
@@ -275,15 +48,15 @@ command.features.action.refresh: '<color:#C7BCE7><arg:0></color>'
 command.features.action.status: '<color:#C8E4E9><arg:0></color>'
 command.features.already_disabled: 'This feature is not enabled'
 command.features.already_enabled: 'This feature is already enabled'
-command.features.busy: 'A reload is in progress. Please wait'
+command.features.operation_busy: 'A feature operation is in progress. Please wait'
 command.features.console.action: '<arg:0> <color:#F2F4FF><arg:1></color>'
 command.features.console.disabled: '<color:#7D98BF><arg:0> (<arg:1>)</color>'
 command.features.disabled: '<color:#7D98BF><arg:0></color>'
 command.features.empty: '<color:#C8E4E9>No features available</color>'
 command.features.first_page: 'Already on the first page'
 command.features.header: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Features</color> <color:#C8E4E9>·</color> <color:#FFE08A><arg:0>/<arg:1></color> <color:#C8E4E9>· </color><color:#FFE08A><arg:2></color><color:#C8E4E9> features</color>'
-command.features.hint.disable: '<color:#F2F4FF>Disable this feature and save the setting</color><newline><color:#C8E4E9><arg:0></color>'
-command.features.hint.enable: '<color:#F2F4FF>Enable this feature and save the setting</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.hint.runtime_disable: '<color:#F2F4FF>Temporarily disable this feature</color><newline><color:#C8E4E9><arg:0></color>'
+command.features.hint.runtime_enable: '<color:#F2F4FF>Temporarily enable this feature</color><newline><color:#C8E4E9><arg:0></color>'
 command.features.hint.next: '<color:#F2F4FF>Show the next page</color><newline><color:#C8E4E9><arg:0></color>'
 command.features.hint.previous: '<color:#F2F4FF>Show the previous page</color><newline><color:#C8E4E9><arg:0></color>'
 command.features.hint.refresh: '<color:#F2F4FF>Refresh feature states</color><newline><color:#C8E4E9><arg:0></color>'
@@ -302,456 +75,26 @@ command.features.restart_required: 'A server restart is required to change this 
 command.features.row: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> <arg:1> <arg:2>'
 command.features.unavailable: 'This command is disabled'
 
-# command.feed
-command.feed.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> food points for <color:#C7BCE7><arg:0></color></color>'
-command.feed.restored-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> food points for you</color>'
-command.feed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Fed <color:#C7BCE7><arg:0></color></color>'
-command.feed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Fed you</color>'
-
-# command.fly
-command.fly.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Disabled flight for <color:#C7BCE7><arg:0></color></color>'
-command.fly.disabled-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Disabled your flight</color>'
-command.fly.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Enabled flight for <color:#C7BCE7><arg:0></color></color>'
-command.fly.enabled-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Enabled your flight</color>'
-
-# command.fly-speed
-command.fly-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color>''s fly speed to <color:#C7BCE7><arg:1></color></color>'
-command.fly-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your fly speed to <color:#C7BCE7><arg:1></color></color>'
-
-# command.grindstone
-command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened grindstone for <color:#C7BCE7><arg:0></color></color>'
-command.grindstone.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a grindstone for you</color>'
-
-# command.hat
-command.hat.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The helmet of <color:#C7BCE7><arg:0></color> has Curse of Binding and cannot be taken off</color>'
-command.hat.bound-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your helmet has Curse of Binding and cannot be taken off</color>'
-command.hat.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
-command.hat.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are not holding an item in the main hand.</color>'
-command.hat.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Put the main hand item of <color:#C7BCE7><arg:0></color> on their head</color>'
-command.hat.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Put your main-hand item on your head</color>'
-
-# command.heal
-command.heal.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> health points for <color:#C7BCE7><arg:0></color></color>'
-command.heal.restored-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> health points for you</color>'
-command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed <color:#C7BCE7><arg:0></color></color>'
-command.heal.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed you</color>'
-
-# command.head
-command.head.source_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Please specify a player name or UUID for the head.</color>'
-command.head.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid player name or UUID: <color:#F2F4FF><arg:0></color>.</color>'
-command.head.not_found: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No skin data was found for <color:#F2F4FF><arg:0></color>.</color>'
-command.head.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Fetching the head for <color:#C7BCE7><arg:0></color> timed out. The request was cancelled; please try again later.</color>'
-command.head.throttled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The skin service is rate limiting requests. Please try again later.</color>'
-command.head.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not fetch the head for <color:#F2F4FF><arg:0></color>. Please try again later.</color>'
-command.head.invalid_response: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The skin service returned invalid data. Please check the head API configuration.</color>'
-command.head.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The head request expired: the feature was disabled or reloaded, or the recipient disconnected.</color>'
-command.head.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Gave <color:#C7BCE7><arg:0></color> head(s) from <color:#C7BCE7><arg:1></color> to <color:#C7BCE7><arg:2></color>.</color>'
-command.head.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Gave you <color:#C7BCE7><arg:0></color> head(s) from <color:#C7BCE7><arg:1></color>.</color>'
-
-# command.highlight
-command.highlight.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Highlight selection cancelled.</color>'
-command.highlight.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not create the highlight. See the server log.</color>'
-command.highlight.first: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>First point: <color:#C7BCE7><arg:0></color>, <color:#C7BCE7><arg:1></color>, <color:#C7BCE7><arg:2></color>.</color>'
-command.highlight.height: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selection exceeds the world height limits.</color>'
-command.highlight.peaceful: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Highlight is unavailable while the selected world is in Peaceful difficulty.</color>'
-command.highlight.points: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Specify both --from x y z and --to x y z, or omit both to select interactively.</color>'
-command.highlight.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Showing the highlight to <color:#C7BCE7><arg:0></color>.</color>'
-command.highlight.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Highlight selection timed out.</color>'
-command.highlight.tip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Left-click to use your position, or right-click a block. Select two points; run the command again to cancel.</color>'
-command.highlight.too_large: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selection may contain at most <color:#F2F4FF><arg:0></color> blocks, including both endpoints.</color>'
-command.highlight.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Select two points in the same world. Console must specify --world.</color>'
-
-# command.ip
-command.ip.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C7BCE7><arg:0></color> <color:#C8E4E9>last joined from </color><color:#F2F4FF><arg:1></color> <color:#C8E4E9>(<arg:2>)</color> <arg:3>'
-
-# command.ip-history
-command.ip-history.offline: '<color:#7D98BF>Offline</color> <color:#C8E4E9>· last on <arg:0></color>'
-command.ip-history.online: '<color:#C9F2C7>Online</color> <color:#C8E4E9>· <arg:0></color>'
-command.ip-history.row: '<arg:0> <color:#C7BCE7><arg:1></color> <color:#FFE3A3><arg:2></color> <color:#C8E4E9><arg:3></color>'
-command.ip-history.title: 'Players last joined from <arg:1>'
-
-# command.item-data
-command.item-data.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Unable to read item data. Check the server log.</color>'
-command.item-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Hold an item in your main hand.</color>'
-command.item-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Main-hand item data:<newline><arg:0></color>'
-command.item-data.summary: '<color:#FFE08A>[<arg:0> lines]</color> <color:#F2F4FF>Hover to inspect, or use --chat to expand and click values to copy.</color>'
-
-# command.item-lore
-command.item-lore.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid line <color:#F2F4FF><arg:0></color>. Available range: <color:#F2F4FF><arg:1></color>–<color:#F2F4FF><arg:2></color>.</color>'
-command.item-lore.delete: 'Delete'
-command.item-lore.down: 'Move down'
-command.item-lore.edit: 'Edit'
-command.item-lore.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>This lore panel has expired. Run the command again.</color>'
-command.item-lore.insert: 'Insert'
-command.item-lore.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid lore text or JSON.</color>'
-command.item-lore.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main hand is empty.</color>'
-command.item-lore.limit: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Lore can contain at most <color:#F2F4FF><arg:0></color> lines.</color>'
-command.item-lore.missing-flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Missing required flag: <color:#F2F4FF><arg:0></color>.</color>'
-command.item-lore.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Item lore:<newline><arg:0></color>'
-command.item-lore.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Updated item lore:<newline><arg:0></color>'
-command.item-lore.up: 'Move up'
-
-# command.item-name
-command.item-name.edit: '<color:#F2F4FF>Click to edit the name</color>'
-command.item-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid name format. Check the JSON or text tags.</color>'
-command.item-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
-command.item-name.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are not holding an item in the main hand.</color>'
-command.item-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Main-hand item name of <color:#C7BCE7><arg:3></color>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
-command.item-name.query-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Your main-hand item name: <color:#C7BCE7><arg:0></color><newline>JSON: <color:#C7BCE7><arg:1></color><newline>MiniMessage: <color:#C7BCE7><arg:2></color></color>'
-command.item-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand item name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
-command.item-name.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your main-hand item name to <color:#C7BCE7><arg:0></color>.</color>'
-command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no item name component.</color>'
-command.item-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main-hand item has no item name component.</color>'
-
-# command.kick
-command.kick.failed: '<color:#FFB6CB>Failed to kick <arg:0>. Check the server console.</color>'
-command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online on any server.</color>'
-command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked <color:#C7BCE7><arg:0></color> from <color:#C7BCE7><arg:1></color>.</color>'
-command.kick.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked you from <color:#C7BCE7><arg:1></color>.</color>'
-
-# command.knockback
-command.knockback.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied knockback <color:#C7BCE7>(<arg:1>, <arg:2>, <arg:3>)</color> to <color:#C7BCE7><arg:0></color></color>'
-command.knockback.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied knockback (<color:#C7BCE7><arg:1></color>, <color:#C7BCE7><arg:2></color>, <color:#C7BCE7><arg:3></color>) to you</color>'
-
-# command.look
-command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> and the look target are in different worlds</color>'
-command.look.different_world-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You and the look target are in different worlds</color>'
-command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Changed <color:#C7BCE7><arg:0></color>''s direction</color>'
-command.look.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Changed your direction</color>'
-command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target entity was not found or has left</color>'
-
-# command.lookup
 command.lookup.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The operation failed. Check the console for details.</color>'
-command.lookup.invalid-ip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid IP: <color:#F2F4FF><arg:0></color>. Examples: 1.2.3.4, 1.2.3.*, 1.2.*.*</color>'
-command.lookup.invalid-target: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Unrecognized target: <color:#F2F4FF><arg:0></color>. Use a player name, UUID, IP or #punishment ID.</color>'
-command.lookup.invalid-uuid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid UUID: <color:#F2F4FF><arg:0></color></color>'
-command.lookup.no-address: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No login IP was found for <color:#F2F4FF><arg:0></color>.</color>'
-command.lookup.unknown-player: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No database record was found for <color:#F2F4FF><arg:0></color>.</color>'
-
-# command.loom
-command.loom.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a loom for <color:#C7BCE7><arg:0></color></color>'
-command.loom.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a loom for you</color>'
-
-# command.maintenance
-command.maintenance.active: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The server is under maintenance</color>'
-command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Maintenance mode disabled</color>'
-command.maintenance.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Maintenance mode enabled; players without the bypass permission have been removed</color>'
-command.maintenance.inactive: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>The server is not under maintenance</color>'
-
-# command.max-players
-command.max-players.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:0></color> players online, player limit is <color:#C7BCE7><arg:1></color></color>'
-command.max-players.reset: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Player limit restored to <color:#C7BCE7><arg:0></color> from server.properties</color>'
-command.max-players.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Player limit set to <color:#C7BCE7><arg:0></color></color>'
-
-# command.more
-command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>No items added: <color:#C7BCE7><arg:0></color> has an empty hand or a full stack.</color>'
-command.more.no_change-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>No items added: your main hand is empty or the stack is full.</color>'
-command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Added <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>.</color>'
-command.more.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Added <color:#C7BCE7><arg:1></color> items for you.</color>'
-command.more.too_many: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can copy at most <color:#F2F4FF><arg:0></color> additional items (100 stacks) at a time.</color>'
-
 # command.panel
-command.panel.button.normal: '<color:#C7BCE7><arg:0></color>'
-command.panel.button.info: '<color:#FFAA00><arg:0></color>'
-command.panel.button.positive: '<color:#C9F2C7><arg:0></color>'
-command.panel.button.danger: '<color:#FFB6CB><arg:0></color>'
-command.panel.confirm: '<color:#FFB6CB>Click to fill in the command, then press Enter to run it</color><newline><color:#F2F4FF><arg:0></color>'
-command.panel.confirm.info: '<color:#AAAAAA>Click to fill in the command, then press Enter to run it</color><newline><color:#FFFFFF><arg:0></color>'
-command.panel.console.action: '<arg:0> <arg:1>'
-command.panel.console.disabled: '<color:#7D98BF><arg:0> (<arg:1>)</color>'
-command.panel.disabled: '<color:#7D98BF><arg:0></color>'
-command.panel.disabled.info: '<color:#555555><arg:0></color>'
-command.panel.empty: '<color:#C8E4E9>No records on this page</color>'
-command.panel.first_page: 'Already on the first page'
-command.panel.header: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><arg:0></color> <color:#C8E4E9>·</color> <color:#C8E4E9>page</color> <color:#FFE08A><arg:1>/<arg:2></color> <color:#C8E4E9>·</color> <color:#FFE08A><arg:3></color> <color:#C8E4E9>total</color>'
-command.panel.inactive: 'This ban is no longer active'
-command.panel.label.cancel: '[Cancel]'
-command.panel.label.confirm_delete: '[Confirm delete]'
-command.panel.label.delete: '[Delete]'
-command.panel.label.description: '[Description]'
-command.panel.label.edit: '[Edit]'
-command.panel.label.home_list: '[Home list]'
-command.panel.label.ip_history: '[Same IP]'
-command.panel.label.next: '[Next]'
-command.panel.label.previous: '[Previous]'
-command.panel.label.refresh: '[Refresh]'
-command.panel.label.relocate: '[Relocate here]'
-command.panel.label.rename: '[Rename]'
-command.panel.label.teleport: '[Teleport]'
-command.panel.label.unban: '[Unban]'
-command.panel.last_page: 'Already on the last page'
-command.panel.message: '<arg:0>'
-command.panel.navigation: '<arg:0> <color:#FFE08A><arg:1>/<arg:2></color> <arg:3> <arg:4>'
-command.panel.no_permission: 'You do not have permission to run this command'
-command.panel.player_required: 'This action requires a player'
-command.panel.unavailable: 'This action is not available right now'
-
-# command.patrol
-command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No players are available to patrol</color>'
-command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Patrolling <color:#C7BCE7><arg:0></color></color>'
-
-# command.player
-command.player.dead: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Cannot heal dead player <arg:0></color>'
-command.player.dead-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You cannot be healed while dead</color>'
-command.player.required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Specify a player; only players can omit the player argument</color>'
-
-# command.player-name
-command.player-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><arg:0></color> <color:#C8E4E9>last used the name </color><color:#C7BCE7><arg:1></color>'
-
-# command.player-uuid
-command.player-uuid.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C8E4E9>UUID of </color><color:#C7BCE7><arg:0></color><color:#C8E4E9>: </color><color:#F2F4FF><arg:1></color>'
-
-# command.repair
-command.repair.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no item in slot <color:#C7BCE7><arg:1></color></color>'
-command.repair.not-damageable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item in slot <color:#C7BCE7><arg:1></color> of <color:#C7BCE7><arg:0></color> has no durability</color>'
-command.repair.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:2></color> durability for the item in slot <color:#C7BCE7><arg:1></color> of <color:#C7BCE7><arg:0></color> (<color:#C7BCE7><arg:3></color>/<color:#C7BCE7><arg:4></color>)</color>'
+command.panel.title: 'Information'
+command.panel.empty: 'Nothing to display'
+command.panel.copy: 'Click to copy'
+command.panel.run: 'Click to run the command'
+command.panel.suggest: 'Click to fill in the command, then press Enter'
+command.panel.previous: 'Previous'
+command.panel.next: 'Next'
+command.panel.refresh: 'Refresh'
+command.panel.first-page: 'Already on the first page'
+command.panel.last-page: 'Already on the last page'
+command.panel.no-permission: 'You do not have permission to run this command'
+command.panel.unavailable: 'This command is disabled or has no usable command path'
 
 # command.reload
 command.reload.config.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Reload failed. Check the console log</color>'
-command.reload.config.issues: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The configuration has <color:#FFE08A><arg:0></color> error(s). Check the console log</color>'
+command.reload.restart_required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#FFE08A><arg:0></color> feature switch(es) require a server restart. Check the console log</color>'
 command.reload.config.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Configuration reloaded<color:#C8E4E9> (took <color:#FFE08A><arg:0></color> ms)</color></color>'
-command.reload.too_fast: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>A reload is in progress. Please wait</color>'
-
-# command.server
-command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Already on server <color:#F2F4FF><arg:0></color></color>'
-command.server.not_allowed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Server <color:#F2F4FF><arg:0></color> is not allowed</color>'
-command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> to server <color:#C7BCE7><arg:1></color></color>'
-
-# command.set-warp
-command.set-warp.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Created warp <color:#C7BCE7><arg:0></color> at your location</color>'
-command.set-warp.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Warp <color:#C7BCE7><arg:0></color> already exists</color>'
-command.set-warp.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Moved warp <color:#C7BCE7><arg:0></color> to your location</color>'
-
-# command.smithing-table
-command.smithing-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened smithing table for <color:#C7BCE7><arg:0></color></color>'
-command.smithing-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a smithing table for you</color>'
-
-# command.stonecutter
-command.stonecutter.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened stonecutter for <color:#C7BCE7><arg:0></color></color>'
-command.stonecutter.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a stonecutter for you</color>'
-
-# command.sudo
-command.sudo.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Enter a command to execute</color>'
-command.sudo.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> could not execute the command</color>'
-command.sudo.failure-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You could not execute the command</color>'
-command.sudo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Executed the command as <color:#C7BCE7><arg:0></color></color>'
-command.sudo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Executed the command as you</color>'
-
-# command.suicide
-command.suicide.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> committed suicide</color>'
-command.suicide.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>You committed suicide</color>'
-
-# command.targets
-command.targets.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No entities were selected</color>'
-
-# command.teleport
-command.teleport.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not teleport or rotate <color:#C7BCE7><arg:0></color></color>'
-command.teleport.failure-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not teleport or rotate you</color>'
-
-# command.title
-command.title.format: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Use a single \n to separate the title and subtitle</color>'
-command.title.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a title to <color:#C7BCE7><arg:0></color></color>'
-command.title.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a title to you</color>'
-
-# command.toast
-command.toast.invalid-icon: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The toast icon cannot be air</color>'
-command.toast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Displayed a toast for <color:#C7BCE7><arg:0></color></color>'
-command.toast.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Displayed a toast for you</color>'
-
-# command.top-block
-command.top-block.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> above the highest block</color>'
-command.top-block.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you above the highest block</color>'
-command.top-block.unavailable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No available top-block destination for <color:#C7BCE7><arg:0></color></color>'
-command.top-block.unavailable-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No available top-block destination at your location</color>'
-
-# command.totem-animation
-command.totem-animation.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The animation item must be a totem of undying</color>'
-command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a totem animation for <color:#C7BCE7><arg:0></color></color>'
-command.totem-animation.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a totem animation for you</color>'
-
-# command.tp-offline
-command.tp-offline.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the destination world or coordinates are invalid.</color>'
-command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: <color:#F2F4FF><arg:0></color> has no saved logout location.</color>'
-command.tp-offline.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: Server <color:#F2F4FF><arg:2></color> has no active heartbeat.</color>'
-command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to the last logout location of <color:#C7BCE7><arg:1></color>.</color>'
-command.tp-offline.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to the last logout location of <color:#C7BCE7><arg:1></color>.</color>'
-command.tp-offline.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The request timed out; the teleport result could not be confirmed.</color>'
-command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: No database record was found for <color:#F2F4FF><arg:0></color>.</color>'
-
-# command.tpa
-command.tpa.accepted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> accepted your teleport request</color>'
-command.tpa.button.accept: '<color:#C9F2C7>[Accept]</color>'
-command.tpa.button.deny: '<color:#FFB6CB>[Deny]</color>'
-command.tpa.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> cancelled the teleport request</color>'
-command.tpa.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can send another request in <color:#F2F4FF><arg:0></color> seconds</color>'
-command.tpa.denied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> denied your teleport request</color>'
-command.tpa.denied-cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> denied your request, you can ask them again in <color:#F2F4FF><arg:1></color> seconds</color>'
-command.tpa.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your teleport request to <color:#F2F4FF><arg:0></color> has expired</color>'
-command.tpa.expired-from: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The teleport request from <color:#F2F4FF><arg:0></color> has expired</color>'
-command.tpa.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not handle the teleport request, check the console</color>'
-command.tpa.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no teleport requests to answer</color>'
-command.tpa.none-from: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>There is no teleport request from <color:#F2F4FF><arg:0></color></color>'
-command.tpa.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online</color>'
-command.tpa.pending: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your teleport request to <color:#F2F4FF><arg:0></color> is still waiting for an answer</color>'
-command.tpa.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> wants to teleport to you <arg:1> <arg:2></color>'
-command.tpa.self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You cannot send a teleport request to yourself</color>'
-command.tpa.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a teleport request to <color:#C7BCE7><arg:0></color>, valid for <color:#C7BCE7><arg:1></color> seconds</color>'
-command.tpa.teleport.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: <color:#F2F4FF><arg:0></color> is no longer on that server, the teleport was cancelled</color>'
-command.tpa.teleport.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: Server <color:#F2F4FF><arg:1></color>, where <color:#F2F4FF><arg:0></color> is playing, is offline</color>'
-command.tpa.teleport.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported to <color:#C7BCE7><arg:0></color></color>'
-command.tpa.teleport.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the request timed out; the teleport result could not be confirmed.</color>'
-
-# command.tpa-accept
-command.tpa-accept.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is no longer online, the request was dropped</color>'
-command.tpa-accept.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Accepted the teleport request from <color:#C7BCE7><arg:0></color></color>'
-
-# command.tpa-cancel
-command.tpa-cancel.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have not sent any teleport requests</color>'
-command.tpa-cancel.none-to: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no teleport request to <color:#F2F4FF><arg:0></color></color>'
-command.tpa-cancel.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cancelled the teleport request to <color:#C7BCE7><arg:0></color></color>'
-
-# command.tpa-deny
-command.tpa-deny.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Denied the teleport request from <color:#C7BCE7><arg:0></color></color>'
-
-# command.tpa-here
-command.tpa-here.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> wants you to teleport to them <arg:1> <arg:2></color>'
-
-# command.unban
-command.unban.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:0></color> has no active bans.</color>'
-command.unban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Unbanned <color:#C7BCE7><arg:0></color>, revoked <arg:1> ban(s).</color>'
-
-# command.walk-speed
-command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color>''s walk speed to <color:#C7BCE7><arg:1></color></color>'
-command.walk-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your walk speed to <color:#C7BCE7><arg:1></color></color>'
-
-# command.home
-command.home.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Teleported to home <arg:0></color>'
-command.home.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Home <arg:0> does not exist</color>'
-command.home.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Teleport failed: Server <arg:1> of home <arg:0> is offline</color>'
-command.home.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Teleport failed: The world of home <arg:0> no longer exists</color>'
-command.home.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the request timed out; the teleport result could not be confirmed.</color>'
-command.home.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Invalid home name <arg:0>. Use at most <arg:2> characters matching the configured name rule; whitespace, dots and a leading - are forbidden</color>'
-command.home.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Could not access home data, see the console for details</color>'
-command.home.owner-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Specify a player when running this command from the console</color>'
-command.home.no-permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>You do not have permission to access these homes</color>'
-command.home.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>You have no homes. Create one with <arg:0></color>'
-command.home.name-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Specify a home name: <arg:0> name</color>'
-command.set-home.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Created home <arg:0></color>'
-command.set-home.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Home <arg:0> already exists. Delete it before creating it again</color>'
-command.set-home.limit: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>You have reached your home limit of <arg:1></color>'
-command.del-home.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Deleted home <arg:0> owned by <arg:1></color>'
-command.del-all-home.filter-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Provide at least one filter: --player, --server or --world</color>'
-command.del-all-home.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Deleted <arg:0> matching homes</color>'
-command.home-list.title: 'Homes of <arg:0> · Limit: <arg:1>'
-command.home-list.limit-unknown: 'unknown'
-command.home-list.unlimited: 'unlimited'
-command.home-list.entry: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9><arg:1> · <arg:2></color>'
-
-# command.edit-home
-command.edit-home.info: '<color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>· Home</color> <color:#C7BCE7><arg:0></color><newline><color:#C8E4E9>Owner:</color> <color:#F2F4FF><arg:1> (<arg:2>)</color><newline><color:#C8E4E9>UUID:</color> <color:#F2F4FF><arg:3></color><newline><color:#C8E4E9>Server / world:</color> <color:#F2F4FF><arg:4> / <arg:5></color><newline><color:#C8E4E9>Position:</color> <color:#F2F4FF><arg:6>, <arg:7>, <arg:8></color><newline><color:#C8E4E9>Rotation:</color> <color:#F2F4FF><arg:9>, <arg:10></color><newline><color:#C8E4E9>Created:</color> <color:#F2F4FF><arg:11></color><newline><color:#C8E4E9>Updated:</color> <color:#F2F4FF><arg:12></color>'
-command.edit-home.renamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Renamed home <arg:0> to <arg:1></color>'
-command.edit-home.relocated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Moved home <arg:0> to your current position</color>'
-command.edit-home.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>A home named <arg:0> already exists for this owner. Choose another name</color>'
-
-# command.warp
-command.warp.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: The world of warp <color:#C7BCE7><arg:1></color> no longer exists</color>'
-command.warp.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid warp name <color:#F2F4FF><arg:0></color>. Use at most <arg:1> letters, digits, _ or -</color>'
-command.warp.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: Server <color:#F2F4FF><arg:2></color> of warp <color:#C7BCE7><arg:1></color> is offline</color>'
-command.warp.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not save warp <color:#C7BCE7><arg:0></color>, see the console for details</color>'
-command.warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to warp <color:#C7BCE7><arg:1></color></color>'
-command.warp.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported to warp <color:#C7BCE7><arg:1></color></color>'
-command.warp.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the request timed out; the teleport result could not be confirmed.</color>'
-command.warp.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Warp <color:#F2F4FF><arg:0></color> does not exist</color>'
-
-# command.warp-list
-command.warp-list.entry: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9><arg:1> · <arg:2></color> <color:#F2F4FF><arg:3></color>'
-command.warp-list.title: 'Warps'
-
-# command.workbench
-command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened crafting table for <color:#C7BCE7><arg:0></color></color>'
-command.workbench.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a crafting table for you</color>'
-
-# command.world
-command.world.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: No other worlds are loaded.</color>'
-command.world.no_space: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: There is not enough space above the destination in <color:#F2F4FF><arg:0></color>.</color>'
-command.world.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>.</color>'
-command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to <color:#C7BCE7><arg:1></color>.</color>'
-
-# ban
-ban.expiry.permanent: '<color:#FFB6CB>Permanent</color>'
-ban.expiry.temporary: '<color:#FFE3A3><arg:0></color> <color:#C8E4E9>(<arg:1> left)</color>'
-ban.kick.player.permanent: |-
-  <gradient:#FF6B6B:#D84555><b>PERMANENT BAN</b></gradient>
-
-  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
-
-  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
-  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
-  <color:#FFB6CB>This ban does not expire automatically.</color>
-  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
-
-  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
-ban.kick.player.temporary: |-
-  <gradient:#FF6B6B:#D84555><b>TEMPORARY BAN</b></gradient>
-
-  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
-
-  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
-  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
-  <color:#C8E4E9>Expires: </color><arg:2>
-  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
-
-  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
-ban.kick.ip.permanent: |-
-  <gradient:#FF6B6B:#D84555><b>PERMANENT IP BAN</b></gradient>
-
-  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
-
-  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
-  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
-  <color:#FFB6CB>This ban does not expire automatically.</color>
-  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
-
-  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
-ban.kick.ip.temporary: |-
-  <gradient:#FF6B6B:#D84555><b>TEMPORARY IP BAN</b></gradient>
-
-  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color>
-
-  <color:#C8E4E9>Player: </color><color:#F2F4FF><arg:4></color>
-  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
-  <color:#C8E4E9>Expires: </color><arg:2>
-  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
-
-  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:3></color>
-ban.notify.ban.permanent: |-
-  <color:#7D98BF>────────────────────────</color><newline><gradient:#FF6B6B:#D84555><b>${project_name} · PERMANENT BAN</b></gradient>
-  <color:#C8E4E9>Target: </color><color:#F2F4FF><arg:0></color>
-  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:2></color>
-  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
-  <color:#C8E4E9>Expires: </color><arg:3>
-  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
-  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:4></color>
-  <color:#7D98BF>────────────────────────</color>
-ban.notify.ban.temporary: |-
-  <color:#7D98BF>────────────────────────</color><newline><gradient:#FF6B6B:#D84555><b>${project_name} · TEMPORARY BAN</b></gradient>
-  <color:#C8E4E9>Target: </color><color:#F2F4FF><arg:0></color>
-  <color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:2></color>
-  <color:#C8E4E9>Issued: </color><color:#FFE08A><arg:5></color>
-  <color:#C8E4E9>Expires: </color><arg:3>
-  <color:#C8E4E9>Banned by: </color><color:#F2F4FF><arg:1></color>
-  <color:#C8E4E9>Punishment ID: </color><color:#F2F4FF><arg:4></color>
-  <color:#7D98BF>────────────────────────</color>
-ban.notify.unban.card: |-
-  <color:#7D98BF>────────────────────────</color><newline><color:#C9F2C7><b>${project_name} · BAN REVOKED</b></color>
-  <color:#C8E4E9>Target: </color><color:#F2F4FF><arg:0></color>
-  <color:#C8E4E9>Unbanned by: </color><color:#F2F4FF><arg:1></color>
-  <color:#7D98BF>────────────────────────</color>
-ban.id.copy: 'Click to copy the punishment ID'
-ban.reason.none: '<color:#7D98BF>No reason given</color>'
-ban.status.active: '<color:#FFB6CB>Active</color>'
-ban.status.expired: '<color:#7D98BF>Expired</color>'
-ban.status.revoked: '<color:#FFE3A3>Revoked</color>'
+command.reload.operation_busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>A feature operation is in progress. Please wait</color>'
 
 # feature.state
 feature.state.disabled: '<color:#7D98BF>Disabled</color>'
@@ -759,10 +102,6 @@ feature.state.enabled: '<color:#C9F2C7>Enabled</color>'
 feature.state.failed: '<color:#FFB6CB>Failed</color>'
 feature.state.uninstalled: '<color:#C8E4E9>Not installed</color>'
 feature.state.unloaded: '<color:#7D98BF>Unloaded</color>'
-
-# kick
-kick.reason.none: '<color:#7D98BF>No reason given</color>'
-kick.screen: '<color:#FFB6CB>You were kicked from the server</color><newline><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>Kicked by: </color><color:#F2F4FF><arg:1></color>'
 
 # log.compatibility
 log.compatibility.hook_failed: 'Failed to hook <arg:0>'
@@ -795,8 +134,6 @@ log.storage.mysql_schema_migrating: 'Upgrading the MySQL schema v<arg:1> -> v<ar
 log.storage.mysql_version_unsupported: 'MySQL version <arg:0> is unsupported; requires MySQL <arg:1> or later. Shutting down the server'
 log.storage.postgresql_schema_initializing: 'Initializing the PostgreSQL schema at v<arg:1> (table prefix: "<arg:0>")'
 log.storage.postgresql_schema_migrating: 'Upgrading the PostgreSQL schema v<arg:1> -> v<arg:2> (table prefix: "<arg:0>")'
-log.storage.schema_too_new: 'Database schema version <arg:0> is newer than the supported version <arg:1>; shutting down the server. Update this plugin and use the same Sparrow version on all servers sharing the database'
-log.storage.stale_index_dropped: 'Index layout updated, dropped the old index <arg:0>'
 
 # log.translation
 log.translation.default_load_failed: 'Failed to load the default translation file.'
@@ -806,29 +143,612 @@ log.translation.invalid_file: 'Invalid translation file: <arg:0>'
 log.translation.locale_missing: 'translations/<arg:0>.yml does not exist; using <arg:1>.yml as the default locale.'
 log.translation.read_failed: 'Failed to read translation file: <arg:0>'
 
-# maintenance
-maintenance.boss_bar: '<color:#FFE3A3>Server under maintenance</color>'
-maintenance.kick: '<color:#FFB6CB>The server is under maintenance. Please come back later.</color>'
-
 # teleport
+teleport.warmup: '<color:#FFE3A3>Teleporting in <color:#F2F4FF><arg:0></color> seconds, do not move</color>'
 teleport.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport cancelled.</color>'
-teleport.replaced: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>This teleport was replaced by a new request.</color>'
 teleport.busy: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: another teleport is already executing.</color>'
 teleport.unavailable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the player has left this connection.</color>'
 teleport.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the teleport service is unavailable.</color>'
 teleport.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed; the cause could not be determined.</color>'
-teleport.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the prepared destination has expired.</color>'
+teleport.target-unreachable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the destination server did not respond.</color>'
 teleport.execution-timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: waiting for the execution result timed out; arrival at the destination could not be confirmed.</color>'
 teleport.rejected.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the destination world or coordinates are invalid.</color>'
 teleport.rejected.player: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the destination player is no longer on the selected server.</color>'
-teleport.rejected.unsafe: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: no safe destination could be found.</color>'
 teleport.rejected.ungenerated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the destination chunk has not been generated, so the location is invalid.</color>'
+teleport.rejected.unsafe: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: no safe location was found within the search limits.</color>'
+teleport.rejected.rtp: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Random teleport failed: no suitable location was found in the configured areas within the search limits.</color>'
 teleport.rejected.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: teleporting into the destination world is not allowed.</color>'
+teleport.rejected.region: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: you do not have permission to travel to this region.</color>'
+teleport.rejected.server-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: the destination server is offline.</color>'
+teleport.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport is on cooldown, please wait <color:#F2F4FF><arg:0></color> seconds</color>'
+teleport.cancelled.moved: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You moved, teleport cancelled</color>'
+teleport.cancelled.damaged: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You took damage, teleport cancelled</color>'
 
+log.proxy.required: 'Sparrow requires BungeeCord or Velocity forwarding. Enable proxy forwarding on this backend; shutting down the server.'
+
+# command.highlight
+command.highlight.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Highlight selection cancelled.</color>'
+command.highlight.first: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>First point: <color:#C7BCE7><arg:0></color>, <color:#C7BCE7><arg:1></color>, <color:#C7BCE7><arg:2></color>.</color>'
+command.highlight.height: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selection exceeds the world height limits.</color>'
+command.highlight.peaceful: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Highlight is unavailable while the selected world is in Peaceful difficulty.</color>'
+command.highlight.points: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Specify both --from x y z and --to x y z, or omit both to select interactively.</color>'
+command.highlight.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Showing the highlight to <color:#C7BCE7><arg:0></color>.</color>'
+command.highlight.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Highlight selection timed out.</color>'
+command.highlight.tip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Left-click to use your position, or right-click a block. Select two points; run the command again to cancel.</color>'
+command.highlight.too_large: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selection may contain at most <color:#F2F4FF><arg:0></color> blocks, including both endpoints.</color>'
+command.highlight.world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Select two points in the same world. Console must specify --world.</color>'
+command.targets.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No entities were selected</color>'
+
+# command.anvil
+command.anvil.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened anvil for <color:#C7BCE7><arg:0></color></color>'
+command.anvil.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an anvil for you</color>'
+
+# command.cartography-table
+command.cartography-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened cartography table for <color:#C7BCE7><arg:0></color></color>'
+command.cartography-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a cartography table for you</color>'
+
+# command.enchantment-table
+command.enchantment-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an enchanting table for <color:#C7BCE7><arg:0></color>.</color>'
+command.enchantment-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened an enchanting table for you.</color>'
+
+# command.grindstone
+command.grindstone.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened grindstone for <color:#C7BCE7><arg:0></color></color>'
+command.grindstone.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a grindstone for you</color>'
+
+# command.loom
+command.loom.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a loom for <color:#C7BCE7><arg:0></color></color>'
+command.loom.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a loom for you</color>'
+
+# command.smithing-table
+command.smithing-table.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened smithing table for <color:#C7BCE7><arg:0></color></color>'
+command.smithing-table.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a smithing table for you</color>'
+
+# command.stonecutter
+command.stonecutter.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened stonecutter for <color:#C7BCE7><arg:0></color></color>'
+command.stonecutter.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a stonecutter for you</color>'
+
+# command.workbench
+command.workbench.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened crafting table for <color:#C7BCE7><arg:0></color></color>'
+command.workbench.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened a crafting table for you</color>'
+
+command.player.required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Specify a player; only players can omit the player argument</color>'
+
+# command.container
+command.container.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Player <arg:0> is not online.</color>'
+command.container.request-sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a container open request to the server of <arg:0>.</color>'
+
+# command.ender-chest
+command.ender-chest.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not open the ender chest for <color:#F2F4FF><arg:0></color>.</color>'
+command.ender-chest.failed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not open your ender chest.</color>'
+command.ender-chest.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the ender chest for <color:#C7BCE7><arg:0></color>.</color>'
+command.ender-chest.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened your ender chest.</color>'
+
+# command.hat
+command.hat.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The helmet of <color:#C7BCE7><arg:0></color> has Curse of Binding and cannot be taken off</color>'
+command.hat.bound-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your helmet has Curse of Binding and cannot be taken off</color>'
+command.hat.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
+command.hat.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are not holding an item in the main hand.</color>'
+command.hat.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Put the main hand item of <color:#C7BCE7><arg:0></color> on their head</color>'
+command.hat.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Put your main-hand item on your head</color>'
+
+# command.more
+command.more.no_change: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>No items added: <color:#C7BCE7><arg:0></color> has an empty hand or a full stack.</color>'
+command.more.no_change-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>No items added: your main hand is empty or the stack is full.</color>'
+command.more.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Added <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>.</color>'
+command.more.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Added <color:#C7BCE7><arg:1></color> items for you.</color>'
+command.more.too_many: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can copy at most <color:#F2F4FF><arg:0></color> additional items (100 stacks) at a time.</color>'
+
+# command.clear-inv
+command.clear-inv.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared <arg:1> items from <arg:0>’s inventory.</color>'
+
+# command.clear-ender
+command.clear-ender.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cleared <arg:1> items from <arg:0>’s ender chest.</color>'
+
+# command.repair
+command.repair.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no item in slot <color:#C7BCE7><arg:1></color></color>'
+command.repair.not-damageable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item in slot <color:#C7BCE7><arg:1></color> of <color:#C7BCE7><arg:0></color> has no durability</color>'
+command.repair.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Repaired <arg:5> items in <arg:0>’s <arg:1>; restored <arg:2> durability (<arg:3>/<arg:4>).</color>'
+
+# command.repair-all
+command.repair-all.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Repaired <color:#C7BCE7><arg:1></color> items for <color:#C7BCE7><arg:0></color>, restoring <color:#C7BCE7><arg:2></color> durability in total</color>'
+
+# command.top-block
+command.top-block.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> above the highest block</color>'
+command.top-block.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you above the highest block</color>'
+command.top-block.unavailable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No available top-block destination for <color:#C7BCE7><arg:0></color></color>'
+command.top-block.unavailable-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No available top-block destination at your location</color>'
+
+# command.look
+command.look.different_world: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> and the look target are in different worlds</color>'
+command.look.different_world-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You and the look target are in different worlds</color>'
+command.look.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Changed <color:#C7BCE7><arg:0></color>''s direction</color>'
+command.look.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Changed your direction</color>'
+command.look.target_missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The target entity was not found or has left</color>'
+
+# command.distance
+command.distance.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No target block found within <color:#F2F4FF><arg:0></color> blocks along your line of sight.</color>'
+command.distance.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Euclidean distance: <color:#C7BCE7><arg:0></color> blocks, Manhattan distance: <color:#C7BCE7><arg:1></color> blocks.</color>'
+
+# command.knockback
+command.knockback.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied knockback <color:#C7BCE7>(<arg:1>, <arg:2>, <arg:3>)</color> to <color:#C7BCE7><arg:0></color></color>'
+command.knockback.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied knockback (<color:#C7BCE7><arg:1></color>, <color:#C7BCE7><arg:2></color>, <color:#C7BCE7><arg:3></color>) to you</color>'
+
+# command.smite
+command.smite.effect: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a lightning effect at the location of <color:#C7BCE7><arg:0></color></color>'
+command.smite.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Struck lightning at the location of <color:#C7BCE7><arg:0></color></color>'
+
+# command.suicide
+command.suicide.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> committed suicide</color>'
+command.suicide.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>You committed suicide</color>'
+
+# command.heal
+command.heal.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> health points for <color:#C7BCE7><arg:0></color></color>'
+command.heal.restored-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> health points for you</color>'
+command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed <color:#C7BCE7><arg:0></color></color>'
+command.heal.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Healed you</color>'
+
+# command.feed
+command.feed.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> food points for <color:#C7BCE7><arg:0></color></color>'
+command.feed.restored-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Restored <color:#C7BCE7><arg:1></color> food points for you</color>'
+command.feed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Fed <color:#C7BCE7><arg:0></color></color>'
+command.feed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Fed you</color>'
+
+# command.air
+command.air.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set remaining air for <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>/<color:#C7BCE7><arg:2></color> ticks</color>'
+
+# command.burn
+command.burn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color> on fire for <color:#C7BCE7><arg:1></color> ticks</color>'
+command.burn.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set you on fire for <color:#C7BCE7><arg:1></color> ticks</color>'
+
+# command.extinguish
+command.extinguish.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Extinguished <color:#C7BCE7><arg:0></color></color>'
+command.extinguish.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Extinguished you</color>'
+
+# command.fly
+command.fly.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Disabled flight for <color:#C7BCE7><arg:0></color></color>'
+command.fly.disabled-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Disabled your flight</color>'
+command.fly.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Enabled flight for <color:#C7BCE7><arg:0></color></color>'
+command.fly.enabled-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Enabled your flight</color>'
+
+# command.fly-speed
+command.fly-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color>''s fly speed to <color:#C7BCE7><arg:1></color></color>'
+command.fly-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your fly speed to <color:#C7BCE7><arg:1></color></color>'
+
+# command.walk-speed
+command.walk-speed.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:0></color>''s walk speed to <color:#C7BCE7><arg:1></color></color>'
+command.walk-speed.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your walk speed to <color:#C7BCE7><arg:1></color></color>'
+
+# command.force-say
+command.force-say.command: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Chat text cannot start with /. Use sudo to execute commands</color>'
+command.force-say.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Enter a chat message to send</color>'
+command.force-say.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Submitted a chat message as <color:#C7BCE7><arg:0></color></color>'
+
+# command.sudo
+command.sudo.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Enter a command to execute</color>'
+command.sudo.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> could not execute the command</color>'
+command.sudo.failure-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You could not execute the command</color>'
+command.sudo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Executed the command as <color:#C7BCE7><arg:0></color></color>'
+command.sudo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Executed the command as you</color>'
+
+command.player.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Player <arg:0> is no longer online.</color>'
+command.player.request-sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Request sent for <arg:0>.</color>'
+command.player.request-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not complete the request for <arg:0>.</color>'
+command.player.dead: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Cannot heal dead player <arg:0></color>'
+command.player.dead-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You cannot be healed while dead</color>'
+command.teleport.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not teleport or rotate <color:#C7BCE7><arg:0></color></color>'
+command.teleport.failure-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not teleport or rotate you</color>'
+
+# command.server
+command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is already on server <color:#F2F4FF><arg:1></color></color>'
+command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent <color:#C7BCE7><arg:0></color> to server <color:#C7BCE7><arg:1></color></color>'
 command.server.connecting-self: '<color:#FFE3A3>Connecting to <arg:0>...</color>'
 command.server.player-offline: '<color:#FFB6CB><arg:0> is no longer online.</color>'
 command.server.unknown: '<color:#FFB6CB>The proxy has no server named <arg:0>.</color>'
 command.server.failed: '<color:#FFB6CB>Could not connect <arg:0> to <arg:1>.</color>'
 command.server.timeout: '<color:#FFB6CB>The connection request for <arg:0> to <arg:1> timed out; the result could not be confirmed.</color>'
 
-log.proxy.required: 'Sparrow requires BungeeCord or Velocity forwarding. Enable proxy forwarding on this backend; shutting down the server.'
+# command.credits
+command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the credits for <color:#C7BCE7><arg:0></color></color>'
+command.credits.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the credits for you</color>'
+
+# command.demo
+command.demo.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for <color:#C7BCE7><arg:0></color></color>'
+command.demo.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Opened the demo introduction for you</color>'
+
+# command.totem-animation
+command.totem-animation.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The animation item must be a totem of undying</color>'
+command.totem-animation.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a totem animation for <color:#C7BCE7><arg:0></color></color>'
+command.totem-animation.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Played a totem animation for you</color>'
+
+# command.color
+command.color.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The <color:#F2F4FF><arg:1></color> slot of <color:#F2F4FF><arg:0></color> is empty.</color>'
+command.color.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your <color:#F2F4FF><arg:1></color> slot is empty.</color>'
+command.color.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the dyed color of the item in the <color:#C7BCE7><arg:2></color> slot of <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>.</color>'
+command.color.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the dyed color of the item in your <color:#C7BCE7><arg:2></color> slot to <color:#C7BCE7><arg:1></color>.</color>'
+
+# command.enchant
+command.enchant.incompatible: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item of <color:#F2F4FF><arg:0></color> cannot take <color:#F2F4FF><arg:1></color> or conflicts with its existing enchantments.</color>'
+command.enchant.incompatible-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your item cannot take <color:#F2F4FF><arg:1></color> or conflicts with its existing enchantments.</color>'
+command.enchant.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The selected equipment slot of <color:#F2F4FF><arg:0></color> is empty.</color>'
+command.enchant.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your selected equipment slot is empty.</color>'
+command.enchant.level: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Level <color:#F2F4FF><arg:0></color> is higher than the maximum level <color:#F2F4FF><arg:2></color> of <color:#F2F4FF><arg:1></color>.</color>'
+command.enchant.removed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Removed <color:#C7BCE7><arg:1></color> from <color:#C7BCE7><arg:0></color>''s equipment.</color>'
+command.enchant.removed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Removed <color:#C7BCE7><arg:1></color> from your equipment.</color>'
+command.enchant.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied <color:#C7BCE7><arg:1></color> level <color:#C7BCE7><arg:2></color> to <color:#C7BCE7><arg:0></color>''s equipment.</color>'
+command.enchant.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Applied <color:#C7BCE7><arg:1></color> level <color:#C7BCE7><arg:2></color> to your equipment.</color>'
+command.enchant.zero: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:1></color> on <color:#C7BCE7><arg:0></color>''s equipment to level 0.</color>'
+command.enchant.zero-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set <color:#C7BCE7><arg:1></color> on your equipment to level 0.</color>'
+
+# command.item-damage
+command.item-damage.broken: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>The main-hand item of <color:#C7BCE7><arg:0></color> reached its damage limit and broke</color>'
+command.item-damage.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#C7BCE7><arg:0></color> has no item in their main hand</color>'
+command.item-damage.not-damageable: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#C7BCE7><arg:0></color> has no durability</color>'
+command.item-damage.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand item damage of <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>, with <color:#C7BCE7><arg:2></color>/<color:#C7BCE7><arg:3></color> durability remaining</color>'
+
+# command.custom-name
+command.custom-name.edit: '<color:#F2F4FF>Click to edit the name</color>'
+command.custom-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid name format. Check the JSON or text tags.</color>'
+command.custom-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
+command.custom-name.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are not holding an item in the main hand.</color>'
+command.custom-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Main-hand custom name of <color:#C7BCE7><arg:3></color>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.custom-name.query-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Your main-hand custom name: <color:#C7BCE7><arg:0></color><newline>JSON: <color:#C7BCE7><arg:1></color><newline>MiniMessage: <color:#C7BCE7><arg:2></color></color>'
+command.custom-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand custom name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
+command.custom-name.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your main-hand custom name to <color:#C7BCE7><arg:0></color>.</color>'
+command.custom-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no custom display name.</color>'
+command.custom-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main-hand item has no custom display name.</color>'
+
+# command.item-name
+command.item-name.edit: '<color:#F2F4FF>Click to edit the name</color>'
+command.item-name.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid name format. Check the JSON or text tags.</color>'
+command.item-name.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not holding an item in the main hand.</color>'
+command.item-name.itemless-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You are not holding an item in the main hand.</color>'
+command.item-name.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Main-hand item name of <color:#C7BCE7><arg:3></color>: <arg:0><newline>JSON: <arg:1><newline>MiniMessage: <arg:2></color>'
+command.item-name.query-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Your main-hand item name: <color:#C7BCE7><arg:0></color><newline>JSON: <color:#C7BCE7><arg:1></color><newline>MiniMessage: <color:#C7BCE7><arg:2></color></color>'
+command.item-name.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set the main-hand item name of <color:#C7BCE7><arg:1></color> to <arg:0>.</color>'
+command.item-name.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set your main-hand item name to <color:#C7BCE7><arg:0></color>.</color>'
+command.item-name.unnamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The main-hand item of <color:#F2F4FF><arg:0></color> has no item name component.</color>'
+command.item-name.unnamed-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main-hand item has no item name component.</color>'
+
+# command.item-data
+command.item-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Hold an item in your main hand.</color>'
+command.item-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Main-hand item data:<newline><arg:0></color>'
+command.item-data.summary: '<color:#FFE08A>[<arg:0> lines]</color> <color:#F2F4FF>Hover to inspect, or use --chat to expand and click values to copy.</color>'
+
+# command.custom-model-data
+command.custom-model-data.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main hand is empty.</color>'
+command.custom-model-data.missing: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The item in your main hand has no numeric custom model data.</color>'
+command.custom-model-data.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Custom model data: <color:#C7BCE7><arg:0></color>.</color>'
+command.custom-model-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Set custom model data to <color:#C7BCE7><arg:0></color>.</color>'
+
+# World / Kick
+command.kick.failed: '<color:#FFB6CB>Failed to kick <arg:0>. Check the server console.</color>'
+command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online on any server.</color>'
+command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked <color:#C7BCE7><arg:0></color> from <color:#C7BCE7><arg:1></color>.</color>'
+command.kick.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Kicked you from <color:#C7BCE7><arg:1></color>.</color>'
+command.world.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to <color:#C7BCE7><arg:1></color>.</color>'
+command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to <color:#C7BCE7><arg:1></color>.</color>'
+kick.reason.none: '<color:#7D98BF>No reason given</color>'
+kick.screen: '<color:#FFB6CB>You were kicked from the server</color><newline><newline><color:#C8E4E9>Reason: </color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>Kicked by: </color><color:#F2F4FF><arg:1></color>'
+command.world.failed: '<color:#FFB6CB>Could not teleport <arg:0>: <arg:1></color>'
+
+# command.actionbar
+command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent an action bar to <color:#C7BCE7><arg:0></color></color>'
+command.actionbar.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent an action bar to you</color>'
+
+# command.title
+command.title.format: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Use a single \n to separate the title and subtitle</color>'
+command.title.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a title to <color:#C7BCE7><arg:0></color></color>'
+command.title.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a title to you</color>'
+
+# command.toast
+command.toast.invalid-icon: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The toast icon cannot be air</color>'
+command.toast.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Displayed a toast for <color:#C7BCE7><arg:0></color></color>'
+command.toast.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Displayed a toast for you</color>'
+
+# command.broadcast
+command.broadcast.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Broadcast sent to all servers</color>'
+command.broadcast.failed: '<color:#FFB6CB>Failed to publish the broadcast.</color>'
+
+# command.item-lore
+command.item-lore.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid line <color:#F2F4FF><arg:0></color>. Available range: <color:#F2F4FF><arg:1></color>–<color:#F2F4FF><arg:2></color>.</color>'
+command.item-lore.delete: 'Delete'
+command.item-lore.down: 'Move down'
+command.item-lore.edit: 'Edit'
+command.item-lore.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>This lore panel has expired. Run the command again.</color>'
+command.item-lore.insert: 'Insert'
+command.item-lore.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid lore text or JSON.</color>'
+command.item-lore.itemless: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your main hand is empty.</color>'
+command.item-lore.limit: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Lore can contain at most <color:#F2F4FF><arg:0></color> lines.</color>'
+command.item-lore.missing-flag: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Missing required flag: <color:#F2F4FF><arg:0></color>.</color>'
+command.item-lore.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>Item lore:<newline><arg:0></color>'
+command.item-lore.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Updated item lore:<newline><arg:0></color>'
+command.item-lore.up: 'Move up'
+
+# command.tp-offline
+command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: <color:#F2F4FF><arg:0></color> has no saved logout location.</color>'
+command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported <color:#C7BCE7><arg:0></color> to the last logout location of <color:#C7BCE7><arg:1></color>.</color>'
+command.tp-offline.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported you to the last logout location of <color:#C7BCE7><arg:1></color>.</color>'
+command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Teleport failed: No database record was found for <color:#F2F4FF><arg:0></color>.</color>'
+command.tp-offline.failed: '<color:#FFB6CB>Could not teleport <arg:0>: <arg:1></color>'
+
+# command.ip-history
+command.ip-history.player-title: 'Player IP history'
+command.ip-history.ip-title: 'Players previously using this IP'
+command.ip-history.player: 'Player'
+command.ip-history.recent: 'Most recently recorded IP'
+command.ip-history.address-count: 'Distinct IPs'
+command.ip-history.address-records: 'Recorded time / IP, newest first'
+command.ip-history.player-count: 'Distinct players'
+command.ip-history.players: 'Player / recorded time / UUID'
+command.ip-history.player-row: '<arg:0> · <arg:1>'
+command.ip-history.no-players: 'No players recorded on this IP'
+command.ip-history.unknown-player: '<color:#FFB6CB>No player records found for <arg:0>.</color>'
+command.ip-history.unknown-name: 'Unknown name'
+command.ip-history.no-addresses: '<color:#FFB6CB>No IP history found for UUID <arg:0>.</color>'
+command.ip-history.invalid-ip: '<color:#FFB6CB>Invalid IP address: <arg:0>. Enter an exact IPv4 or IPv6 address.</color>'
+
+# command.name-history
+command.name-history.title: 'Other names used by this player'
+command.name-history.query: 'Queried name'
+command.name-history.recent: 'Most recently used name'
+command.name-history.others: 'Other names'
+command.name-history.none: 'No other names recorded'
+command.name-history.unknown: '<color:#FFB6CB>No records found for name <arg:0>.</color>'
+
+# command.player-name
+command.player-name.title: 'Player name history'
+command.player-name.recent: 'Most recently used name'
+command.player-name.history: 'Observed names, newest first'
+command.player-name.empty: '<color:#FFB6CB>No name records found for UUID <arg:0>.</color>'
+command.player-name.invalid-uuid: '<color:#FFB6CB>Invalid UUID: <arg:0>.</color>'
+
+# command.player-uuid
+command.player-uuid.success: '<color:#F2F4FF>UUID most recently associated with <color:#C7BCE7><arg:0></color>: <color:#C7BCE7><arg:1></color></color>'
+command.player-uuid.empty: '<color:#FFB6CB>No UUID record found for name <arg:0>.</color>'
+
+# command.patrol
+command.patrol.empty: '<color:#FFE3A3>No eligible players to patrol in the selected scope.</color>'
+command.patrol.success: '<color:#C9F2C7>Patrolling <arg:0>.</color>'
+command.patrol.failed: '<color:#FFB6CB>Could not patrol <arg:0>: <arg:1></color>'
+command.patrol.query-failed: '<color:#FFB6CB>Could not select a patrol target.</color>'
+command.patrol.cancelled: '<color:#FFE3A3>Patrol cancelled because the module was disabled or reloaded.</color>'
+
+# command.tpa
+command.tpa.accepted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> accepted your teleport request</color>'
+command.tpa.button.accept: '<color:#C9F2C7>[Accept]</color>'
+command.tpa.button.deny: '<color:#FFB6CB>[Deny]</color>'
+command.tpa.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> cancelled the teleport request</color>'
+command.tpa.cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You can send another request in <color:#F2F4FF><arg:0></color> seconds</color>'
+command.tpa.denied: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> denied your teleport request</color>'
+command.tpa.denied-cooldown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> denied your request, you can ask them again in <color:#F2F4FF><arg:1></color> seconds</color>'
+command.tpa.expired: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your teleport request to <color:#F2F4FF><arg:0></color> has expired</color>'
+command.tpa.expired-from: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The teleport request from <color:#F2F4FF><arg:0></color> has expired</color>'
+command.tpa.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not handle the teleport request, check the console</color>'
+command.tpa.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no teleport requests to answer</color>'
+command.tpa.none-from: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>There is no teleport request from <color:#F2F4FF><arg:0></color></color>'
+command.tpa.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is not online</color>'
+command.tpa.pending: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Your teleport request to <color:#F2F4FF><arg:0></color> is still waiting for an answer</color>'
+command.tpa.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> wants to teleport to you <arg:1> <arg:2></color>'
+command.tpa.self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You cannot send a teleport request to yourself</color>'
+command.tpa.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Sent a teleport request to <color:#C7BCE7><arg:0></color>, valid for <color:#C7BCE7><arg:1></color> seconds</color>'
+command.tpa.teleport.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Teleported to <color:#C7BCE7><arg:0></color></color>'
+command.tpa-accept.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> is no longer online, the request was dropped</color>'
+command.tpa-accept.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Accepted the teleport request from <color:#C7BCE7><arg:0></color></color>'
+command.tpa-cancel.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have not sent any teleport requests</color>'
+command.tpa-cancel.none-to: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>You have no teleport request to <color:#F2F4FF><arg:0></color></color>'
+command.tpa-cancel.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Cancelled the teleport request to <color:#C7BCE7><arg:0></color></color>'
+command.tpa-deny.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Denied the teleport request from <color:#C7BCE7><arg:0></color></color>'
+command.tpa-here.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> wants you to teleport to them <arg:1> <arg:2></color>'
+
+# command.home
+command.home.unknown-owner: '<color:#FFB6CB>No player identity is known for <arg:0>.</color>'
+command.home.owner-required: '<color:#FFB6CB>Specify an owner using player.home or UUID.home, or use /home_list player-or-UUID [page] for a list.</color>'
+command.home.invalid-target: '<color:#FFB6CB>Invalid home target <arg:0>. Use home, player.home, or UUID.home.</color>'
+command.home.no-permission: '<color:#FFB6CB>You do not have permission to manage another player''s homes.</color>'
+command.home.unknown: '<color:#FFB6CB>Player <arg:1> has no home named <arg:0>.</color>'
+command.home.empty: '<color:#FFB6CB>Player <arg:0> has no homes.</color>'
+command.home.exists: '<color:#FFB6CB>Player <arg:1> already has a home named <arg:0>. Choose a different name.</color>'
+command.home.invalid-name: '<color:#FFB6CB>Invalid home name <arg:0>. Use at most <arg:1> characters, match the name pattern, and omit whitespace.</color>'
+command.home.limit-reached: '<color:#FFB6CB>You have reached your home limit.</color>'
+command.home.success: '<color:#C9F2C7>Teleported to home <arg:0>.</color>'
+command.set-home.created: '<color:#C9F2C7>Created home <arg:0>.</color>'
+command.del-home.success: '<color:#C9F2C7>Deleted <arg:1>''s home <arg:0>.</color>'
+command.del-all-homes.filter-required: '<color:#FFB6CB>Specify at least one filter: --player, --server, or --world.</color>'
+command.del-all-homes.success: '<color:#C9F2C7>Deleted <arg:0> homes matching all supplied filters.</color>'
+command.edit-home.renamed: '<color:#C9F2C7>Renamed <arg:2>''s home <arg:0> to <arg:1>.</color>'
+command.edit-home.relocated: '<color:#C9F2C7>Moved <arg:1>''s home <arg:0> to your current location.</color>'
+command.home.button.teleport: 'Teleport'
+command.home.button.rename: 'Rename'
+command.home.button.relocate: 'Move here'
+command.home.button.delete: 'Delete'
+command.home.button.list: 'Back to list'
+command.home.button.edit: 'Edit <arg:0>'
+command.edit-home.title: 'Home: <arg:0>'
+command.edit-home.name: 'Name'
+command.edit-home.id: 'ID'
+command.edit-home.owner: 'Owner'
+command.edit-home.owner-id: 'Owner UUID'
+command.edit-home.server: 'Server'
+command.edit-home.world: 'World'
+command.edit-home.location: 'X Y Z / Rotation'
+command.edit-home.created-at: 'Created at'
+command.edit-home.updated-at: 'Updated at'
+command.home-list.title: '<arg:0>''s homes'
+command.home-list.location: '<arg:0> / <arg:1>'
+
+# command.warp
+command.warp.unknown: '<color:#FFB6CB>Warp <arg:0> does not exist.</color>'
+command.warp.no-permission: '<color:#FFB6CB>You cannot use warp <arg:0>.</color>'
+command.warp.success-self: '<color:#C9F2C7>Teleported to warp <arg:0>.</color>'
+command.warp.success: '<color:#C9F2C7>Teleported <arg:0> to warp <arg:1>.</color>'
+command.warp.failed: '<color:#FFB6CB>Could not teleport <arg:0> to <arg:1>: <arg:2></color>'
+command.warp.storage-failed: '<color:#FFB6CB>Could not save changes to warp <arg:0>.</color>'
+command.warp.exists: '<color:#FFB6CB>Warp <arg:0> already exists. Choose another name and try again.</color>'
+command.warp.invalid-name: '<color:#FFB6CB>Invalid warp name <arg:0>. Use at most <arg:1> characters and follow the configured name pattern without whitespace.</color>'
+command.set-warp.created: '<color:#C9F2C7>Created warp <arg:0>.</color>'
+command.del-warp.success: '<color:#C9F2C7>Deleted warp <arg:0>.</color>'
+command.edit-warp.renamed: '<color:#C9F2C7>Renamed warp <arg:0> to <arg:1>.</color>'
+command.edit-warp.relocated: '<color:#C9F2C7>Moved warp <arg:0> to your current location.</color>'
+command.warp.button.teleport: 'Teleport'
+command.warp.button.rename: 'Rename'
+command.warp.button.relocate: 'Move here'
+command.warp.button.delete: 'Delete'
+command.warp.button.edit: 'Edit warp'
+command.edit-warp.title: 'Warp: <arg:0>'
+command.edit-warp.name: 'Name'
+command.edit-warp.id: 'ID'
+command.edit-warp.server: 'Server'
+command.edit-warp.world: 'World'
+command.edit-warp.location: 'X Y Z / Yaw Pitch'
+command.edit-warp.creator: 'Creator UUID'
+command.edit-warp.created-at: 'Created'
+command.edit-warp.updated-at: 'Updated'
+command.edit-warp.console: 'Console'
+command.warp-list.title: 'Warps'
+command.warp-list.location: '<arg:0> / <arg:1>'
+
+# command.spawn
+command.spawn.not-set: '<color:#FFB6CB>The spawn destination has not been configured.</color>'
+command.spawn.success: '<color:#C9F2C7>Teleported to spawn.</color>'
+
+# command.respawn
+command.respawn.no-location: '<color:#FFB6CB><arg:0> has no valid personal respawn point.</color>'
+command.respawn.success-self: '<color:#C9F2C7>Teleported to your personal respawn point.</color>'
+command.respawn.success: '<color:#C9F2C7>Teleported <arg:0> to their personal respawn point.</color>'
+command.respawn.failed: '<color:#FFB6CB>Could not teleport <arg:0>: <arg:1></color>'
+
+
+# command.back
+command.back.no-location: '<color:#FFB6CB>You have no recorded return location.</color>'
+command.back.success-self: '<color:#C9F2C7>Returned to your previous location.</color>'
+command.back.success: '<color:#C9F2C7>Returned <arg:0> to their previous location.</color>'
+command.back.failed: '<color:#FFB6CB>Could not return <arg:0>: <arg:1></color>'
+
+# command.death-back
+command.death-back.no-location: '<color:#FFB6CB>You have no recorded death location.</color>'
+command.death-back.success-self: '<color:#C9F2C7>Returned to your last death location.</color>'
+command.death-back.success: '<color:#C9F2C7>Returned <arg:0> to their last death location.</color>'
+command.death-back.failed: '<color:#FFB6CB>Could not return <arg:0> to their death location: <arg:1></color>'
+
+# command.rtp
+command.rtp.success-self: '<color:#C9F2C7>Teleported to a random location.</color>'
+command.rtp.success: '<color:#C9F2C7>Randomly teleported <arg:0> to <arg:1>.</color>'
+command.rtp.failed: '<color:#FFB6CB>Could not randomly teleport <arg:0>: <arg:1></color>'
+command.rtp-range.invalid-area: '<color:#FFB6CB>The minimum radius cannot exceed the maximum radius, and min-y and max-y must be given together with min-y not above max-y.</color>'
+
+# command.head
+command.head.source-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Please specify a player name or UUID for the head.</color>'
+command.head.invalid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Invalid player name or UUID: <color:#F2F4FF><arg:0></color>.</color>'
+command.head.not-found: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>No skin data was found for <color:#F2F4FF><arg:0></color>.</color>'
+command.head.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>Fetching the head for <color:#C7BCE7><arg:0></color> timed out. The request was cancelled; please try again later.</color>'
+command.head.throttled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The skin service is rate limiting requests. Please try again later.</color>'
+command.head.failure: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Could not fetch the head for <color:#F2F4FF><arg:0></color>. Please try again later.</color>'
+command.head.invalid-response: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The skin service returned invalid data. Please check the head API configuration.</color>'
+command.head.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>The head request expired: the feature was disabled or reloaded, or the recipient disconnected.</color>'
+command.head.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Gave <color:#C7BCE7><arg:0></color> head(s) from <color:#C7BCE7><arg:1></color> to <color:#C7BCE7><arg:2></color>.</color>'
+command.head.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Gave you <color:#C7BCE7><arg:0></color> head(s) from <color:#C7BCE7><arg:1></color>.</color>'
+
+# command.maintenance
+command.maintenance.enabled: '<color:#C9F2C7>Maintenance enabled on this server. Players without bypass permission will be disconnected.</color>'
+command.maintenance.disabled: '<color:#C9F2C7>Maintenance disabled on this server.</color>'
+command.maintenance.enable-sent: '<color:#C9F2C7>Request sent to enable maintenance on the selected servers.</color>'
+command.maintenance.disable-sent: '<color:#C9F2C7>Request sent to disable maintenance on the selected servers.</color>'
+command.maintenance.no-servers: '<color:#FFB6CB>No online servers match the selected scope.</color>'
+
+# command.ban
+command.ban.created: '<color:#C9F2C7>Banned <arg:0>. Reason: <arg:1>. Expiry: <arg:2>. Ban ID: <arg:3>.</color>'
+command.ban.replaced: '<color:#C9F2C7>Revoked the previous ban and banned <arg:0> again. Reason: <arg:1>. Expiry: <arg:2>. New ban ID: <arg:3>.</color>'
+command.ban.already-banned: '<color:#FFB6CB>The target for <arg:0> already has an active ban. Use --force to replace it.</color>'
+command.ban.already-banned-id: '<color:#FFB6CB><arg:0> already has active ban <arg:1>. Use --force to replace it.</color>'
+command.ban.unknown-player: '<color:#FFB6CB>No player identity is known for <arg:0>.</color>'
+command.ban.no-address: '<color:#FFB6CB>No IP history is available for <arg:0>.</color>'
+command.ban.unsupported-address: '<color:#FFB6CB>The latest IP address of <arg:0> is not IPv4.</color>'
+command.ban.invalid-ip: '<color:#FFB6CB>Invalid IPv4 address or trailing wildcard range: <arg:0>.</color>'
+command.ban.invalid-duration: '<color:#FFB6CB>The duration must be at least one millisecond and produce a valid expiry timestamp.</color>'
+command.ban.reason-too-long: '<color:#FFB6CB>The expanded ban reason exceeds <arg:0> characters.</color>'
+command.unban.success: '<color:#C9F2C7>Revoked ban <arg:1> for <arg:0>.</color>'
+command.unban.none: '<color:#FFB6CB>No active ban matches <arg:0>.</color>'
+command.ban-info.unknown: '<color:#FFB6CB>Ban <arg:0> does not exist.</color>'
+command.ban-info.title: 'Ban <arg:0>'
+command.ban-info.id: 'Ban ID'
+command.ban-info.type: 'Type'
+command.ban-info.type.player: 'Account'
+command.ban-info.type.ip: 'IP address / range'
+command.ban-info.target: 'Target'
+command.ban-info.uuid: 'Player UUID'
+command.ban-info.ip: 'IP address / range'
+command.ban-info.reason: 'Reason'
+command.ban-info.status: 'Status'
+command.ban-info.operator: 'Operator'
+command.ban-info.server: 'Issued on server'
+command.ban-info.created-at: 'Created at'
+command.ban-info.expires-at: 'Expires at'
+command.ban-info.revoked-at: 'Revoked at'
+command.ban-info.revoked-by: 'Revoked by'
+command.ban.button.unban: 'Revoke ban'
+command.ban.button.history: 'Target history'
+command.ban.button.info: 'Details <arg:0>'
+command.ban.inactive: 'This ban has expired or been revoked'
+command.ban-history.title: 'Ban history'
+command.ban-history.scope: 'Scope'
+command.ban-history.scope.all: 'All records'
+command.ban-history.scope.player: 'Account <arg:0>'
+command.ban-history.scope.ip: 'IP ranges covering <arg:0>'
+command.ban-history.total: 'Matching records'
+command.ban-history.operator: 'Operator filter'
+command.ban-history.since: 'Created since'
+command.ban-history.status: 'Status filter'
+command.ban-history.records: 'Records'
+command.ban-history.empty: 'No matching records on this page'
+command.ban-history.entry: '<arg:0> | <arg:1> | <arg:2> | <arg:3>'
+ban.status.active: 'Active'
+ban.status.expired: 'Expired'
+ban.status.revoked: 'Revoked'
+
+# ban
+ban.kick.player.permanent: |-
+  <color:#FFB6CB>Your account is permanently banned.</color>
+  <color:#F2F4FF>Player: <arg:4>
+  Reason: <arg:0>
+  Operator: <arg:1>
+  Created: <arg:5>
+  Ban ID: <arg:3></color>
+ban.kick.player.temporary: |-
+  <color:#FFB6CB>Your account is temporarily banned.</color>
+  <color:#F2F4FF>Player: <arg:4>
+  Reason: <arg:0>
+  Operator: <arg:1>
+  Expires: <arg:2>
+  Created: <arg:5>
+  Ban ID: <arg:3></color>
+ban.kick.ip.permanent: |-
+  <color:#FFB6CB>Your IP address is permanently banned.</color>
+  <color:#F2F4FF>Player: <arg:4>
+  Reason: <arg:0>
+  Operator: <arg:1>
+  Created: <arg:5>
+  Ban ID: <arg:3></color>
+ban.kick.ip.temporary: |-
+  <color:#FFB6CB>Your IP address is temporarily banned.</color>
+  <color:#F2F4FF>Player: <arg:4>
+  Reason: <arg:0>
+  Operator: <arg:1>
+  Expires: <arg:2>
+  Created: <arg:5>
+  Ban ID: <arg:3></color>
+ban.notify.ban.permanent: '<color:#FFB6CB><arg:1> permanently banned <arg:0>. Reason: <arg:2>. Ban ID: <arg:4>.</color>'
+ban.notify.ban.temporary: '<color:#FFB6CB><arg:1> banned <arg:0> until <arg:3>. Reason: <arg:2>. Ban ID: <arg:4>.</color>'
+ban.notify.unban: '<color:#C9F2C7><arg:1> revoked ban <arg:2> for <arg:0>.</color>'
+ban.id.copy: 'Click to copy the ban ID'
+ban.reason.none: 'No reason provided'
+ban.expiry.permanent: 'Permanent'
+ban.expiry.temporary: '<arg:0> (remaining: <arg:1>)'
+
+# maintenance
+maintenance.boss-bar: '<color:#FFE3A3>Server under maintenance</color>'
+maintenance.kick: '<color:#FFB6CB>The server is under maintenance. Please try again later.</color>'
+
+# command.max-players
+command.max-players.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF><color:#C7BCE7><arg:0></color> players online, player limit is <color:#C7BCE7><arg:1></color></color>'
+command.max-players.reset: '<color:#C9F2C7>Player limit restored to <arg:0> (the limit before the module was enabled).</color>'
+command.max-players.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>Player limit set to <color:#C7BCE7><arg:0></color></color>'

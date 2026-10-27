@@ -32,9 +32,7 @@ public final class BanTexts {
 
     @NotNull
     public static TranslatableComponent notification(@NotNull BanRecord record, long now) {
-        Component target = record.player() == null
-                ? Component.text(record.ip().toString())
-                : Component.text(record.playerName() == null ? record.player().toString() : record.playerName());
+        Component target = target(record);
         if (record.revokedAt() != 0) {
             return MessageConstants.BAN_NOTIFY_UNBAN.arguments(target, Component.text(record.revokedBy()), id(record.id()));
         }
@@ -58,6 +56,19 @@ public final class BanTexts {
     @NotNull
     public static Component reason(@NotNull String reason) {
         return reason.isEmpty() ? MessageConstants.BAN_REASON_NONE : Component.text(reason);
+    }
+
+    @NotNull
+    public static Component target(@NotNull BanRecord record) {
+        return record.player() == null
+                ? Component.text(record.ip().toString())
+                : Component.text(record.playerName() == null ? record.player().toString() : record.playerName());
+    }
+
+    @NotNull
+    public static TranslatableComponent status(@NotNull BanRecord record, long now) {
+        if (record.revokedAt() != 0) return MessageConstants.BAN_STATUS_REVOKED;
+        return record.active(now) ? MessageConstants.BAN_STATUS_ACTIVE : MessageConstants.BAN_STATUS_EXPIRED;
     }
 
     @NotNull

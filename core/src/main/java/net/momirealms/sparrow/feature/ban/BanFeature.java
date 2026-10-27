@@ -9,7 +9,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.ui.Subscription;
 import net.momirealms.sparrow.util.IpRange;
-import net.momirealms.sparrow.util.ThrowableUtils;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.jetbrains.annotations.NotNull;
@@ -19,6 +18,7 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.InetAddress;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -161,6 +161,11 @@ public final class BanFeature implements Feature {
     @NotNull
     public BanService service() {
         return this.service;
+    }
+
+    @NotNull
+    public List<String> getReasonNames() {
+        return this.config.reasonPresets().keySet().stream().sorted().toList();
     }
 
     BanConfig config() {
