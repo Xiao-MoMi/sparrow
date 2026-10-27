@@ -429,6 +429,14 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        @YamlProperty("player-info")
+        CommandConfig playerInfo = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " player_info", "/spr player_info", "/player_info"),
+                DependencyVersions.PROJECT_ID + ".command.player_info"
+        );
+
+        @BlankLineBefore
         @YamlProperty("player-name")
         CommandConfig playerName = new CommandConfig(
                 true,
@@ -792,6 +800,7 @@ public final class CommandsConfig {
                 case "more" -> this.more;
                 case "name_history" -> this.nameHistory;
                 case "player_name" -> this.playerName;
+                case "player_info" -> this.playerInfo;
                 case "player_uuid" -> this.playerUuid;
                 case "repair" -> this.repair;
                 case "repair_all" -> this.repairAll;

@@ -94,6 +94,7 @@ import net.momirealms.sparrow.plugin.command.feature.TopBlockCommand;
 import net.momirealms.sparrow.plugin.command.feature.TotemAnimationCommand;
 import net.momirealms.sparrow.plugin.command.feature.TpOfflineCommand;
 import net.momirealms.sparrow.plugin.command.feature.PlayerNameCommand;
+import net.momirealms.sparrow.plugin.command.feature.PlayerInfoCommand;
 import net.momirealms.sparrow.plugin.command.feature.NameHistoryCommand;
 import net.momirealms.sparrow.plugin.command.feature.IpHistoryCommand;
 import net.momirealms.sparrow.plugin.command.feature.PlayerUuidCommand;
@@ -184,6 +185,7 @@ public final class BukkitCommandManager extends AbstractCommandManager {
                 new NameHistoryCommand(this, plugin),
                 new IpHistoryCommand(this, plugin),
                 new PlayerNameCommand(this, plugin),
+                new PlayerInfoCommand(this, plugin),
                 new PlayerUuidCommand(this, plugin),
                 new RepairAllCommand(this, plugin),
                 new RepairCommand(this, plugin),

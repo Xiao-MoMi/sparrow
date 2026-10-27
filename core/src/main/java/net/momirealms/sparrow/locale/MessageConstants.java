@@ -274,6 +274,7 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_PLAYER_NAME_INVALID_UUID = Component.translatable("command.player-name.invalid-uuid");
     TranslatableComponent COMMAND_PLAYER_UUID_SUCCESS = Component.translatable("command.player-uuid.success");
     TranslatableComponent COMMAND_PLAYER_UUID_EMPTY = Component.translatable("command.player-uuid.empty");
+    TranslatableComponent COMMAND_PLAYER_INFO_NOT_FOUND = Component.translatable("command.player-info.not-found");
 
     TranslatableComponent COMMAND_PATROL_EMPTY = Component.translatable("command.patrol.empty");
     TranslatableComponent COMMAND_PATROL_SUCCESS = Component.translatable("command.patrol.success");
