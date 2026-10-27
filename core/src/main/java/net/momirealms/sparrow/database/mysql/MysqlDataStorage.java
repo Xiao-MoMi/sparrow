@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.mysql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.database.WarpStore;
@@ -28,6 +29,7 @@ public class MysqlDataStorage extends DataStorage {
     private static final List<MysqlSchemaMigration> IP_HISTORY_MIGRATIONS = List.of();
 
     protected HikariDataSource pool;
+    protected MysqlBanStore banStore;
     protected MysqlPlayerProfileStore profileStore;
     protected MysqlBackStore backStore;
     protected MysqlWarpStore warpStore;
@@ -59,6 +61,7 @@ public class MysqlDataStorage extends DataStorage {
             this.verifyServerVersion(jdbi);
             this.initializeSchemas(jdbi);
             this.pool = connected;
+            this.banStore = new MysqlBanStore(jdbi, super.executor, this.namePrefix());
             this.backStore = new MysqlBackStore(jdbi, super.executor, this.namePrefix());
             this.warpStore = new MysqlWarpStore(jdbi, super.executor, this.namePrefix());
             this.homeStore = new MysqlHomeStore(jdbi, super.executor, this.namePrefix());
@@ -72,6 +75,14 @@ public class MysqlDataStorage extends DataStorage {
     }
 
     protected void initializeSchemas(@NotNull Jdbi jdbi) {
+        new MysqlSchemaMigrator(
+                this.logger,
+                MysqlSchema.BAN_COMPONENT,
+                MysqlSchema.BAN_TABLES,
+                DependencyVersions.BAN_SCHEMA_VERSION,
+                MysqlSchema::initializeBans,
+                List.of()
+        ).migrate(jdbi, this.namePrefix());
         new MysqlSchemaMigrator(
                 this.logger,
                 MysqlSchema.HOME_COMPONENT,
@@ -132,6 +143,12 @@ public class MysqlDataStorage extends DataStorage {
         throw new IllegalStateException(
                 "MySQL server version " + reported + " is not supported, MySQL " + MINIMUM_SERVER_VERSION + " or later is required"
         );
+    }
+
+    @NotNull
+    @Override
+    public BanStore banStore() {
+        return this.banStore;
     }
 
     @NotNull

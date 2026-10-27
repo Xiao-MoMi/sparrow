@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.mariadb;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.mysql.MysqlDataStorage;
+import net.momirealms.sparrow.database.mysql.MysqlBanStore;
 import net.momirealms.sparrow.database.mysql.MysqlBackStore;
 import net.momirealms.sparrow.database.mysql.MysqlWarpStore;
 import net.momirealms.sparrow.database.mysql.MysqlHomeStore;
@@ -43,6 +44,7 @@ public final class MariaDbDataStorage extends MysqlDataStorage {
             Jdbi jdbi = Jdbi.create(connected);
             this.initializeSchemas(jdbi);
             super.pool = connected;
+            super.banStore = new MysqlBanStore(jdbi, super.executor, this.namePrefix());
             super.backStore = new MysqlBackStore(jdbi, super.executor, this.namePrefix());
             super.warpStore = new MysqlWarpStore(jdbi, super.executor, this.namePrefix());
             super.homeStore = new MysqlHomeStore(jdbi, super.executor, this.namePrefix());

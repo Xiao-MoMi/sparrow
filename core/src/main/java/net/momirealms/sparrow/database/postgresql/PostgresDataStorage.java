@@ -2,6 +2,7 @@ package net.momirealms.sparrow.database.postgresql;
 
 import com.zaxxer.hikari.HikariDataSource;
 import net.momirealms.sparrow.database.DataStorage;
+import net.momirealms.sparrow.database.BanStore;
 import net.momirealms.sparrow.database.HomeStore;
 import net.momirealms.sparrow.database.BackStore;
 import net.momirealms.sparrow.database.WarpStore;
@@ -26,6 +27,7 @@ public final class PostgresDataStorage extends DataStorage {
     private static final List<PostgresSchemaMigration> IP_HISTORY_MIGRATIONS = List.of();
 
     private HikariDataSource pool;
+    private PostgresBanStore banStore;
     private PostgresPlayerProfileStore profileStore;
     private PostgresBackStore backStore;
     private PostgresWarpStore warpStore;
@@ -56,6 +58,7 @@ public final class PostgresDataStorage extends DataStorage {
             Jdbi jdbi = Jdbi.create(connected);
             this.initializeSchemas(jdbi);
             this.pool = connected;
+            this.banStore = new PostgresBanStore(jdbi, super.executor, this.namePrefix());
             this.backStore = new PostgresBackStore(jdbi, super.executor, this.namePrefix());
             this.warpStore = new PostgresWarpStore(jdbi, super.executor, this.namePrefix());
             this.homeStore = new PostgresHomeStore(jdbi, super.executor, this.namePrefix());
@@ -69,6 +72,14 @@ public final class PostgresDataStorage extends DataStorage {
     }
 
     private void initializeSchemas(@NotNull Jdbi jdbi) {
+        new PostgresSchemaMigrator(
+                this.logger,
+                PostgresSchema.BAN_COMPONENT,
+                PostgresSchema.BAN_TABLES,
+                DependencyVersions.BAN_SCHEMA_VERSION,
+                PostgresSchema::initializeBans,
+                List.of()
+        ).migrate(jdbi, this.namePrefix());
         new PostgresSchemaMigrator(
                 this.logger,
                 PostgresSchema.HOME_COMPONENT,
@@ -117,6 +128,12 @@ public final class PostgresDataStorage extends DataStorage {
                 PostgresSchema::initializeIpHistory,
                 IP_HISTORY_MIGRATIONS
         ).migrate(jdbi, this.namePrefix());
+    }
+
+    @NotNull
+    @Override
+    public BanStore banStore() {
+        return this.banStore;
     }
 
     @NotNull

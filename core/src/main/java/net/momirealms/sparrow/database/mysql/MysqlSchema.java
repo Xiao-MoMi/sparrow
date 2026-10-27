@@ -10,10 +10,15 @@ import java.util.List;
 public final class MysqlSchema {
     public static final String DATA_COMPONENT = "schema";
     public static final List<String> DATA_TABLES = List.of("data");
+
     public static final String NAME_HISTORY_COMPONENT = "player_name_history";
     public static final List<String> NAME_HISTORY_TABLES = List.of("player_name_history");
+
     public static final String IP_HISTORY_COMPONENT = "player_ip_history";
     public static final List<String> IP_HISTORY_TABLES = List.of("player_ip_history");
+
+    public static final String BAN_COMPONENT = "ban";
+    public static final List<String> BAN_TABLES = List.of("bans");
 
     public static final String HOME_COMPONENT = "home_schema";
     public static final List<String> HOME_TABLES = List.of("homes");
@@ -27,6 +32,15 @@ public final class MysqlSchema {
     private static final String TABLE_OPTIONS = " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin";
 
     private MysqlSchema() {
+    }
+
+    public static void initializeBans(@NotNull Handle handle, @NotNull String prefix) {
+        handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "bans` ("
+                + "id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, active_key VARCHAR(64), player BINARY(16), player_name VARCHAR(64), "
+                + "ip_start BIGINT, ip_end BIGINT, reason VARCHAR(256) NOT NULL, operator_name VARCHAR(64) NOT NULL, server VARCHAR(255) NOT NULL, "
+                + "created_at BIGINT NOT NULL, expires_at BIGINT NOT NULL DEFAULT 0, revoked_at BIGINT NOT NULL DEFAULT 0, revoked_by VARCHAR(64), "
+                + "UNIQUE KEY bans_active_target (active_key), KEY bans_player (player, revoked_at), KEY bans_ip (ip_start, ip_end), KEY bans_created (created_at, id), "
+                + "CHECK ((player IS NOT NULL AND ip_start IS NULL AND ip_end IS NULL) OR (player IS NULL AND ip_start IS NOT NULL AND ip_end IS NOT NULL)))" + TABLE_OPTIONS);
     }
 
     public static void initializeHomes(@NotNull Handle handle, @NotNull String prefix) {
