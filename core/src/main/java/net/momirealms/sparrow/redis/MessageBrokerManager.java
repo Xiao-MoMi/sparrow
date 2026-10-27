@@ -3,6 +3,7 @@ package net.momirealms.sparrow.redis;
 import net.minecraft.network.FriendlyByteBuf;
 import net.momirealms.sparrow.data.message.DataChangedMessage;
 import net.momirealms.sparrow.feature.maintenance.MaintenanceMessage;
+import net.momirealms.sparrow.feature.ban.BanMessage;
 import net.momirealms.sparrow.feature.tpa.TpaMessage;
 import net.momirealms.sparrow.feature.warp.WarpMessage;
 import net.momirealms.sparrow.feature.warp.WarpTeleportMessage;
@@ -92,6 +93,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
         this.broker.registry().register(DataChangedMessage.ID, DataChangedMessage.CODEC);
         this.broker.registry().register(MaintenanceMessage.ID, MaintenanceMessage.CODEC);
+        this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);
         this.broker.registry().register(TpaMessage.ID, TpaMessage.CODEC);
         this.broker.registry().register(WarpMessage.ID, WarpMessage.CODEC);
         this.broker.registry().register(WarpTeleportMessage.ID, WarpTeleportMessage.CODEC);

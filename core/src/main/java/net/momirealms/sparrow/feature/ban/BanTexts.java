@@ -16,54 +16,43 @@ public final class BanTexts {
     }
 
     @NotNull
-    public static TranslatableComponent kickScreen(boolean account,
-                                                   @NotNull String playerName,
-                                                   @NotNull String id,
-                                                   @NotNull String reason,
-                                                   @NotNull String operatorName,
-                                                   long createdAt,
-                                                   long expiresAt,
-                                                   long now) {
-        TranslatableComponent template = account
-                ? (expiresAt == 0 ? MessageConstants.BAN_KICK_PLAYER_PERMANENT : MessageConstants.BAN_KICK_PLAYER_TEMPORARY)
-                : (expiresAt == 0 ? MessageConstants.BAN_KICK_IP_PERMANENT : MessageConstants.BAN_KICK_IP_TEMPORARY);
+    public static TranslatableComponent kickScreen(@NotNull BanRecord record, @NotNull String playerName, long now) {
+        TranslatableComponent template = record.player() != null
+                ? (record.permanent() ? MessageConstants.BAN_KICK_PLAYER_PERMANENT : MessageConstants.BAN_KICK_PLAYER_TEMPORARY)
+                : (record.permanent() ? MessageConstants.BAN_KICK_IP_PERMANENT : MessageConstants.BAN_KICK_IP_TEMPORARY);
         return template.arguments(
-                reason(reason),
-                Component.text(operatorName),
-                expiry(expiresAt, now),
-                Component.text(BanRecord.ID_PREFIX + id),
+                reason(record.reason()),
+                Component.text(record.operatorName()),
+                expiry(record.expiresAt(), now),
+                Component.text(record.id()),
                 Component.text(playerName),
-                Component.text(DateTimeUtils.fullTime(createdAt))
+                Component.text(DateTimeUtils.fullTime(record.createdAt()))
         );
     }
 
     @NotNull
-    public static TranslatableComponent notification(@NotNull BanMessage message, long now) {
-        Component target = Component.text(message.display());
-        Component operator = Component.text(message.operatorName());
-        if (!message.banned()) {
-            return MessageConstants.BAN_NOTIFY_UNBAN.arguments(target, operator);
+    public static TranslatableComponent notification(@NotNull BanRecord record, long now) {
+        Component target = record.player() == null
+                ? Component.text(record.ip().toString())
+                : Component.text(record.playerName() == null ? record.player().toString() : record.playerName());
+        if (record.revokedAt() != 0) {
+            return MessageConstants.BAN_NOTIFY_UNBAN.arguments(target, Component.text(record.revokedBy()), id(record.id()));
         }
-        TranslatableComponent template = message.expiresAt() == 0
-                        ? MessageConstants.BAN_NOTIFY_BAN_PERMANENT
-                        : MessageConstants.BAN_NOTIFY_BAN_TEMPORARY;
+        TranslatableComponent template = record.permanent() ? MessageConstants.BAN_NOTIFY_BAN_PERMANENT : MessageConstants.BAN_NOTIFY_BAN_TEMPORARY;
         return template.arguments(
                 target,
-                operator,
-                reason(message.reason()),
-                expiry(message.expiresAt(), now),
-                id(message.banId()),
-                Component.text(DateTimeUtils.fullTime(message.createdAt()))
+                Component.text(record.operatorName()),
+                reason(record.reason()),
+                expiry(record.expiresAt(), now),
+                id(record.id()),
+                Component.text(DateTimeUtils.fullTime(record.createdAt()))
         );
     }
 
-    // 带 # 前缀的处罚 ID, 点击复制
     @NotNull
-    public static Component id(@NotNull String id) {
-        String text = BanRecord.ID_PREFIX + id;
-        return Component.text(text)
-                .clickEvent(ClickEvent.copyToClipboard(text))
-                .hoverEvent(MessageConstants.BAN_ID_COPY);
+    public static Component id(long id) {
+        String value = Long.toString(id);
+        return Component.text(value).clickEvent(ClickEvent.copyToClipboard(value)).hoverEvent(MessageConstants.BAN_ID_COPY);
     }
 
     @NotNull
@@ -71,23 +60,12 @@ public final class BanTexts {
         return reason.isEmpty() ? MessageConstants.BAN_REASON_NONE : Component.text(reason);
     }
 
-    // 永久, 或到期时间加剩余时长
     @NotNull
     public static Component expiry(long expiresAt, long now) {
-        if (expiresAt == 0) {
-            return MessageConstants.BAN_EXPIRY_PERMANENT;
-        }
-        return MessageConstants.BAN_EXPIRY_TEMPORARY
-                .arguments(Component.text(DateTimeUtils.fullTime(expiresAt)), Component.text(DurationUtils.format(expiresAt - now)));
-    }
-
-    @NotNull
-    public static Component status(@NotNull BanRecord record, long now) {
-        if (record.revokedAt() != 0) {
-            return MessageConstants.BAN_STATUS_REVOKED;
-        }
-        return record.active(now)
-                ? MessageConstants.BAN_STATUS_ACTIVE
-                : MessageConstants.BAN_STATUS_EXPIRED;
+        if (expiresAt == 0) return MessageConstants.BAN_EXPIRY_PERMANENT;
+        return MessageConstants.BAN_EXPIRY_TEMPORARY.arguments(
+                Component.text(DateTimeUtils.fullTime(expiresAt)),
+                Component.text(DurationUtils.format(expiresAt - now))
+        );
     }
 }

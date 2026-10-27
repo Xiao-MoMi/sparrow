@@ -2,324 +2,177 @@ package net.momirealms.sparrow.feature.ban;
 
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.database.BanStore;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.feature.Feature;
-import net.momirealms.sparrow.feature.ban.command.BanCommand;
-import net.momirealms.sparrow.feature.ban.command.BanHistoryCommand;
-import net.momirealms.sparrow.feature.ban.command.BanIpCommand;
-import net.momirealms.sparrow.feature.ban.command.UnbanCommand;
-import net.momirealms.sparrow.player.PlayerLookup;
-import net.momirealms.sparrow.player.PlayerListener;
-import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.cluster.PlayerPresence;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
-import net.momirealms.sparrow.plugin.command.CommandManager;
-import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
-import net.momirealms.sparrow.redis.proxy.DisconnectMessage;
-import net.momirealms.sparrow.util.AdventureHelper;
+import net.momirealms.sparrow.ui.Subscription;
 import net.momirealms.sparrow.util.IpRange;
-import net.momirealms.sparrow.util.UUIDUtils;
+import net.momirealms.sparrow.util.ThrowableUtils;
+import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.InetAddress;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
-public final class BanFeature extends Feature<BanSettings> implements PlayerListener {
+public final class BanFeature implements Feature {
     public static final String ID = "ban";
     public static final String NOTIFY_PERMISSION = DependencyVersions.PROJECT_ID + ".notify.ban";
-    private static final long PROXY_DISCONNECT_WAIT_MILLIS = 1000;
 
-    private final SparrowPlugin plugin;
-
-    public BanFeature(@NotNull SparrowPlugin plugin) {
-        super(ID);
-        this.plugin = plugin;
-    }
-
-    @Override
-    public void loadConfig() {
-        super.config = this.plugin.configurationManager().featuresConfig().config().ban();
-    }
-
-    @Override
-    protected void onLoad() {
-        this.plugin.playerManager().registerListener(this);
-    }
-
-    @Override
-    protected void registerCommand(@NotNull Consumer<CommandFeature> register) {
-        CommandManager manager = this.plugin.commandManager();
-        register.accept(new BanCommand(manager, this.plugin, this));
-        register.accept(new BanIpCommand(manager, this.plugin, this));
-        register.accept(new UnbanCommand(manager, this.plugin, this));
-        register.accept(new BanHistoryCommand(manager, this.plugin, this));
-    }
-
-    // 表结构在数据库线程上准备, 失败只记日志, 之后每次使用都会重新尝试
-    @Override
-    protected void onEnable() {
-        this.store().initialize().whenComplete((ignored, failure) -> {
-            if (failure != null) {
-                this.plugin.logger().warn("Failed to prepare the ban tables", failure);
-            }
-        });
-    }
+    private final SparrowPlugin plugin = SparrowPlugin.instance();
+    private volatile BanConfig config;
+    private BanService service;
+    private boolean enabled;
+    private Subscription preLoginSubscription;
 
     @NotNull
-    public BanStore store() {
-        return this.plugin.dataStorage().banStore();
+    @Override
+    public String id() {
+        return ID;
     }
 
-    // 在登录线程同步查库, 数据库出错时异常交给 Bukkit 记录, 本次登录照常放行.
     @Override
-    @SuppressWarnings("deprecation")
-    public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
-        if (!this.enabled() || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) {
-            return;
-        }
-        long now = System.currentTimeMillis();
-        BanRecord ban = this.store().findActiveBan(event.getUniqueId(), IpRange.address(event.getAddress()), now).join().orElse(null);
-        if (ban == null) {
-            return;
-        }
-        boolean account = event.getUniqueId().equals(ban.player());
-        Component screen = this.plugin.translationManager()
-                .render(
-                        BanTexts.kickScreen(
-                                account,
-                                event.getName(),
-                                ban.id(),
-                                ban.reason(),
-                                ban.operatorName(),
-                                ban.createdAt(),
-                                ban.expiresAt(),
-                                now
-                        ),
-                        null
-                );
-        // 先拒绝登录
-        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, AdventureHelper.componentToLegacy(screen));
-        // 本服拒绝登录会被代理转到下一个服务器, 所以先让代理断开整条连接, 等待期间代理没有处理再由本服拒绝.
-        this.plugin.messageBrokerManager().proxyBroker().publishOneWay(new DisconnectMessage(event.getUniqueId(), AdventureHelper.componentToJson(screen)), "");
+    public boolean supportsHotEnable() {
+        return true;
+    }
+
+    @Override
+    public boolean supportsHotDisable() {
+        return true;
+    }
+
+    private BanConfig readConfig() {
+        Path path = this.plugin.dataFolderPath().resolve("features/ban.yml");
         try {
-            Thread.sleep(PROXY_DISCONNECT_WAIT_MILLIS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            return YamlMapperFactory.builder()
+                    .sparrowYaml(this.plugin.configurationManager().sparrowYaml())
+                    .build()
+                    .create(BanSettings.class, BanSettings::new)
+                    .load(path)
+                    .value()
+                    .toConfig();
+        } catch (IOException exception) {
+            throw new UncheckedIOException("Failed to load " + path, exception);
         }
     }
 
-    /**
-     * 按玩家名或 UUID 解析账号封禁目标.
-     * 玩家名必须有记录, UUID 可以预先封禁, 未知名字保留为空.
-     *
-     * @return 解析任务, 玩家名没有记录时结果为空
-     */
     @NotNull
-    public CompletableFuture<Optional<BanTarget.PlayerTarget>> resolvePlayerTarget(@NotNull String input) {
-        UUID uuid = UUIDUtils.parse(input);
-        PlayerLookup players = this.plugin.playerLookup();
-        if (uuid == null) {
-            return players.resolvePlayer(input)
-                    .thenApply(found -> found.map(player -> new BanTarget.PlayerTarget(player.uniqueId(), player.name())));
+    @Override
+    public synchronized CompletableFuture<Void> onEnable() {
+        this.config = this.readConfig();
+        if (this.service == null) {
+            this.service = new BanService(this);
         }
-        return players.resolvePlayer(uuid)
-                .thenApply(found -> Optional.of(new BanTarget.PlayerTarget(uuid, found.map(SparrowPlayer::name).orElse(null))));
+        this.service.start();
+        this.enabled = true;
+        this.preLoginSubscription = this.plugin.playerManager().registerPreLoginListener(this::onPreLogin);
+        CompletableFuture<?>[] checking = this.plugin.playerManager().getOnlinePlayers().stream()
+                .map(this::checkOnline)
+                .toArray(CompletableFuture[]::new);
+        return CompletableFuture.allOf(checking)
+                .exceptionallyCompose(error -> this.onDisable().thenCompose(ignored -> CompletableFuture.failedFuture(error)));
     }
 
-    /**
-     * 把 #处罚ID、IP 或通配 IP、UUID、玩家名解析为解封或查询的对象.
-     *
-     * @return 解析任务, 玩家名没有记录时结果为空
-     * @throws IllegalArgumentException 当文本以 # 开头却不是处罚 ID, 或像 IP 却无法解析时
-     */
     @NotNull
-    public CompletableFuture<Optional<BanTarget>> resolveTarget(@NotNull String input) {
-        if (input.charAt(0) == BanRecord.ID_PREFIX) {
-            String id = BanRecord.parseId(input);
-            if (id == null) {
-                throw new IllegalArgumentException("Invalid punishment id: " + input);
-            }
-            return CompletableFuture.completedFuture(Optional.of(new BanTarget.IdTarget(id)));
-        }
-        if (IpRange.looksLikeIp(input)) {
-            return CompletableFuture.completedFuture(Optional.of(new BanTarget.IpTarget(IpRange.parse(input))));
-        }
-        return this.resolvePlayerTarget(input).thenApply(found -> found.map(target -> (BanTarget) target));
+    @Override
+    public CompletableFuture<Void> onReload() {
+        this.config = this.readConfig();
+        return CompletableFuture.completedFuture(null);
     }
 
-    /**
-     * 写入封禁并踢出各服命中的在线玩家.
-     * 带玩家的封禁覆盖该玩家的旧封禁, 纯 IP 封禁覆盖同一段的纯 IP 封禁.
-     *
-     * @param player 账号封禁目标, 纯 IP 封禁时为 null
-     * @param ip 被封禁的 IP 段, 纯玩家封禁时为 null. <strong>两者不能同时为 null</strong>
-     * @param reason 封禁原因, 空字符串表示未提供
-     * @param expiresAt 到期时间, 单位为 Unix 毫秒, 0 表示永久
-     * @param silent 是否跳过管理员通知
-     * @param force 是否允许覆盖仍生效的封禁
-     * @return 写入结果, 覆盖被拒绝时保留旧记录并跳过踢人与通知
-     */
-    @NotNull
-    public CompletableFuture<BanResult> ban(
-            @Nullable BanTarget.PlayerTarget player,
-            @Nullable IpRange ip,
-            @NotNull String reason,
-            long expiresAt,
-            @NotNull String operatorName,
-            boolean silent,
-            boolean force
-    ) {
-        UUID uuid = player == null ? null : player.uuid();
-        String name = player == null ? null : player.knownName();
-        BanRecord record = new BanRecord(
-                BanRecord.newId(),
-                uuid,
-                name,
-                ip,
-                reason,
-                operatorName,
-                ServerConfig.serverId(),
-                System.currentTimeMillis(),
-                expiresAt,
-                0,
-                null
-        );
-        return this.store()
-                .saveBan(record, force)
-                .thenApply(result -> {
-                    if (result.status() == BanResult.Status.REPLACEMENT_REJECTED) {
-                        return result;
-                    }
-                    this.publish(
-                            new BanMessage(
-                                    true,
-                                    record.id(),
-                                    record.display(),
-                                    uuid,
-                                    ip,
-                                    reason,
-                                    operatorName,
-                                    record.createdAt(),
-                                    expiresAt,
-                                    silent
-                            )
-                    );
-                    return result;
-                });
+    private void onPreLogin(AsyncPlayerPreLoginEvent event) {
+        if (event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
+        BanRecord record = this.findActive(event.getUniqueId(), event.getAddress()).join().orElse(null);
+        if (record == null) return;
+        Component screen = this.plugin.translationManager().render(BanTexts.kickScreen(record, event.getName(), System.currentTimeMillis()));
+        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, screen);
     }
 
-    /**
-     * 撤销仍生效的封禁, 有撤销且非静默时通知各服管理员.
-     * 匹配规则见 {@link BanStore#revokeBans}.
-     *
-     * @param silent 是否跳过管理员通知
-     * @return 撤销任务, 结果为被撤销的记录
-     */
-    @NotNull
-    public CompletableFuture<List<BanRecord>> unban(@NotNull BanTarget target, @NotNull String operatorName, boolean silent) {
-        return this.store()
-                .revokeBans(target, System.currentTimeMillis(), operatorName)
-                .thenApply(revoked -> {
-                    if (!revoked.isEmpty()) {
-                        this.publish(new BanMessage(false, "", target.display(), null, null, "", operatorName, 0, 0, silent));
-                    }
-                    return revoked;
-                });
+    private CompletableFuture<Void> checkOnline(BukkitSparrowPlayer player) {
+        return this.findActive(player.uniqueId(), player.connection.ip()).thenAccept(found -> this.apply(player, found.orElse(null)));
     }
 
-    // 需要通知时发给全部服务器. 静默时只有封禁需要踢人, 纯玩家封禁只发给玩家所在的服务器.
-    // 名单过期导致漏踢时, 封禁已经写库, 玩家进入其他服务器会在登录检查被拦下.
-    private void publish(BanMessage message) {
-        String server = "";
-        if (message.silent()) {
-            if (!message.banned()) return;
-            if (message.ip() == null) {
-                PlayerPresence online = this.plugin.playerDirectory().find(message.player());
-                if (online == null) return;
-                server = online.server();
-            }
-        }
-        this.plugin.messageBrokerManager().broker().publishOneWay(message, server);
+    private synchronized CompletableFuture<Optional<BanRecord>> findActive(UUID player, @Nullable InetAddress address) {
+        if (!this.enabled) return CompletableFuture.completedFuture(Optional.empty());
+        return this.service.findActive(player, address == null ? IpRange.NONE : IpRange.address(address));
     }
 
-    // 收到消息后只处理本服玩家
-    void accept(@NotNull BanMessage message) {
-        if (!this.enabled()) return;
+    private synchronized void apply(BukkitSparrowPlayer player, @Nullable BanRecord record) {
+        if (!this.enabled || record == null) return;
         long now = System.currentTimeMillis();
-        if (message.banned()) {
-            this.kickTargets(message, now);
-        }
-        if (!message.silent()) {
-            this.notifyStaff(message, now);
+        if (record.active(now)) {
+            this.kick(player, record, now);
         }
     }
 
-    // 纯玩家封禁按 UUID 直接查找, 带 IP 时比对每名玩家的地址, 同一 IP 上的所有账号都会被踢出
-    private void kickTargets(BanMessage message, long now) {
-        IpRange range = message.ip();
-        if (range == null) {
-            BukkitSparrowPlayer player = this.plugin.playerManager().getPlayer(message.player());
+    synchronized void accept(BanRecord record, boolean silent) {
+        if (!this.enabled) return;
+        long now = System.currentTimeMillis();
+        if (record.active(now)) {
+            this.kickTargets(record, now);
+        }
+        if (!silent) {
+            this.notifyPlayers(record, now);
+        }
+    }
+
+    private void kickTargets(BanRecord record, long now) {
+        if (record.player() != null) {
+            BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(record.player());
             if (player != null) {
-                this.kick(player, true, message, now);
+                this.kick(player, record, now);
             }
             return;
         }
         for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
-            if (player.uniqueId().equals(message.player())) {
-                this.kick(player, true, message, now);
-                continue;
-            }
-            InetSocketAddress address = player.platformPlayer().getAddress();
-            if (address != null && range.contains(IpRange.address(address.getAddress()))) {
-                this.kick(player, false, message, now);
+            InetAddress address = player.connection.ip();
+            if (address != null && record.ip().contains(IpRange.address(address))) {
+                this.kick(player, record, now);
             }
         }
     }
 
-    // 文本在当前线程渲染好, 踢出放到玩家所属线程
-    private void kick(BukkitSparrowPlayer player, boolean account, BanMessage message, long now) {
-        Component screen = this.plugin.translationManager().render(
-                BanTexts.kickScreen(
-                        account,
-                        player.platformPlayer().getName(),
-                        message.banId(),
-                        message.reason(),
-                        message.operatorName(),
-                        message.createdAt(),
-                        message.expiresAt(),
-                        now
-                ),
-                player.locale()
-        );
-        this.plugin.scheduler().platform().run(() -> player.kick(screen, true), () -> {}, player.platformPlayer());
+    private void kick(BukkitSparrowPlayer player, BanRecord record, long now) {
+        if (!player.isOnlineLocally()) return;
+        Component screen = this.plugin.translationManager().render(BanTexts.kickScreen(record, player.name(), now), player.locale(), player.platformPlayer);
+        player.kick(true, screen);
     }
 
-    // 同一语言的通知只渲染一次
-    private void notifyStaff(BanMessage message, long now) {
-        Map<Locale, Component> rendered = new HashMap<>(4);
-        Sound sound = super.config.getNotifySound(message.banned());
+    private void notifyPlayers(BanRecord record, long now) {
+        TranslatableComponent notification = BanTexts.notification(record, now);
+        Sound sound = this.config.getNotifySound(record.revokedAt() == 0);
         for (BukkitSparrowPlayer player : this.plugin.playerManager().getOnlinePlayers()) {
-            if (player.hasPermission(NOTIFY_PERMISSION)) {
-                player.sendMessage(rendered.computeIfAbsent(
-                        player.locale(),
-                        locale -> this.plugin.translationManager().render(BanTexts.notification(message, now), locale)
-                ));
-                if (sound != null) {
-                    player.playSound(sound);
-                }
+            if (!player.hasPermission(NOTIFY_PERMISSION)) continue;
+            player.sendTranslatedMessage(notification);
+            if (sound != null) {
+                player.playSound(sound);
             }
         }
+    }
+
+    @NotNull
+    public BanService service() {
+        return this.service;
+    }
+
+    BanConfig config() {
+        return this.config;
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onDisable() {
+        this.enabled = false;
+        if (this.preLoginSubscription != null) this.preLoginSubscription.close();
+        this.preLoginSubscription = null;
+        return this.service == null ? CompletableFuture.completedFuture(null) : this.service.stop();
     }
 }

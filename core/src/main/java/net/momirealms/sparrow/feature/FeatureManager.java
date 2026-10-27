@@ -12,6 +12,7 @@ import net.momirealms.sparrow.feature.spawn.SpawnFeature;
 import net.momirealms.sparrow.feature.tpa.TpaFeature;
 import net.momirealms.sparrow.feature.warp.WarpFeature;
 import net.momirealms.sparrow.feature.home.HomeFeature;
+import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ModulesConfig;
 import net.momirealms.sparrow.util.ExceptionCollector;
@@ -52,6 +53,7 @@ public final class FeatureManager {
         this.features.put(TpaFeature.ID, new Entry(new TpaFeature()));
         this.features.put(WarpFeature.ID, new Entry(new WarpFeature()));
         this.features.put(HomeFeature.ID, new Entry(new HomeFeature()));
+        this.features.put(BanFeature.ID, new Entry(new BanFeature()));
     }
 
     public void onLoad() {

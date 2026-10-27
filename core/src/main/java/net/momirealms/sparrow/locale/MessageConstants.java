@@ -320,6 +320,22 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_TPA_CANCEL_NONE = Component.translatable("command.tpa-cancel.none");
     TranslatableComponent COMMAND_TPA_CANCEL_NONE_TO = Component.translatable("command.tpa-cancel.none-to");
 
+    TranslatableComponent COMMAND_HOME_OWNER_REQUIRED = Component.translatable("command.home.owner-required");
+    TranslatableComponent COMMAND_HOME_INVALID_TARGET = Component.translatable("command.home.invalid-target");
+    TranslatableComponent COMMAND_HOME_UNKNOWN_OWNER = Component.translatable("command.home.unknown-owner");
+    TranslatableComponent COMMAND_HOME_NO_PERMISSION = Component.translatable("command.home.no-permission");
+    TranslatableComponent COMMAND_HOME_UNKNOWN = Component.translatable("command.home.unknown");
+    TranslatableComponent COMMAND_HOME_EMPTY = Component.translatable("command.home.empty");
+    TranslatableComponent COMMAND_HOME_EXISTS = Component.translatable("command.home.exists");
+    TranslatableComponent COMMAND_HOME_INVALID_NAME = Component.translatable("command.home.invalid-name");
+    TranslatableComponent COMMAND_HOME_LIMIT_REACHED = Component.translatable("command.home.limit-reached");
+    TranslatableComponent COMMAND_HOME_SUCCESS = Component.translatable("command.home.success");
+    TranslatableComponent COMMAND_SET_HOME_CREATED = Component.translatable("command.set-home.created");
+    TranslatableComponent COMMAND_DEL_HOME_SUCCESS = Component.translatable("command.del-home.success");
+    TranslatableComponent COMMAND_DEL_ALL_HOMES_FILTER_REQUIRED = Component.translatable("command.del-all-homes.filter-required");
+    TranslatableComponent COMMAND_DEL_ALL_HOMES_SUCCESS = Component.translatable("command.del-all-homes.success");
+    TranslatableComponent COMMAND_EDIT_HOME_RENAMED = Component.translatable("command.edit-home.renamed");
+    TranslatableComponent COMMAND_EDIT_HOME_RELOCATED = Component.translatable("command.edit-home.relocated");
     TranslatableComponent COMMAND_WARP_UNKNOWN = Component.translatable("command.warp.unknown");
     TranslatableComponent COMMAND_WARP_NO_PERMISSION = Component.translatable("command.warp.no-permission");
     TranslatableComponent COMMAND_WARP_SUCCESS_SELF = Component.translatable("command.warp.success-self");
@@ -359,6 +375,17 @@ public interface MessageConstants {
     TranslatableComponent COMMAND_MAINTENANCE_NO_SERVERS = Component.translatable("command.maintenance.no-servers");
     TranslatableComponent MAINTENANCE_KICK = Component.translatable("maintenance.kick");
     TranslatableComponent MAINTENANCE_BOSS_BAR = Component.translatable("maintenance.boss-bar");
+    TranslatableComponent BAN_KICK_PLAYER_PERMANENT = Component.translatable("ban.kick.player.permanent");
+    TranslatableComponent BAN_KICK_PLAYER_TEMPORARY = Component.translatable("ban.kick.player.temporary");
+    TranslatableComponent BAN_KICK_IP_PERMANENT = Component.translatable("ban.kick.ip.permanent");
+    TranslatableComponent BAN_KICK_IP_TEMPORARY = Component.translatable("ban.kick.ip.temporary");
+    TranslatableComponent BAN_NOTIFY_BAN_PERMANENT = Component.translatable("ban.notify.ban.permanent");
+    TranslatableComponent BAN_NOTIFY_BAN_TEMPORARY = Component.translatable("ban.notify.ban.temporary");
+    TranslatableComponent BAN_NOTIFY_UNBAN = Component.translatable("ban.notify.unban");
+    TranslatableComponent BAN_ID_COPY = Component.translatable("ban.id.copy");
+    TranslatableComponent BAN_REASON_NONE = Component.translatable("ban.reason.none");
+    TranslatableComponent BAN_EXPIRY_PERMANENT = Component.translatable("ban.expiry.permanent");
+    TranslatableComponent BAN_EXPIRY_TEMPORARY = Component.translatable("ban.expiry.temporary");
 
     TranslatableComponent COMMAND_MAX_PLAYERS_QUERY = Component.translatable("command.max-players.query");
     TranslatableComponent COMMAND_MAX_PLAYERS_SUCCESS = Component.translatable("command.max-players.success");
