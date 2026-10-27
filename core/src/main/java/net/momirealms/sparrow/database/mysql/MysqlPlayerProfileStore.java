@@ -37,7 +37,7 @@ public final class MysqlPlayerProfileStore implements PlayerProfileStore {
     @NotNull
     @Override
     public CompletableFuture<Optional<PlayerProfile>> load(@NotNull UUID key) {
-        String query = "SELECT name, login_at, logout_at, ip, logout_location FROM " + this.table + " WHERE uuid = :uuid";
+        String query = "SELECT name, created_at, login_at, logout_at, ip, logout_location FROM " + this.table + " WHERE uuid = :uuid";
         return CompletableFuture.supplyAsync(
                 () -> this.sql.withHandle(handle -> handle.createQuery(query)
                         .bind("uuid", UUIDUtils.toBytes(key))
@@ -50,7 +50,7 @@ public final class MysqlPlayerProfileStore implements PlayerProfileStore {
     @NotNull
     @Override
     public CompletableFuture<Void> saveLogin(@NotNull UUID player, @NotNull String name, long loginAt, @Nullable InetAddress ip) {
-        String statement = "INSERT INTO " + this.table + " (uuid, name, login_at, ip) VALUES (:uuid, :name, :login, :ip)"
+        String statement = "INSERT INTO " + this.table + " (uuid, name, created_at, login_at, ip) VALUES (:uuid, :name, :login, :login, :ip)"
                 + " ON DUPLICATE KEY UPDATE name = :name, login_at = :login, ip = :ip";
         return CompletableFuture.runAsync(
                 () -> this.sql.useHandle(handle -> handle.createUpdate(statement)
@@ -92,6 +92,7 @@ public final class MysqlPlayerProfileStore implements PlayerProfileStore {
     private static PlayerProfile readProfile(@NotNull ResultSet result) throws SQLException {
         return new PlayerProfile(
                 result.getString("name"),
+                result.getLong("created_at"),
                 result.getLong("login_at"),
                 result.getLong("logout_at"),
                 decodeAddress(result.getBytes("ip")),

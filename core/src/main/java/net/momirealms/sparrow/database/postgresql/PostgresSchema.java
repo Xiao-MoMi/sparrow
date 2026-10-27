@@ -72,7 +72,7 @@ public final class PostgresSchema {
         String data = "\"" + prefix + "data\"";
         handle.execute("CREATE TABLE IF NOT EXISTS " + data + " ("
                 + "uuid UUID PRIMARY KEY, name VARCHAR(64) COLLATE \"C\" NOT NULL, "
-                + "login_at BIGINT NOT NULL, logout_at BIGINT NOT NULL DEFAULT 0, "
+                + "created_at BIGINT NOT NULL, login_at BIGINT NOT NULL, logout_at BIGINT NOT NULL DEFAULT 0, "
                 + "ip BYTEA, logout_location BYTEA)");
     }
 

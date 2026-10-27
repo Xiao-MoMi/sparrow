@@ -67,7 +67,7 @@ public final class MysqlSchema {
     public static void initializeData(@NotNull Handle handle, @NotNull String prefix) {
         handle.execute("CREATE TABLE IF NOT EXISTS `" + prefix + "data` ("
                 + "uuid BINARY(16) PRIMARY KEY, name VARCHAR(64) NOT NULL, "
-                + "login_at BIGINT NOT NULL, logout_at BIGINT NOT NULL DEFAULT 0, "
+                + "created_at BIGINT NOT NULL, login_at BIGINT NOT NULL, logout_at BIGINT NOT NULL DEFAULT 0, "
                 + "ip VARBINARY(16), logout_location BLOB)" + TABLE_OPTIONS);
     }
 

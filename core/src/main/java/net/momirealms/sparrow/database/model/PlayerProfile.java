@@ -8,6 +8,7 @@ import java.net.InetAddress;
 
 public record PlayerProfile(
         @NotNull String name,
+        long createdAt,
         long loginAt,
         long logoutAt,
         @Nullable InetAddress ip,
