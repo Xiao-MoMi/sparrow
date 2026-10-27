@@ -19,6 +19,7 @@ import net.momirealms.sparrow.proxy.minecraft.advancements.AdvancementProxy;
 import net.momirealms.sparrow.proxy.minecraft.advancements.CriterionProxy;
 import net.momirealms.sparrow.proxy.minecraft.advancements.DisplayInfoProxy;
 import net.momirealms.sparrow.proxy.minecraft.advancements.ImpossibleTriggerProxy;
+import net.momirealms.sparrow.proxy.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacketProxy;
 import net.momirealms.sparrow.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
@@ -159,16 +160,18 @@ public final class SendToastMessage extends OneWayMessage<FriendlyByteBuf> {
         progress.grantProgress("impossible");
         // 客户端处理完成进度时会保存 Toast, 后续移除临时进度不会移除已排队的提示.
         Identifier identifier = Identifier.fromNamespaceAndPath("sparrow", "toast");
-        ClientboundBundlePacket packet = new ClientboundBundlePacket(List.of(
-                new ClientboundUpdateAdvancementsPacket(
-                        false,
-                        List.of(new AdvancementHolder(identifier, advancement)),
-                        Set.of(),
-                        Map.of(identifier, progress),
-                        true
-                ),
-                new ClientboundUpdateAdvancementsPacket(false, List.of(), Set.of(identifier), Map.of(), true)
-        ));
+        AdvancementHolder holder = new AdvancementHolder(identifier, advancement);
+        ClientboundUpdateAdvancementsPacket add;
+        ClientboundUpdateAdvancementsPacket remove;
+        if (VersionHelper.isOrAbove26_3) {
+            Object positioned = ClientboundUpdateAdvancementsPacketProxy.PositionedAdvancementProxy.INSTANCE.create(holder, 0.0F, 0.0F);
+            add = (ClientboundUpdateAdvancementsPacket) ClientboundUpdateAdvancementsPacketProxy.INSTANCE.create(false, List.of(positioned), Set.of(), Map.of(identifier, progress), true);
+            remove = (ClientboundUpdateAdvancementsPacket) ClientboundUpdateAdvancementsPacketProxy.INSTANCE.create(false, List.of(), Set.of(identifier), Map.of(), true);
+        } else {
+            add = new ClientboundUpdateAdvancementsPacket(false, List.of(holder), Set.of(), Map.of(identifier, progress), true);
+            remove = new ClientboundUpdateAdvancementsPacket(false, List.of(), Set.of(identifier), Map.of(), true);
+        }
+        ClientboundBundlePacket packet = new ClientboundBundlePacket(List.of(add, remove));
         player.connection.sendPacket(packet);
     }
 }
