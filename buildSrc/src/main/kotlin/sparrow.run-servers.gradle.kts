@@ -37,7 +37,7 @@ fun javaLauncherFor(minecraftVersion: String): Provider<JavaLauncher> =
 
 // 版本表
 val paperVersions = listOf("1.21.11", "26.1.2", "26.2", "26.3")
-val foliaVersions = listOf("1.21.11", "26.1.2", "26.2")
+val foliaVersions = listOf("1.21.11", "26.1.2", "26.2", "26.3")
 
 // 插件自带的那两个任务没有对应的运行目录, 关掉免得误启动
 tasks.withType<RunServer>().configureEach {

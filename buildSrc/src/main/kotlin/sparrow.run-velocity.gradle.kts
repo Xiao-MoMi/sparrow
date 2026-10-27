@@ -24,9 +24,9 @@ val prepareProxyVelocity = tasks.register<InitializeRunDirectory>("prepareProxyV
 tasks.register<RunVelocity>("runProxyVelocity") {
     group = "run paper"
     description = "Run the shared Velocity proxy on port 25565."
-    displayName.set("Velocity 4.1.1")
+    displayName.set("Velocity 4.3.1")
 
-    velocityVersion("4.1.1")
+    velocityVersion("4.3.1")
     runDirectory.set(velocityDirectory)
     pluginJars.from(projectJar)
     pluginJars.from(rootProject.fileTree("buildSrc/velocity-plugin") {

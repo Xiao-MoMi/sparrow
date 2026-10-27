@@ -2,6 +2,7 @@ package net.momirealms.sparrow.proxy.minecraft.world.entity;
 
 import net.momirealms.sparrow.reflection.proxy.ASMProxyFactory;
 import net.momirealms.sparrow.reflection.proxy.annotation.FieldGetter;
+import net.momirealms.sparrow.reflection.proxy.annotation.MethodInvoker;
 import net.momirealms.sparrow.reflection.proxy.annotation.ReflectionProxy;
 
 @ReflectionProxy(name = "net.minecraft.world.entity.Entity")
@@ -10,4 +11,10 @@ public interface EntityProxy {
 
     @FieldGetter(name = "DATA_SHARED_FLAGS_ID", isStatic = true)
     Object getDataSharedFlagsId();
+
+    @FieldGetter(name = {"permanentlyInvulnerable", "invulnerable"})
+    boolean getPermanentlyInvulnerable(Object entity);
+
+    @MethodInvoker(name = {"setPermanentlyInvulnerable", "setInvulnerable"})
+    void setPermanentlyInvulnerable(Object entity, boolean invulnerable);
 }
