@@ -4,6 +4,9 @@ import net.momirealms.sparrow.nbt.CompoundTag;
 import org.bukkit.Location;
 import org.jetbrains.annotations.NotNull;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 public record ServerLocation(@NotNull String server, @NotNull String world, double x, double y, double z, float yaw, float pitch) {
 
     @NotNull
@@ -39,11 +42,11 @@ public record ServerLocation(@NotNull String server, @NotNull String world, doub
         CompoundTag tag = new CompoundTag();
         tag.putString("server", this.server);
         tag.putString("world", this.world);
-        tag.putDouble("x", this.x);
-        tag.putDouble("y", this.y);
-        tag.putDouble("z", this.z);
-        tag.putFloat("yaw", this.yaw);
-        tag.putFloat("pitch", this.pitch);
+        tag.putDouble("x", BigDecimal.valueOf(this.x).setScale(2, RoundingMode.HALF_UP).doubleValue());
+        tag.putDouble("y", BigDecimal.valueOf(this.y).setScale(2, RoundingMode.HALF_UP).doubleValue());
+        tag.putDouble("z", BigDecimal.valueOf(this.z).setScale(2, RoundingMode.HALF_UP).doubleValue());
+        tag.putFloat("yaw", new BigDecimal(Float.toString(this.yaw)).setScale(2, RoundingMode.HALF_UP).floatValue());
+        tag.putFloat("pitch", new BigDecimal(Float.toString(this.pitch)).setScale(2, RoundingMode.HALF_UP).floatValue());
         return tag;
     }
 }

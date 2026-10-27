@@ -50,7 +50,7 @@ public final class ClearChatMessage extends OneWayMessage<FriendlyByteBuf> {
         BukkitSparrowPlayer player = SparrowPlugin.instance().playerManager().getOnlinePlayer(this.playerId);
         if (player == null) return;
         for (int i = 0; i < CLEAR_LINES; i++) {
-            player.platformPlayer.sendMessage(BLANK_LINE);
+            player.sendMessage(BLANK_LINE);
         }
     }
 }
