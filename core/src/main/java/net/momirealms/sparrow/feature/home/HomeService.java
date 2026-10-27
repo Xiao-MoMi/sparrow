@@ -1,211 +1,219 @@
 package net.momirealms.sparrow.feature.home;
 
-import ca.spottedleaf.concurrentutil.map.concurrent.objects.ConcurrentChainedObject2ObjectHashTable;
 import net.momirealms.sparrow.compatibility.CompatibilityManager;
-import net.momirealms.sparrow.database.HomeStore;
-import net.momirealms.sparrow.data.HomeDataAccess;
+import net.momirealms.sparrow.compatibility.CompatibilityManager.PermissionValueMode;
+import net.momirealms.sparrow.data.access.EntryEdit;
+import net.momirealms.sparrow.data.access.EntryView;
+import net.momirealms.sparrow.data.access.MultiWriterEntries;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.player.PlayerConnection;
+import net.momirealms.sparrow.player.listener.PlayerJoinListener;
+import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.util.ThrowableUtils;
 import net.momirealms.sparrow.util.UUIDUtils;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.UnaryOperator;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
-public final class HomeService implements AutoCloseable {
-    private final HomeStore store;
-    private final HomeDataAccess data = new HomeDataAccess();
-    private final ConcurrentChainedObject2ObjectHashTable<UUID, CompletableFuture<Void>> writes = new ConcurrentChainedObject2ObjectHashTable<>();
-    private volatile boolean closed;
+public final class HomeService implements PlayerPrepareListener, PlayerJoinListener {
+    private static final String LIMIT_PERMISSION = DependencyVersions.PROJECT_ID + ".home.limit";
 
-    public HomeService() {
-        SparrowPlugin plugin = SparrowPlugin.instance();
-        this.store = plugin.dataStorage().homeStore();
+    private final HomeData data;
+    private final Supplier<HomeConfig> config;
+    private final Map<UUID, Set<CompletableFuture<?>>> active = new HashMap<>();
+    private boolean accepting;
+
+    HomeService(HomeData data, Supplier<HomeConfig> config) {
+        this.data = data;
+        this.config = config;
     }
 
-    void preload(@NotNull UUID owner) {
-        this.data.read(owner).join();
+    synchronized void start() {
+        this.accepting = true;
+    }
+
+    synchronized CompletableFuture<Void> preload(UUID owner) {
+        if (!this.accepting) return CompletableFuture.completedFuture(null);
+        return this.execute(owner, () -> this.data.entries(owner).read().thenApply(ignored -> null));
     }
 
     @NotNull
-    public CompletableFuture<HomeSnapshot> snapshot(@NotNull UUID owner) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.data.read(owner);
+    @Override
+    public CompletableFuture<Void> onPrepare(@NotNull PlayerConnection connection) {
+        return this.preload(connection.uniqueId());
     }
 
-    // 同步展示复用最近成功的快照, 在线刷新完成前继续返回旧值.
-    @Nullable
-    public HomeSnapshot cachedSnapshot(@NotNull UUID owner) {
-        return this.data.readCacheOrNull(owner);
+    @Override
+    public void onJoin(@NotNull BukkitSparrowPlayer player) {
+        // 热启用时可能已有玩家完成准备但尚未加入, 加入时补齐预加载.
+        this.preload(player.uniqueId()).whenComplete((ignored, error) -> {
+            if (error != null) SparrowPlugin.instance().logger().warn("Failed to preload homes for " + player.uniqueId(), ThrowableUtils.unwrap(error));
+        });
+    }
+
+    public int getLimit(@NotNull BukkitSparrowPlayer player) {
+        return player.getPermissionValue(LIMIT_PERMISSION, this.config.get().maxHomes(), PermissionValueMode.MAX);
+    }
+
+    @NotNull
+    public CompletableFuture<List<Home>> list(@NotNull UUID owner) {
+        return this.execute(owner, () -> this.data.entries(owner).read().thenApply(entries -> {
+            List<Home> homes = new ArrayList<>();
+            entries.forEach((id, home) -> homes.add(home));
+            homes.sort(Comparator.comparing(Home::getNameKey));
+            return List.copyOf(homes);
+        }));
     }
 
     @NotNull
     public CompletableFuture<Optional<Home>> find(@NotNull UUID owner, @NotNull String name) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.data.read(owner).thenApply(snapshot -> Optional.ofNullable(snapshot.get(name)));
+        String key = Home.key(name);
+        return this.execute(owner, () -> this.data.entries(owner).read().thenApply(entries -> Optional.ofNullable(this.findByName(entries, key))));
     }
 
-    // 刷新期间沿用旧快照, 下次补全即可取得新结果.
     @NotNull
-    public List<String> complete(@NotNull UUID owner, @NotNull String input, int limit) {
-        HomeSnapshot snapshot = this.data.readCacheOrNull(owner);
-        return snapshot == null ? List.of() : snapshot.complete(input, limit);
-    }
-
-    // 同一所有者的新增串行执行, 数量以写入前的数据库记录为准.
-    @NotNull
-    public CompletableFuture<Result> set(
-            @NotNull UUID owner,
-            @NotNull String name,
-            @NotNull String server,
-            @NotNull WorldLocation location,
-            int limit
-    ) {
-        CompletableFuture<Void> gate = new CompletableFuture<>();
-        CompletableFuture<Void> previous;
-        synchronized (this) {
-            if (this.closed) {
-                return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-            }
-            previous = this.writes.put(owner, gate);
-        }
-        CompletableFuture<Result> operation = (previous == null ? CompletableFuture.<Void>completedFuture(null) : previous)
-                .thenCompose(ignored -> this.setNow(owner, name, server, location, limit));
-        operation.whenComplete((result, error) -> {
-            this.writes.remove(owner, gate);
-            gate.complete(null);
-        });
-        return operation.copy();
-    }
-
-    private CompletableFuture<Result> setNow(UUID owner, String name, String server, WorldLocation location, int limit) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        HomeSettings settings = SparrowPlugin.instance().configurationManager().featuresConfig().config().home();
-        if (!settings.validName(name)) {
-            return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
-        }
-        return this.store.findByName(owner, name).thenCompose(found -> {
-            if (found.isPresent()) {
-                return CompletableFuture.completedFuture(new Result(Status.DUPLICATE_NAME, null));
-            }
-            return this.store.countByOwner(owner).thenCompose(count -> {
-                if (limit != CompatibilityManager.UNLIMITED && count >= limit) {
-                    return CompletableFuture.completedFuture(new Result(Status.LIMIT_REACHED, null));
-                }
-                long now = System.currentTimeMillis();
-                return this.create(new Home(UUIDUtils.createV7(), owner, name, server, location, now, now))
-                        .thenApply(saved -> this.result(saved, Status.CREATED));
-            });
+    public CompletableFuture<Result> create(@NotNull UUID owner, @NotNull String name, @NotNull String server, @NotNull WorldLocation location, int limit) {
+        HomeConfig config = this.config.get();
+        if (!config.validName(name)) return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
+        String key = Home.key(name);
+        long now = System.currentTimeMillis();
+        Home home = new Home(UUIDUtils.createV7(), owner, name, server, location, now, now);
+        // 上限由调用方按所有者权限取得, 与 UUID 和时间一起固定为本次操作的输入.
+        return this.modify(owner, entries -> {
+            if (this.findByName(entries, key) != null) return new Result(Status.DUPLICATE_NAME, null);
+            if (limit != CompatibilityManager.UNLIMITED && entries.size() >= limit) return new Result(Status.LIMIT_REACHED, null);
+            entries.put(home.id(), home);
+            return new Result(Status.CREATED, home);
         });
     }
 
-    // 编辑按 UUID 读取当前记录, 所有者在整个操作中保持不变.
     @NotNull
     public CompletableFuture<Result> rename(@NotNull UUID owner, @NotNull UUID id, @NotNull String name) {
-        HomeSettings settings = SparrowPlugin.instance().configurationManager().featuresConfig().config().home();
-        if (!settings.validName(name)) {
-            return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
-        }
-        return this.edit(
-                owner,
-                id,
-                home -> new Home(home.id(), home.owner(), name, home.server(), home.location(), home.createdAt(), System.currentTimeMillis())
-        );
+        HomeConfig config = this.config.get();
+        if (!config.validName(name)) return CompletableFuture.completedFuture(new Result(Status.INVALID_NAME, null));
+        String key = Home.key(name);
+        long now = System.currentTimeMillis();
+        return this.modify(owner, entries -> {
+            Home current = entries.get(id);
+            if (current == null) return new Result(Status.NOT_FOUND, null);
+            Home duplicate = this.findByName(entries, key);
+            if (duplicate != null && !duplicate.id().equals(id)) return new Result(Status.DUPLICATE_NAME, null);
+            Home renamed = new Home(current.id(), current.owner(), name, current.server(), current.location(), current.createdAt(), now);
+            entries.put(id, renamed);
+            return new Result(Status.UPDATED, renamed);
+        });
     }
 
     @NotNull
     public CompletableFuture<Result> relocate(@NotNull UUID owner, @NotNull UUID id, @NotNull String server, @NotNull WorldLocation location) {
-        return this.edit(
-                owner,
-                id,
-                home -> new Home(home.id(), home.owner(), home.name(), server, location, home.createdAt(), System.currentTimeMillis())
-        );
-    }
-
-    private CompletableFuture<Result> edit(UUID owner, UUID id, UnaryOperator<Home> operation) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.store.find(id).thenCompose(found -> {
-            if (found.isEmpty() || !found.get().owner().equals(owner)) {
-                return CompletableFuture.completedFuture(new Result(Status.NOT_FOUND, null));
-            }
-            return this.update(operation.apply(found.get())).thenApply(saved -> this.result(saved, Status.UPDATED));
+        long now = System.currentTimeMillis();
+        return this.modify(owner, entries -> {
+            Home current = entries.get(id);
+            if (current == null) return new Result(Status.NOT_FOUND, null);
+            Home moved = new Home(current.id(), current.owner(), current.name(), server, location, current.createdAt(), now);
+            entries.put(id, moved);
+            return new Result(Status.UPDATED, moved);
         });
     }
 
-    private Result result(HomeStore.SaveResult saved, Status success) {
-        return new Result(switch (saved.status()) {
-            case SUCCESS -> success;
-            case DUPLICATE_NAME -> Status.DUPLICATE_NAME;
-            case NOT_FOUND -> Status.NOT_FOUND;
-        }, saved.home());
+    @NotNull
+    public CompletableFuture<Result> delete(@NotNull UUID owner, @NotNull UUID id) {
+        return this.modify(owner, entries -> {
+            Home current = entries.get(id);
+            if (current == null) return new Result(Status.NOT_FOUND, null);
+            entries.remove(id);
+            return new Result(Status.DELETED, current);
+        });
     }
 
     @NotNull
-    public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull String name) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.store.findByName(owner, name).thenCompose(
-                found ->
-                found.isEmpty()
-                ? CompletableFuture.completedFuture(false)
-                : this.delete(owner, found.get().id())
-        );
+    public CompletableFuture<Result> delete(@NotNull UUID owner, @NotNull String name) {
+        String key = Home.key(name);
+        return this.modify(owner, entries -> {
+            Home current = this.findByName(entries, key);
+            if (current == null) return new Result(Status.NOT_FOUND, null);
+            entries.remove(current.id());
+            return new Result(Status.DELETED, current);
+        });
     }
 
-    @NotNull
-    public CompletableFuture<HomeStore.SaveResult> create(@NotNull Home home) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.data.create(home);
+    private CompletableFuture<Result> modify(UUID owner, Function<EntryEdit<UUID, Home>, Result> operation) {
+        return this.execute(owner, () -> {
+            MultiWriterEntries<UUID, Home> entries = this.data.entries(owner);
+            // modify 成功表示修改已提交到多写数据层, 成功结果还要等这一批数据落库.
+            return entries.modify(operation).thenCompose(result -> switch (result.status()) {
+                case CREATED, UPDATED, DELETED -> entries.save().thenApply(ignored -> result);
+                case DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, LIMIT_REACHED -> CompletableFuture.completedFuture(result);
+            });
+        });
     }
 
-    @NotNull
-    public CompletableFuture<HomeStore.SaveResult> update(@NotNull Home home) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.data.update(home);
+    @Nullable
+    private Home findByName(EntryView<UUID, Home> entries, String key) {
+        Home[] found = new Home[1];
+        entries.forEach((id, home) -> {
+            if (home.getNameKey().equals(key)) found[0] = home;
+        });
+        return found[0];
     }
 
-    @NotNull
-    public CompletableFuture<Boolean> delete(@NotNull UUID owner, @NotNull UUID id) {
-        if (this.closed) {
-            return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        }
-        return this.data.delete(owner, id);
-    }
-
-    @NotNull
-    public CompletableFuture<Long> deleteAll(@NotNull HomeStore.Filter filter) {
-        if (this.closed) return CompletableFuture.failedFuture(new CancellationException("Home service is closed"));
-        return this.data.deleteAll(filter);
-    }
-
-    @Override
-    public void close() {
+    private <T> CompletableFuture<T> execute(UUID owner, Supplier<CompletableFuture<T>> operation) {
+        CompletableFuture<T> result = new CompletableFuture<>();
         synchronized (this) {
-            this.closed = true;
+            if (!this.accepting) return CompletableFuture.failedFuture(new CancellationException("Home service is disabled"));
+            this.active.computeIfAbsent(owner, ignored -> new HashSet<>()).add(result);
         }
-        this.data.close();
+        // 收尾等待完整业务操作, 包括 modify 完成后提交的 save.
+        CompletableFuture.completedFuture(null).thenCompose(ignored -> operation.get()).whenComplete((value, error) -> {
+            if (error == null) {
+                result.complete(value);
+            } else {
+                result.completeExceptionally(error);
+            }
+            synchronized (this) {
+                Set<CompletableFuture<?>> operations = this.active.get(owner);
+                operations.remove(result);
+                if (operations.isEmpty()) this.active.remove(owner);
+            }
+        });
+        return result.copy();
+    }
+
+    @NotNull
+    @Override
+    public synchronized CompletableFuture<Void> onRelease(@NotNull PlayerConnection connection) {
+        Set<CompletableFuture<?>> operations = this.active.get(connection.uniqueId());
+        if (operations == null) {
+            return CompletableFuture.completedFuture(null);
+        }
+        return CompletableFuture.allOf(operations.toArray(CompletableFuture[]::new)).handle((ignored, error) -> null);
+    }
+
+    synchronized CompletableFuture<Void> stop() {
+        this.accepting = false;
+        Set<CompletableFuture<?>> operations = new HashSet<>();
+        this.active.values().forEach(operations::addAll);
+        return CompletableFuture.allOf(operations.toArray(CompletableFuture[]::new)).handle((ignored, error) -> null);
     }
 
     public enum Status {
-        CREATED, UPDATED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, LIMIT_REACHED
+        CREATED, UPDATED, DELETED, DUPLICATE_NAME, NOT_FOUND, INVALID_NAME, LIMIT_REACHED
     }
 
     public record Result(@NotNull Status status, @Nullable Home home) {

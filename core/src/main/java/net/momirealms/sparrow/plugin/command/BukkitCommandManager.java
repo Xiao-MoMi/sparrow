@@ -16,6 +16,12 @@ import net.momirealms.sparrow.feature.warp.command.SetWarpCommand;
 import net.momirealms.sparrow.feature.warp.command.DelWarpCommand;
 import net.momirealms.sparrow.feature.warp.command.EditWarpCommand;
 import net.momirealms.sparrow.feature.warp.command.WarpListCommand;
+import net.momirealms.sparrow.feature.home.HomeFeature;
+import net.momirealms.sparrow.feature.home.command.HomeCommand;
+import net.momirealms.sparrow.feature.home.command.SetHomeCommand;
+import net.momirealms.sparrow.feature.home.command.DelHomeCommand;
+import net.momirealms.sparrow.feature.home.command.EditHomeCommand;
+import net.momirealms.sparrow.feature.home.command.HomeListCommand;
 import net.momirealms.sparrow.feature.tpa.TpaRequest;
 import net.momirealms.sparrow.feature.tpa.command.TpaCommand;
 import net.momirealms.sparrow.feature.tpa.command.TpaReplyCommand;
@@ -243,6 +249,14 @@ public final class BukkitCommandManager extends AbstractCommandManager {
         this.registerFeature(new DelWarpCommand(this, this.plugin, warp), warpPermission);
         this.registerFeature(new EditWarpCommand(this, this.plugin, warp), warpPermission);
         this.registerFeature(new WarpListCommand(this, this.plugin, warp), warpPermission);
+
+        HomeFeature home = this.plugin.featureManager().feature(HomeFeature.ID, HomeFeature.class);
+        FeaturePermission homePermission = new FeaturePermission(HomeFeature.ID, () -> this.plugin.featureManager().isEnabled(HomeFeature.ID));
+        this.registerFeature(new HomeCommand(this, this.plugin, home), homePermission);
+        this.registerFeature(new SetHomeCommand(this, this.plugin, home), homePermission);
+        this.registerFeature(new DelHomeCommand(this, this.plugin, home), homePermission);
+        this.registerFeature(new EditHomeCommand(this, this.plugin, home), homePermission);
+        this.registerFeature(new HomeListCommand(this, this.plugin, home), homePermission);
     }
 
     @Override

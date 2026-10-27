@@ -557,6 +557,45 @@ public final class CommandsConfig {
         );
 
         @BlankLineBefore
+        CommandConfig home = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " home", "/home"),
+                DependencyVersions.PROJECT_ID + ".command.home"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("set-home")
+        CommandConfig setHome = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " set_home", "/set_home"),
+                DependencyVersions.PROJECT_ID + ".command.set_home"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("del-home")
+        CommandConfig delHome = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " del_home", "/del_home"),
+                DependencyVersions.PROJECT_ID + ".command.del_home"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("edit-home")
+        CommandConfig editHome = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " edit_home", "/edit_home"),
+                DependencyVersions.PROJECT_ID + ".command.edit_home"
+        );
+
+        @BlankLineBefore
+        @YamlProperty("home-list")
+        CommandConfig homeList = new CommandConfig(
+                true,
+                List.of("/" + DependencyVersions.PROJECT_ID + " home_list", "/home_list"),
+                DependencyVersions.PROJECT_ID + ".command.home_list"
+        );
+
+        @BlankLineBefore
         CommandConfig warp = new CommandConfig(
                 true,
                 List.of("/" + DependencyVersions.PROJECT_ID + " warp", "/warp"),
@@ -731,6 +770,11 @@ public final class CommandsConfig {
                 case "maintenance" -> this.maintenance;
                 case "head" -> this.head;
                 case "spawn" -> this.spawn;
+                case "home" -> this.home;
+                case "set_home" -> this.setHome;
+                case "del_home" -> this.delHome;
+                case "edit_home" -> this.editHome;
+                case "home_list" -> this.homeList;
                 case "warp" -> this.warp;
                 case "set_warp" -> this.setWarp;
                 case "del_warp" -> this.delWarp;

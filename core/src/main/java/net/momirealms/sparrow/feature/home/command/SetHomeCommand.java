@@ -1,10 +1,11 @@
 package net.momirealms.sparrow.feature.home.command;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TranslatableComponent;
-import net.momirealms.sparrow.feature.home.Home;
 import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
+import net.momirealms.sparrow.player.BukkitSparrowPlayer;
+import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.util.WorldLocation;
@@ -12,51 +13,33 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
-import org.jspecify.annotations.NonNull;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
 
 public final class SetHomeCommand extends AbstractHomeCommand {
 
-    public SetHomeCommand(HomeFeature feature) {
-        super(feature);
+    public SetHomeCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull HomeFeature feature) {
+        super(manager, plugin, feature);
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        Command.Builder<Player> cmd = builder.senderType(Player.class)
-                .optional(
-                        "name",
-                        TokenParser.tokenParser(),
-                        (context, input) ->
-                        super.feature.suggest(context.sender(), input.peekString(), false, this.commandConfig().getPermission())
-                )
-                .handler(this::execute);
-        manager.command(cmd);
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
+        manager.command(builder.senderType(Player.class).optional("name", TokenParser.tokenParser()).futureHandler(this::execute));
     }
 
-    private void execute(CommandContext<Player> context) {
-        Player player = context.sender();
-        String name = context.getOrDefault("name", super.feature.config().defaultName());
-        int limit = super.feature.limit(player);
-        super.feature.service()
-                .set(player.getUniqueId(), name, ServerConfig.serverId(), WorldLocation.from(player.getLocation()), limit)
-                .thenAccept(result -> {
-                    TranslatableComponent message = switch (result.status()) {
-                        case CREATED -> MessageConstants.COMMAND_SET_HOME_CREATED;
-                        case DUPLICATE_NAME -> MessageConstants.COMMAND_SET_HOME_EXISTS;
-                        case NOT_FOUND -> MessageConstants.COMMAND_HOME_UNKNOWN;
-                        case INVALID_NAME -> MessageConstants.COMMAND_HOME_INVALID_NAME;
-                        case LIMIT_REACHED -> MessageConstants.COMMAND_SET_HOME_LIMIT;
-                        case UPDATED -> throw new AssertionError();
-                    };
-                    this.handleFeedback(context, message, Component.text(name), Component.text(limit), Component.text(Home.MAX_NAME_LENGTH));
-                })
-                .exceptionally(error -> {
-                    this.failed(player, error); return null;
-                });
+    private CompletableFuture<Void> execute(CommandContext<Player> context) {
+        BukkitSparrowPlayer player = this.plugin().playerManager().getOnlinePlayer(context.sender());
+        String name = context.getOrDefault("name", this.feature.getDefaultName());
+        WorldLocation location = WorldLocation.from(context.sender().getLocation());
+        int limit = this.feature.service().getLimit(player);
+        return this.feature.service().create(player.uniqueId(), name, ServerConfig.serverId(), location, limit)
+                .thenAccept(result -> this.saved(context, player, result, name, MessageConstants.COMMAND_SET_HOME_CREATED, Component.text(name)));
     }
 
+    @NotNull
     @Override
     public String getFeatureID() {
-        return "set-home";
+        return "set_home";
     }
 }
