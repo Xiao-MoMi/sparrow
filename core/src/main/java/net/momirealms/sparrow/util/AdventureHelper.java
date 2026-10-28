@@ -14,6 +14,8 @@ import net.momirealms.sparrow.locale.tag.NamedArgumentTag;
 import net.momirealms.sparrow.locale.tag.PlaceholderTag;
 import net.momirealms.sparrow.message.MiniMessage;
 import net.momirealms.sparrow.message.tag.resolver.TagResolver;
+import net.momirealms.sparrow.proxy.bukkit.util.CraftChatMessageProxy;
+import net.momirealms.sparrow.proxy.paper.adventure.PaperAdventureProxy;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -152,6 +154,19 @@ public final class AdventureHelper {
 
     public static JsonElement componentToJsonElement(Component component) {
         return getGson().serializeToTree(component);
+    }
+
+    /**
+     * 将 Adventure 组件转换为 Paper Adventure 对象.
+     *
+     * @param component 需要序列化的 Adventure 组件
+     * @return 序列化得到的 Json
+     * @throws RuntimeException 当组件包含当前 NBT 序列化器无法处理的内容时, 底层实现可能抛出运行时异常
+     */
+    @NotNull
+    public static Object toNativeComponent(@NotNull Component component) {
+        Object minecraftComponent = CraftChatMessageProxy.INSTANCE.fromJSON(componentToJson(component));
+        return PaperAdventureProxy.INSTANCE.asAdventure(minecraftComponent);
     }
 
 

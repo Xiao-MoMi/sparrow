@@ -6,7 +6,9 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.proxy.bukkit.event.player.AsyncPlayerPreLoginEventProxy;
 import net.momirealms.sparrow.ui.Subscription;
+import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.yaml.mapper.YamlMapper;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
@@ -110,7 +112,11 @@ public final class MaintenanceFeature implements Feature {
     private void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
         if (!this.active || event.getLoginResult() != AsyncPlayerPreLoginEvent.Result.ALLOWED) return;
         if (this.plugin.compatibilityManager().hasPermission(event.getUniqueId(), BYPASS_PERMISSION)) return;
-        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK));
+        AsyncPlayerPreLoginEventProxy.INSTANCE.disallow(
+                event,
+                AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                AdventureHelper.toNativeComponent(this.plugin.translationManager().render(MessageConstants.MAINTENANCE_KICK))
+        );
     }
 
     private void refreshPlayers() {

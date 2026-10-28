@@ -7,7 +7,9 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
+import net.momirealms.sparrow.proxy.bukkit.event.player.AsyncPlayerPreLoginEventProxy;
 import net.momirealms.sparrow.ui.Subscription;
+import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
@@ -93,7 +95,7 @@ public final class BanFeature implements Feature {
         BanRecord record = this.findActive(event.getUniqueId(), event.getAddress()).join().orElse(null);
         if (record == null) return;
         Component screen = this.plugin.translationManager().render(BanTexts.kickScreen(record, event.getName(), System.currentTimeMillis()));
-        event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_BANNED, screen);
+        AsyncPlayerPreLoginEventProxy.INSTANCE.disallow(event, AsyncPlayerPreLoginEvent.Result.KICK_BANNED, AdventureHelper.toNativeComponent(screen));
     }
 
     private CompletableFuture<Void> checkOnline(BukkitSparrowPlayer player) {

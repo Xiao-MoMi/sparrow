@@ -11,11 +11,13 @@ import net.momirealms.sparrow.player.listener.PlayerPreLoginListener;
 import net.momirealms.sparrow.player.listener.PlayerPrepareListener;
 import net.momirealms.sparrow.player.listener.PlayerQuitListener;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.proxy.bukkit.event.player.AsyncPlayerPreLoginEventProxy;
 import net.momirealms.sparrow.proxy.minecraft.network.ConnectionProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.level.ServerPlayerProxy;
 import net.momirealms.sparrow.proxy.minecraft.server.network.ServerCommonPacketListenerImplProxy;
 import net.momirealms.sparrow.proxy.paper.connection.ReadablePlayerCookieConnectionProxy;
 import net.momirealms.sparrow.ui.Subscription;
+import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.HandlerList;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -314,7 +316,11 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPreLogin(@NotNull AsyncPlayerPreLoginEvent event) {
         if (this.closing) {
-            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Component.text("Server is shutting down"));
+            AsyncPlayerPreLoginEventProxy.INSTANCE.disallow(
+                    event,
+                    AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                    AdventureHelper.toNativeComponent(Component.text("Server is shutting down"))
+            );
             return;
         }
         this.preLoginListeners.dispatch(listener -> listener.onPreLogin(event));
@@ -325,7 +331,11 @@ public final class PlayerManager implements Listener, ChannelFutureListener {
                 event.getName(),
                 event.getAddress()
         )) {
-            event.disallow(AsyncPlayerPreLoginEvent.Result.KICK_OTHER, Component.text("Server is shutting down"));
+            AsyncPlayerPreLoginEventProxy.INSTANCE.disallow(
+                    event,
+                    AsyncPlayerPreLoginEvent.Result.KICK_OTHER,
+                    AdventureHelper.toNativeComponent(Component.text("Server is shutting down"))
+            );
         }
     }
 
