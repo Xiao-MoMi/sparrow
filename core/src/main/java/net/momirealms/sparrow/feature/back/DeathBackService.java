@@ -8,6 +8,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.service.countdown.CountdownCancelledException;
 import net.momirealms.sparrow.teleport.Teleport;
+import net.momirealms.sparrow.teleport.TeleportContext;
 import net.momirealms.sparrow.teleport.TeleportResult;
 import net.momirealms.sparrow.teleport.processor.post.Invulnerability;
 import net.momirealms.sparrow.teleport.processor.post.PlaySound;
@@ -48,7 +49,7 @@ final class DeathBackService {
         return this.operations.submit(player.uniqueId(), () -> this.store.saveDeathBack(player.uniqueId(), location));
     }
 
-    CompletableFuture<@Nullable Component> teleport(BukkitSparrowPlayer player, BackConfig.Options options, long generation) {
+    CompletableFuture<@Nullable Component> teleport(BukkitSparrowPlayer player, BackConfig.Options options, long generation, boolean unsafe) {
         CompletableFuture<Duration> remaining = options.cooldown().isZero()
                 ? CompletableFuture.completedFuture(Duration.ZERO)
                 : this.plugin.cooldownService().remaining(player.uniqueId(), COOLDOWN_ID);
@@ -64,7 +65,7 @@ final class DeathBackService {
                         if (!destination.server().equals(ServerConfig.serverId()) && !this.plugin.serverManager().isOnline(destination.server())) {
                             return CompletableFuture.completedFuture(this.notify(player, MessageConstants.TELEPORT_REJECTED_SERVER_OFFLINE));
                         }
-                        return this.commit(player, options, destination);
+                        return this.commit(player, options, destination, unsafe);
                     }));
         })).exceptionally(error -> {
             Throwable cause = ThrowableUtils.unwrap(error);
@@ -77,8 +78,11 @@ final class DeathBackService {
         });
     }
 
-    private CompletableFuture<@Nullable Component> commit(BukkitSparrowPlayer player, BackConfig.Options options, ServerLocation destination) {
+    private CompletableFuture<@Nullable Component> commit(BukkitSparrowPlayer player, BackConfig.Options options, ServerLocation destination, boolean unsafe) {
+        TeleportContext context = new TeleportContext();
+        context.toNbt().putBoolean(TeleportContext.UNSAFE, unsafe);
         Teleport teleport = Teleport.builder()
+                .context(context)
                 .server(destination.server())
                 .position(destination.world(), destination.x(), destination.y(), destination.z(), destination.yaw(), destination.pitch())
                 .targetProcessor(SAFE_LOCATION)

@@ -26,16 +26,22 @@ public final class BackCommand extends BukkitCommandFeature {
     public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         Permission otherPermission = this.otherPermission(builder);
         CommandFlag<Void> silent = manager.flagBuilder("silent").build();
+        CommandFlag<Void> unsafe = manager.flagBuilder("unsafe").build();
         manager.command(builder.handler(this::execute));
-        // 自用的静默入口使用字面量, 与玩家动态节点在命令树中明确区分
-        manager.command(builder.literal("--silent").handler(context -> {
+        // 自用的 flag 入口使用字面量, 与玩家动态节点在命令树中明确区分
+        manager.command(builder.literal("--silent").flag(unsafe).handler(context -> {
             context.flags().addPresenceFlag(silent);
+            this.execute(context);
+        }));
+        manager.command(builder.literal("--unsafe").flag(silent).handler(context -> {
+            context.flags().addPresenceFlag(unsafe);
             this.execute(context);
         }));
         manager.command(builder
                 .required("player", PlayerParser.playerParser())
                 .permission(otherPermission)
                 .flag(silent)
+                .flag(unsafe)
                 .handler(this::execute));
     }
 
@@ -51,7 +57,7 @@ public final class BackCommand extends BukkitCommandFeature {
             return;
         }
         boolean self = player == context.sender();
-        this.plugin().featureManager().feature(BackFeature.ID, BackFeature.class).back(traveler).thenAccept(reason -> {
+        this.plugin().featureManager().feature(BackFeature.ID, BackFeature.class).back(traveler, context.flags().hasFlag("unsafe")).thenAccept(reason -> {
             if (reason == null) {
                 if (self) {
                     if (!context.flags().hasFlag("silent")) {

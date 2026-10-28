@@ -95,14 +95,14 @@ public final class BackFeature implements Feature, Listener {
         return CompletableFuture.completedFuture(null);
     }
 
-    synchronized CompletableFuture<@Nullable Component> back(BukkitSparrowPlayer player) {
+    synchronized CompletableFuture<@Nullable Component> back(BukkitSparrowPlayer player, boolean unsafe) {
         if (!this.enabled) return CompletableFuture.completedFuture(MessageConstants.TELEPORT_DISABLED);
-        return this.back.teleport(player, this.config.back().select(player.platformPlayer), this.generation);
+        return this.back.teleport(player, this.config.back().select(player.platformPlayer), this.generation, unsafe);
     }
 
-    synchronized CompletableFuture<@Nullable Component> deathback(BukkitSparrowPlayer player) {
+    synchronized CompletableFuture<@Nullable Component> deathback(BukkitSparrowPlayer player, boolean unsafe) {
         if (!this.enabled) return CompletableFuture.completedFuture(MessageConstants.TELEPORT_DISABLED);
-        return this.deathback.teleport(player, this.config.deathback().select(player.platformPlayer), this.generation);
+        return this.deathback.teleport(player, this.config.deathback().select(player.platformPlayer), this.generation, unsafe);
     }
 
     synchronized <T> CompletableFuture<T> withPlayer(BukkitSparrowPlayer player, long generation, Supplier<CompletableFuture<T>> operation) {
