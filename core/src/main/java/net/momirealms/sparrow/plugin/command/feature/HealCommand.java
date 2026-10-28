@@ -62,8 +62,6 @@ public final class HealCommand extends BukkitCommandFeature {
                     double value = context.flags().getValue("value", maxHealth);
                     double health = Math.min(maxHealth, oldHealth + value);
                     player.setHealth(health);
-                    player.setFoodLevel(20);
-                    player.setSaturation(10.0f);
                     boolean self = player == context.sender();
                     TranslatableComponent message = context.flags().hasFlag("value")
                             ? (self ? MessageConstants.COMMAND_HEAL_RESTORED_SELF : MessageConstants.COMMAND_HEAL_RESTORED)
