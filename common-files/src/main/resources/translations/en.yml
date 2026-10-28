@@ -1,5 +1,11 @@
 __version__: '${lang_version}'
 
+command.batch.summary: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>/<arg:0> · <arg:1> targets · <color:#C9F2C7><arg:2> succeeded</color> · <color:#FFE3A3><arg:3> submitted across servers</color> · <color:#FFB6CB><arg:4> failed</color></color>'
+command.batch.failures: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>/<arg:0> · <arg:1> targets failed. Hover for details.</color>'
+command.batch.unavailable: '<color:#FFB6CB><arg:0>: the target is offline or the operation is no longer available.</color>'
+command.batch.error: '<color:#FFB6CB><arg:0>: the operation failed. Check the console log.</color>'
+command.batch.detail: '<color:#F2F4FF><arg:0></color> · <arg:1>'
+
 player.data-not-ready: '<red>Your data is not ready. Please reconnect shortly.</red>'
 
 # exception

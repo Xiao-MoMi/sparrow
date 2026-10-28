@@ -15,12 +15,11 @@ import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
-import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
+import org.incendo.cloud.bukkit.data.SinglePlayerSelector;
+import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -34,24 +33,16 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
     @Override
     public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         manager.command(builder.required("player", GlobalPlayerParser.clusterPlayerParser())
-                .optional("targets", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+                .optional("target", SinglePlayerSelectorParser.singlePlayerSelectorParser())
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(this::execute));
     }
 
     private void execute(CommandContext<CommandSender> context) {
-        MultiplePlayerSelector selector = context.getOrDefault("targets", null);
-        List<Player> targets;
-        if (selector != null) {
-            targets = List.copyOf(selector.values());
-        } else if (context.sender() instanceof Player player) {
-            targets = List.of(player);
-        } else {
+        SinglePlayerSelector selector = context.getOrDefault("target", null);
+        Player target = selector != null ? selector.single() : (context.sender() instanceof Player player ? player : null);
+        if (target == null) {
             this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_REQUIRED);
-            return;
-        }
-        if (targets.isEmpty()) {
-            this.handleFeedback(context, MessageConstants.COMMAND_TARGETS_EMPTY);
             return;
         }
         String input = context.get("player");
@@ -72,9 +63,7 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                 this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION, Component.text(profile.name()));
                 return;
             }
-            for (Player player : targets) {
-                this.teleport(context, player, profile.name(), location);
-            }
+            this.teleport(context, target, profile.name(), location);
         });
     }
 
@@ -96,7 +85,8 @@ public final class TpOfflineCommand extends BukkitCommandFeature {
                         case TeleportResult.Fail fail -> this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_FAILED, Component.text(targetName), fail.reason());
                         case TeleportResult.Aborted ignored -> this.handleFeedback(context, MessageConstants.COMMAND_TP_OFFLINE_FAILED, Component.text(targetName), MessageConstants.TELEPORT_CANCELLED);
                     }
-                });
+                })
+                .onError(error -> this.plugin().logger().warn("Failed to teleport " + targetName + " to the logout location of " + name, error));
     }
 
     @Override

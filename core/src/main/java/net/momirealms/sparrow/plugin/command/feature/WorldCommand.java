@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.command.feature;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.BatchCommandFeedback;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.LocationFlagParser;
@@ -87,12 +88,13 @@ public final class WorldCommand extends BukkitCommandFeature {
         }
         WorldLocation destination = new WorldLocation(world.getName(), location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
         boolean unsafe = context.flags().hasFlag("unsafe");
+        BatchCommandFeedback feedback = new BatchCommandFeedback(this, context, targets.size());
         for (Player player : targets) {
-            this.teleport(context, player, destination, unsafe);
+            this.teleport(context, player, destination, unsafe, feedback);
         }
     }
 
-    private void teleport(CommandContext<CommandSender> context, Player player, WorldLocation destination, boolean unsafe) {
+    private void teleport(CommandContext<CommandSender> context, Player player, WorldLocation destination, boolean unsafe, BatchCommandFeedback feedback) {
         TeleportContext teleportContext = new TeleportContext();
         teleportContext.toNbt().putBoolean(TeleportContext.UNSAFE, unsafe);
         String name = player.getName();
@@ -104,19 +106,18 @@ public final class WorldCommand extends BukkitCommandFeature {
                 .commit(player)
                 .onResult(result -> {
                     switch (result) {
-                        case TeleportResult.Success ignored -> this.handleFeedback(
-                                context,
+                        case TeleportResult.Success ignored -> feedback.success(
                                 player == context.sender() ? MessageConstants.COMMAND_WORLD_SUCCESS_SELF : MessageConstants.COMMAND_WORLD_SUCCESS,
                                 Component.text(name),
                                 Component.text(destination.world())
                         );
-                        case TeleportResult.Fail fail -> this.handleFeedback(context, MessageConstants.COMMAND_WORLD_FAILED, Component.text(name), fail.reason());
-                        case TeleportResult.Aborted ignored -> this.handleFeedback(context, MessageConstants.COMMAND_WORLD_FAILED, Component.text(name), MessageConstants.TELEPORT_CANCELLED);
+                        case TeleportResult.Fail fail -> feedback.failure(MessageConstants.COMMAND_WORLD_FAILED, Component.text(name), fail.reason());
+                        case TeleportResult.Aborted ignored -> feedback.failure(MessageConstants.COMMAND_WORLD_FAILED, Component.text(name), MessageConstants.TELEPORT_CANCELLED);
                     }
                 })
                 .onError(error -> {
                     this.plugin().logger().warn("Failed to teleport " + name + " to world " + destination.world(), error);
-                    this.handleFeedback(context, MessageConstants.COMMAND_WORLD_FAILED, Component.text(name), MessageConstants.TELEPORT_FAILED);
+                    feedback.failure(MessageConstants.COMMAND_WORLD_FAILED, Component.text(name), MessageConstants.TELEPORT_FAILED);
                 });
     }
 

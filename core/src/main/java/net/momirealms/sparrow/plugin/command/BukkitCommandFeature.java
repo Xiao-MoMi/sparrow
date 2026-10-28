@@ -18,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class BukkitCommandFeature extends AbstractCommandFeature {
 
@@ -83,12 +84,31 @@ public abstract class BukkitCommandFeature extends AbstractCommandFeature {
             @NotNull String input,
             @NotNull TranslatableComponent offline
     ) {
+        return this.resolveOnlinePlayer(context, input, offline, null);
+    }
+
+    @Nullable
+    protected OfflineSparrowPlayer resolveOnlinePlayer(@NotNull CommandContext<CommandSender> context, @NotNull String input, @NotNull BatchCommandFeedback feedback) {
+        return this.resolveOnlinePlayer(context, input, MessageConstants.COMMAND_PLAYER_OFFLINE, feedback);
+    }
+
+    @Nullable
+    protected OfflineSparrowPlayer resolveOnlinePlayer(
+            @NotNull CommandContext<CommandSender> context,
+            @NotNull String input,
+            @NotNull TranslatableComponent offline,
+            @Nullable BatchCommandFeedback feedback
+    ) {
         UUID uuid = UUIDUtils.parse(input);
         OfflineSparrowPlayer target = uuid == null
                 ? this.plugin().playerManager().getGlobalOnlinePlayer(input)
                 : this.plugin().playerManager().getGlobalOnlinePlayer(uuid);
         if (target == null) {
-            this.handleFeedback(context, offline, Component.text(input));
+            if (feedback == null) {
+                this.handleFeedback(context, offline, Component.text(input));
+            } else {
+                feedback.failure(offline, Component.text(input));
+            }
         }
         return target;
     }
@@ -105,6 +125,36 @@ public abstract class BukkitCommandFeature extends AbstractCommandFeature {
                 MessageConstants.COMMAND_PLAYER_OFFLINE,
                 MessageConstants.COMMAND_PLAYER_REQUEST_SENT
         );
+    }
+
+    protected void sendRemoteRequest(
+            @NotNull CommandContext<CommandSender> context,
+            @NotNull OfflineSparrowPlayer target,
+            @NotNull OneWayMessage<FriendlyByteBuf> message,
+            @NotNull BatchCommandFeedback feedback
+    ) {
+        String server = target.getCurrentServerId();
+        if (server == null) {
+            feedback.failure(MessageConstants.COMMAND_PLAYER_OFFLINE, Component.text(target.name()));
+            return;
+        }
+        this.plugin().messageBrokerManager().publishOneWay(message, server);
+        feedback.submitted(MessageConstants.COMMAND_PLAYER_REQUEST_SENT, Component.text(target.name()));
+    }
+
+    protected void runForTarget(@NotNull BatchCommandFeedback feedback, @NotNull Entity entity, @NotNull Runnable action) {
+        String name = entity.getName();
+        CompletableFuture<Void> task = new CompletableFuture<>();
+        task.completeAsync(() -> {
+            action.run();
+            return null;
+        }, runnable -> this.plugin().scheduler().platform().run(runnable, () -> {
+            task.complete(null);
+            feedback.retired(name);
+        }, entity));
+        task.whenComplete((ignored, error) -> {
+            if (error != null) feedback.error(name, error);
+        });
     }
 
     /**

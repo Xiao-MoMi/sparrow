@@ -3,6 +3,7 @@ package net.momirealms.sparrow.plugin.command.feature;
 import net.kyori.adventure.text.Component;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.BatchCommandFeedback;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.Location;
@@ -37,24 +38,20 @@ public final class SmiteCommand extends BukkitCommandFeature {
             return;
         }
         boolean effect = context.flags().hasFlag("effect");
+        BatchCommandFeedback feedback = new BatchCommandFeedback(this, context, entities.size());
         for (Entity entity : entities) {
-            this.plugin().scheduler().platform().run(
-                    () -> {
-                        Location location = entity.getLocation();
-                        if (effect) {
-                            location.getWorld().strikeLightningEffect(location);
-                        } else {
-                            location.getWorld().strikeLightning(location);
-                        }
-                        this.handleFeedback(
-                                context,
-                                effect ? MessageConstants.COMMAND_SMITE_EFFECT : MessageConstants.COMMAND_SMITE_SUCCESS,
-                                Component.text(entity.getName())
-                        );
-                    },
-                    () -> {},
-                    entity
-            );
+            this.runForTarget(feedback, entity, () -> {
+                Location location = entity.getLocation();
+                if (effect) {
+                    location.getWorld().strikeLightningEffect(location);
+                } else {
+                    location.getWorld().strikeLightning(location);
+                }
+                feedback.success(
+                        effect ? MessageConstants.COMMAND_SMITE_EFFECT : MessageConstants.COMMAND_SMITE_SUCCESS,
+                        Component.text(entity.getName())
+                );
+            });
         }
     }
 

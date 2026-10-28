@@ -1,9 +1,12 @@
 package net.momirealms.sparrow.feature.highlight;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TranslatableComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
+import net.momirealms.sparrow.plugin.command.BatchCommandFeedback;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.NamedTextColorParser;
 import net.momirealms.sparrow.plugin.command.parser.LocationFlagParser;
@@ -93,7 +96,27 @@ public final class HighlightCommand extends BukkitCommandFeature {
                 duration,
                 settings.solidOnly() || context.flags().hasFlag("solid-only")
         );
-        HighlightFeature.Feedback feedback = (key, arguments) -> this.handleFeedback(context, key, arguments);
+        BatchCommandFeedback batch = new BatchCommandFeedback(this, context, viewers.size());
+        HighlightFeature.Feedback feedback = new HighlightFeature.Feedback() {
+            @Override
+            public void send(TranslatableComponent key, Component... arguments) {
+                if (key == MessageConstants.COMMAND_HIGHLIGHT_SUCCESS) {
+                    batch.success(key, arguments);
+                } else {
+                    HighlightCommand.this.handleFeedback(context, key, arguments);
+                }
+            }
+
+            @Override
+            public void unavailable(String name) {
+                batch.unavailable(name);
+            }
+
+            @Override
+            public void failed(Throwable error) {
+                batch.abort(error);
+            }
+        };
         if (first == null) {
             feature.select(sender, options, feedback);
         } else {

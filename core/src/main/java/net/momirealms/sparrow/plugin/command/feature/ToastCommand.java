@@ -7,6 +7,7 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.OfflineSparrowPlayer;
 import net.momirealms.sparrow.player.message.SendToastMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.BatchCommandFeedback;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
@@ -49,20 +50,20 @@ public final class ToastCommand extends BukkitCommandFeature {
         }
         AdvancementType type = context.get("type");
         List<String> targets = context.get("targets");
+        BatchCommandFeedback feedback = new BatchCommandFeedback(this, context, targets.size());
         for (String input : targets) {
-            OfflineSparrowPlayer target = this.resolveOnlinePlayer(context, input);
+            OfflineSparrowPlayer target = this.resolveOnlinePlayer(context, input, feedback);
             if (target == null) continue;
             if (!(target instanceof BukkitSparrowPlayer local)) {
-                this.sendRemoteRequest(context, target, new SendToastMessage(target.uniqueId(), message, icon, type));
+                this.sendRemoteRequest(context, target, new SendToastMessage(target.uniqueId(), message, icon, type), feedback);
                 continue;
             }
             if (!local.isOnlineLocally()) {
-                this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_OFFLINE, Component.text(local.name()));
+                feedback.failure(MessageConstants.COMMAND_PLAYER_OFFLINE, Component.text(local.name()));
                 continue;
             }
             local.sendToast(message, icon, type);
-            this.handleFeedback(
-                    context,
+            feedback.success(
                     local.platformPlayer == context.sender() ? MessageConstants.COMMAND_TOAST_SUCCESS_SELF : MessageConstants.COMMAND_TOAST_SUCCESS,
                     Component.text(local.name())
             );

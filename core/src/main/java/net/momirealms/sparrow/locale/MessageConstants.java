@@ -4,6 +4,11 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TranslatableComponent;
 
 public interface MessageConstants {
+    TranslatableComponent COMMAND_BATCH_SUMMARY = Component.translatable("command.batch.summary");
+    TranslatableComponent COMMAND_BATCH_FAILURES = Component.translatable("command.batch.failures");
+    TranslatableComponent COMMAND_BATCH_UNAVAILABLE = Component.translatable("command.batch.unavailable");
+    TranslatableComponent COMMAND_BATCH_ERROR = Component.translatable("command.batch.error");
+    TranslatableComponent COMMAND_BATCH_DETAIL = Component.translatable("command.batch.detail");
     TranslatableComponent PLAYER_DATA_NOT_READY = Component.translatable("player.data-not-ready");
     TranslatableComponent TELEPORT_WARMUP = Component.translatable("teleport.warmup");
     TranslatableComponent TELEPORT_CANCELLED = Component.translatable("teleport.cancelled");

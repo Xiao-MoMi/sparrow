@@ -6,6 +6,7 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.OfflineSparrowPlayer;
 import net.momirealms.sparrow.player.message.PlayerStateMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.BatchCommandFeedback;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.EntityTarget;
@@ -43,32 +44,28 @@ public final class ExtinguishCommand extends BukkitCommandFeature {
             }
             targets = List.of(new EntityTarget.Player(player.getUniqueId().toString()));
         }
+        BatchCommandFeedback feedback = new BatchCommandFeedback(this, context, targets.size());
         for (EntityTarget target : targets) {
             Entity entity;
             switch (target) {
                 case EntityTarget.Local local -> entity = local.entity();
                 case EntityTarget.Player reference -> {
-                    OfflineSparrowPlayer player = this.resolveOnlinePlayer(context, reference.nameOrUuid());
+                    OfflineSparrowPlayer player = this.resolveOnlinePlayer(context, reference.nameOrUuid(), feedback);
                     if (player == null) continue;
                     if (!(player instanceof BukkitSparrowPlayer local)) {
-                        this.sendRemoteRequest(context, player, new PlayerStateMessage(player.uniqueId(), PlayerStateMessage.Action.EXTINGUISH, 0));
+                        this.sendRemoteRequest(context, player, new PlayerStateMessage(player.uniqueId(), PlayerStateMessage.Action.EXTINGUISH, 0), feedback);
                         continue;
                     }
                     entity = local.platformPlayer;
                 }
             }
-            this.plugin().scheduler().platform().run(
-                    () -> {
-                        entity.setFireTicks(0);
-                        this.handleFeedback(
-                                context,
-                                (entity == context.sender() ? MessageConstants.COMMAND_EXTINGUISH_SUCCESS_SELF : MessageConstants.COMMAND_EXTINGUISH_SUCCESS),
-                                Component.text(entity.getName())
-                        );
-                    },
-                    () -> {},
-                    entity
-            );
+            this.runForTarget(feedback, entity, () -> {
+                entity.setFireTicks(0);
+                feedback.success(
+                        (entity == context.sender() ? MessageConstants.COMMAND_EXTINGUISH_SUCCESS_SELF : MessageConstants.COMMAND_EXTINGUISH_SUCCESS),
+                        Component.text(entity.getName())
+                );
+            });
         }
     }
 

@@ -11,8 +11,8 @@ import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
-import org.incendo.cloud.bukkit.data.MultiplePlayerSelector;
-import org.incendo.cloud.bukkit.parser.selector.MultiplePlayerSelectorParser;
+import org.incendo.cloud.bukkit.data.SinglePlayerSelector;
+import org.incendo.cloud.bukkit.parser.selector.SinglePlayerSelectorParser;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.exception.NoPermissionException;
 import org.incendo.cloud.permission.Permission;
@@ -45,7 +45,7 @@ public final class HeadCommand extends BukkitCommandFeature {
                         (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().registry.suggestGlobalPlayers(input.peekString()))
                 )
                 .optional("amount", IntegerParser.integerParser(1, 6400))
-                .optional("player", MultiplePlayerSelectorParser.multiplePlayerSelectorParser())
+                .optional("player", SinglePlayerSelectorParser.singlePlayerSelectorParser())
                 .flag(manager.flagBuilder("force"))
                 .flag(manager.flagBuilder("silent").withAliases("s"))
                 .handler(context -> {
@@ -67,15 +67,10 @@ public final class HeadCommand extends BukkitCommandFeature {
             this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_SOURCE_REQUIRED);
             return;
         }
-        MultiplePlayerSelector selector = context.getOrDefault("player", null);
-        List<Player> targets = selector != null
-                ? List.copyOf(selector.values())
-                : (context.sender() instanceof Player player ? List.of(player) : List.of());
-        if (targets.isEmpty()) {
-            this.handleFeedback(
-                    context.sender(),
-                    selector != null ? MessageConstants.COMMAND_TARGETS_EMPTY : MessageConstants.COMMAND_PLAYER_REQUIRED
-            );
+        SinglePlayerSelector selector = context.getOrDefault("player", null);
+        Player target = selector != null ? selector.single() : (context.sender() instanceof Player player ? player : null);
+        if (target == null) {
+            this.handleFeedback(context.sender(), MessageConstants.COMMAND_PLAYER_REQUIRED);
             return;
         }
         BukkitSparrowPlayer sender = context.sender() instanceof Player player ? plugin.playerManager().getOnlinePlayer(player) : null;
@@ -118,26 +113,19 @@ public final class HeadCommand extends BukkitCommandFeature {
                 this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_NOT_FOUND, Component.text(source));
                 return;
             }
-            for (int i = 0; i < targets.size(); i++) {
-                Player target = targets.get(i);
-                plugin.scheduler().platform().run(
-                        () -> {
-                            if (feature.give(target, data, amount, generation)) {
-                                this.handleFeedback(
-                                        context,
-                                        target == context.sender() ? MessageConstants.COMMAND_HEAD_SUCCESS_SELF : MessageConstants.COMMAND_HEAD_SUCCESS,
-                                        Component.text(amount),
-                                        Component.text(source),
-                                        Component.text(target.getName())
-                                );
-                            } else {
-                                this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
-                            }
-                        },
-                        () -> {},
-                        target
-                );
-            }
+            plugin.scheduler().platform().run(() -> {
+                if (feature.give(target, data, amount, generation)) {
+                    this.handleFeedback(
+                            context,
+                            target == context.sender() ? MessageConstants.COMMAND_HEAD_SUCCESS_SELF : MessageConstants.COMMAND_HEAD_SUCCESS,
+                            Component.text(amount),
+                            Component.text(source),
+                            Component.text(target.getName())
+                    );
+                } else {
+                    this.handleFeedback(context.sender(), MessageConstants.COMMAND_HEAD_CANCELLED);
+                }
+            }, () -> {}, target);
         });
     }
 

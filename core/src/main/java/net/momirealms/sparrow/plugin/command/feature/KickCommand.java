@@ -6,6 +6,7 @@ import net.momirealms.sparrow.player.OfflineSparrowPlayer;
 import net.momirealms.sparrow.player.message.proxy.DisconnectRequest;
 import net.momirealms.sparrow.player.message.proxy.DisconnectResponse;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.BatchCommandFeedback;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
@@ -40,24 +41,25 @@ public final class KickCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         List<String> targets = context.get("player");
         String reason = context.getOrDefault("reason", "");
+        BatchCommandFeedback feedback = new BatchCommandFeedback(this, context, targets.size());
         for (String input : targets) {
-            this.kick(context, input, reason);
+            this.kick(context, input, reason, feedback);
         }
     }
 
-    private void kick(CommandContext<CommandSender> context, String input, String reason) {
+    private void kick(CommandContext<CommandSender> context, String input, String reason, BatchCommandFeedback feedback) {
         CommandSender sender = context.sender();
         UUID uuid = UUIDUtils.parse(input);
         OfflineSparrowPlayer target = uuid == null
                 ? this.plugin().playerManager().getGlobalOnlinePlayer(input)
                 : this.plugin().playerManager().getGlobalOnlinePlayer(uuid);
         if (target == null) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_KICK_OFFLINE, Component.text(input));
+            feedback.failureAlways(MessageConstants.COMMAND_KICK_OFFLINE, Component.text(input));
             return;
         }
         String server = target.getCurrentServerId();
         if (server == null) {
-            this.handleFeedback(sender, MessageConstants.COMMAND_KICK_OFFLINE, Component.text(target.name()));
+            feedback.failureAlways(MessageConstants.COMMAND_KICK_OFFLINE, Component.text(target.name()));
             return;
         }
         Component text = reason.isEmpty() ? MessageConstants.KICK_REASON_NONE : Component.text(reason);
@@ -66,12 +68,11 @@ public final class KickCommand extends BukkitCommandFeature {
         this.disconnect(target, screen).whenComplete((disconnected, error) -> {
             if (error != null) {
                 this.plugin().logger().warn("Failed to kick " + target.name(), error);
-                this.handleFeedback(sender, MessageConstants.COMMAND_KICK_FAILED, Component.text(target.name()));
+                feedback.failureAlways(MessageConstants.COMMAND_KICK_FAILED, Component.text(target.name()));
             } else if (!disconnected) {
-                this.handleFeedback(sender, MessageConstants.COMMAND_KICK_OFFLINE, Component.text(target.name()));
+                feedback.failureAlways(MessageConstants.COMMAND_KICK_OFFLINE, Component.text(target.name()));
             } else {
-                this.handleFeedback(
-                        context,
+                feedback.success(
                         self ? MessageConstants.COMMAND_KICK_SUCCESS_SELF : MessageConstants.COMMAND_KICK_SUCCESS,
                         Component.text(target.name()),
                         Component.text(server)

@@ -6,6 +6,7 @@ import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.OfflineSparrowPlayer;
 import net.momirealms.sparrow.player.message.SendMessageMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.BatchCommandFeedback;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
@@ -35,20 +36,20 @@ public final class ActionBarCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         String message = context.get("message");
         List<String> targets = context.get("targets");
+        BatchCommandFeedback feedback = new BatchCommandFeedback(this, context, targets.size());
         for (String input : targets) {
-            OfflineSparrowPlayer target = this.resolveOnlinePlayer(context, input);
+            OfflineSparrowPlayer target = this.resolveOnlinePlayer(context, input, feedback);
             if (target == null) continue;
             if (!(target instanceof BukkitSparrowPlayer local)) {
-                this.sendRemoteRequest(context, target, new SendMessageMessage(target.uniqueId(), message, true));
+                this.sendRemoteRequest(context, target, new SendMessageMessage(target.uniqueId(), message, true), feedback);
                 continue;
             }
             if (!local.isOnlineLocally()) {
-                this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_OFFLINE, Component.text(local.name()));
+                feedback.failure(MessageConstants.COMMAND_PLAYER_OFFLINE, Component.text(local.name()));
                 continue;
             }
             local.sendActionBar(message);
-            this.handleFeedback(
-                    context,
+            feedback.success(
                     local.platformPlayer == context.sender() ? MessageConstants.COMMAND_ACTIONBAR_SUCCESS_SELF : MessageConstants.COMMAND_ACTIONBAR_SUCCESS,
                     Component.text(local.name())
             );

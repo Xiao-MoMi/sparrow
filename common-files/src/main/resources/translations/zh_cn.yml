@@ -1,5 +1,11 @@
 __version__: '${lang_version}'
 
+command.batch.summary: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>/<arg:0> · 共 <arg:1> 个目标 · <color:#C9F2C7>成功 <arg:2></color> · <color:#FFE3A3>跨服已提交 <arg:3></color> · <color:#FFB6CB>失败 <arg:4></color></color>'
+command.batch.failures: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>/<arg:0> · <arg:1> 个目标失败，悬停查看详情。</color>'
+command.batch.unavailable: '<color:#FFB6CB><arg:0>: 目标已离线或当前操作已失效。</color>'
+command.batch.error: '<color:#FFB6CB><arg:0>: 操作失败，请查看控制台日志。</color>'
+command.batch.detail: '<color:#F2F4FF><arg:0></color> · <arg:1>'
+
 player.data-not-ready: '<red>玩家数据尚未准备完成，请稍后重新连接。</red>'
 
 # exception

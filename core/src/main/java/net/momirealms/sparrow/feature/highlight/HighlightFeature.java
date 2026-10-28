@@ -185,6 +185,9 @@ public final class HighlightFeature implements Feature, Listener {
     /** 校验选区后读取各区块, 完成时给仍在选区世界内的目标玩家发送轮廓. */
     public synchronized void show(@NotNull Location first, @NotNull Location second, @NotNull Options options, @NotNull Feedback feedback) {
         if (!this.enabled()) {
+            for (Player viewer : options.viewers) {
+                feedback.unavailable(viewer.getName());
+            }
             return;
         }
         World world = first.getWorld();
@@ -219,18 +222,17 @@ public final class HighlightFeature implements Feature, Listener {
             }
         }
         CompletableFuture.runAsync(() -> {
-            if (!this.current(expectedGeneration)) {
-                return;
-            }
             HighlightBlocks blocks = new HighlightBlocks(region, solid, options.color);
             for (int i = 0; i < options.viewers.size(); i++) {
                 Player viewer = options.viewers.get(i);
                 synchronized (this) {
                     if (!this.current(expectedGeneration)) {
-                        return;
+                        feedback.unavailable(viewer.getName());
+                        continue;
                     }
                     BukkitSparrowPlayer player = this.plugin.playerManager().getOnlinePlayer(viewer);
                     if (player == null || viewer.getWorld() != world) {
+                        feedback.unavailable(viewer.getName());
                         continue;
                     }
                     blocks.show(player.connection);
@@ -248,7 +250,9 @@ public final class HighlightFeature implements Feature, Listener {
                     feedback.send(MessageConstants.COMMAND_HIGHLIGHT_SUCCESS, Component.text(viewer.getName()));
                 }
             }
-        }, this.plugin.scheduler().async());
+        }, this.plugin.scheduler().async()).whenComplete((ignored, error) -> {
+            if (error != null) feedback.failed(error);
+        });
     }
 
     private synchronized boolean current(long generation) {
@@ -310,6 +314,13 @@ public final class HighlightFeature implements Feature, Listener {
     public interface Feedback {
 
         void send(TranslatableComponent key, Component... arguments);
+
+        default void unavailable(String name) {
+        }
+
+        default void failed(Throwable error) {
+            SparrowPlugin.instance().logger().warn("Failed to show highlight", error);
+        }
     }
 
     private static final class Selection {
