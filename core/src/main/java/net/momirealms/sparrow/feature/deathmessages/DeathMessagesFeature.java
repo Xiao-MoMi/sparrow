@@ -3,7 +3,6 @@ package net.momirealms.sparrow.feature.deathmessages;
 import net.minecraft.network.chat.Component;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.player.message.SendMessageMessage;
 import net.momirealms.sparrow.player.message.TemplateBroadcastMessage;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.proxy.bukkit.event.entity.PlayerDeathEventProxy;
@@ -119,34 +118,29 @@ public final class DeathMessagesFeature implements Feature, Listener {
             }
             proxy.deathMessage(event, null);
             if (disabledWorlds.contains(context.world())) return;
-            PreparedDeathMessage message = this.renderer.prepare(context, current, messages);
+            TemplateBroadcastMessage message = this.renderer.prepare(context, current, messages);
             if (message == null) return;
 
             Player victim = context.victim();
             if (!this.rateLimiter.record(victim.getUniqueId(), current.antiSpam())) {
                 if (current.antiSpam().showToVictim()) {
-                    this.send(victim, message);
+                    message.sendTo(victim);
                 }
                 return;
             }
-            TemplateBroadcastMessage announcement = new TemplateBroadcastMessage(message.template());
             if (rule == null ? current.broadcast() : rule.broadcast()) {
                 // 广播订阅包含来源服, 所有服务器都从同一份 Redis 消息发送.
                 this.plugin.messageBrokerManager()
-                        .publishOneWay(announcement, "")
+                        .publishOneWay(message, "")
                         .whenComplete((ignored, error) -> {
                             if (error != null) this.plugin.logger().warn("Failed to broadcast death message for " + victim.getUniqueId(), ThrowableUtils.unwrap(error));
                         });
             } else {
-                announcement.sendLocally();
+                message.sendLocally();
             }
         } finally {
             this.lifecycle.readLock().unlock();
         }
-    }
-
-    private void send(@NotNull Player receiver, @NotNull PreparedDeathMessage message) {
-        new SendMessageMessage(receiver.getUniqueId(), message.render(receiver)).sendLocally();
     }
 
     @NotNull

@@ -14,7 +14,6 @@ import net.minecraft.network.protocol.game.ClientboundUpdateAdvancementsPacket;
 import net.minecraft.resources.Identifier;
 import net.momirealms.sparrow.nbt.CompoundTag;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.proxy.minecraft.advancements.AdvancementProxy;
 import net.momirealms.sparrow.proxy.minecraft.advancements.CriterionProxy;
 import net.momirealms.sparrow.proxy.minecraft.advancements.DisplayInfoProxy;
@@ -24,7 +23,6 @@ import net.momirealms.sparrow.proxy.minecraft.world.item.ItemStackTemplateProxy;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
-import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import net.momirealms.sparrow.util.AdventureHelper;
 import net.momirealms.sparrow.util.ItemUtils;
@@ -40,31 +38,30 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public final class SendToastMessage extends OneWayMessage<FriendlyByteBuf> {
+public final class SendToastMessage extends AbstractPlayerTextMessage {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "send_toast");
     public static final MessageCodec<FriendlyByteBuf, SendToastMessage> CODEC = RedisMessage.codec(SendToastMessage::write, SendToastMessage::new);
 
-    private final UUID playerId;
-    private final MessageText text;
+    private final Text text;
     private final CompoundTag icon;
     private final AdvancementType frame;
 
     public SendToastMessage(@NotNull UUID playerId, @NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
-        this.playerId = playerId;
-        this.text = new MessageText(text);
+        super(playerId);
+        this.text = new Text(text);
         this.icon = ItemUtils.toNbt(CraftItemStack.unwrap(icon));
         this.frame = frame;
     }
 
     public SendToastMessage(@NotNull UUID playerId, @NotNull String text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
-        this.playerId = playerId;
-        this.text = new MessageText(text);
+        super(playerId);
+        this.text = new Text(text);
         this.icon = ItemUtils.toNbt(CraftItemStack.unwrap(icon));
         this.frame = frame;
     }
 
-    private SendToastMessage(@NotNull UUID playerId, @NotNull MessageText text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
-        this.playerId = playerId;
+    private SendToastMessage(@NotNull UUID playerId, @NotNull Text text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
+        super(playerId);
         this.text = text;
         this.icon = ItemUtils.toNbt(CraftItemStack.unwrap(icon));
         this.frame = frame;
@@ -72,13 +69,12 @@ public final class SendToastMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @NotNull
     public static SendToastMessage translated(@NotNull UUID playerId, @NotNull Component text, @NotNull ItemStack icon, @NotNull AdvancementType frame) {
-        return new SendToastMessage(playerId, MessageText.translated(text), icon, frame);
+        return new SendToastMessage(playerId, Text.translated(text), icon, frame);
     }
 
     private SendToastMessage(FriendlyByteBuf buffer) {
         super(buffer);
-        this.playerId = buffer.readUUID();
-        this.text = new MessageText(buffer);
+        this.text = new Text(buffer);
         net.momirealms.sparrow.util.FriendlyByteBuf data = new net.momirealms.sparrow.util.FriendlyByteBuf(buffer);
         this.icon = (CompoundTag) data.readNbt(false);
         this.frame = AdvancementType.valueOf(ByteBufHelper.readUtf8(buffer, 64));
@@ -87,7 +83,6 @@ public final class SendToastMessage extends OneWayMessage<FriendlyByteBuf> {
     @Override
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
-        buffer.writeUUID(this.playerId);
         this.text.write(buffer);
         net.momirealms.sparrow.util.FriendlyByteBuf data = new net.momirealms.sparrow.util.FriendlyByteBuf(buffer);
         data.writeNbt(this.icon, false);
@@ -101,20 +96,7 @@ public final class SendToastMessage extends OneWayMessage<FriendlyByteBuf> {
     }
 
     @Override
-    protected void handle() {
-        this.sendLocally();
-    }
-
-    // 在当前执行器上解析并发送, 目标不在本服时返回 false.
-    public boolean sendLocally() {
-        SparrowPlugin plugin = SparrowPlugin.instance();
-        BukkitSparrowPlayer player = plugin.playerManager().getOnlinePlayer(this.playerId);
-        if (player == null) return false;
-        this.send(player);
-        return true;
-    }
-
-    private void send(BukkitSparrowPlayer player) {
+    protected void send(@NotNull BukkitSparrowPlayer player) {
         net.minecraft.world.item.ItemStack minecraftIcon = ItemUtils.fromNbt(this.icon);
         net.minecraft.network.chat.Component title = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(this.text.resolve(player)));
         // 26.1 起进度图标改用物品模板

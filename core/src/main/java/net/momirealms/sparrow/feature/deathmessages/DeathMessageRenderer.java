@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.HoverEvent;
 import net.momirealms.sparrow.locale.tag.MessageContext;
+import net.momirealms.sparrow.player.message.TemplateBroadcastMessage;
 import net.momirealms.sparrow.proxy.bukkit.entity.CraftPlayerProxy;
 import net.momirealms.sparrow.proxy.paper.adventure.PaperAdventureProxy;
 import net.momirealms.sparrow.util.AdventureHelper;
@@ -23,7 +24,7 @@ final class DeathMessageRenderer {
     private static final Key PLAYER_TYPE = Key.key("minecraft:player");
 
     @Nullable
-    PreparedDeathMessage prepare(@NotNull DeathMessageContext context, @NotNull DeathMessagesConfig config, @NotNull List<String> messages) {
+    TemplateBroadcastMessage prepare(@NotNull DeathMessageContext context, @NotNull DeathMessagesConfig config, @NotNull List<String> messages) {
         if (messages.isEmpty()) return null;
         String message = messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
         if (message.isEmpty()) return null;
@@ -45,7 +46,7 @@ final class DeathMessageRenderer {
         if (attacker != null) {
             arguments.put("attacker", this.renderAttacker(attacker, config.display(), arguments));
         }
-        return new PreparedDeathMessage(message, config.format(), arguments);
+        return new TemplateBroadcastMessage(message, config.format(), arguments);
     }
 
     @NotNull

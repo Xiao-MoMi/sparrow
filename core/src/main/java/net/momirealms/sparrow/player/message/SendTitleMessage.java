@@ -7,11 +7,9 @@ import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
-import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
-import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.util.AdventureHelper;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
 import org.jetbrains.annotations.NotNull;
@@ -19,37 +17,36 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.UUID;
 
-public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
+public final class SendTitleMessage extends AbstractPlayerTextMessage {
     public static final MessageIdentifier ID = MessageIdentifier.of("sparrow", "send_title");
     public static final MessageCodec<FriendlyByteBuf, SendTitleMessage> CODEC = RedisMessage.codec(SendTitleMessage::write, SendTitleMessage::new);
 
-    private final UUID playerId;
-    private final MessageText title;
-    private final MessageText subtitle;
+    private final Text title;
+    private final Text subtitle;
     private final int fadeIn;
     private final int stay;
     private final int fadeOut;
 
     public SendTitleMessage(@NotNull UUID playerId, @NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut) {
-        this.playerId = playerId;
-        this.title = new MessageText(title);
-        this.subtitle = new MessageText(subtitle);
+        super(playerId);
+        this.title = new Text(title);
+        this.subtitle = new Text(subtitle);
         this.fadeIn = fadeIn;
         this.stay = stay;
         this.fadeOut = fadeOut;
     }
 
     public SendTitleMessage(@NotNull UUID playerId, @NotNull String title, @NotNull String subtitle, int fadeIn, int stay, int fadeOut) {
-        this.playerId = playerId;
-        this.title = new MessageText(title);
-        this.subtitle = new MessageText(subtitle);
+        super(playerId);
+        this.title = new Text(title);
+        this.subtitle = new Text(subtitle);
         this.fadeIn = fadeIn;
         this.stay = stay;
         this.fadeOut = fadeOut;
     }
 
-    private SendTitleMessage(@NotNull UUID playerId, @NotNull MessageText title, @NotNull MessageText subtitle, int fadeIn, int stay, int fadeOut) {
-        this.playerId = playerId;
+    private SendTitleMessage(@NotNull UUID playerId, @NotNull Text title, @NotNull Text subtitle, int fadeIn, int stay, int fadeOut) {
+        super(playerId);
         this.title = title;
         this.subtitle = subtitle;
         this.fadeIn = fadeIn;
@@ -59,14 +56,13 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
 
     @NotNull
     public static SendTitleMessage translated(@NotNull UUID playerId, @NotNull Component title, @NotNull Component subtitle, int fadeIn, int stay, int fadeOut) {
-        return new SendTitleMessage(playerId, MessageText.translated(title), MessageText.translated(subtitle), fadeIn, stay, fadeOut);
+        return new SendTitleMessage(playerId, Text.translated(title), Text.translated(subtitle), fadeIn, stay, fadeOut);
     }
 
     private SendTitleMessage(FriendlyByteBuf buffer) {
         super(buffer);
-        this.playerId = buffer.readUUID();
-        this.title = new MessageText(buffer);
-        this.subtitle = new MessageText(buffer);
+        this.title = new Text(buffer);
+        this.subtitle = new Text(buffer);
         this.fadeIn = buffer.readInt();
         this.stay = buffer.readInt();
         this.fadeOut = buffer.readInt();
@@ -75,7 +71,6 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
     @Override
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
-        buffer.writeUUID(this.playerId);
         this.title.write(buffer);
         this.subtitle.write(buffer);
         buffer.writeInt(this.fadeIn);
@@ -90,20 +85,7 @@ public final class SendTitleMessage extends OneWayMessage<FriendlyByteBuf> {
     }
 
     @Override
-    protected void handle() {
-        this.sendLocally();
-    }
-
-    // 在当前执行器上解析并发送, 目标不在本服时返回 false.
-    public boolean sendLocally() {
-        SparrowPlugin plugin = SparrowPlugin.instance();
-        BukkitSparrowPlayer player = plugin.playerManager().getOnlinePlayer(this.playerId);
-        if (player == null) return false;
-        this.send(player);
-        return true;
-    }
-
-    private void send(BukkitSparrowPlayer player) {
+    protected void send(@NotNull BukkitSparrowPlayer player) {
         player.connection.sendPacket(new ClientboundBundlePacket(List.of(
                 new ClientboundSetTitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(this.title.resolve(player)))),
                 new ClientboundSetSubtitleTextPacket(CraftChatMessage.fromJSON(AdventureHelper.componentToJson(this.subtitle.resolve(player)))),

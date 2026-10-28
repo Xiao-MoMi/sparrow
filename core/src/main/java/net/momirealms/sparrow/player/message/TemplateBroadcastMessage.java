@@ -2,6 +2,7 @@ package net.momirealms.sparrow.player.message;
 
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.FriendlyByteBuf;
+import net.momirealms.sparrow.locale.tag.MessageContext;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
@@ -10,6 +11,7 @@ import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.OneWayMessage;
 import net.momirealms.sparrow.redis.messagebroker.util.ByteBufHelper;
 import net.momirealms.sparrow.util.AdventureHelper;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -20,16 +22,20 @@ public final class TemplateBroadcastMessage extends OneWayMessage<FriendlyByteBu
     public static final MessageCodec<FriendlyByteBuf, TemplateBroadcastMessage> CODEC = RedisMessage.codec(TemplateBroadcastMessage::write, TemplateBroadcastMessage::new);
     private static final int MAX_TEXT_BYTES = 262144;
 
-    private final MessageTemplate template;
+    private final String message;
+    private final String format;
+    private final Map<String, Component> arguments;
 
-    public TemplateBroadcastMessage(@NotNull MessageTemplate template) {
-        this.template = template;
+    public TemplateBroadcastMessage(@NotNull String message, @NotNull String format, @NotNull Map<String, Component> arguments) {
+        this.message = message;
+        this.format = format;
+        this.arguments = Map.copyOf(arguments);
     }
 
     private TemplateBroadcastMessage(FriendlyByteBuf buffer) {
         super(buffer);
-        String message = ByteBufHelper.readUtf8(buffer, MAX_TEXT_BYTES);
-        String format = ByteBufHelper.readUtf8(buffer, MAX_TEXT_BYTES);
+        this.message = ByteBufHelper.readUtf8(buffer, MAX_TEXT_BYTES);
+        this.format = ByteBufHelper.readUtf8(buffer, MAX_TEXT_BYTES);
         int count = buffer.readVarInt();
         Map<String, Component> arguments = new HashMap<>(count);
         for (int i = 0; i < count; i++) {
@@ -37,16 +43,16 @@ public final class TemplateBroadcastMessage extends OneWayMessage<FriendlyByteBu
             Component component = AdventureHelper.jsonToComponent(ByteBufHelper.readUtf8(buffer, MAX_TEXT_BYTES));
             arguments.put(name, component);
         }
-        this.template = new MessageTemplate(message, format, arguments);
+        this.arguments = Map.copyOf(arguments);
     }
 
     @Override
     protected void write(FriendlyByteBuf buffer) {
         super.write(buffer);
-        ByteBufHelper.writeUtf8(buffer, this.template.message(), MAX_TEXT_BYTES);
-        ByteBufHelper.writeUtf8(buffer, this.template.format(), MAX_TEXT_BYTES);
-        buffer.writeVarInt(this.template.arguments().size());
-        for (Map.Entry<String, Component> argument : this.template.arguments().entrySet()) {
+        ByteBufHelper.writeUtf8(buffer, this.message, MAX_TEXT_BYTES);
+        ByteBufHelper.writeUtf8(buffer, this.format, MAX_TEXT_BYTES);
+        buffer.writeVarInt(this.arguments.size());
+        for (Map.Entry<String, Component> argument : this.arguments.entrySet()) {
             buffer.writeUtf(argument.getKey());
             ByteBufHelper.writeUtf8(buffer, AdventureHelper.componentToJson(argument.getValue()), MAX_TEXT_BYTES);
         }
@@ -65,7 +71,20 @@ public final class TemplateBroadcastMessage extends OneWayMessage<FriendlyByteBu
 
     public void sendLocally() {
         for (BukkitSparrowPlayer receiver : SparrowPlugin.instance().playerManager().getOnlinePlayers()) {
-            new SendMessageMessage(receiver.uniqueId(), this.template.render(receiver.platformPlayer)).sendLocally();
+            this.sendTo(receiver.platformPlayer);
         }
+    }
+
+    public void sendTo(@NotNull Player receiver) {
+        new SendMessageMessage(receiver.getUniqueId(), this.render(receiver)).sendLocally();
+    }
+
+    @NotNull
+    private Component render(@NotNull Player receiver) {
+        Map<String, Object> receiverArguments = new HashMap<>(this.arguments);
+        Component sentence = AdventureHelper.miniMessage().deserialize(this.message, MessageContext.of(receiver, receiverArguments));
+        Map<String, Object> formatArguments = new HashMap<>(receiverArguments);
+        formatArguments.put("message", sentence);
+        return AdventureHelper.miniMessage().deserialize(this.format, MessageContext.of(receiver, formatArguments));
     }
 }
