@@ -11,6 +11,7 @@ import net.momirealms.sparrow.feature.warp.WarpFeedbackMessage;
 import net.momirealms.sparrow.feature.patrol.PatrolCandidatesRequest;
 import net.momirealms.sparrow.feature.patrol.PatrolCandidatesResponse;
 import net.momirealms.sparrow.player.message.BroadcastMessage;
+import net.momirealms.sparrow.player.message.TemplateBroadcastMessage;
 import net.momirealms.sparrow.player.message.ClearChatMessage;
 import net.momirealms.sparrow.player.message.ClearTitleMessage;
 import net.momirealms.sparrow.player.message.HideBossBarMessage;
@@ -91,6 +92,7 @@ public final class MessageBrokerManager {
         this.broker.registry().register(SendToastMessage.ID, SendToastMessage.CODEC);
         this.broker.registry().register(SendTotemAnimationMessage.ID, SendTotemAnimationMessage.CODEC);
         this.broker.registry().register(BroadcastMessage.ID, BroadcastMessage.CODEC);
+        this.broker.registry().register(TemplateBroadcastMessage.ID, TemplateBroadcastMessage.CODEC);
         this.broker.registry().register(DataChangedMessage.ID, DataChangedMessage.CODEC);
         this.broker.registry().register(MaintenanceMessage.ID, MaintenanceMessage.CODEC);
         this.broker.registry().register(BanMessage.ID, BanMessage.CODEC);

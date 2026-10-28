@@ -11,4 +11,7 @@ public interface PaperAdventureProxy {
 
     @MethodInvoker(name = "asAdventure", isStatic = true)
     Object asAdventure(@Type(name = "net.minecraft.network.chat.Component") Object component);
+
+    @MethodInvoker(name = "asVanilla", isStatic = true)
+    Object asVanilla(@Type(name = "net{}kyori{}adventure{}text{}Component", ignoreRelocation = true) Object component);
 }

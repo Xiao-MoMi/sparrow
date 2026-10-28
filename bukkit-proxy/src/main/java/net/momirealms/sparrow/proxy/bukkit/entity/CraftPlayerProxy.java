@@ -10,4 +10,7 @@ public interface CraftPlayerProxy {
 
     @MethodInvoker(name = "getHandle")
     Object getHandle(Object target);
+
+    @MethodInvoker(name = "displayName")
+    Object displayName(Object target);
 }
