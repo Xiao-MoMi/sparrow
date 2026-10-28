@@ -73,8 +73,6 @@ public final class PlayerStateMessage extends OneWayMessage<FriendlyByteBuf> {
                 if (player.isDead()) return;
                 double maximum = player.getAttribute(Attribute.MAX_HEALTH).getValue();
                 player.setHealth(Math.min(maximum, player.getHealth() + (this.value < 0 ? maximum : this.value)));
-                player.setFoodLevel(20);
-                player.setSaturation(10.0f);
             }
             case FEED -> {
                 player.setFoodLevel(player.getFoodLevel() + Math.min((int) this.value, 20 - player.getFoodLevel()));
