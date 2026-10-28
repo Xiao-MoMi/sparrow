@@ -13,8 +13,6 @@ import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.DisplayInfo;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBossEventPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundClearTitlesPacket;
@@ -65,7 +63,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -423,25 +420,16 @@ public class OfflineSparrowPlayer implements SparrowPlayer {
         BukkitSparrowPlayer local = plugin.playerManager().getOnlinePlayer(this.uniqueId);
         if (local != null) {
             int entityId = local.nmsPlayer.getId();
-            net.minecraft.world.item.ItemStack mainHand = local.nmsPlayer.getInventory().getSelectedItem();
-            net.minecraft.world.item.ItemStack offHand = local.nmsPlayer.getOffhandItem().copy();
-            boolean mainHandTotem = mainHand.has(DataComponents.DEATH_PROTECTION);
-            net.minecraft.world.item.ItemStack animation = CraftItemStack.unwrap(totem);
+            net.minecraft.world.item.ItemStack mainHand = local.nmsPlayer.getInventory().getSelectedItem().copy();
+            net.minecraft.world.item.ItemStack animation = CraftItemStack.unwrap(totem).copy();
             if (!animation.has(DataComponents.DEATH_PROTECTION)) {
-                animation = animation.copy();
                 animation.set(DataComponents.DEATH_PROTECTION, DeathProtection.TOTEM_OF_UNDYING);
             }
-            List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(5);
-            if (mainHandTotem) {
-                packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, net.minecraft.world.item.ItemStack.EMPTY))));
-            }
-            packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.OFFHAND, animation))));
-            packets.add(new ClientboundEntityEventPacket(local.nmsPlayer, (byte) 35));
-            if (mainHandTotem) {
-                packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, mainHand.copy()))));
-            }
-            packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.OFFHAND, offHand))));
-            local.connection.sendPacket(new ClientboundBundlePacket(packets));
+            local.connection.sendPacket(new ClientboundBundlePacket(List.of(
+                    new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, animation))),
+                    new ClientboundEntityEventPacket(local.nmsPlayer, (byte) 35),
+                    new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, mainHand)))
+            )));
             return true;
         }
         String serverId = this.getCurrentServerId();

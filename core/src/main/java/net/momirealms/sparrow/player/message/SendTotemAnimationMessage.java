@@ -3,8 +3,6 @@ package net.momirealms.sparrow.player.message;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
@@ -22,7 +20,6 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,24 +61,16 @@ public final class SendTotemAnimationMessage extends OneWayMessage<FriendlyByteB
         BukkitSparrowPlayer player = SparrowPlugin.instance().playerManager().getOnlinePlayer(this.playerId);
         if (player == null) return;
         int entityId = player.nmsPlayer.getId();
-        net.minecraft.world.item.ItemStack mainHand = player.nmsPlayer.getInventory().getSelectedItem();
-        net.minecraft.world.item.ItemStack offHand = player.nmsPlayer.getOffhandItem().copy();
-        boolean mainHandTotem = mainHand.has(DataComponents.DEATH_PROTECTION);
+        net.minecraft.world.item.ItemStack mainHand = player.nmsPlayer.getInventory().getSelectedItem().copy();
         net.minecraft.world.item.ItemStack animation = ItemUtils.fromNbt(this.totem);
         // 解码后的物品属于本次动画, 可以直接补充所需组件.
         if (!animation.has(DataComponents.DEATH_PROTECTION)) {
             animation.set(DataComponents.DEATH_PROTECTION, DeathProtection.TOTEM_OF_UNDYING);
         }
-        List<Packet<? super ClientGamePacketListener>> packets = new ArrayList<>(5);
-        if (mainHandTotem) {
-            packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, net.minecraft.world.item.ItemStack.EMPTY))));
-        }
-        packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.OFFHAND, animation))));
-        packets.add(new ClientboundEntityEventPacket(player.nmsPlayer, (byte) 35));
-        if (mainHandTotem) {
-            packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, mainHand.copy()))));
-        }
-        packets.add(new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.OFFHAND, offHand))));
-        player.connection.sendPacket(new ClientboundBundlePacket(packets));
+        player.connection.sendPacket(new ClientboundBundlePacket(List.of(
+                new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, animation))),
+                new ClientboundEntityEventPacket(player.nmsPlayer, (byte) 35),
+                new ClientboundSetEquipmentPacket(entityId, List.of(Pair.of(EquipmentSlot.MAINHAND, mainHand)))
+        )));
     }
 }

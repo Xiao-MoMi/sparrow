@@ -9,7 +9,6 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.GlobalPlayerParser;
-import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.inventory.ItemStack;
 import org.incendo.cloud.Command;
@@ -37,10 +36,6 @@ public final class TotemAnimationCommand extends BukkitCommandFeature {
     private void execute(CommandContext<CommandSender> context) {
         ProtoItemStack parsed = context.get("item");
         ItemStack item = parsed.createItemStack(1);
-        if (item.getType() != Material.TOTEM_OF_UNDYING) {
-            this.handleFeedback(context, MessageConstants.COMMAND_TOTEM_ANIMATION_INVALID);
-            return;
-        }
         List<String> targets = context.get("targets");
         for (String input : targets) {
             OfflineSparrowPlayer target = this.resolveOnlinePlayer(context, input);
