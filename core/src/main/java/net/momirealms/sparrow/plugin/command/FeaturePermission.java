@@ -1,5 +1,6 @@
 package net.momirealms.sparrow.plugin.command;
 
+import net.momirealms.sparrow.plugin.SparrowPlugin;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.permission.AndPermission;
 import org.incendo.cloud.permission.OrPermission;
@@ -9,25 +10,22 @@ import org.incendo.cloud.permission.PredicatePermission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.function.BooleanSupplier;
-
 /**
  * 模块自带命令的额外权限, 模块未启用时不通过.
  * 命令因此在玩家的命令树中隐藏, 执行时提示模块未启用.
  *
  * @param featureId 模块 ID
- * @param enabled 模块当前是否启用.
  */
-public record FeaturePermission(@NotNull String featureId, @NotNull BooleanSupplier enabled) implements PredicatePermission<CommandSender> {
+public record FeaturePermission(@NotNull String featureId) implements PredicatePermission<CommandSender> {
 
-    @Override
     @NotNull
+    @Override
     public PermissionResult testPermission(@NotNull CommandSender sender) {
-        return PermissionResult.of(this.enabled.getAsBoolean(), this);
+        return PermissionResult.of(SparrowPlugin.instance().featureManager().isEnabled(this.featureId), this);
     }
 
-    @Override
     @NotNull
+    @Override
     public String permissionString() {
         return "feature:" + this.featureId;
     }
@@ -42,7 +40,7 @@ public record FeaturePermission(@NotNull String featureId, @NotNull BooleanSuppl
     @Nullable
     public static FeaturePermission findDisabled(@NotNull Permission permission) {
         if (permission instanceof FeaturePermission feature) {
-            return feature.enabled.getAsBoolean() ? null : feature;
+            return SparrowPlugin.instance().featureManager().isEnabled(feature.featureId) ? null : feature;
         }
         if (!(permission instanceof AndPermission) && !(permission instanceof OrPermission)) {
             return null;

@@ -27,11 +27,10 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 abstract class AbstractHomeCommand extends BukkitCommandFeature {
-    protected final HomeFeature feature;
+    protected final HomeFeature feature = SparrowPlugin.instance().featureManager().feature(HomeFeature.ID, HomeFeature.class);
 
-    protected AbstractHomeCommand(CommandManager manager, SparrowPlugin plugin, HomeFeature feature) {
+    protected AbstractHomeCommand(CommandManager manager, SparrowPlugin plugin) {
         super(manager, plugin);
-        this.feature = feature;
     }
 
     protected CompletableFuture<List<Suggestion>> suggest(CommandContext<CommandSender> context, CommandInput input) {

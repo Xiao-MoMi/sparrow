@@ -5,6 +5,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.player.OfflineSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.plugin.scheduler.executor.PlatformExecutor;
@@ -29,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class PatrolFeature implements Feature {
     public static final String ID = "patrol";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
     private static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.patrol";
     private static final byte[] HISTORY_KEY = "sparrow:patrol:history".getBytes(StandardCharsets.UTF_8);
     // 分数表示全服巡查次序, 选中与移到队尾在同一次 Redis 操作中完成.

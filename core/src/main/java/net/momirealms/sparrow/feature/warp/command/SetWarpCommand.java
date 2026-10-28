@@ -17,11 +17,10 @@ import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
 
 public final class SetWarpCommand extends BukkitCommandFeature {
-    private final WarpFeature feature;
+    private final WarpFeature feature = SparrowPlugin.instance().featureManager().feature(WarpFeature.ID, WarpFeature.class);
 
-    public SetWarpCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull WarpFeature feature) {
+    public SetWarpCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin) {
         super(manager, plugin);
-        this.feature = feature;
     }
 
     @Override

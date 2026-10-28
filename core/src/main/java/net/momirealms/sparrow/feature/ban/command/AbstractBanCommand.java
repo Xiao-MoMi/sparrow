@@ -18,11 +18,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 abstract class AbstractBanCommand extends BukkitCommandFeature {
-    protected final BanFeature feature;
+    protected final BanFeature feature = SparrowPlugin.instance().featureManager().feature(BanFeature.ID, BanFeature.class);
 
-    protected AbstractBanCommand(CommandManager manager, SparrowPlugin plugin, BanFeature feature) {
+    protected AbstractBanCommand(CommandManager manager, SparrowPlugin plugin) {
         super(manager, plugin);
-        this.feature = feature;
     }
 
     protected CompletableFuture<List<Suggestion>> suggestPlayers(CommandContext<CommandSender> context, CommandInput input) {

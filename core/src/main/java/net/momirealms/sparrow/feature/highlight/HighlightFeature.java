@@ -9,6 +9,7 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.PlayerConnection;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.scheduler.task.SchedulerTask;
 import net.momirealms.sparrow.ui.Subscription;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
@@ -39,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class HighlightFeature implements Feature, Listener {
     public static final String ID = "highlight";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final Map<UUID, Selection> selections = new HashMap<>();

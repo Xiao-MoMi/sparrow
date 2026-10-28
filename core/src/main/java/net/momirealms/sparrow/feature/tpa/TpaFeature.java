@@ -5,6 +5,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.service.countdown.CountdownCancelledException;
@@ -30,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class TpaFeature implements Feature {
     public static final String ID = "tpa";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
     public static final String BYPASS_COOLDOWN_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.tpa_cooldown";
     private static final String TELEPORT_COOLDOWN = "tpa_teleport";
 

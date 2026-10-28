@@ -12,13 +12,12 @@ import org.incendo.cloud.context.CommandContext;
 import org.jetbrains.annotations.NotNull;
 
 public final class TpaCommand extends BukkitCommandFeature {
-    private final TpaFeature feature;
+    private final TpaFeature feature = SparrowPlugin.instance().featureManager().feature(TpaFeature.ID, TpaFeature.class);
     private final String id;
     private final TpaRequest.Direction direction;
 
-    public TpaCommand(@NotNull TpaFeature feature, @NotNull String id, @NotNull TpaRequest.Direction direction) {
+    public TpaCommand(@NotNull String id, @NotNull TpaRequest.Direction direction) {
         super(SparrowPlugin.instance().commandManager(), SparrowPlugin.instance());
-        this.feature = feature;
         this.id = id;
         this.direction = direction;
     }

@@ -14,13 +14,12 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class TpaReplyCommand extends BukkitCommandFeature {
-    private final TpaFeature feature;
+    private final TpaFeature feature = SparrowPlugin.instance().featureManager().feature(TpaFeature.ID, TpaFeature.class);
     private final String id;
     private final boolean accept;
 
-    public TpaReplyCommand(@NotNull TpaFeature feature, @NotNull String id, boolean accept) {
+    public TpaReplyCommand(@NotNull String id, boolean accept) {
         super(SparrowPlugin.instance().commandManager(), SparrowPlugin.instance());
-        this.feature = feature;
         this.id = id;
         this.accept = accept;
     }

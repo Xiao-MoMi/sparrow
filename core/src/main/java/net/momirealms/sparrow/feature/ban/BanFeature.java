@@ -6,6 +6,7 @@ import net.kyori.adventure.text.TranslatableComponent;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.proxy.bukkit.event.player.AsyncPlayerPreLoginEventProxy;
 import net.momirealms.sparrow.ui.Subscription;
@@ -27,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class BanFeature implements Feature {
     public static final String ID = "ban";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
     public static final String NOTIFY_PERMISSION = DependencyVersions.PROJECT_ID + ".notify.ban";
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();

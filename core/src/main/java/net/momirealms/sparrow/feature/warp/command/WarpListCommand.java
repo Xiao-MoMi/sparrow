@@ -22,11 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public final class WarpListCommand extends BukkitCommandFeature {
-    private final WarpFeature feature;
+    private final WarpFeature feature = SparrowPlugin.instance().featureManager().feature(WarpFeature.ID, WarpFeature.class);
 
-    public WarpListCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull WarpFeature feature) {
+    public WarpListCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin) {
         super(manager, plugin);
-        this.feature = feature;
     }
 
     @Override

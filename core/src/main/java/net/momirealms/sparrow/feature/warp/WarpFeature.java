@@ -13,6 +13,7 @@ import net.momirealms.sparrow.teleport.processor.post.Invulnerability;
 import net.momirealms.sparrow.teleport.processor.post.PlaySound;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
@@ -31,6 +32,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class WarpFeature implements Feature {
     public static final String ID = "warp";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
     private static final String USE_PERMISSION = DependencyVersions.PROJECT_ID + ".warp.use.";
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();

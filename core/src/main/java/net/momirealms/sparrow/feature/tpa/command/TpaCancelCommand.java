@@ -14,11 +14,10 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class TpaCancelCommand extends BukkitCommandFeature {
-    private final TpaFeature feature;
+    private final TpaFeature feature = SparrowPlugin.instance().featureManager().feature(TpaFeature.ID, TpaFeature.class);
 
-    public TpaCancelCommand(@NotNull TpaFeature feature) {
+    public TpaCancelCommand() {
         super(SparrowPlugin.instance().commandManager(), SparrowPlugin.instance());
-        this.feature = feature;
     }
 
     @Override

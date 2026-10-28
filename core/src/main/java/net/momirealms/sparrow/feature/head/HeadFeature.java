@@ -3,6 +3,7 @@ package net.momirealms.sparrow.feature.head;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.util.DurationUtils;
 import net.momirealms.sparrow.yaml.mapper.YamlMapperFactory;
 import org.bukkit.entity.Player;
@@ -29,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class HeadFeature implements Feature {
     public static final String ID = "head";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private volatile Session session;

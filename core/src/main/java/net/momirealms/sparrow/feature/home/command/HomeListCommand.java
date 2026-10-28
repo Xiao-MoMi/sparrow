@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.feature.home.command;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.feature.home.HomeFeature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.SparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
@@ -22,8 +21,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class HomeListCommand extends AbstractHomeCommand {
 
-    public HomeListCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull HomeFeature feature) {
-        super(manager, plugin, feature);
+    public HomeListCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin) {
+        super(manager, plugin);
     }
 
     @Override

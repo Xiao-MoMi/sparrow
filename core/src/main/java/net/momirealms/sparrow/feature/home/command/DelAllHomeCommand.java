@@ -23,11 +23,10 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public final class DelAllHomeCommand extends BukkitCommandFeature {
-    private final HomeFeature feature;
+    private final HomeFeature feature = SparrowPlugin.instance().featureManager().feature(HomeFeature.ID, HomeFeature.class);
 
-    public DelAllHomeCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull HomeFeature feature) {
+    public DelAllHomeCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin) {
         super(manager, plugin);
-        this.feature = feature;
     }
 
     @Override

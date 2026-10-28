@@ -1,6 +1,5 @@
 package net.momirealms.sparrow.feature.ban.command;
 
-import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.command.CommandSender;
@@ -13,8 +12,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class UnbanIdCommand extends AbstractBanCommand {
 
-    public UnbanIdCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull BanFeature feature) {
-        super(manager, plugin, feature);
+    public UnbanIdCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin) {
+        super(manager, plugin);
     }
 
     @Override

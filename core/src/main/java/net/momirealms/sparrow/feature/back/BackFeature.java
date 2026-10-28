@@ -6,6 +6,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.teleport.event.TeleportArriveEvent;
 import net.momirealms.sparrow.ui.Subscription;
@@ -31,6 +32,7 @@ import java.util.function.Supplier;
 
 public final class BackFeature implements Feature, Listener {
     public static final String ID = "back";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();
     private final BackOperations operations = new BackOperations();

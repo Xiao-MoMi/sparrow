@@ -232,49 +232,43 @@ public final class BukkitCommandManager extends AbstractCommandManager {
     @Override
     public void registerDefaultFeatures() {
         super.registerDefaultFeatures();
-        this.registerFeature(new HighlightCommand(this, this.plugin), new FeaturePermission(HighlightFeature.ID, () -> this.plugin.featureManager().isEnabled(HighlightFeature.ID)));
-        this.registerFeature(new MaxPlayersCommand(this, this.plugin), new FeaturePermission(PlayerLimitFeature.ID, () -> this.plugin.featureManager().isEnabled(PlayerLimitFeature.ID)));
-        this.registerFeature(new MaintenanceCommand(this, this.plugin), new FeaturePermission(MaintenanceFeature.ID, () -> this.plugin.featureManager().isEnabled(MaintenanceFeature.ID)));
-        this.registerFeature(new HeadCommand(this, this.plugin), new FeaturePermission(HeadFeature.ID, () -> this.plugin.featureManager().isEnabled(HeadFeature.ID)));
-        this.registerFeature(new SpawnCommand(this, this.plugin), new FeaturePermission(SpawnFeature.ID, () -> this.plugin.featureManager().isEnabled(SpawnFeature.ID)));
-        this.registerFeature(new PatrolCommand(this, this.plugin), new FeaturePermission(PatrolFeature.ID, () -> this.plugin.featureManager().isEnabled(PatrolFeature.ID)));
-        this.registerFeature(new BackCommand(this, this.plugin), new FeaturePermission(BackFeature.ID, () -> this.plugin.featureManager().isEnabled(BackFeature.ID)));
-        this.registerFeature(new DeathBackCommand(this, this.plugin), new FeaturePermission(BackFeature.ID, () -> this.plugin.featureManager().isEnabled(BackFeature.ID)));
-        this.registerFeature(new RtpCommand(this, this.plugin), new FeaturePermission(RtpFeature.ID, () -> this.plugin.featureManager().isEnabled(RtpFeature.ID)));
-        this.registerFeature(new RtpRangeCommand(this, this.plugin), new FeaturePermission(RtpFeature.ID, () -> this.plugin.featureManager().isEnabled(RtpFeature.ID)));
+        this.registerFeature(new HighlightCommand(this, this.plugin), HighlightFeature.COMMAND_PERMISSION);
+        this.registerFeature(new MaxPlayersCommand(this, this.plugin), PlayerLimitFeature.COMMAND_PERMISSION);
+        this.registerFeature(new MaintenanceCommand(this, this.plugin), MaintenanceFeature.COMMAND_PERMISSION);
+        this.registerFeature(new HeadCommand(this, this.plugin), HeadFeature.COMMAND_PERMISSION);
+        this.registerFeature(new SpawnCommand(this, this.plugin), SpawnFeature.COMMAND_PERMISSION);
+        this.registerFeature(new PatrolCommand(this, this.plugin), PatrolFeature.COMMAND_PERMISSION);
 
-        TpaFeature tpa = this.plugin.featureManager().feature(TpaFeature.ID, TpaFeature.class);
-        FeaturePermission tpaPermission = new FeaturePermission(TpaFeature.ID, () -> this.plugin.featureManager().isEnabled(TpaFeature.ID));
-        this.registerFeature(new TpaCommand(tpa, "tpa", TpaRequest.Direction.TO_TARGET), tpaPermission);
-        this.registerFeature(new TpaCommand(tpa, "tpa_here", TpaRequest.Direction.TO_REQUESTER), tpaPermission);
-        this.registerFeature(new TpaReplyCommand(tpa, "tpa_accept", true), tpaPermission);
-        this.registerFeature(new TpaReplyCommand(tpa, "tpa_deny", false), tpaPermission);
-        this.registerFeature(new TpaCancelCommand(tpa), tpaPermission);
+        this.registerFeature(new BackCommand(this, this.plugin), BackFeature.COMMAND_PERMISSION);
+        this.registerFeature(new DeathBackCommand(this, this.plugin), BackFeature.COMMAND_PERMISSION);
 
-        WarpFeature warp = this.plugin.featureManager().feature(WarpFeature.ID, WarpFeature.class);
-        FeaturePermission warpPermission = new FeaturePermission(WarpFeature.ID, () -> this.plugin.featureManager().isEnabled(WarpFeature.ID));
-        this.registerFeature(new WarpCommand(this, this.plugin, warp), warpPermission);
-        this.registerFeature(new SetWarpCommand(this, this.plugin, warp), warpPermission);
-        this.registerFeature(new DelWarpCommand(this, this.plugin, warp), warpPermission);
-        this.registerFeature(new EditWarpCommand(this, this.plugin, warp), warpPermission);
-        this.registerFeature(new WarpListCommand(this, this.plugin, warp), warpPermission);
+        this.registerFeature(new RtpCommand(this, this.plugin), RtpFeature.COMMAND_PERMISSION);
+        this.registerFeature(new RtpRangeCommand(this, this.plugin), RtpFeature.COMMAND_PERMISSION);
 
-        HomeFeature home = this.plugin.featureManager().feature(HomeFeature.ID, HomeFeature.class);
-        FeaturePermission homePermission = new FeaturePermission(HomeFeature.ID, () -> this.plugin.featureManager().isEnabled(HomeFeature.ID));
-        this.registerFeature(new HomeCommand(this, this.plugin, home), homePermission);
-        this.registerFeature(new SetHomeCommand(this, this.plugin, home), homePermission);
-        this.registerFeature(new DelHomeCommand(this, this.plugin, home), homePermission);
-        this.registerFeature(new DelAllHomeCommand(this, this.plugin, home), homePermission);
-        this.registerFeature(new EditHomeCommand(this, this.plugin, home), homePermission);
-        this.registerFeature(new HomeListCommand(this, this.plugin, home), homePermission);
+        this.registerFeature(new TpaCommand("tpa", TpaRequest.Direction.TO_TARGET), TpaFeature.COMMAND_PERMISSION);
+        this.registerFeature(new TpaCommand("tpa_here", TpaRequest.Direction.TO_REQUESTER), TpaFeature.COMMAND_PERMISSION);
+        this.registerFeature(new TpaReplyCommand("tpa_accept", true), TpaFeature.COMMAND_PERMISSION);
+        this.registerFeature(new TpaReplyCommand("tpa_deny", false), TpaFeature.COMMAND_PERMISSION);
+        this.registerFeature(new TpaCancelCommand(), TpaFeature.COMMAND_PERMISSION);
 
-        BanFeature ban = this.plugin.featureManager().feature(BanFeature.ID, BanFeature.class);
-        FeaturePermission banPermission = new FeaturePermission(BanFeature.ID, () -> this.plugin.featureManager().isEnabled(BanFeature.ID));
-        this.registerFeature(new BanCommand(this, this.plugin, ban), banPermission);
-        this.registerFeature(new UnbanCommand(this, this.plugin, ban), banPermission);
-        this.registerFeature(new UnbanIdCommand(this, this.plugin, ban), banPermission);
-        this.registerFeature(new BanInfoCommand(this, this.plugin, ban), banPermission);
-        this.registerFeature(new BanHistoryCommand(this, this.plugin, ban), banPermission);
+        this.registerFeature(new WarpCommand(this, this.plugin), WarpFeature.COMMAND_PERMISSION);
+        this.registerFeature(new SetWarpCommand(this, this.plugin), WarpFeature.COMMAND_PERMISSION);
+        this.registerFeature(new DelWarpCommand(this, this.plugin), WarpFeature.COMMAND_PERMISSION);
+        this.registerFeature(new EditWarpCommand(this, this.plugin), WarpFeature.COMMAND_PERMISSION);
+        this.registerFeature(new WarpListCommand(this, this.plugin), WarpFeature.COMMAND_PERMISSION);
+
+        this.registerFeature(new HomeCommand(this, this.plugin), HomeFeature.COMMAND_PERMISSION);
+        this.registerFeature(new SetHomeCommand(this, this.plugin), HomeFeature.COMMAND_PERMISSION);
+        this.registerFeature(new DelHomeCommand(this, this.plugin), HomeFeature.COMMAND_PERMISSION);
+        this.registerFeature(new DelAllHomeCommand(this, this.plugin), HomeFeature.COMMAND_PERMISSION);
+        this.registerFeature(new EditHomeCommand(this, this.plugin), HomeFeature.COMMAND_PERMISSION);
+        this.registerFeature(new HomeListCommand(this, this.plugin), HomeFeature.COMMAND_PERMISSION);
+
+        this.registerFeature(new BanCommand(this, this.plugin), BanFeature.COMMAND_PERMISSION);
+        this.registerFeature(new UnbanCommand(this, this.plugin), BanFeature.COMMAND_PERMISSION);
+        this.registerFeature(new UnbanIdCommand(this, this.plugin), BanFeature.COMMAND_PERMISSION);
+        this.registerFeature(new BanInfoCommand(this, this.plugin), BanFeature.COMMAND_PERMISSION);
+        this.registerFeature(new BanHistoryCommand(this, this.plugin), BanFeature.COMMAND_PERMISSION);
     }
 
     @Override

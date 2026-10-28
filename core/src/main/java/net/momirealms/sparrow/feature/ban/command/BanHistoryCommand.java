@@ -1,7 +1,6 @@
 package net.momirealms.sparrow.feature.ban.command;
 
 import net.kyori.adventure.text.Component;
-import net.momirealms.sparrow.feature.ban.BanFeature;
 import net.momirealms.sparrow.feature.ban.BanQuery;
 import net.momirealms.sparrow.feature.ban.BanTarget;
 import net.momirealms.sparrow.locale.MessageConstants;
@@ -25,8 +24,8 @@ import java.util.concurrent.CompletableFuture;
 
 public final class BanHistoryCommand extends AbstractBanCommand {
 
-    public BanHistoryCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull BanFeature feature) {
-        super(manager, plugin, feature);
+    public BanHistoryCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin) {
+        super(manager, plugin);
     }
 
     @Override

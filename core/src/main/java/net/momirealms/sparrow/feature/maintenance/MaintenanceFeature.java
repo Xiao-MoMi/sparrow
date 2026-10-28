@@ -5,6 +5,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.dependency.DependencyVersions;
 import net.momirealms.sparrow.proxy.bukkit.event.player.AsyncPlayerPreLoginEventProxy;
 import net.momirealms.sparrow.ui.Subscription;
@@ -24,6 +25,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class MaintenanceFeature implements Feature {
     public static final String ID = "maintenance";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
     public static final String BYPASS_PERMISSION = DependencyVersions.PROJECT_ID + ".bypass.maintenance";
 
     private final SparrowPlugin plugin = SparrowPlugin.instance();

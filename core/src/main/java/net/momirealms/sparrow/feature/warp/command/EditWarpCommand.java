@@ -28,11 +28,10 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.CompletableFuture;
 
 public final class EditWarpCommand extends BukkitCommandFeature {
-    private final WarpFeature feature;
+    private final WarpFeature feature = SparrowPlugin.instance().featureManager().feature(WarpFeature.ID, WarpFeature.class);
 
-    public EditWarpCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull WarpFeature feature) {
+    public EditWarpCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin) {
         super(manager, plugin);
-        this.feature = feature;
     }
 
     @Override

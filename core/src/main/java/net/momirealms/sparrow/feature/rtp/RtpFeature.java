@@ -5,6 +5,7 @@ import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.player.BukkitSparrowPlayer;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
+import net.momirealms.sparrow.plugin.command.FeaturePermission;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
 import net.momirealms.sparrow.service.countdown.CountdownCancelledException;
 import net.momirealms.sparrow.teleport.Teleport;
@@ -29,6 +30,7 @@ import java.util.concurrent.CompletableFuture;
 
 public final class RtpFeature implements Feature {
     public static final String ID = "rtp";
+    public static final FeaturePermission COMMAND_PERMISSION = new FeaturePermission(ID);
     private static final String COOLDOWN_ID = "rtp";                          // 所有区域和 rtp_range 共用一份冷却
     private static final SafetyRule SAFETY = PhysicalSafety.builder().build(); // 内置的落点安全规则
 
