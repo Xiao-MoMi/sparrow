@@ -406,11 +406,11 @@ command.teleport.failure-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${pr
 # command.server
 command.server.current: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><color:#F2F4FF><arg:0></color> 已在服务器 <color:#F2F4FF><arg:1></color></color>'
 command.server.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 发送至服务器 <color:#C7BCE7><arg:1></color></color>'
-command.server.connecting-self: '<color:#FFE3A3>正在前往 <arg:0>……</color>'
-command.server.player-offline: '<color:#FFB6CB>玩家 <arg:0> 已不在线。</color>'
-command.server.unknown: '<color:#FFB6CB>代理中没有配置服务器 <arg:0>。</color>'
-command.server.failed: '<color:#FFB6CB>未能将 <arg:0> 连接到 <arg:1>。</color>'
-command.server.timeout: '<color:#FFB6CB>将 <arg:0> 连接到 <arg:1> 的请求超时，未能确认切服结果。</color>'
+command.server.connecting-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>正在前往 <arg:0>……</color>'
+command.server.player-offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <arg:0> 已不在线。</color>'
+command.server.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>代理中没有配置服务器 <arg:0>。</color>'
+command.server.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能将 <arg:0> 连接到 <arg:1>。</color>'
+command.server.timeout: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>将 <arg:0> 连接到 <arg:1> 的请求超时，未能确认切服结果。</color>'
 
 # command.credits
 command.credits.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 显示终末之诗</color>'
@@ -486,7 +486,7 @@ command.custom-model-data.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${
 command.custom-model-data.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将模型数据设为 <color:#C7BCE7><arg:0></color>.</color>'
 
 # World / Kick
-command.kick.failed: '<color:#FFB6CB>踢出 <arg:0> 失败，请查看控制台。</color>'
+command.kick.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>踢出 <arg:0> 失败，请查看控制台。</color>'
 command.kick.offline: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <color:#F2F4FF><arg:0></color> 不在任何服务器上</color>'
 command.kick.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 从 <color:#C7BCE7><arg:1></color> 踢出</color>'
 command.kick.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你从 <color:#C7BCE7><arg:1></color> 踢出.</color>'
@@ -494,7 +494,7 @@ command.world.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_na
 command.world.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你传送至 <color:#C7BCE7><arg:1></color>.</color>'
 kick.reason.none: '<color:#7D98BF>未提供原因</color>'
 kick.screen: '<color:#FFB6CB>你已被踢出服务器</color><newline><newline><color:#C8E4E9>原因：</color><color:#F2F4FF><arg:0></color><newline><color:#C8E4E9>执行人：</color><color:#F2F4FF><arg:1></color>'
-command.world.failed: '<color:#FFB6CB>未能传送 <arg:0>: <arg:1></color>'
+command.world.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能传送 <arg:0>: <arg:1></color>'
 
 # command.actionbar
 command.actionbar.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向 <color:#C7BCE7><arg:0></color> 发送 ActionBar</color>'
@@ -512,7 +512,7 @@ command.toast.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${proje
 
 # command.broadcast
 command.broadcast.sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向全部服务器发送广播</color>'
-command.broadcast.failed: '<color:#FFB6CB>广播请求发送失败.</color>'
+command.broadcast.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>广播请求发送失败.</color>'
 
 # command.item-lore
 command.item-lore.bound: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>行号 <color:#F2F4FF><arg:0></color> 超出范围, 可用范围: <color:#F2F4FF><arg:1></color>–<color:#F2F4FF><arg:2></color>.</color>'
@@ -534,7 +534,7 @@ command.tp-offline.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${p
 command.tp-offline.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <color:#C7BCE7><arg:0></color> 传送到 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
 command.tp-offline.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将你传送到 <color:#C7BCE7><arg:1></color> 的最后下线位置.</color>'
 command.tp-offline.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送失败了，原因是：找不到玩家 <color:#F2F4FF><arg:0></color> 的数据库记录.</color>'
-command.tp-offline.failed: '<color:#FFB6CB>未能传送 <arg:0>: <arg:1></color>'
+command.tp-offline.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能传送 <arg:0>: <arg:1></color>'
 
 # command.ip-history
 command.ip-history.player-title: '玩家曾用 IP'
@@ -547,10 +547,10 @@ command.ip-history.player-count: '不同玩家数量'
 command.ip-history.players: '玩家 / 记录时间 / UUID'
 command.ip-history.player-row: '<arg:0> · <arg:1>'
 command.ip-history.no-players: '没有使用过此 IP 的玩家记录'
-command.ip-history.unknown-player: '<color:#FFB6CB>未找到玩家 <arg:0> 的相关记录.</color>'
+command.ip-history.unknown-player: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到玩家 <arg:0> 的相关记录.</color>'
 command.ip-history.unknown-name: '未知名字'
-command.ip-history.no-addresses: '<color:#FFB6CB>UUID <arg:0> 没有 IP 历史记录.</color>'
-command.ip-history.invalid-ip: '<color:#FFB6CB>无效的 IP 地址: <arg:0>，请输入精确的 IPv4 或 IPv6 地址.</color>'
+command.ip-history.no-addresses: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>UUID <arg:0> 没有 IP 历史记录.</color>'
+command.ip-history.invalid-ip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无效的 IP 地址: <arg:0>，请输入精确的 IPv4 或 IPv6 地址.</color>'
 
 # command.name-history
 command.name-history.title: '曾用名查询'
@@ -558,7 +558,7 @@ command.name-history.query: '查询名字'
 command.name-history.recent: '最近使用'
 command.name-history.others: '其他曾用名'
 command.name-history.none: '没有其他曾用名'
-command.name-history.unknown: '<color:#FFB6CB>未找到名字 <arg:0> 的相关记录.</color>'
+command.name-history.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到名字 <arg:0> 的相关记录.</color>'
 
 command.panel.hover-hint: "悬停查看详情"
 command.player-info.panel.identity: "<arg:0>\nUUID: <arg:1>"
@@ -585,7 +585,7 @@ command.player-info.panel.active-ban: "封禁中 #<arg:0>"
 command.player-info.panel.ban-hover: "记录 #<arg:0>\n原因: <arg:1>\n操作人: <arg:2>\n到期: <arg:3>"
 
 # command.player-info
-command.player-info.not-found: '<color:#FFB6CB>找不到玩家 <arg:0> 的资料.</color>'
+command.player-info.not-found: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>找不到玩家 <arg:0> 的资料.</color>'
 command.player-info.title: '玩家资料: <arg:0>'
 command.player-info.name: '名字'
 command.player-info.unknown: '未知'
@@ -621,19 +621,19 @@ command.player-info.button.teleport: '前往离线位置'
 command.player-name.title: '玩家曾用名'
 command.player-name.recent: '最近使用'
 command.player-name.history: '名字记录 · 从新到旧'
-command.player-name.empty: '<color:#FFB6CB>未找到 UUID <arg:0> 的名字记录.</color>'
-command.player-name.invalid-uuid: '<color:#FFB6CB>无效的 UUID: <arg:0>.</color>'
+command.player-name.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到 UUID <arg:0> 的名字记录.</color>'
+command.player-name.invalid-uuid: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无效的 UUID: <arg:0>.</color>'
 
 # command.player-uuid
-command.player-uuid.success: '<color:#F2F4FF>名字 <color:#C7BCE7><arg:0></color> 最近关联的 UUID: <color:#C7BCE7><arg:1></color></color>'
-command.player-uuid.empty: '<color:#FFB6CB>未找到名字 <arg:0> 对应的 UUID 记录.</color>'
+command.player-uuid.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>名字 <color:#C7BCE7><arg:0></color> 最近关联的 UUID: <color:#C7BCE7><arg:1></color></color>'
+command.player-uuid.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未找到名字 <arg:0> 对应的 UUID 记录.</color>'
 
 # command.patrol
-command.patrol.empty: '<color:#FFE3A3>指定范围内没有符合条件的巡查对象.</color>'
-command.patrol.success: '<color:#C9F2C7>正在巡查 <arg:0>.</color>'
-command.patrol.failed: '<color:#FFB6CB>未能巡查 <arg:0>: <arg:1></color>'
-command.patrol.query-failed: '<color:#FFB6CB>未能选择巡查对象.</color>'
-command.patrol.cancelled: '<color:#FFE3A3>巡查模块已关闭或重载，本次巡查已取消.</color>'
+command.patrol.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>指定范围内没有符合条件的巡查对象.</color>'
+command.patrol.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>正在巡查 <arg:0>.</color>'
+command.patrol.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能巡查 <arg:0>: <arg:1></color>'
+command.patrol.query-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能选择巡查对象.</color>'
+command.patrol.cancelled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3>巡查模块已关闭或重载，本次巡查已取消.</color>'
 
 # command.tpa
 command.tpa.accepted: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><color:#C7BCE7><arg:0></color> 接受了你的传送请求</color>'
@@ -663,22 +663,22 @@ command.tpa-deny.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project
 command.tpa-here.received: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFE3A3><color:#F2F4FF><arg:0></color> 请求你传送到对方身边 <arg:1> <arg:2></color>'
 
 # command.home
-command.home.unknown-owner: '<color:#FFB6CB>找不到玩家 <arg:0> 的身份记录.</color>'
-command.home.owner-required: '<color:#FFB6CB>请指定 Home 的所有者: 目标使用 玩家名.Home名 或 UUID.Home名, 列表使用 /home_list 玩家名或UUID [页码].</color>'
-command.home.invalid-target: '<color:#FFB6CB>Home 目标 <arg:0> 格式无效, 请使用 Home名、玩家名.Home名 或 UUID.Home名.</color>'
-command.home.no-permission: '<color:#FFB6CB>你没有管理其他玩家 Home 的权限.</color>'
-command.home.unknown: '<color:#FFB6CB>玩家 <arg:1> 的 Home <arg:0> 不存在.</color>'
-command.home.empty: '<color:#FFB6CB>玩家 <arg:0> 尚未设置 Home.</color>'
-command.home.exists: '<color:#FFB6CB>玩家 <arg:1> 的 Home <arg:0> 已存在, 请更换名称重试.</color>'
-command.home.invalid-name: '<color:#FFB6CB>Home 名称 <arg:0> 无效, 最长 <arg:1> 个字符, 必须符合名称规则且不含空白字符.</color>'
-command.home.limit-reached: '<color:#FFB6CB>你的 Home 数量已达到上限.</color>'
-command.home.success: '<color:#C9F2C7>已传送到 Home <arg:0>.</color>'
-command.set-home.created: '<color:#C9F2C7>已创建 Home <arg:0>.</color>'
-command.del-home.success: '<color:#C9F2C7>已删除玩家 <arg:1> 的 Home <arg:0>.</color>'
-command.del-all-homes.filter-required: '<color:#FFB6CB>请至少指定 --player、--server 或 --world 中的一个筛选条件.</color>'
-command.del-all-homes.success: '<color:#C9F2C7>已删除 <arg:0> 个符合全部筛选条件的 Home.</color>'
-command.edit-home.renamed: '<color:#C9F2C7>已将玩家 <arg:2> 的 Home <arg:0> 改名为 <arg:1>.</color>'
-command.edit-home.relocated: '<color:#C9F2C7>已将玩家 <arg:1> 的 Home <arg:0> 移到你的当前位置.</color>'
+command.home.unknown-owner: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>找不到玩家 <arg:0> 的身份记录.</color>'
+command.home.owner-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定 Home 的所有者: 目标使用 玩家名.Home名 或 UUID.Home名, 列表使用 /home_list 玩家名或UUID [页码].</color>'
+command.home.invalid-target: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Home 目标 <arg:0> 格式无效, 请使用 Home名、玩家名.Home名 或 UUID.Home名.</color>'
+command.home.no-permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有管理其他玩家 Home 的权限.</color>'
+command.home.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <arg:1> 的 Home <arg:0> 不存在.</color>'
+command.home.empty: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <arg:0> 尚未设置 Home.</color>'
+command.home.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <arg:1> 的 Home <arg:0> 已存在, 请更换名称重试.</color>'
+command.home.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>Home 名称 <arg:0> 无效, 最长 <arg:1> 个字符, 必须符合名称规则且不含空白字符.</color>'
+command.home.limit-reached: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你的 Home 数量已达到上限.</color>'
+command.home.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到 Home <arg:0>.</color>'
+command.set-home.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已创建 Home <arg:0>.</color>'
+command.del-home.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已删除玩家 <arg:1> 的 Home <arg:0>.</color>'
+command.del-all-homes.filter-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请至少指定 --player、--server 或 --world 中的一个筛选条件.</color>'
+command.del-all-homes.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已删除 <arg:0> 个符合全部筛选条件的 Home.</color>'
+command.edit-home.renamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将玩家 <arg:2> 的 Home <arg:0> 改名为 <arg:1>.</color>'
+command.edit-home.relocated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将玩家 <arg:1> 的 Home <arg:0> 移到你的当前位置.</color>'
 command.home.button.teleport: '传送'
 command.home.button.rename: '改名'
 command.home.button.relocate: '移到此处'
@@ -699,18 +699,18 @@ command.home-list.title: '<arg:0> 的家'
 command.home-list.location: '<arg:0> / <arg:1>'
 
 # command.warp
-command.warp.unknown: '<color:#FFB6CB>传送点 <arg:0> 不存在.</color>'
-command.warp.no-permission: '<color:#FFB6CB>你没有使用传送点 <arg:0> 的权限.</color>'
-command.warp.success-self: '<color:#C9F2C7>已传送到 <arg:0>.</color>'
-command.warp.success: '<color:#C9F2C7>已将 <arg:0> 传送到 <arg:1>.</color>'
-command.warp.failed: '<color:#FFB6CB>未能将 <arg:0> 传送到 <arg:1>: <arg:2></color>'
-command.warp.storage-failed: '<color:#FFB6CB>未能保存传送点 <arg:0> 的变更.</color>'
-command.warp.exists: '<color:#FFB6CB>传送点 <arg:0> 已存在, 请更换名称重试.</color>'
-command.warp.invalid-name: '<color:#FFB6CB>传送点名称 <arg:0> 无效, 最长 <arg:1> 个字符, 必须符合名称规则且不含空白字符.</color>'
-command.set-warp.created: '<color:#C9F2C7>已创建传送点 <arg:0>.</color>'
-command.del-warp.success: '<color:#C9F2C7>已删除传送点 <arg:0>.</color>'
-command.edit-warp.renamed: '<color:#C9F2C7>已将传送点 <arg:0> 改名为 <arg:1>.</color>'
-command.edit-warp.relocated: '<color:#C9F2C7>已将传送点 <arg:0> 移到你的当前位置.</color>'
+command.warp.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送点 <arg:0> 不存在.</color>'
+command.warp.no-permission: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有使用传送点 <arg:0> 的权限.</color>'
+command.warp.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到 <arg:0>.</color>'
+command.warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <arg:0> 传送到 <arg:1>.</color>'
+command.warp.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能将 <arg:0> 传送到 <arg:1>: <arg:2></color>'
+command.warp.storage-failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能保存传送点 <arg:0> 的变更.</color>'
+command.warp.exists: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送点 <arg:0> 已存在, 请更换名称重试.</color>'
+command.warp.invalid-name: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>传送点名称 <arg:0> 无效, 最长 <arg:1> 个字符, 必须符合名称规则且不含空白字符.</color>'
+command.set-warp.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已创建传送点 <arg:0>.</color>'
+command.del-warp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已删除传送点 <arg:0>.</color>'
+command.edit-warp.renamed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将传送点 <arg:0> 改名为 <arg:1>.</color>'
+command.edit-warp.relocated: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将传送点 <arg:0> 移到你的当前位置.</color>'
 command.warp.button.teleport: '传送'
 command.warp.button.rename: '改名'
 command.warp.button.relocate: '移到此处'
@@ -730,33 +730,33 @@ command.warp-list.title: '传送点'
 command.warp-list.location: '<arg:0> / <arg:1>'
 
 # command.spawn
-command.spawn.not-set: '<color:#FFB6CB>尚未配置出生点目的地.</color>'
-command.spawn.success: '<color:#C9F2C7>已传送至出生点.</color>'
+command.spawn.not-set: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>尚未配置出生点目的地.</color>'
+command.spawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送至出生点.</color>'
 
 # command.respawn
-command.respawn.no-location: '<color:#FFB6CB><arg:0> 没有有效的个人重生点.</color>'
-command.respawn.success-self: '<color:#C9F2C7>已传送至你的个人重生点.</color>'
-command.respawn.success: '<color:#C9F2C7>已将 <arg:0> 传送至其个人重生点.</color>'
-command.respawn.failed: '<color:#FFB6CB>未能传送 <arg:0>: <arg:1></color>'
+command.respawn.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:0> 没有有效的个人重生点.</color>'
+command.respawn.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送至你的个人重生点.</color>'
+command.respawn.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <arg:0> 传送至其个人重生点.</color>'
+command.respawn.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能传送 <arg:0>: <arg:1></color>'
 
 
 # command.back
-command.back.no-location: '<color:#FFB6CB>你没有可返回的位置.</color>'
-command.back.success-self: '<color:#C9F2C7>已返回上一次的位置.</color>'
-command.back.success: '<color:#C9F2C7>已将 <arg:0> 送回上一次的位置.</color>'
-command.back.failed: '<color:#FFB6CB>未能让 <arg:0> 返回: <arg:1></color>'
+command.back.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有可返回的位置.</color>'
+command.back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已返回上一次的位置.</color>'
+command.back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <arg:0> 送回上一次的位置.</color>'
+command.back.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能让 <arg:0> 返回: <arg:1></color>'
 
 # command.death-back
-command.death-back.no-location: '<color:#FFB6CB>你没有已记录的死亡位置.</color>'
-command.death-back.success-self: '<color:#C9F2C7>已返回上一次死亡的位置.</color>'
-command.death-back.success: '<color:#C9F2C7>已将 <arg:0> 送回上一次死亡的位置.</color>'
-command.death-back.failed: '<color:#FFB6CB>未能让 <arg:0> 返回死亡位置: <arg:1></color>'
+command.death-back.no-location: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>你没有已记录的死亡位置.</color>'
+command.death-back.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已返回上一次死亡的位置.</color>'
+command.death-back.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <arg:0> 送回上一次死亡的位置.</color>'
+command.death-back.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能让 <arg:0> 返回死亡位置: <arg:1></color>'
 
 # command.rtp
-command.rtp.success-self: '<color:#C9F2C7>已传送到随机位置.</color>'
-command.rtp.success: '<color:#C9F2C7>已将 <arg:0> 随机传送到 <arg:1>.</color>'
-command.rtp.failed: '<color:#FFB6CB>未能随机传送 <arg:0>: <arg:1></color>'
-command.rtp-range.invalid-area: '<color:#FFB6CB>最小半径不能大于最大半径, min-y 与 max-y 需要同时填写且 min-y 不能大于 max-y.</color>'
+command.rtp.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已传送到随机位置.</color>'
+command.rtp.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将 <arg:0> 随机传送到 <arg:1>.</color>'
+command.rtp.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>未能随机传送 <arg:0>: <arg:1></color>'
+command.rtp-range.invalid-area: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>最小半径不能大于最大半径, min-y 与 max-y 需要同时填写且 min-y 不能大于 max-y.</color>'
 
 # command.head
 command.head.source-required: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>请指定头颅来源的玩家名或 UUID。</color>'
@@ -771,25 +771,25 @@ command.head.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_nam
 command.head.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向你发放 <color:#C7BCE7><arg:0></color> 个来自 <color:#C7BCE7><arg:1></color> 的头颅.</color>'
 
 # command.maintenance
-command.maintenance.enabled: '<color:#C9F2C7>已开启本服维护模式，没有绕过权限的玩家将被移出.</color>'
-command.maintenance.disabled: '<color:#C9F2C7>已关闭本服维护模式.</color>'
-command.maintenance.enable-sent: '<color:#C9F2C7>已向选定服务器发送开启维护模式的请求.</color>'
-command.maintenance.disable-sent: '<color:#C9F2C7>已向选定服务器发送关闭维护模式的请求.</color>'
-command.maintenance.no-servers: '<color:#FFB6CB>指定范围内没有在线服务器.</color>'
+command.maintenance.enabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已开启本服维护模式，没有绕过权限的玩家将被移出.</color>'
+command.maintenance.disabled: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已关闭本服维护模式.</color>'
+command.maintenance.enable-sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向选定服务器发送开启维护模式的请求.</color>'
+command.maintenance.disable-sent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已向选定服务器发送关闭维护模式的请求.</color>'
+command.maintenance.no-servers: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>指定范围内没有在线服务器.</color>'
 
 # command.ban
-command.ban.created: '<color:#C9F2C7>已封禁 <arg:0>. 原因: <arg:1>. 到期时间: <arg:2>. 处罚编号: <arg:3>.</color>'
-command.ban.replaced: '<color:#C9F2C7>已撤销旧处罚并重新封禁 <arg:0>. 原因: <arg:1>. 到期时间: <arg:2>. 新处罚编号: <arg:3>.</color>'
-command.ban.already-banned: '<color:#FFB6CB><arg:0> 对应的目标已有有效封禁, 可使用 --force 覆盖.</color>'
-command.ban.already-banned-id: '<color:#FFB6CB><arg:0> 已有有效封禁 <arg:1>, 可使用 --force 覆盖.</color>'
-command.ban.unknown-player: '<color:#FFB6CB>找不到玩家 <arg:0> 的身份记录.</color>'
-command.ban.no-address: '<color:#FFB6CB>玩家 <arg:0> 没有可用的 IP 历史记录.</color>'
-command.ban.unsupported-address: '<color:#FFB6CB>玩家 <arg:0> 最近使用的地址不是 IPv4.</color>'
-command.ban.invalid-ip: '<color:#FFB6CB>无效的 IPv4 地址或末尾通配范围: <arg:0>.</color>'
-command.ban.invalid-duration: '<color:#FFB6CB>封禁时长必须至少为 1 毫秒, 且到期时间不能超出可表示范围.</color>'
-command.ban.reason-too-long: '<color:#FFB6CB>展开后的封禁原因超过 <arg:0> 个字符.</color>'
-command.unban.success: '<color:#C9F2C7>已撤销 <arg:0> 的处罚 <arg:1>.</color>'
-command.unban.none: '<color:#FFB6CB>没有找到与 <arg:0> 匹配的有效封禁.</color>'
+command.ban.created: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已封禁 <arg:0>. 原因: <arg:1>. 到期时间: <arg:2>. 处罚编号: <arg:3>.</color>'
+command.ban.replaced: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已撤销旧处罚并重新封禁 <arg:0>. 原因: <arg:1>. 到期时间: <arg:2>. 新处罚编号: <arg:3>.</color>'
+command.ban.already-banned: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:0> 对应的目标已有有效封禁, 可使用 --force 覆盖.</color>'
+command.ban.already-banned-id: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:0> 已有有效封禁 <arg:1>, 可使用 --force 覆盖.</color>'
+command.ban.unknown-player: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>找不到玩家 <arg:0> 的身份记录.</color>'
+command.ban.no-address: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <arg:0> 没有可用的 IP 历史记录.</color>'
+command.ban.unsupported-address: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>玩家 <arg:0> 最近使用的地址不是 IPv4.</color>'
+command.ban.invalid-ip: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>无效的 IPv4 地址或末尾通配范围: <arg:0>.</color>'
+command.ban.invalid-duration: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>封禁时长必须至少为 1 毫秒, 且到期时间不能超出可表示范围.</color>'
+command.ban.reason-too-long: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>展开后的封禁原因超过 <arg:0> 个字符.</color>'
+command.unban.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已撤销 <arg:0> 的处罚 <arg:1>.</color>'
+command.unban.none: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>没有找到与 <arg:0> 匹配的有效封禁.</color>'
 command.ban.panel.info-title: '封禁 #<arg:0>'
 command.ban.panel.history-title: '封禁历史 · <arg:0>'
 command.ban.panel.scope-all: '全部'
@@ -823,7 +823,7 @@ command.ban.panel.hover-created: '封禁: <arg:0>'
 command.ban.panel.hover-expires: '到期: <arg:0>'
 command.ban.panel.hover-revoked: '撤销: <arg:0> · <arg:1>'
 
-command.ban-info.unknown: '<color:#FFB6CB>处罚编号 <arg:0> 不存在.</color>'
+command.ban-info.unknown: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>处罚编号 <arg:0> 不存在.</color>'
 command.ban-info.title: '处罚 <arg:0>'
 command.ban-info.id: '处罚编号'
 command.ban-info.type: '类型'
@@ -891,9 +891,9 @@ ban.kick.ip.temporary: |-
   到期时间: <arg:2>
   封禁时间: <arg:5>
   处罚编号: <arg:3></color>
-ban.notify.ban.permanent: '<color:#FFB6CB><arg:1> 永久封禁了 <arg:0>. 原因: <arg:2>. 处罚编号: <arg:4>.</color>'
-ban.notify.ban.temporary: '<color:#FFB6CB><arg:1> 封禁了 <arg:0>, 到期时间: <arg:3>. 原因: <arg:2>. 处罚编号: <arg:4>.</color>'
-ban.notify.unban: '<color:#C9F2C7><arg:1> 撤销了 <arg:0> 的处罚 <arg:2>.</color>'
+ban.notify.ban.permanent: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:1> 永久封禁了 <arg:0>. 原因: <arg:2>. 处罚编号: <arg:4>.</color>'
+ban.notify.ban.temporary: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB><arg:1> 封禁了 <arg:0>, 到期时间: <arg:3>. 原因: <arg:2>. 处罚编号: <arg:4>.</color>'
+ban.notify.unban: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7><arg:1> 撤销了 <arg:0> 的处罚 <arg:2>.</color>'
 ban.id.copy: '点击复制处罚编号'
 ban.reason.none: '未填写原因'
 ban.expiry.permanent: '永久'
@@ -905,5 +905,5 @@ maintenance.kick: '<color:#FFB6CB>服务器正在维护，请稍后再来.</colo
 
 # command.max-players
 command.max-players.query: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#F2F4FF>当前在线 <color:#C7BCE7><arg:0></color> 人，人数上限 <color:#C7BCE7><arg:1></color> 人</color>'
-command.max-players.reset: '<color:#C9F2C7>人数上限已恢复为模块启用前的 <arg:0> 人.</color>'
+command.max-players.reset: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>人数上限已恢复为模块启用前的 <arg:0> 人.</color>'
 command.max-players.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已将人数上限设为 <color:#C7BCE7><arg:0></color> 人</color>'
