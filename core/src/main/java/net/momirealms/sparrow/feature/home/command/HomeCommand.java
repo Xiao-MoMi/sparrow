@@ -42,7 +42,7 @@ public final class HomeCommand extends AbstractHomeCommand {
             if (homes.isEmpty()) {
                 this.handleFeedback(context, MessageConstants.COMMAND_HOME_EMPTY, Component.text(owner.name()));
             } else {
-                HomePanels.list(context.sender(), owner, homes, 1);
+                HomePanels.list(context.sender(), owner, homes, 1).send(context.sender());
             }
             return CompletableFuture.completedFuture(null);
         }));

@@ -7,6 +7,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import org.bukkit.command.CommandSender;
+import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
@@ -43,12 +44,12 @@ public final class ItemDamageCommand extends BukkitCommandFeature {
                 return;
             }
             if (value >= maxDamage) {
-                player.getInventory().setItemInMainHand(CraftItemStack.asBukkitCopy(ItemStack.EMPTY));
+                player.getInventory().setItemInMainHand(CraftItemStackProxy.INSTANCE.asBukkitMirror(ItemStack.EMPTY));
                 this.handleFeedback(context, MessageConstants.COMMAND_ITEM_DAMAGE_BROKEN, Component.text(player.getName()));
                 return;
             }
             item.setDamageValue(value);
-            player.getInventory().setItemInMainHand(CraftItemStack.asBukkitCopy(item));
+            player.getInventory().setItemInMainHand(CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copy()));
             this.handleFeedback(
                     context,
                     MessageConstants.COMMAND_ITEM_DAMAGE_SUCCESS,

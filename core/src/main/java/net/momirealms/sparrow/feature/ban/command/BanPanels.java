@@ -1,92 +1,143 @@
 package net.momirealms.sparrow.feature.ban.command;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.JoinConfiguration;
 import net.momirealms.sparrow.feature.ban.BanQuery;
 import net.momirealms.sparrow.feature.ban.BanRecord;
 import net.momirealms.sparrow.feature.ban.BanTarget;
 import net.momirealms.sparrow.feature.ban.BanTexts;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
+import net.momirealms.sparrow.plugin.command.panel.PanelText;
+import net.momirealms.sparrow.plugin.command.panel.PanelTone;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
-import net.momirealms.sparrow.util.DateTimeUtils;
-import org.bukkit.command.CommandSender;
+import net.momirealms.sparrow.util.DurationUtils;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 final class BanPanels {
 
     private BanPanels() {
     }
 
-    static void detail(CommandSender sender, BanRecord record) {
+    static CommandPanel detail(BanRecord record) {
         long now = System.currentTimeMillis();
         String id = Long.toString(record.id());
         String history = record.player() == null ? "ip " + record.ip() : "player " + record.player();
-        CommandPanel.Builder panel = CommandPanel.builder()
-                .title(Component.translatable("command.ban-info.title", Component.text(id)))
-                .copyField(Component.translatable("command.ban-info.id"), id)
-                .field(Component.translatable("command.ban-info.type"), Component.translatable(record.player() == null ? "command.ban-info.type.ip" : "command.ban-info.type.player"))
-                .field(Component.translatable("command.ban-info.target"), BanTexts.target(record));
-        if (record.player() != null) {
-            panel.copyField(Component.translatable("command.ban-info.uuid"), record.player().toString());
-        } else {
-            panel.copyField(Component.translatable("command.ban-info.ip"), record.ip().toString());
-        }
-        panel.field(Component.translatable("command.ban-info.reason"), BanTexts.reason(record.reason()))
-                .field(Component.translatable("command.ban-info.status"), BanTexts.status(record, now))
-                .field(Component.translatable("command.ban-info.operator"), record.operatorName())
-                .field(Component.translatable("command.ban-info.server"), record.server())
-                .field(Component.translatable("command.ban-info.created-at"), DateTimeUtils.fullTime(record.createdAt()))
-                .field(Component.translatable("command.ban-info.expires-at"), BanTexts.expiry(record.expiresAt(), now));
-        if (record.revokedAt() != 0) {
-            panel.field(Component.translatable("command.ban-info.revoked-at"), DateTimeUtils.fullTime(record.revokedAt()))
-                    .field(Component.translatable("command.ban-info.revoked-by"), record.revokedBy());
-        }
-        panel.buttons(
-                        PanelButton.run(Component.translatable("command.ban.button.unban"), "unban_id", id)
+        CommandPanel.Builder panel = CommandPanel.card()
+                .title(PanelText.of(tr("info-title", Component.text(id))).copy(id))
+                .status(status(record, now))
+                .titleActions(
+                        PanelButton.run(tr("unban"), "unban_id", id)
+                                .tone(PanelTone.DANGER)
                                 .disabledIf(!record.active(now), Component.translatable("command.ban.inactive")),
-                        PanelButton.run(Component.translatable("command.ban.button.history"), "ban_history", history),
                         PanelButton.run(Component.translatable("command.panel.refresh"), "ban_info", id)
                 )
-                .build()
-                .send(sender);
+                .actionColumn("history", tr("history"))
+                .field(tr(record.player() == null ? "ip" : "player"), target(record), PanelButton.run(tr("history"), "ban_history", history).column("history"))
+                .paragraph(tr("reason"), PanelText.of(BanTexts.reason(record.reason())))
+                .field(tr("created"), PanelText.time(record.createdAt()))
+                .field(tr("expires"), expiry(record, now))
+                .field(tr("operator"), PanelText.of(tr("operator-value", Component.text(record.operatorName()), Component.text(record.server()))).tone(PanelTone.INFO));
+        if (record.revokedAt() != 0) {
+            panel.field(tr("revoked"), PanelText.of(tr("revoked-value", PanelText.time(record.revokedAt()).getComponent(), Component.text(record.revokedBy()))).tone(PanelTone.SUCCESS));
+        }
+        return panel.build();
     }
 
-    static void history(CommandSender sender, BanQuery query, TextPage<BanRecord> page, String arguments) {
+    static CommandPanel.Builder history(BanQuery query, @Nullable String playerInput) {
         Component scope = switch (query.target()) {
-            case null -> Component.translatable("command.ban-history.scope.all");
-            case BanTarget.PlayerTarget player -> Component.translatable("command.ban-history.scope.player", Component.text(player.uuid().toString()));
-            case BanTarget.IpTarget ip -> Component.translatable("command.ban-history.scope.ip", Component.text(ip.range().toString()));
+            case null -> tr("scope-all");
+            case BanTarget.PlayerTarget player -> Component.text(playerInput == null ? player.uuid().toString() : playerInput);
+            case BanTarget.IpTarget ignored -> tr("ip");
         };
-        CommandPanel.Builder panel = CommandPanel.builder()
-                .title(Component.translatable("command.ban-history.title"))
-                .field(Component.translatable("command.ban-history.scope"), scope)
-                .field(Component.translatable("command.ban-history.total"), Component.text(page.total()));
-        if (query.operator() != null) {
-            panel.field(Component.translatable("command.ban-history.operator"), query.operator());
-        }
+        Component scopeDetails = switch (query.target()) {
+            case null -> Component.translatable("command.ban-history.scope.all");
+            case BanTarget.PlayerTarget player -> Component.text("UUID: " + player.uuid());
+            case BanTarget.IpTarget ip -> Component.text(ip.range().toString());
+        };
+        CommandPanel.Builder panel = CommandPanel.list()
+                .title(PanelText.of(tr("history-title", scope)).hover(scopeDetails))
+                .actionColumn("details", tr("details"));
+        List<Component> filters = new ArrayList<>();
         if (query.since() > 0) {
-            panel.field(Component.translatable("command.ban-history.since"), DateTimeUtils.fullTime(query.since()));
+            filters.add(tr("within", Component.text(DurationUtils.format(query.now() - query.since()))).hoverEvent(PanelText.fullTime(query.since()).getComponent()));
+        }
+        if (query.operator() != null) {
+            filters.add(tr("filter-operator", Component.text(query.operator())));
         }
         if (query.activeOnly()) {
-            panel.field(Component.translatable("command.ban-history.status"), Component.translatable("ban.status.active"));
+            filters.add(tr("active-only"));
         }
+        if (!filters.isEmpty()) {
+            Component value = Component.join(JoinConfiguration.separator(Component.text(" · ")), filters);
+            panel.summary(PanelText.of(tr("filters", value)).tone(PanelTone.MUTED));
+        }
+        return panel;
+    }
+
+    static CommandPanel history(CommandPanel.Builder panel, BanQuery query, TextPage<BanRecord> page, String arguments) {
+        panel.status(PanelText.of(tr("total", Component.text(page.total()))).tone(PanelTone.MUTED));
         if (page.content().isEmpty()) {
-            panel.field(Component.translatable("command.ban-history.records"), Component.translatable("command.ban-history.empty"));
+            panel.entry(PanelText.of(Component.translatable("command.ban-history.empty")).tone(PanelTone.MUTED));
         }
         for (int i = 0, size = page.content().size(); i < size; i++) {
             BanRecord record = page.content().get(i);
             String id = Long.toString(record.id());
-            panel.field(
-                    BanTexts.id(record.id()),
-                    Component.translatable(
-                            "command.ban-history.entry",
-                            BanTexts.target(record),
-                            BanTexts.status(record, query.now()),
-                            Component.text(record.operatorName()),
-                            Component.text(DateTimeUtils.fullTime(record.createdAt()))
-                    )
+            Component details = details(record, query.now());
+            panel.entry(
+                    PanelText.of("#" + id).copy(id).hover(details),
+                    status(record, query.now()),
+                    target(record).hover(details),
+                    PanelText.time(record.createdAt()),
+                    PanelButton.run(tr("details"), "ban_info", id).column("details")
             );
-            panel.buttons(PanelButton.run(Component.translatable("command.ban.button.info", Component.text(id)), "ban_info", id));
         }
-        panel.pagination(page, "ban_history", number -> arguments + " --page " + number).build().send(sender);
+        return panel.pagination(page, "ban_history", number -> arguments + " --page " + number).build();
+    }
+
+    private static PanelText target(BanRecord record) {
+        if (record.player() == null) {
+            String ip = record.ip().toString();
+            return PanelText.of(ip).copy(ip).tone(PanelTone.INFO);
+        }
+        String uuid = record.player().toString();
+        return PanelText.of(BanTexts.target(record)).copy(uuid).hover(Component.text("UUID: " + uuid)).tone(PanelTone.INFO);
+    }
+
+    private static PanelText status(BanRecord record, long now) {
+        if (record.revokedAt() != 0) return PanelText.of(tr("status-revoked")).tone(PanelTone.SUCCESS);
+        return record.active(now) ? PanelText.of(tr("status-active")).tone(PanelTone.DANGER) : PanelText.of(tr("status-expired")).tone(PanelTone.MUTED);
+    }
+
+    private static PanelText expiry(BanRecord record, long now) {
+        if (record.permanent()) return PanelText.of(Component.translatable("ban.expiry.permanent")).tone(PanelTone.DANGER);
+        PanelText time = PanelText.time(record.expiresAt());
+        return record.active(now)
+                ? PanelText.of(tr("expiry-value", time.getComponent(), Component.text(DurationUtils.format(record.expiresAt() - now)))).tone(PanelTone.TIME)
+                : time;
+    }
+
+    private static Component details(BanRecord record, long now) {
+        List<Component> lines = new ArrayList<>();
+        lines.add(tr("hover-title", Component.text(record.id()), status(record, now).getComponent()));
+        lines.add(tr(record.player() == null ? "hover-ip" : "hover-player", BanTexts.target(record)));
+        if (record.player() != null) {
+            lines.add(Component.text("UUID: " + record.player(), PanelTone.MUTED.color()));
+        }
+        lines.add(tr("hover-reason", BanTexts.reason(record.reason())));
+        lines.add(tr("hover-operator", Component.text(record.operatorName()), Component.text(record.server())));
+        lines.add(tr("hover-created", PanelText.fullTime(record.createdAt()).getComponent()));
+        lines.add(tr("hover-expires", record.permanent() ? Component.translatable("ban.expiry.permanent") : PanelText.fullTime(record.expiresAt()).getComponent()));
+        if (record.revokedAt() != 0) {
+            lines.add(tr("hover-revoked", PanelText.fullTime(record.revokedAt()).getComponent(), Component.text(record.revokedBy())));
+        }
+        return Component.join(JoinConfiguration.newlines(), lines);
+    }
+
+    private static Component tr(String key, Component... arguments) {
+        return Component.translatable("command.ban.panel." + key, arguments);
     }
 }

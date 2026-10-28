@@ -17,7 +17,8 @@ import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
-import net.momirealms.sparrow.util.DateTimeUtils;
+import net.momirealms.sparrow.plugin.command.panel.PanelText;
+import net.momirealms.sparrow.plugin.command.panel.PanelTone;
 import net.momirealms.sparrow.util.DurationUtils;
 import net.momirealms.sparrow.util.IpRange;
 import net.momirealms.sparrow.util.ServerLocation;
@@ -79,76 +80,81 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
             CompletableFuture<Optional<BanRecord>> ban = showBan
                     ? this.plugin().dataStorage().banStore().findActiveBan(uuid, ip, System.currentTimeMillis())
                     : CompletableFuture.completedFuture(Optional.empty());
-            return ban.thenAccept(record -> this.render(context.sender(), uuid, profile, showIp, banEnabled, showBan, record.orElse(null)));
+            return ban.thenAccept(record -> this.render(context.sender(), uuid, profile, showIp, showBan, record.orElse(null)));
         });
     }
 
-    private void render(CommandSender sender, UUID playerId, PlayerProfile profile, boolean showIp, boolean banEnabled, boolean showBan, @Nullable BanRecord ban) {
+    private void render(CommandSender sender, UUID playerId, PlayerProfile profile, boolean showIp, boolean showBan, @Nullable BanRecord ban) {
         long now = System.currentTimeMillis();
         String uuid = playerId.toString();
         OfflineSparrowPlayer online = this.plugin().playerManager().getGlobalOnlinePlayer(playerId);
         BukkitSparrowPlayer local = online instanceof BukkitSparrowPlayer player ? player : null;
         String name = online == null ? profile.name() : online.name();
         ServerLocation logout = profile.logoutLocation();
+        WorldLocation current = local == null ? null : local.getWorldLocation();
         String server = online == null ? (logout == null ? null : logout.server()) : online.getCurrentServerId();
-        Component unknown = Component.translatable("command.player-info.unknown");
-        CommandPanel.Builder panel = CommandPanel.builder()
-                .title(Component.translatable("command.player-info.title", Component.text(name)))
-                .copyField(Component.translatable("command.player-info.name"), name)
-                .copyField("UUID", uuid)
-                .field(Component.translatable("command.player-info.status"), Component.translatable(online == null ? "command.player-info.offline" : "command.player-info.online"))
-                .field(
-                        Component.translatable(online == null ? "command.player-info.last-server" : "command.player-info.current-server"),
-                        server == null ? unknown : Component.text(server)
-                );
+        Component history = this.tr("panel.history");
+        Component detail = this.tr("panel.details");
+        Component teleport = this.tr("panel.teleport");
+        String status = online == null ? "offline" : (local == null ? "remote" : "local");
+        CommandPanel.Builder panel = CommandPanel.card()
+                .title(PanelText.of(name).hover(this.tr("panel.identity", Component.text(name), Component.text(uuid))).copy(uuid))
+                .status(PanelText.of(this.tr("panel." + status)).tone(online == null ? PanelTone.MUTED : PanelTone.SUCCESS))
+                .titleActions(
+                        PanelButton.run(this.tr("button.name-history"), "name_history", name),
+                        PanelButton.run(Component.translatable("command.panel.refresh"), this.getFeatureID(), name)
+                )
+                .actionColumn("details", detail)
+                .actionColumn("primary", history, teleport)
+                .field(this.tr(online == null ? "panel.last-place" : "panel.place"), this.place(server, current == null ? (online == null && logout != null ? logout.world() : null) : current.world()));
+        if (local != null) {
+            panel.field(this.tr("panel.session"), PanelText.of(this.tr("panel.session-value", Component.text(local.platformPlayer.getPing()), Component.text(DurationUtils.format(now - local.connection.connectedAt())))));
+        }
         if (showIp) {
-            if (profile.ip() == null) {
-                panel.field(Component.translatable("command.player-info.ip"), unknown);
+            PanelText ip = profile.ip() == null ? PanelText.of(this.tr("unknown")) : PanelText.of(profile.ip().getHostAddress()).copy(profile.ip().getHostAddress());
+            panel.field(this.tr("panel.ip"), ip.tone(PanelTone.INFO), PanelButton.run(history, "ip_history", "player " + name).column("primary"));
+        }
+        if (current != null) {
+            panel.field(this.tr("panel.position"), PanelText.coordinates(current.x(), current.y(), current.z()));
+        }
+        panel.field(this.tr("panel.activity"), PanelText.of(this.tr("panel.activity-value", this.time(profile.loginAt()).getComponent(), this.time(profile.logoutAt()).getComponent())));
+        PanelText logoutPoint = logout == null
+                ? PanelText.of(this.tr("unknown"))
+                : PanelText.coordinates(logout.x(), logout.y(), logout.z()).hover(this.tr("panel.logout-hover", Component.text(logout.server()), Component.text(logout.world()), this.time(profile.logoutAt()).getComponent()));
+        panel.field(
+                this.tr("panel.logout"),
+                logoutPoint,
+                PanelButton.suggest(teleport, "tp_offline", name)
+                        .column("primary")
+                        .disabledIf(!(sender instanceof Player), MessageConstants.COMMAND_PLAYER_REQUIRED)
+                        .disabledIf(logout == null, MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION.arguments(Component.text(name)))
+        );
+        if (showBan) {
+            PanelButton banHistory = PanelButton.run(history, "ban_history", "player " + name).column("primary");
+            if (ban == null) {
+                panel.field(this.tr("panel.ban"), PanelText.of(this.tr("panel.no-ban")).tone(PanelTone.SUCCESS), banHistory);
             } else {
-                panel.copyField(Component.translatable("command.player-info.ip"), profile.ip().getHostAddress());
+                Component expiry = ban.permanent() ? MessageConstants.BAN_EXPIRY_PERMANENT : this.time(ban.expiresAt()).getComponent();
+                Component tooltip = this.tr("panel.ban-hover", Component.text(ban.id()), BanTexts.reason(ban.reason()), Component.text(ban.operatorName()), expiry);
+                panel.field(
+                        this.tr("panel.ban"),
+                        PanelText.of(this.tr("panel.active-ban", Component.text(ban.id()))).hover(tooltip).tone(PanelTone.DANGER),
+                        PanelButton.run(detail, "ban_info", Long.toString(ban.id())).column("details"),
+                        banHistory
+                );
             }
         }
-        panel.section(Component.translatable("command.player-info.activity"))
-                .field(Component.translatable("command.player-info.last-login"), this.time(profile.loginAt()))
-                .field(Component.translatable("command.player-info.last-logout"), this.time(profile.logoutAt()));
-        if (local != null) {
-            WorldLocation location = local.getWorldLocation();
-            panel.section(Component.translatable("command.player-info.local-session"))
-                    .field(Component.translatable("command.player-info.ping"), Component.text(local.platformPlayer.getPing() + " ms"))
-                    .field(Component.translatable("command.player-info.session"), DurationUtils.format(now - local.connection.connectedAt()))
-                    .field(Component.translatable("command.player-info.world"), location.world())
-                    .copyField(Component.translatable("command.player-info.coordinates"), location.x() + " " + location.y() + " " + location.z());
-        }
-        panel.section(Component.translatable("command.player-info.logout-location"));
-        if (logout == null) {
-            panel.field(Component.translatable("command.player-info.location"), unknown);
-        } else {
-            panel.field(Component.translatable("command.player-info.server"), logout.server())
-                    .field(Component.translatable("command.player-info.world"), logout.world())
-                    .copyField(Component.translatable("command.player-info.coordinates"), logout.x() + " " + logout.y() + " " + logout.z());
-        }
-        if (showBan) {
-            Component status = ban == null
-                    ? Component.translatable("command.player-info.not-banned")
-                    : Component.translatable("command.player-info.banned", BanTexts.id(ban.id()), BanTexts.expiry(ban.expiresAt(), now));
-            panel.section(Component.translatable("command.player-info.punishment"))
-                    .field(Component.translatable("command.player-info.ban"), status);
-        }
-        panel.buttons(
-                PanelButton.run(Component.translatable("command.panel.refresh"), this.getFeatureID(), uuid),
-                PanelButton.run(Component.translatable("command.player-info.button.name-history"), "name_history", name),
-                PanelButton.run(Component.translatable("command.player-info.button.ip-history"), "ip_history", "uuid " + uuid),
-                PanelButton.run(Component.translatable("command.player-info.button.ban-history"), "ban_history", "player " + uuid)
-                        .disabledIf(!banEnabled, Component.translatable("command.player-info.ban-disabled"))
-        );
-        if (showBan && ban != null) {
-            panel.buttons(PanelButton.run(Component.translatable("command.player-info.button.ban-info"), "ban_info", Long.toString(ban.id())));
-        }
-        panel.buttons(PanelButton.suggest(Component.translatable("command.player-info.button.teleport"), "tp_offline", uuid)
-                        .disabledIf(!(sender instanceof Player), MessageConstants.COMMAND_PLAYER_REQUIRED)
-                        .disabledIf(logout == null, MessageConstants.COMMAND_TP_OFFLINE_NO_LOCATION.arguments(Component.text(name))))
-                .build()
-                .send(sender);
+        panel.build().send(sender);
+    }
+
+    private PanelText place(@Nullable String server, @Nullable String world) {
+        if (server == null) return PanelText.of(this.tr("unknown"));
+        Component value = world == null ? Component.text(server) : this.tr("panel.place-value", Component.text(server), Component.text(world));
+        return PanelText.of(value).tone(PanelTone.INFO);
+    }
+
+    private Component tr(String key, Component... arguments) {
+        return Component.translatable("command.player-info." + key, arguments);
     }
 
     private boolean canUse(CommandSender sender, String id) {
@@ -160,8 +166,8 @@ public final class PlayerInfoCommand extends BukkitCommandFeature {
                 && config.getUsages().stream().anyMatch(usage -> usage.startsWith("/"));
     }
 
-    private Component time(long millis) {
-        return millis == 0 ? Component.translatable("command.player-info.unknown") : Component.text(DateTimeUtils.fullTime(millis));
+    private PanelText time(long millis) {
+        return millis == 0 ? PanelText.of(this.tr("unknown")) : PanelText.time(millis);
     }
 
     @NotNull

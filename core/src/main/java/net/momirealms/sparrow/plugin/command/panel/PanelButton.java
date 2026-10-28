@@ -4,7 +4,6 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.plugin.command.CommandConfig;
 import net.momirealms.sparrow.plugin.command.CommandFeature;
-import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -14,13 +13,28 @@ public final class PanelButton {
     private final String arguments;
     private final boolean suggest;
     private final @Nullable Component disabledReason;
+    private final @Nullable String column;
+    private final PanelTone tone;
+    private final @Nullable Component hint;
 
-    private PanelButton(Component caption, String commandId, String arguments, boolean suggest, @Nullable Component disabledReason) {
+    private PanelButton(
+            Component caption,
+            String commandId,
+            String arguments,
+            boolean suggest,
+            @Nullable Component disabledReason,
+            @Nullable String column,
+            PanelTone tone,
+            @Nullable Component hint
+    ) {
         this.caption = caption;
         this.commandId = commandId;
         this.arguments = arguments;
         this.suggest = suggest;
         this.disabledReason = disabledReason;
+        this.column = column;
+        this.tone = tone;
+        this.hint = hint;
     }
 
     @NotNull
@@ -30,7 +44,7 @@ public final class PanelButton {
 
     @NotNull
     public static PanelButton run(@NotNull Component caption, @NotNull String commandId, @NotNull String arguments) {
-        return new PanelButton(caption, commandId, arguments, false, null);
+        return new PanelButton(caption, commandId, arguments, false, null, null, PanelTone.ACTION, null);
     }
 
     @NotNull
@@ -40,7 +54,7 @@ public final class PanelButton {
 
     @NotNull
     public static PanelButton suggest(@NotNull Component caption, @NotNull String commandId, @NotNull String arguments) {
-        return new PanelButton(caption, commandId, arguments, true, null);
+        return new PanelButton(caption, commandId, arguments, true, null, null, PanelTone.ACTION, null);
     }
 
     @NotNull
@@ -50,10 +64,30 @@ public final class PanelButton {
 
     @NotNull
     public PanelButton disabledIf(boolean disabled, @NotNull Component reason) {
-        return disabled ? new PanelButton(this.caption, this.commandId, this.arguments, this.suggest, reason) : this;
+        return disabled ? new PanelButton(this.caption, this.commandId, this.arguments, this.suggest, reason, this.column, this.tone, this.hint) : this;
     }
 
-    Component render(CommandPanel.RenderContext context) {
+    @NotNull
+    public PanelButton column(@NotNull String column) {
+        return new PanelButton(this.caption, this.commandId, this.arguments, this.suggest, this.disabledReason, column, this.tone, this.hint);
+    }
+
+    @NotNull
+    public PanelButton tone(@NotNull PanelTone tone) {
+        return new PanelButton(this.caption, this.commandId, this.arguments, this.suggest, this.disabledReason, this.column, tone, this.hint);
+    }
+
+    @NotNull
+    public PanelButton hint(@NotNull Component hint) {
+        return new PanelButton(this.caption, this.commandId, this.arguments, this.suggest, this.disabledReason, this.column, this.tone, hint);
+    }
+
+    @Nullable
+    String column() {
+        return this.column;
+    }
+
+    Component render(PanelContext context) {
         CommandFeature command = context.manager.feature(this.commandId);
         if (command == null) {
             return this.renderDisabled(context, Component.translatable("command.panel.unavailable"));
@@ -66,6 +100,9 @@ public final class PanelButton {
         if (this.disabledReason != null) {
             return this.renderDisabled(context, this.disabledReason);
         }
+        if (!config.isEnable()) {
+            return this.renderDisabled(context, Component.translatable("command.panel.unavailable"));
+        }
         for (String usage : config.getUsages()) {
             if (usage.startsWith("/")) {
                 String input = this.arguments.isEmpty() ? usage.trim() : usage.trim() + " " + this.arguments;
@@ -75,26 +112,32 @@ public final class PanelButton {
         return this.renderDisabled(context, Component.translatable("command.panel.unavailable"));
     }
 
-    private Component renderEnabled(CommandPanel.RenderContext context, String command) {
-        Component caption = Component.text("[", CommandPanel.ACCENT)
-                .append(context.caption(this.caption, CommandPanel.ACCENT))
-                .append(Component.text("]", CommandPanel.ACCENT));
-        if (!(context.receiver instanceof Player)) {
-            return caption.append(Component.text(" " + command, CommandPanel.MUTED));
+    private Component renderEnabled(PanelContext context, String command) {
+        if (context.interactive && this.suggest && command.length() > 256) {
+            return this.renderDisabled(context, Component.translatable("command.panel.input-too-long"));
         }
-        Component hover = context.text(Component.translatable(this.suggest ? "command.panel.suggest" : "command.panel.run"), CommandPanel.MUTED)
+        Component caption = this.caption(context, this.tone);
+        if (!context.interactive) {
+            return caption.append(Component.text(" " + command, PanelTone.MUTED.color()));
+        }
+        Component hint = this.hint == null ? Component.translatable(this.suggest ? "command.panel.suggest" : "command.panel.run") : this.hint;
+        Component hover = context.text(hint, PanelTone.MUTED)
                 .append(Component.newline())
-                .append(Component.text(command, CommandPanel.ACCENT));
+                .append(Component.text(command, this.tone.color()));
         return caption.hoverEvent(hover).clickEvent(this.suggest ? ClickEvent.suggestCommand(command) : ClickEvent.runCommand(command));
     }
 
-    private Component renderDisabled(CommandPanel.RenderContext context, Component reason) {
-        Component caption = Component.text("[", CommandPanel.MUTED)
-                .append(context.caption(this.caption, CommandPanel.MUTED))
-                .append(Component.text("]", CommandPanel.MUTED));
-        Component explanation = context.text(reason, CommandPanel.MUTED);
-        return context.receiver instanceof Player
+    private Component renderDisabled(PanelContext context, Component reason) {
+        Component caption = this.caption(context, PanelTone.MUTED);
+        Component explanation = context.text(reason, PanelTone.MUTED);
+        return context.interactive
                 ? caption.hoverEvent(explanation)
-                : caption.append(Component.text(" (", CommandPanel.MUTED)).append(explanation).append(Component.text(")", CommandPanel.MUTED));
+                : caption.append(Component.text(" (", PanelTone.MUTED.color())).append(explanation).append(Component.text(")", PanelTone.MUTED.color()));
+    }
+
+    private Component caption(PanelContext context, PanelTone tone) {
+        return Component.text("[", tone.color())
+                .append(context.caption(this.caption, tone))
+                .append(Component.text("]", tone.color()));
     }
 }

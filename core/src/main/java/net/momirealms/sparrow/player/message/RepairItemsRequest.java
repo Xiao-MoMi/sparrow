@@ -10,6 +10,7 @@ import net.momirealms.sparrow.redis.messagebroker.MessageIdentifier;
 import net.momirealms.sparrow.redis.messagebroker.RedisMessage;
 import net.momirealms.sparrow.redis.messagebroker.codec.MessageCodec;
 import net.momirealms.sparrow.redis.messagebroker.message.TwoWayRequestMessage;
+import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.EquipmentSlot;
@@ -93,7 +94,7 @@ public final class RepairItemsRequest extends TwoWayRequestMessage<FriendlyByteB
                 count += item.getCount();
                 restored += item.getDamageValue() * item.getCount();
                 item.setDamageValue(0);
-                inventory.setItem(index, CraftItemStack.asBukkitCopy(item));
+                inventory.setItem(index, CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copy()));
             }
             return new RepairItemsResponse(Status.SUCCESS, count, restored, 0, 0);
         }
@@ -107,7 +108,7 @@ public final class RepairItemsRequest extends TwoWayRequestMessage<FriendlyByteB
         int count = previous == damage ? 0 : item.getCount();
         if (count > 0) {
             item.setDamageValue(damage);
-            equipment.setItem(this.slot, CraftItemStack.asBukkitCopy(item));
+            equipment.setItem(this.slot, CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copy()));
         }
         return new RepairItemsResponse(Status.SUCCESS, count, (previous - damage) * count, maximum - damage, maximum);
     }

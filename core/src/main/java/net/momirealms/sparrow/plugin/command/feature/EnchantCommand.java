@@ -14,6 +14,7 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.parser.EnchantmentParser;
+import net.momirealms.sparrow.proxy.bukkit.inventory.CraftItemStackProxy;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
@@ -83,7 +84,7 @@ public final class EnchantCommand extends BukkitCommandFeature {
                             );
                             return;
                         }
-                        DataComponentType<ItemEnchantments> component = item.is(Items.ENCHANTED_BOOK) ? DataComponents.STORED_ENCHANTMENTS : DataComponents.ENCHANTMENTS;
+                        DataComponentType<ItemEnchantments> component = item.getItem() == Items.ENCHANTED_BOOK ? DataComponents.STORED_ENCHANTMENTS : DataComponents.ENCHANTMENTS;
                         if (check && !applicable(minecraftEnchantment, item, item.getOrDefault(component, ItemEnchantments.EMPTY))) {
                             this.handleFeedback(
                                     context,
@@ -95,13 +96,13 @@ public final class EnchantCommand extends BukkitCommandFeature {
                         }
                         if (level < 0) {
                             setEnchantment(item, DataComponents.ENCHANTMENTS, minecraftEnchantment, 0);
-                            if (item.is(Items.ENCHANTED_BOOK)) {
+                            if (item.getItem() == Items.ENCHANTED_BOOK) {
                                 setEnchantment(item, DataComponents.STORED_ENCHANTMENTS, minecraftEnchantment, 0);
                             }
                         } else {
                             setEnchantment(item, component, minecraftEnchantment, level);
                         }
-                        equipment.setItem(slot, CraftItemStack.asBukkitCopy(item));
+                        equipment.setItem(slot, CraftItemStackProxy.INSTANCE.asBukkitMirror(item.copy()));
                         boolean self = player == context.sender();
                         TranslatableComponent message;
                         if (level < 0) {

@@ -76,6 +76,71 @@ command.features.row: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> 
 command.features.unavailable: '此命令未启用'
 
 command.lookup.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>操作失败，请查看控制台日志</color>'
+command.panel.go: "前往"
+command.panel.edit: "编辑"
+command.panel.total: "<arg:0> 项"
+command.panel.location: "<arg:0> · <arg:1>"
+command.panel.location-hover: "服务器: <arg:0>\n世界: <arg:1>\n坐标: <arg:2>\n朝向: <arg:3>"
+command.home-list.empty: "还没有保存的家"
+command.home-list.hover: "<arg:0>\n所属: <arg:1>\n服务器: <arg:2>\n世界: <arg:3>\n坐标: <arg:4>\n朝向: <arg:5>\n创建: <arg:6>\n更新: <arg:7>\nID: <arg:8>"
+command.warp-list.empty: "没有可见的传送点"
+command.warp-list.hover: "<arg:0>\n服务器: <arg:1>\n世界: <arg:2>\n坐标: <arg:3>\n朝向: <arg:4>\n创建: <arg:5>\n更新: <arg:6>\nID: <arg:7>"
+command.features.panel.title: "模块管理"
+command.features.panel.enable: "启用"
+command.features.panel.disable: "停用"
+command.features.panel.enable-hint: "临时启用模块；重启后按配置加载"
+command.features.panel.disable-hint: "临时停用模块；重启后按配置加载"
+command.features.panel.hot-supported: "支持"
+command.features.panel.hot-unsupported: "需重启"
+command.features.panel.hover: "模块: <arg:0>\n状态: <arg:1>\n运行时启用: <arg:2>\n运行时停用: <arg:3>\n操作仅影响当前运行，重启后按配置加载"
+command.features.panel.state.enabled: "● 已启用"
+command.features.panel.state.disabled: "○ 已停用"
+command.features.panel.state.uninstalled: "○ 未安装"
+command.features.panel.state.unloaded: "○ 已卸载"
+command.features.panel.state.failed: "! 异常"
+
+command.panel.name: "名称"
+command.panel.rename: "重命名"
+command.panel.relocate: "设此处"
+command.panel.relocate-hint: "将位置与朝向更新为你当前的位置与朝向"
+command.panel.delete: "删除"
+command.panel.list: "列表"
+command.panel.place: "所在"
+command.panel.coordinates: "坐标"
+command.panel.rotation: "朝向"
+command.panel.time: "时间"
+command.panel.audit-times: "创建 <arg:0> · 更新 <arg:1>"
+command.panel.profile: "资料"
+command.panel.recent: "最近"
+command.panel.observed-at: "记录时间: <arg:0>"
+command.panel.input-too-long: "完整编辑命令超过聊天输入的 256 字符上限；可复制完整源码，不会填入截断的命令。"
+command.edit-home.panel.title: "家 · <arg:0>"
+command.edit-home.panel.owner: "所属"
+command.edit-warp.panel.title: "传送点 · <arg:0>"
+command.edit-warp.panel.creator: "创建者"
+command.name-history.panel.title: "名称 · <arg:0>"
+command.name-history.panel.identity: "查询名称: <arg:0>\n最近记录名称: <arg:1>\nUUID: <arg:2>"
+command.name-history.panel.query: "查询"
+command.ip-history.panel.title: "IP · <arg:0>"
+command.ip-history.panel.players: "玩家"
+command.ip-history.panel.latest: "最近一条 IP 变化记录"
+command.ip-history.panel.identity: "<arg:0>\nUUID: <arg:1>\n最近记录地址: <arg:2>"
+command.ip-history.panel.player-count: "<arg:0> 人"
+command.ip-history.panel.unknown-name: "未知 · <arg:0>"
+command.ip-history.panel.player-hover: "<arg:0>\nUUID: <arg:1>\n名称来自当前玩家资料"
+command.ip-history.panel.empty: "没有匹配的 IP 记录"
+command.item-lore.panel.title: "Lore · <arg:0>"
+command.item-lore.panel.total: "<arg:0> 行"
+command.item-lore.panel.edit: "改"
+command.item-lore.panel.remove: "删"
+command.item-lore.panel.add: "新增"
+command.item-lore.panel.blank: "〈空行〉"
+command.item-lore.panel.empty: "还没有 Lore，可通过标题的新增按钮添加"
+command.item-lore.panel.first-line: "已经是第一行"
+command.item-lore.panel.last-line: "已经是最后一行"
+command.item-lore.panel.json-source: "点击复制完整 JSON\n<arg:0>"
+command.item-lore.panel.mini-source: "<arg:0>\n点击复制 MiniMessage\n<arg:1>"
+
 # command.panel
 command.panel.title: '信息'
 command.panel.empty: '没有可展示的内容'
@@ -495,6 +560,30 @@ command.name-history.others: '其他曾用名'
 command.name-history.none: '没有其他曾用名'
 command.name-history.unknown: '<color:#FFB6CB>未找到名字 <arg:0> 的相关记录.</color>'
 
+command.panel.hover-hint: "悬停查看详情"
+command.player-info.panel.identity: "<arg:0>\nUUID: <arg:1>"
+command.player-info.panel.history: "历史"
+command.player-info.panel.details: "详情"
+command.player-info.panel.teleport: "前往"
+command.player-info.panel.offline: "○ 离线"
+command.player-info.panel.remote: "● 在线 · 跨服"
+command.player-info.panel.local: "● 在线 · 本服"
+command.player-info.panel.last-place: "上次"
+command.player-info.panel.place: "所在"
+command.player-info.panel.place-value: "<arg:0> · <arg:1>"
+command.player-info.panel.session: "会话"
+command.player-info.panel.session-value: "<arg:0> ms · <arg:1>"
+command.player-info.panel.ip: "最近IP"
+command.player-info.panel.position: "位置"
+command.player-info.panel.activity: "活动"
+command.player-info.panel.activity-value: "登录 <arg:0> · 退出 <arg:1>"
+command.player-info.panel.logout: "退出点"
+command.player-info.panel.logout-hover: "服务器: <arg:0>\n世界: <arg:1>\n退出: <arg:2>"
+command.player-info.panel.ban: "封禁"
+command.player-info.panel.no-ban: "无进行中的封禁"
+command.player-info.panel.active-ban: "封禁中 #<arg:0>"
+command.player-info.panel.ban-hover: "记录 #<arg:0>\n原因: <arg:1>\n操作人: <arg:2>\n到期: <arg:3>"
+
 # command.player-info
 command.player-info.not-found: '<color:#FFB6CB>找不到玩家 <arg:0> 的资料.</color>'
 command.player-info.title: '玩家资料: <arg:0>'
@@ -606,7 +695,7 @@ command.edit-home.world: '世界'
 command.edit-home.location: 'X Y Z / 朝向'
 command.edit-home.created-at: '创建时间'
 command.edit-home.updated-at: '修改时间'
-command.home-list.title: '<arg:0> 的 Home'
+command.home-list.title: '<arg:0> 的家'
 command.home-list.location: '<arg:0> / <arg:1>'
 
 # command.warp
@@ -637,7 +726,7 @@ command.edit-warp.creator: '创建者 UUID'
 command.edit-warp.created-at: '创建时间'
 command.edit-warp.updated-at: '修改时间'
 command.edit-warp.console: '控制台'
-command.warp-list.title: '传送点列表'
+command.warp-list.title: '传送点'
 command.warp-list.location: '<arg:0> / <arg:1>'
 
 # command.spawn
@@ -701,6 +790,39 @@ command.ban.invalid-duration: '<color:#FFB6CB>封禁时长必须至少为 1 毫�
 command.ban.reason-too-long: '<color:#FFB6CB>展开后的封禁原因超过 <arg:0> 个字符.</color>'
 command.unban.success: '<color:#C9F2C7>已撤销 <arg:0> 的处罚 <arg:1>.</color>'
 command.unban.none: '<color:#FFB6CB>没有找到与 <arg:0> 匹配的有效封禁.</color>'
+command.ban.panel.info-title: '封禁 #<arg:0>'
+command.ban.panel.history-title: '封禁历史 · <arg:0>'
+command.ban.panel.scope-all: '全部'
+command.ban.panel.total: '<arg:0> 条'
+command.ban.panel.unban: '解除'
+command.ban.panel.history: '历史'
+command.ban.panel.details: '详情'
+command.ban.panel.player: '玩家'
+command.ban.panel.ip: 'IP'
+command.ban.panel.reason: '原因'
+command.ban.panel.created: '封禁'
+command.ban.panel.expires: '到期'
+command.ban.panel.operator: '执行'
+command.ban.panel.revoked: '撤销'
+command.ban.panel.operator-value: '<arg:0> · <arg:1>'
+command.ban.panel.revoked-value: '<arg:0> · <arg:1>'
+command.ban.panel.expiry-value: '<arg:0> · 剩余 <arg:1>'
+command.ban.panel.status-active: '● 生效'
+command.ban.panel.status-expired: '○ 到期'
+command.ban.panel.status-revoked: '○ 撤销'
+command.ban.panel.filters: '筛选  <arg:0>'
+command.ban.panel.within: '<arg:0> 内'
+command.ban.panel.filter-operator: '执行人 <arg:0>'
+command.ban.panel.active-only: '仅生效'
+command.ban.panel.hover-title: '#<arg:0> · <arg:1>'
+command.ban.panel.hover-player: '玩家: <arg:0>'
+command.ban.panel.hover-ip: 'IP: <arg:0>'
+command.ban.panel.hover-reason: '原因: <arg:0>'
+command.ban.panel.hover-operator: '执行: <arg:0> · <arg:1>'
+command.ban.panel.hover-created: '封禁: <arg:0>'
+command.ban.panel.hover-expires: '到期: <arg:0>'
+command.ban.panel.hover-revoked: '撤销: <arg:0> · <arg:1>'
+
 command.ban-info.unknown: '<color:#FFB6CB>处罚编号 <arg:0> 不存在.</color>'
 command.ban-info.title: '处罚 <arg:0>'
 command.ban-info.id: '处罚编号'

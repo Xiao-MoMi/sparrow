@@ -7,6 +7,7 @@ import net.momirealms.sparrow.feature.ban.BanTarget;
 import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
 import net.momirealms.sparrow.plugin.command.parser.DurationParser;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
@@ -23,7 +24,6 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 
 public final class BanHistoryCommand extends AbstractBanCommand {
-    private static final int PAGE_SIZE = 8;
 
     public BanHistoryCommand(@NotNull CommandManager manager, @NotNull SparrowPlugin plugin, @NotNull BanFeature feature) {
         super(manager, plugin, feature);
@@ -73,9 +73,12 @@ public final class BanHistoryCommand extends AbstractBanCommand {
         long now = System.currentTimeMillis();
         long since = within == null ? 0 : Math.max(0, now - within.toMillis());
         BanQuery query = new BanQuery(target, operator, since, active, now);
+        String playerInput = target instanceof BanTarget.PlayerTarget ? context.get("player") : null;
+        CommandPanel.Builder panel = BanPanels.history(query, playerInput);
+        int pageSize = panel.getPageCapacity();
         String scope = switch (target) {
             case null -> "all";
-            case BanTarget.PlayerTarget player -> "player " + player.uuid();
+            case BanTarget.PlayerTarget ignored -> "player " + playerInput;
             case BanTarget.IpTarget ip -> "ip " + ip.range();
         };
         String arguments = scope
@@ -84,11 +87,11 @@ public final class BanHistoryCommand extends AbstractBanCommand {
                 + (active ? " --active" : "");
         int requestedPage = context.flags().getValue("page", 1);
         return this.feature.service().count(query).thenCompose(total -> {
-            int pages = total == 0 ? 1 : Math.toIntExact((total - 1) / PAGE_SIZE + 1);
+            int pages = total == 0 ? 1 : Math.toIntExact((total - 1) / pageSize + 1);
             int page = Math.min(requestedPage, pages);
-            int offset = Math.multiplyExact(page - 1, PAGE_SIZE);
-            return this.feature.service().list(query, offset, PAGE_SIZE)
-                    .thenAccept(records -> BanPanels.history(context.sender(), query, new TextPage<>(page - 1, PAGE_SIZE, total, records), arguments));
+            int offset = Math.multiplyExact(page - 1, pageSize);
+            return this.feature.service().list(query, offset, pageSize)
+                    .thenAccept(records -> BanPanels.history(panel, query, new TextPage<>(page - 1, pageSize, total, records), arguments).send(context.sender()));
         });
     }
 

@@ -11,7 +11,10 @@ import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.TextPage;
-import net.momirealms.sparrow.util.DateTimeUtils;
+import net.momirealms.sparrow.plugin.command.panel.PanelText;
+import net.momirealms.sparrow.plugin.command.panel.PanelTone;
+import net.momirealms.sparrow.plugin.command.panel.PanelButton;
+import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import net.momirealms.sparrow.util.UUIDUtils;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
@@ -49,7 +52,7 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
                 .optional("page", IntegerParser.integerParser(1))
                 .futureHandler(this::byUuid));
         manager.command(builder.literal("ip")
-                .required("ip", StringParser.stringParser())
+                .required("ip", TokenParser.tokenParser())
                 .optional("page", IntegerParser.integerParser(1))
                 .futureHandler(this::byIp));
     }
@@ -89,28 +92,44 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
         int requestedPage = context.getOrDefault("page", 1);
         return store.countAddresses(uuid).thenCompose(total -> {
             if (total == 0) {
-                this.handleFeedback(context, MessageConstants.COMMAND_IP_HISTORY_NO_ADDRESSES, Component.text(uuid.toString()));
+                this.addressPanel(uuid, name, new TextPage<>(0, PAGE_SIZE, 0, List.of()), Optional.empty(), arguments).send(context.sender());
                 return CompletableFuture.completedFuture(null);
             }
-            int page = (int) Math.min(requestedPage, (total + PAGE_SIZE - 1) / PAGE_SIZE);
+            int pages = Math.toIntExact(Math.max(1, (total + PAGE_SIZE - 1) / PAGE_SIZE));
+            int page = Math.min(requestedPage, pages);
             CompletableFuture<Optional<PlayerIpRecord>> latest = store.findLatestByUuid(uuid);
-            return store.listAddresses(uuid, (page - 1) * PAGE_SIZE, PAGE_SIZE).thenAcceptBoth(latest, (records, recent) -> {
-                CommandPanel.Builder panel = CommandPanel.builder()
-                        .title(MessageConstants.COMMAND_IP_HISTORY_PLAYER_TITLE)
-                        .field(MessageConstants.COMMAND_IP_HISTORY_PLAYER, name)
-                        .copyField("UUID", uuid.toString())
-                        .copyField(MessageConstants.COMMAND_IP_HISTORY_RECENT, recent.orElseThrow().ip().getHostAddress())
-                        .field(MessageConstants.COMMAND_IP_HISTORY_ADDRESS_COUNT, Component.text(total))
-                        .section(MessageConstants.COMMAND_IP_HISTORY_ADDRESS_RECORDS);
-                for (int i = 0, size = records.size(); i < size; i++) {
-                    PlayerIpRecord record = records.get(i);
-                    panel.copyField(DateTimeUtils.fullTime(record.observedAt()), record.ip().getHostAddress());
-                }
-                panel.pagination(page, Math.toIntExact((total + PAGE_SIZE - 1) / PAGE_SIZE), this.getFeatureID(), index -> arguments + " " + index)
-                        .build()
-                        .send(context.sender());
-            });
+            return store.listAddresses(uuid, (page - 1) * PAGE_SIZE, PAGE_SIZE).thenAcceptBoth(latest, (records, recent) ->
+                    this.addressPanel(uuid, name, new TextPage<>(page - 1, PAGE_SIZE, total, records), recent, arguments).send(context.sender()));
         });
+    }
+
+    private CommandPanel addressPanel(UUID uuid, Component name, TextPage<PlayerIpRecord> page, Optional<PlayerIpRecord> latest, String arguments) {
+        Component recentAddress = latest.<Component>map(record -> Component.text(record.ip().getHostAddress())).orElse(Component.translatable("command.ip-history.panel.empty"));
+        Component details = Component.translatable("command.ip-history.panel.identity", name, Component.text(uuid.toString()), recentAddress);
+        Component players = Component.translatable("command.ip-history.panel.players");
+        CommandPanel.Builder panel = CommandPanel.list()
+                .title(PanelText.of(Component.translatable("command.ip-history.panel.title", name)).copy(uuid.toString()).hover(details))
+                .status(PanelText.of(Component.translatable("command.panel.total", Component.text(page.total()))).tone(PanelTone.MUTED))
+                .actionColumn("players", players);
+        List<PlayerIpRecord> records = page.content();
+        for (int i = 0, size = records.size(); i < size; i++) {
+            PlayerIpRecord record = records.get(i);
+            String address = record.ip().getHostAddress();
+            boolean recent = latest.isPresent() && latest.get().ip().equals(record.ip());
+            PanelText badge = recent
+                    ? PanelText.of("●").tone(PanelTone.SUCCESS).hover(Component.translatable("command.ip-history.panel.latest"))
+                    : PanelText.of("");
+            panel.addressEntry(
+                    PanelText.of(address).copy(address),
+                    badge,
+                    this.recordedAt(record),
+                    PanelButton.run(players, this.getFeatureID(), "ip " + address + " 1").column("players")
+            );
+        }
+        if (records.isEmpty()) {
+            panel.entry(PanelText.of(Component.translatable("command.ip-history.panel.empty")).tone(PanelTone.MUTED));
+        }
+        return panel.pagination(page, this.getFeatureID(), number -> arguments + " " + number).build();
     }
 
     @NotNull
@@ -138,28 +157,39 @@ public final class IpHistoryCommand extends BukkitCommandFeature {
             players.add(this.plugin().playerManager().getPlayer(records.get(i).uuid()));
         }
         return CompletableFuture.allOf(players.toArray(CompletableFuture[]::new)).thenRun(() -> {
-            String address = ip.getHostAddress();
-            CommandPanel.Builder panel = CommandPanel.builder()
-                    .title(MessageConstants.COMMAND_IP_HISTORY_IP_TITLE)
-                    .copyField("IP", address)
-                    .field(MessageConstants.COMMAND_IP_HISTORY_PLAYER_COUNT, Component.text(page.total()));
-            if (records.isEmpty()) {
-                panel.field(MessageConstants.COMMAND_IP_HISTORY_PLAYERS, MessageConstants.COMMAND_IP_HISTORY_NO_PLAYERS);
-            } else {
-                panel.section(MessageConstants.COMMAND_IP_HISTORY_PLAYERS);
-                for (int i = 0, size = records.size(); i < size; i++) {
-                    PlayerIpRecord record = records.get(i);
-                    Component name = players.get(i).join()
-                            .<Component>map(player -> Component.text(player.name()))
-                            .orElse(MessageConstants.COMMAND_IP_HISTORY_UNKNOWN_NAME);
-                    Component label = MessageConstants.COMMAND_IP_HISTORY_PLAYER_ROW.arguments(name, Component.text(DateTimeUtils.fullTime(record.observedAt())));
-                    panel.copyField(label, record.uuid().toString());
-                }
-            }
-            panel.pagination(page, this.getFeatureID(), index -> "ip " + address + " " + index)
-                    .build()
-                    .send(sender);
+            List<Optional<SparrowPlayer>> resolved = players.stream().map(CompletableFuture::join).toList();
+            this.playersPanel(ip, page, resolved).send(sender);
         });
+    }
+
+    private CommandPanel playersPanel(InetAddress ip, TextPage<PlayerIpRecord> page, List<Optional<SparrowPlayer>> players) {
+        String address = ip.getHostAddress();
+        Component profile = Component.translatable("command.panel.profile");
+        CommandPanel.Builder panel = CommandPanel.list()
+                .title(PanelText.of(Component.translatable("command.ip-history.panel.title", Component.text(address))).copy(address))
+                .status(PanelText.of(Component.translatable("command.ip-history.panel.player-count", Component.text(page.total()))).tone(PanelTone.MUTED))
+                .actionColumn("profile", profile);
+        for (int i = 0, size = page.content().size(); i < size; i++) {
+            PlayerIpRecord record = page.content().get(i);
+            String uuid = record.uuid().toString();
+            Optional<SparrowPlayer> player = players.get(i);
+            Component name = player.<Component>map(found -> Component.text(found.name()))
+                    .orElse(Component.translatable("command.ip-history.panel.unknown-name", Component.text(uuid.substring(0, 8))));
+            panel.historyEntry(
+                    PanelText.of(name).copy(uuid).hover(Component.translatable("command.ip-history.panel.player-hover", name, Component.text(uuid))),
+                    PanelText.of(""),
+                    this.recordedAt(record),
+                    PanelButton.run(profile, "player_info", player.map(SparrowPlayer::name).orElse(uuid)).column("profile")
+            );
+        }
+        if (page.content().isEmpty()) {
+            panel.entry(PanelText.of(MessageConstants.COMMAND_IP_HISTORY_NO_PLAYERS).tone(PanelTone.MUTED));
+        }
+        return panel.pagination(page, this.getFeatureID(), number -> "ip " + address + " " + number).build();
+    }
+
+    private PanelText recordedAt(PlayerIpRecord record) {
+        return PanelText.time(record.observedAt()).hover(Component.translatable("command.panel.observed-at", PanelText.fullTime(record.observedAt()).getComponent()));
     }
 
     @NotNull

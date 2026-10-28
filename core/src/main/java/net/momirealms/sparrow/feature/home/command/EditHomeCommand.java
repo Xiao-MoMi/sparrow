@@ -39,7 +39,7 @@ public final class EditHomeCommand extends AbstractHomeCommand {
 
     private CompletableFuture<Void> execute(CommandContext<CommandSender> context) {
         return this.withHome(context, (owner, home) -> {
-            HomePanels.detail(context.sender(), owner, home);
+            HomePanels.detail(context.sender(), owner, home).send(context.sender());
             return CompletableFuture.completedFuture(null);
         });
     }

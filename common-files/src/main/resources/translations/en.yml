@@ -76,6 +76,71 @@ command.features.row: '<color:#C7BCE7><arg:0></color> <color:#C8E4E9>·</color> 
 command.features.unavailable: 'This command is disabled'
 
 command.lookup.failed: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#FFB6CB>The operation failed. Check the console for details.</color>'
+command.panel.go: "Go"
+command.panel.edit: "Edit"
+command.panel.total: "<arg:0> items"
+command.panel.location: "<arg:0> · <arg:1>"
+command.panel.location-hover: "Server: <arg:0>\nWorld: <arg:1>\nCoordinates: <arg:2>\nRotation: <arg:3>"
+command.home-list.empty: "No homes saved yet"
+command.home-list.hover: "<arg:0>\nOwner: <arg:1>\nServer: <arg:2>\nWorld: <arg:3>\nCoordinates: <arg:4>\nRotation: <arg:5>\nCreated: <arg:6>\nUpdated: <arg:7>\nID: <arg:8>"
+command.warp-list.empty: "No visible warps"
+command.warp-list.hover: "<arg:0>\nServer: <arg:1>\nWorld: <arg:2>\nCoordinates: <arg:3>\nRotation: <arg:4>\nCreated: <arg:5>\nUpdated: <arg:6>\nID: <arg:7>"
+command.features.panel.title: "Modules"
+command.features.panel.enable: "On"
+command.features.panel.disable: "Off"
+command.features.panel.enable-hint: "Enable for this session; restart uses configuration"
+command.features.panel.disable-hint: "Disable for this session; restart uses configuration"
+command.features.panel.hot-supported: "Supported"
+command.features.panel.hot-unsupported: "Restart required"
+command.features.panel.hover: "Module: <arg:0>\nState: <arg:1>\nRuntime enable: <arg:2>\nRuntime disable: <arg:3>\nSession changes reset to configuration after restart"
+command.features.panel.state.enabled: "● Enabled"
+command.features.panel.state.disabled: "○ Disabled"
+command.features.panel.state.uninstalled: "○ Uninstalled"
+command.features.panel.state.unloaded: "○ Unloaded"
+command.features.panel.state.failed: "! Failed"
+
+command.panel.name: "Name"
+command.panel.rename: "Rename"
+command.panel.relocate: "Set here"
+command.panel.relocate-hint: "Use your current position and rotation"
+command.panel.delete: "Delete"
+command.panel.list: "List"
+command.panel.place: "Place"
+command.panel.coordinates: "XYZ"
+command.panel.rotation: "Facing"
+command.panel.time: "Time"
+command.panel.audit-times: "Made <arg:0> · Edit <arg:1>"
+command.panel.profile: "Info"
+command.panel.recent: "Latest"
+command.panel.observed-at: "Recorded at: <arg:0>"
+command.panel.input-too-long: "The full edit command exceeds the 256-character chat input limit. Copy the full source instead; no truncated command is inserted."
+command.edit-home.panel.title: "Home · <arg:0>"
+command.edit-home.panel.owner: "User"
+command.edit-warp.panel.title: "Warp · <arg:0>"
+command.edit-warp.panel.creator: "By"
+command.name-history.panel.title: "Names · <arg:0>"
+command.name-history.panel.identity: "Query: <arg:0>\nLatest recorded name: <arg:1>\nUUID: <arg:2>"
+command.name-history.panel.query: "Input"
+command.ip-history.panel.title: "IP · <arg:0>"
+command.ip-history.panel.players: "Users"
+command.ip-history.panel.latest: "Latest recorded IP change"
+command.ip-history.panel.identity: "<arg:0>\nUUID: <arg:1>\nLatest recorded IP: <arg:2>"
+command.ip-history.panel.player-count: "<arg:0> users"
+command.ip-history.panel.unknown-name: "Unknown · <arg:0>"
+command.ip-history.panel.player-hover: "<arg:0>\nUUID: <arg:1>\nName from the current player profile"
+command.ip-history.panel.empty: "No matching IP records"
+command.item-lore.panel.title: "Lore · <arg:0>"
+command.item-lore.panel.total: "<arg:0> lines"
+command.item-lore.panel.edit: "Edit"
+command.item-lore.panel.remove: "Del"
+command.item-lore.panel.add: "Add"
+command.item-lore.panel.blank: "(blank)"
+command.item-lore.panel.empty: "No lore yet. Use Add in the title to create a line."
+command.item-lore.panel.first-line: "Already the first line"
+command.item-lore.panel.last-line: "Already the last line"
+command.item-lore.panel.json-source: "Copy full JSON\n<arg:0>"
+command.item-lore.panel.mini-source: "<arg:0>\nCopy MiniMessage\n<arg:1>"
+
 # command.panel
 command.panel.title: 'Information'
 command.panel.empty: 'Nothing to display'
@@ -495,6 +560,30 @@ command.name-history.others: 'Other names'
 command.name-history.none: 'No other names recorded'
 command.name-history.unknown: '<color:#FFB6CB>No records found for name <arg:0>.</color>'
 
+command.panel.hover-hint: "Hover for details"
+command.player-info.panel.identity: "<arg:0>\nUUID: <arg:1>"
+command.player-info.panel.history: "History"
+command.player-info.panel.details: "Details"
+command.player-info.panel.teleport: "Go"
+command.player-info.panel.offline: "○ Offline"
+command.player-info.panel.remote: "● Online · Remote"
+command.player-info.panel.local: "● Online · Local"
+command.player-info.panel.last-place: "Last"
+command.player-info.panel.place: "Place"
+command.player-info.panel.place-value: "<arg:0> · <arg:1>"
+command.player-info.panel.session: "Sess."
+command.player-info.panel.session-value: "<arg:0> ms · <arg:1>"
+command.player-info.panel.ip: "Last IP"
+command.player-info.panel.position: "XYZ"
+command.player-info.panel.activity: "Active"
+command.player-info.panel.activity-value: "In <arg:0> · Out <arg:1>"
+command.player-info.panel.logout: "Exit"
+command.player-info.panel.logout-hover: "Server: <arg:0>\nWorld: <arg:1>\nLogout: <arg:2>"
+command.player-info.panel.ban: "Ban"
+command.player-info.panel.no-ban: "No active ban"
+command.player-info.panel.active-ban: "Banned #<arg:0>"
+command.player-info.panel.ban-hover: "Record #<arg:0>\nReason: <arg:1>\nOperator: <arg:2>\nExpires: <arg:3>"
+
 # command.player-info
 command.player-info.not-found: '<color:#FFB6CB>No player profile was found for <arg:0>.</color>'
 command.player-info.title: 'Player information: <arg:0>'
@@ -522,7 +611,7 @@ command.player-info.ban: 'Matching active ban'
 command.player-info.not-banned: 'No active ban found'
 command.player-info.banned: 'Ban <arg:0> / Expiry: <arg:1>'
 command.player-info.ban-disabled: 'The Ban module is disabled'
-command.player-info.button.name-history: 'Name history'
+command.player-info.button.name-history: 'Names'
 command.player-info.button.ip-history: 'IP history'
 command.player-info.button.ban-history: 'Account ban history'
 command.player-info.button.ban-info: 'Ban details'
@@ -701,6 +790,39 @@ command.ban.invalid-duration: '<color:#FFB6CB>The duration must be at least one 
 command.ban.reason-too-long: '<color:#FFB6CB>The expanded ban reason exceeds <arg:0> characters.</color>'
 command.unban.success: '<color:#C9F2C7>Revoked ban <arg:1> for <arg:0>.</color>'
 command.unban.none: '<color:#FFB6CB>No active ban matches <arg:0>.</color>'
+command.ban.panel.info-title: 'Ban #<arg:0>'
+command.ban.panel.history-title: 'Bans · <arg:0>'
+command.ban.panel.scope-all: 'All'
+command.ban.panel.total: '<arg:0> records'
+command.ban.panel.unban: 'Unban'
+command.ban.panel.history: 'History'
+command.ban.panel.details: 'Details'
+command.ban.panel.player: 'Name'
+command.ban.panel.ip: 'IP'
+command.ban.panel.reason: 'Reason'
+command.ban.panel.created: 'Start'
+command.ban.panel.expires: 'Until'
+command.ban.panel.operator: 'By'
+command.ban.panel.revoked: 'Undo'
+command.ban.panel.operator-value: '<arg:0> · <arg:1>'
+command.ban.panel.revoked-value: '<arg:0> · <arg:1>'
+command.ban.panel.expiry-value: '<arg:0> · <arg:1> left'
+command.ban.panel.status-active: '● Active'
+command.ban.panel.status-expired: '○ Ended'
+command.ban.panel.status-revoked: '○ Lifted'
+command.ban.panel.filters: 'Filters  <arg:0>'
+command.ban.panel.within: 'Within <arg:0>'
+command.ban.panel.filter-operator: 'By <arg:0>'
+command.ban.panel.active-only: 'Active only'
+command.ban.panel.hover-title: '#<arg:0> · <arg:1>'
+command.ban.panel.hover-player: 'Player: <arg:0>'
+command.ban.panel.hover-ip: 'IP: <arg:0>'
+command.ban.panel.hover-reason: 'Reason: <arg:0>'
+command.ban.panel.hover-operator: 'Operator: <arg:0> · <arg:1>'
+command.ban.panel.hover-created: 'Created: <arg:0>'
+command.ban.panel.hover-expires: 'Expires: <arg:0>'
+command.ban.panel.hover-revoked: 'Revoked: <arg:0> · <arg:1>'
+
 command.ban-info.unknown: '<color:#FFB6CB>Ban <arg:0> does not exist.</color>'
 command.ban-info.title: 'Ban <arg:0>'
 command.ban-info.id: 'Ban ID'

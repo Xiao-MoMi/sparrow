@@ -8,18 +8,21 @@ import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
-import net.momirealms.sparrow.util.DateTimeUtils;
+import net.momirealms.sparrow.plugin.command.panel.PanelText;
+import net.momirealms.sparrow.plugin.command.panel.PanelTone;
+import net.momirealms.sparrow.plugin.command.panel.PanelButton;
 import org.bukkit.command.CommandSender;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.context.CommandContext;
 import org.incendo.cloud.parser.standard.StringParser;
+import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.List;
 import java.util.Locale;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -36,6 +39,7 @@ public final class NameHistoryCommand extends BukkitCommandFeature {
                         StringParser.stringParser(),
                         (context, input) -> CompletableFuture.completedFuture(this.plugin().playerManager().registry.suggestGlobalPlayers(input.peekString()))
                 )
+                .optional("page", IntegerParser.integerParser(1))
                 .futureHandler(this::execute));
     }
 
@@ -49,35 +53,41 @@ public final class NameHistoryCommand extends BukkitCommandFeature {
                 return CompletableFuture.completedFuture(null);
             }
             UUID uuid = found.get().uuid();
-            return store.history(uuid).thenAccept(records -> this.show(context.sender(), name, uuid, records));
+            return store.history(uuid).thenAccept(records -> this.createPanel(name, uuid, records, context.getOrDefault("page", 1)).send(context.sender()));
         });
     }
 
-    private void show(@NotNull CommandSender sender, @NotNull String input, @NotNull UUID uuid, @NotNull List<PlayerNameRecord> records) {
-        Set<String> seen = new HashSet<>();
-        seen.add(input.toLowerCase(Locale.ROOT));
-        List<PlayerNameRecord> otherNames = new ArrayList<>();
+    private CommandPanel createPanel(String input, UUID uuid, List<PlayerNameRecord> records, int requestedPage) {
+        Map<String, PlayerNameRecord> unique = new LinkedHashMap<>();
         for (int i = records.size() - 1; i >= 0; i--) {
             PlayerNameRecord record = records.get(i);
-            if (seen.add(record.name().toLowerCase(Locale.ROOT))) {
-                otherNames.add(record);
-            }
+            unique.putIfAbsent(record.name().toLowerCase(Locale.ROOT), record);
         }
-        CommandPanel.Builder panel = CommandPanel.builder()
-                .title(MessageConstants.COMMAND_NAME_HISTORY_TITLE)
-                .copyField(MessageConstants.COMMAND_NAME_HISTORY_QUERY, input)
-                .copyField("UUID", uuid.toString())
-                .copyField(MessageConstants.COMMAND_NAME_HISTORY_RECENT, records.getLast().name());
-        if (otherNames.isEmpty()) {
-            panel.field(MessageConstants.COMMAND_NAME_HISTORY_OTHERS, MessageConstants.COMMAND_NAME_HISTORY_NONE);
-        } else {
-            panel.section(MessageConstants.COMMAND_NAME_HISTORY_OTHERS);
-            for (int i = 0, size = otherNames.size(); i < size; i++) {
-                PlayerNameRecord record = otherNames.get(i);
-                panel.copyField(DateTimeUtils.fullTime(record.observedAt()), record.name());
-            }
+        List<PlayerNameRecord> names = new ArrayList<>(unique.values());
+        String recent = records.getLast().name();
+        Component identity = Component.translatable("command.name-history.panel.identity", Component.text(input), Component.text(recent), Component.text(uuid.toString()));
+        CommandPanel.Builder panel = CommandPanel.list()
+                .title(PanelText.of(Component.translatable("command.name-history.panel.title", Component.text(recent))).copy(uuid.toString()).hover(identity))
+                .status(PanelText.of(Component.translatable("command.panel.total", Component.text(names.size()))).tone(PanelTone.MUTED))
+                .titleActions(PanelButton.run(Component.translatable("command.panel.profile"), "player_info", uuid.toString()));
+        int pageSize = panel.getPageCapacity();
+        int pages = Math.max(1, (names.size() + pageSize - 1) / pageSize);
+        int page = Math.min(requestedPage, pages);
+        for (int i = (page - 1) * pageSize, end = Math.min(page * pageSize, names.size()); i < end; i++) {
+            PlayerNameRecord record = names.get(i);
+            PanelText badge = i == 0
+                    ? PanelText.of(Component.translatable("command.panel.recent")).tone(PanelTone.SUCCESS)
+                    : PanelText.of(record.name().equalsIgnoreCase(input) ? Component.translatable("command.name-history.panel.query") : Component.empty());
+            panel.historyEntry(
+                    PanelText.of(record.name()).copy(record.name()),
+                    badge,
+                    PanelText.time(record.observedAt()).hover(Component.translatable("command.panel.observed-at", PanelText.fullTime(record.observedAt()).getComponent()))
+            );
         }
-        panel.build().send(sender);
+        if (names.size() == 1) {
+            panel.entry(PanelText.of(MessageConstants.COMMAND_NAME_HISTORY_NONE).tone(PanelTone.MUTED));
+        }
+        return panel.pagination(page, pages, this.getFeatureID(), number -> input + " " + number).build();
     }
 
     @NotNull

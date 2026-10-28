@@ -2,11 +2,6 @@ package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
-import net.kyori.adventure.text.event.ClickEvent;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.format.TextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
@@ -14,6 +9,8 @@ import net.momirealms.sparrow.locale.MessageConstants;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
+import net.momirealms.sparrow.plugin.command.panel.TextPage;
 import net.momirealms.sparrow.util.AdventureHelper;
 import org.bukkit.command.CommandSender;
 import org.bukkit.craftbukkit.util.CraftChatMessage;
@@ -26,11 +23,11 @@ import org.incendo.cloud.parser.standard.EnumParser;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.incendo.cloud.parser.standard.StringParser;
 import org.jetbrains.annotations.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public final class ItemLoreCommand extends BukkitCommandFeature {
     private static final String LORE_META_KEY = "sparrow_lore";
@@ -40,13 +37,14 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
         manager.command(builder.senderType(Player.class)
                 .flag(manager.flagBuilder("lore").withComponent(StringParser.greedyFlagYieldingStringParser()).build())
                 .flag(manager.flagBuilder("operation").withComponent(EnumParser.enumParser(Operation.class)).build())
                 .flag(manager.flagBuilder("line").withComponent(IntegerParser.integerParser(1)).build())
                 .flag(manager.flagBuilder("internal").withComponent(IntegerParser.integerParser(1)).build())
                 .flag(manager.flagBuilder("json").build())
+                .flag(manager.flagBuilder("page").withComponent(IntegerParser.integerParser(1)).build())
                 .handler(this::execute));
     }
 
@@ -61,70 +59,16 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
             List<net.minecraft.network.chat.Component> lines = new ArrayList<>(item.getOrDefault(DataComponents.LORE, ItemLore.EMPTY).lines());
             Operation operation = context.flags().getValue("operation", null);
             if (operation == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_QUERY, this.getQueryResult(player, lines));
+                this.show(player, item, lines, context.flags().getValue("page", 1));
                 return;
             }
-            Integer line = context.flags().getValue("line", null);
-            if (line == null) {
-                this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--line"));
-                return;
-            }
-            if (operation == Operation.REMOVE || operation == Operation.UP || operation == Operation.DOWN) {
-                Integer internal = context.flags().getValue("internal", null);
-                if (internal != null && internal != this.internalId(player)) {
-                    this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_EXPIRED);
-                    return;
-                }
-            }
-            int minimum = operation == Operation.UP ? 2 : 1;
-            int maximum = lines.size() + (operation == Operation.INSERT ? 1 : (operation == Operation.DOWN ? -1 : 0));
-            if (line < minimum || line > maximum) {
-                this.handleFeedback(
-                        context,
-                        MessageConstants.COMMAND_ITEM_LORE_BOUND,
-                        Component.text(line),
-                        Component.text(maximum < minimum ? 0 : minimum),
-                        Component.text(maximum < minimum ? 0 : maximum)
-                );
-                return;
-            }
-            switch (operation) {
-                case INSERT, EDIT -> {
-                    String input = context.flags().getValue("lore", null);
-                    if (input == null) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--lore"));
-                        return;
-                    }
-                    if (operation == Operation.INSERT && lines.size() >= ItemLore.MAX_LINES) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_LIMIT, Component.text(ItemLore.MAX_LINES));
-                        return;
-                    }
-                    net.minecraft.network.chat.Component text;
-                    try {
-                        Component parsed = context.flags().hasFlag("json")
-                                ? AdventureHelper.jsonToComponent(input)
-                                : AdventureHelper.miniMessage("<!i><white>" + input, player);
-                        text = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(parsed));
-                    } catch (RuntimeException exception) {
-                        this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_INVALID);
-                        return;
-                    }
-                    if (operation == Operation.INSERT) {
-                        lines.add(line - 1, text);
-                    } else {
-                        lines.set(line - 1, text);
-                    }
-                }
-                case REMOVE -> lines.remove(line - 1);
-                case UP -> Collections.swap(lines, line - 1, line - 2);
-                case DOWN -> Collections.swap(lines, line - 1, line);
-            }
+            if (!this.apply(context, lines, operation)) return;
             if (lines.isEmpty()) {
                 item.remove(DataComponents.LORE);
             } else {
                 item.set(DataComponents.LORE, new ItemLore(List.copyOf(lines)));
             }
-            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_SUCCESS, this.getQueryResult(player, lines));
+            this.show(player, item, lines, context.flags().getValue("page", 1));
         };
         if (!context.flags().hasFlag("operation")) {
             action.run();
@@ -133,51 +77,84 @@ public final class ItemLoreCommand extends BukkitCommandFeature {
         }
     }
 
-    private Component getQueryResult(Player player, List<net.minecraft.network.chat.Component> lines) {
+    private boolean apply(CommandContext<Player> context, List<net.minecraft.network.chat.Component> lines, Operation operation) {
+        Player player = context.sender();
+        Integer line = context.flags().getValue("line", null);
+        if (line == null) {
+            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--line"));
+            return false;
+        }
+        Integer internal = context.flags().getValue("internal", null);
+        if (internal != null && internal != this.internalId(player)) {
+            this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_EXPIRED);
+            return false;
+        }
+        int minimum = operation == Operation.UP ? 2 : 1;
+        int maximum = lines.size() + (operation == Operation.INSERT ? 1 : (operation == Operation.DOWN ? -1 : 0));
+        if (line < minimum || line > maximum) {
+            this.handleFeedback(
+                    context,
+                    MessageConstants.COMMAND_ITEM_LORE_BOUND,
+                    Component.text(line),
+                    Component.text(maximum < minimum ? 0 : minimum),
+                    Component.text(maximum < minimum ? 0 : maximum)
+            );
+            return false;
+        }
+        switch (operation) {
+            case INSERT, EDIT -> {
+                String input = context.flags().getValue("lore", null);
+                if (input == null) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_MISSING_FLAG, Component.text("--lore"));
+                    return false;
+                }
+                if (operation == Operation.INSERT && lines.size() >= ItemLore.MAX_LINES) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_LIMIT, Component.text(ItemLore.MAX_LINES));
+                    return false;
+                }
+                net.minecraft.network.chat.Component text;
+                try {
+                    Component parsed = context.flags().hasFlag("json")
+                            ? AdventureHelper.jsonToComponent(input)
+                            : AdventureHelper.miniMessage("<!i><white>" + input, player);
+                    text = CraftChatMessage.fromJSON(AdventureHelper.componentToJson(parsed));
+                } catch (RuntimeException exception) {
+                    this.handleFeedback(context, MessageConstants.COMMAND_ITEM_LORE_INVALID);
+                    return false;
+                }
+                if (operation == Operation.INSERT) {
+                    lines.add(line - 1, text);
+                } else {
+                    lines.set(line - 1, text);
+                }
+            }
+            case REMOVE -> lines.remove(line - 1);
+            case UP -> Collections.swap(lines, line - 1, line - 2);
+            case DOWN -> Collections.swap(lines, line - 1, line);
+        }
+        return true;
+    }
+
+    private void show(Player player, ItemStack item, List<net.minecraft.network.chat.Component> lines, int requestedPage) {
+        int pageSize = CommandPanel.list().getPageCapacity();
+        int pages = Math.max(1, (lines.size() + pageSize - 1) / pageSize);
+        int page = Math.min(requestedPage, pages);
+        List<ItemLorePanel.Line> content = new ArrayList<>();
+        for (int i = (page - 1) * pageSize, end = Math.min(page * pageSize, lines.size()); i < end; i++) {
+            net.minecraft.network.chat.Component line = lines.get(i);
+            String json = CraftChatMessage.toJSON(line);
+            Component source = AdventureHelper.jsonToComponent(json);
+            TextComponent.Builder display = Component.text();
+            // 显示文本按服务端语言展开, 源码保留原组件结构.
+            line.visit((style, text) -> {
+                display.append(AdventureHelper.jsonToComponent(CraftChatMessage.toJSON(net.minecraft.network.chat.Component.literal(text).setStyle(style))));
+                return Optional.empty();
+            }, net.minecraft.network.chat.Style.EMPTY);
+            content.add(new ItemLorePanel.Line(display.build(), json, AdventureHelper.miniMessage().serialize(source)));
+        }
         int internal = this.internalId(player) + 1;
         player.setMetadata(LORE_META_KEY, new FixedMetadataValue(this.plugin().javaPlugin(), internal));
-        String usage = this.commandConfig().getUsages().getFirst();
-        TextComponent.Builder result = Component.text();
-        Component editHint = MessageConstants.COMMAND_ITEM_LORE_EDIT;
-        for (int i = 0, size = lines.size(); i < size; i++) {
-            String json = CraftChatMessage.toJSON(lines.get(i));
-            Component preview = AdventureHelper.jsonToComponent(json);
-            String miniMessage = AdventureHelper.miniMessage().serialize(preview);
-            Component source = Component.text("JSON: " + json, NamedTextColor.GRAY)
-                    .append(Component.newline())
-                    .append(Component.text("MiniMessage: " + miniMessage, NamedTextColor.WHITE));
-            int line = i + 1;
-            String action = usage + " --operation ";
-            String target = " --line " + line + " --internal " + internal;
-            result.append(Component.text("[" + line + "] ", NamedTextColor.YELLOW)
-                    .hoverEvent(editHint)
-                    .clickEvent(ClickEvent.suggestCommand(action + "edit --line " + line + " --json --lore " + json)));
-            result.append(preview.applyFallbackStyle(Style.style(NamedTextColor.DARK_PURPLE, TextDecoration.ITALIC))
-                    .hoverEvent(source)
-                    .clickEvent(ClickEvent.suggestCommand(action + "edit --line " + line + " --lore " + miniMessage)));
-            result.append(Component.space());
-            result.append(Component.text("[X]", TextColor.color(0xDC143C))
-                    .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DELETE)
-                    .clickEvent(ClickEvent.runCommand(action + "remove" + target)));
-            if (i > 0) {
-                result.append(Component.space());
-                result.append(Component.text("[↑]", TextColor.color(0x7B68EE))
-                        .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_UP)
-                        .clickEvent(ClickEvent.runCommand(action + "up" + target)));
-            }
-            if (i < size - 1) {
-                result.append(Component.space());
-                result.append(Component.text("[↓]", TextColor.color(0xDA70D6))
-                        .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_DOWN)
-                        .clickEvent(ClickEvent.runCommand(action + "down" + target)));
-            }
-            result.append(Component.newline());
-        }
-        result.append(Component.text("[" + (lines.size() + 1) + "] ", NamedTextColor.YELLOW));
-        result.append(Component.text("[+]", NamedTextColor.GREEN)
-                .hoverEvent(MessageConstants.COMMAND_ITEM_LORE_INSERT)
-                .clickEvent(ClickEvent.suggestCommand(usage + " --operation insert --line " + (lines.size() + 1) + " --lore ")));
-        return result.asComponent();
+        ItemLorePanel.create(Component.text(item.getHoverName().getString()), new TextPage<>(page - 1, pageSize, lines.size(), content), internal).send(player);
     }
 
     private int internalId(Player player) {

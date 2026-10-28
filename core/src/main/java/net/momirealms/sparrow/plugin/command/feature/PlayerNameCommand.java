@@ -45,7 +45,7 @@ public final class PlayerNameCommand extends BukkitCommandFeature {
                         this.handleFeedback(context, MessageConstants.COMMAND_PLAYER_NAME_EMPTY, Component.text(uuid.toString()));
                         return;
                     }
-                    CommandPanel.Builder panel = CommandPanel.builder()
+                    CommandPanel.Builder panel = CommandPanel.card()
                             .title(MessageConstants.COMMAND_PLAYER_NAME_TITLE)
                             .copyField("UUID", uuid.toString())
                             .copyField(MessageConstants.COMMAND_PLAYER_NAME_RECENT, records.getLast().name())

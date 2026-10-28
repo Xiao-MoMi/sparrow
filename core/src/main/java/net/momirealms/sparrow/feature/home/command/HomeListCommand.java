@@ -62,7 +62,7 @@ public final class HomeListCommand extends AbstractHomeCommand {
     }
 
     private CompletableFuture<Void> show(CommandContext<CommandSender> context, SparrowPlayer owner, int page) {
-        return this.feature.service().list(owner.uniqueId()).thenAccept(homes -> HomePanels.list(context.sender(), owner, homes, page));
+        return this.feature.service().list(owner.uniqueId()).thenAccept(homes -> HomePanels.list(context.sender(), owner, homes, page).send(context.sender()));
     }
 
     @NotNull

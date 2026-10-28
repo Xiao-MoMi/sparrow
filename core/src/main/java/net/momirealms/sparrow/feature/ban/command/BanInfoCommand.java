@@ -31,7 +31,7 @@ public final class BanInfoCommand extends AbstractBanCommand {
                 this.handleFeedback(context, MessageConstants.COMMAND_BAN_INFO_UNKNOWN, Component.text(id));
                 return;
             }
-            BanPanels.detail(context.sender(), found.get());
+            BanPanels.detail(found.get()).send(context.sender());
         });
     }
 

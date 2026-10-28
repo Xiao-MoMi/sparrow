@@ -1,134 +1,98 @@
 package net.momirealms.sparrow.plugin.command.feature;
 
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.event.ClickEvent;
 import net.momirealms.sparrow.feature.Feature;
 import net.momirealms.sparrow.feature.FeatureManager;
 import net.momirealms.sparrow.feature.FeatureState;
 import net.momirealms.sparrow.plugin.SparrowPlugin;
 import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
-import net.momirealms.sparrow.plugin.command.CommandConfig;
-import net.momirealms.sparrow.plugin.command.CommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
+import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
+import net.momirealms.sparrow.plugin.command.panel.PanelButton;
+import net.momirealms.sparrow.plugin.command.panel.PanelText;
+import net.momirealms.sparrow.plugin.command.panel.PanelTone;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.incendo.cloud.Command;
 import org.incendo.cloud.parser.standard.IntegerParser;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.util.List;
 import java.util.Locale;
 
 public final class FeatureListCommand extends BukkitCommandFeature {
-    private static final int PAGE_SIZE = 7;
 
     public FeatureListCommand(@NotNull CommandManager commandManager, @NotNull SparrowPlugin plugin) {
         super(commandManager, plugin);
     }
 
     @Override
-    public void registerCommand(org.incendo.cloud.@NonNull CommandManager<CommandSender> manager, Command.Builder<CommandSender> builder) {
-        Command.Builder<CommandSender> cmd = builder.optional("page", IntegerParser.integerParser(1))
-                .handler(context -> this.renderPage(context.sender(), context.<Integer>optional("page").orElse(1)));
-        manager.command(cmd);
+    public void registerCommand(@NotNull org.incendo.cloud.CommandManager<CommandSender> manager, @NotNull Command.Builder<CommandSender> builder) {
+        manager.command(builder.optional("page", IntegerParser.integerParser(1))
+                .handler(context -> this.createPanel(context.getOrDefault("page", 1)).send(context.sender())));
     }
 
-    private void renderPage(@NotNull CommandSender sender, int requestedPage) {
+    private CommandPanel createPanel(int requestedPage) {
         FeatureManager manager = this.plugin().featureManager();
         List<String> ids = List.copyOf(manager.ids());
         int total = ids.size();
-        int pages = Math.max(1, (total + PAGE_SIZE - 1) / PAGE_SIZE);
+        Component enable = this.tr("panel.enable");
+        Component disable = this.tr("panel.disable");
+        CommandPanel.Builder panel = CommandPanel.list()
+                .title(this.tr("panel.title"))
+                .status(PanelText.of(Component.translatable("command.panel.total", Component.text(total))).tone(PanelTone.MUTED))
+                .actionColumn("enable", enable)
+                .actionColumn("disable", disable);
+        int pageSize = panel.getPageCapacity();
+        int pages = Math.max(1, (total + pageSize - 1) / pageSize);
         int page = Math.min(requestedPage, pages);
-        Component panel = this.tr("header", Component.text(page), Component.text(pages), Component.text(total));
-        int end = Math.min(page * PAGE_SIZE, total);
-        for (int i = (page - 1) * PAGE_SIZE; i < end; i++) {
+        if (total == 0) {
+            panel.entry(PanelText.of(this.tr("empty")).tone(PanelTone.MUTED));
+        }
+        for (int i = (page - 1) * pageSize, end = Math.min(page * pageSize, total); i < end; i++) {
             String id = ids.get(i);
             Feature feature = manager.feature(id);
             FeatureState state = manager.getState(id);
-            String unavailable = state == FeatureState.FAILED
-                    ? "restart_required"
-                    : (manager.isBusy() ? "operation_busy" : null);
-            Component actions = this.action(
-                    sender,
-                    "enable",
-                    "feature_enable",
-                    id,
-                    unavailable != null ? unavailable : (!feature.supportsHotEnable() ? "restart_required" : (manager.isEnabled(id) ? "already_enabled" : null))
-            )
-                    .append(Component.space())
-                    .append(this.action(
-                            sender,
-                            "disable",
-                            "feature_disable",
-                            id,
-                            unavailable != null ? unavailable : (!feature.supportsHotDisable() ? "restart_required" : (!manager.isEnabled(id) ? "already_disabled" : null))
-                    ));
-            Component row = this.tr(
-                    "row",
+            boolean hotEnable = feature.supportsHotEnable();
+            boolean hotDisable = feature.supportsHotDisable();
+            boolean enabled = manager.isEnabled(id);
+            String unavailable = state == FeatureState.FAILED ? "restart_required" : (manager.isBusy() ? "operation_busy" : null);
+            String enableReason = unavailable != null ? unavailable : (!hotEnable ? "restart_required" : (enabled ? "already_enabled" : null));
+            String disableReason = unavailable != null ? unavailable : (!hotDisable ? "restart_required" : (!enabled ? "already_disabled" : null));
+            PanelTone tone = switch (state) {
+                case ENABLED -> PanelTone.SUCCESS;
+                case UNINSTALLED -> PanelTone.INFO;
+                case FAILED -> PanelTone.DANGER;
+                case DISABLED, UNLOADED -> PanelTone.MUTED;
+            };
+            Component status = this.tr("panel.state." + state.name().toLowerCase(Locale.ROOT));
+            Component details = this.tr(
+                    "panel.hover",
                     Component.text(id),
                     Component.translatable("feature.state." + state.name().toLowerCase(Locale.ROOT)),
-                    actions
+                    this.tr(hotEnable ? "panel.hot-supported" : "panel.hot-unsupported"),
+                    this.tr(hotDisable ? "panel.hot-supported" : "panel.hot-unsupported")
             );
-            panel = panel.append(Component.newline()).append(row);
+            panel.statusEntry(
+                    PanelText.of(id).copy(id).hover(details),
+                    PanelText.of(status).tone(tone).hover(details),
+                    this.action("enable", id, enableReason, PanelTone.SUCCESS),
+                    this.action("disable", id, disableReason, PanelTone.DANGER)
+            );
         }
-        if (total == 0) {
-            panel = panel.append(Component.newline()).append(this.tr("empty"));
-        }
-        panel = panel.append(Component.newline()).append(this.tr(
-                "navigation",
-                this.action(sender, "previous", "feature_list", Integer.toString(page - 1), page == 1 ? "first_page" : null),
-                Component.text(page),
-                Component.text(pages),
-                this.action(sender, "next", "feature_list", Integer.toString(page + 1), page == pages ? "last_page" : null),
-                this.action(sender, "refresh", "feature_list", Integer.toString(page), null)
-        ));
-        this.handleFeedback(sender, Component.translatable("command.features.message"), panel);
+        return panel.pagination(page, pages, this.getFeatureID(), String::valueOf).build();
     }
 
-    @NotNull
-    private Component action(
-            @NotNull CommandSender sender,
-            @NotNull String label,
-            @NotNull String commandId,
-            @NotNull String arguments,
-            @Nullable String unavailable
-    ) {
-        CommandFeature commandFeature = super.commandManager.feature(commandId);
-        CommandConfig config = commandFeature == null ? null : commandFeature.commandConfig();
-        Component caption = this.tr("label." + label);
-        String usage = null;
-        if (config != null && config.isEnable()) {
-            List<String> usages = config.getUsages();
-            int size = usages.size();
-            for (int i = 0; i < size; i++) {
-                String candidate = usages.get(i);
-                if (candidate.startsWith("/")) {
-                    usage = candidate.trim();
-                    break;
-                }
-            }
-        }
-        String permission = config == null ? null : config.getPermission();
-        boolean permitted = permission == null || permission.isEmpty() || sender.hasPermission(permission);
-        if (unavailable != null || usage == null || !permitted) {
-            Component reason = this.tr(!permitted ? "no_permission" : (unavailable != null ? unavailable : "unavailable"));
-            return sender instanceof Player ? this.tr("disabled", caption).hoverEvent(reason) : this.tr("console.disabled", caption, reason);
-        }
-        // 使用已注册命令的用法和权限, 自定义入口也能通过面板操作.
-        String command = usage + " " + arguments;
-        if (!(sender instanceof Player)) {
-            return this.tr("console.action", this.tr("action." + label, caption), Component.text(command));
-        }
-        return this.tr("action." + label, caption)
-                .hoverEvent(this.tr("hint." + (label.equals("enable") || label.equals("disable") ? "runtime_" + label : label), Component.text(command)))
-                .clickEvent(ClickEvent.runCommand(command));
+    private PanelButton action(String operation, String id, @Nullable String unavailable, PanelTone tone) {
+        PanelButton button = PanelButton.run(this.tr("panel." + operation), "feature_" + operation, id)
+                .column(operation)
+                .tone(tone)
+                .hint(this.tr("panel." + operation + "-hint"));
+        return unavailable == null ? button : button.disabledIf(true, this.tr(unavailable));
     }
 
-    @NotNull
-    private Component tr(@NotNull String key, @NotNull Component... arguments) {
-        return Component.empty().append(Component.translatable("command.features." + key).arguments(arguments));
+    private Component tr(String key, Component... arguments) {
+        return Component.translatable("command.features." + key, arguments);
     }
 
     @Override

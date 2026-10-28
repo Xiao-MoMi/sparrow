@@ -11,9 +11,10 @@ import net.momirealms.sparrow.plugin.command.BukkitCommandFeature;
 import net.momirealms.sparrow.plugin.command.CommandManager;
 import net.momirealms.sparrow.plugin.command.panel.CommandPanel;
 import net.momirealms.sparrow.plugin.command.panel.PanelButton;
+import net.momirealms.sparrow.plugin.command.panel.PanelText;
+import net.momirealms.sparrow.plugin.command.panel.PanelTone;
 import net.momirealms.sparrow.plugin.command.parser.TokenParser;
 import net.momirealms.sparrow.plugin.configuration.ServerConfig;
-import net.momirealms.sparrow.util.DateTimeUtils;
 import net.momirealms.sparrow.util.WorldLocation;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -43,7 +44,7 @@ public final class EditWarpCommand extends BukkitCommandFeature {
         );
         manager.command(named.handler(context -> {
             Warp warp = this.find(context);
-            if (warp != null) this.show(context.sender(), warp);
+            if (warp != null) this.createPanel(context.sender(), warp).send(context.sender());
         }));
         manager.command(named.literal("rename")
                 .permission(Permission.allOf(builder.commandPermission(), Permission.of(this.permission("rename"))))
@@ -67,31 +68,53 @@ public final class EditWarpCommand extends BukkitCommandFeature {
         return warp;
     }
 
-    private void show(CommandSender sender, Warp warp) {
+    private CommandPanel createPanel(CommandSender sender, Warp warp) {
         WorldLocation location = warp.location();
-        String coordinates = location.x() + " " + location.y() + " " + location.z() + " " + location.yaw() + " " + location.pitch();
-        Component creator = warp.creator() == null ? Component.translatable("command.edit-warp.console") : Component.text(warp.creator().toString());
+        PanelText creator = warp.creator() == null
+                ? PanelText.of(Component.translatable("command.edit-warp.console"))
+                : PanelText.of(warp.creator().toString().substring(0, 8) + "…" + warp.creator().toString().substring(32)).copy(warp.creator().toString());
         Component noPermission = Component.translatable("command.panel.no-permission");
-        CommandPanel.builder()
-                .title(Component.translatable("command.edit-warp.title", Component.text(warp.name())))
-                .copyField(Component.translatable("command.edit-warp.name"), warp.name())
-                .copyField(Component.translatable("command.edit-warp.id"), warp.id().toString())
-                .field(Component.translatable("command.edit-warp.server"), warp.server())
-                .field(Component.translatable("command.edit-warp.world"), location.world())
-                .copyField(Component.translatable("command.edit-warp.location"), coordinates)
-                .field(Component.translatable("command.edit-warp.creator"), creator)
-                .field(Component.translatable("command.edit-warp.created-at"), DateTimeUtils.fullTime(warp.createdAt()))
-                .field(Component.translatable("command.edit-warp.updated-at"), DateTimeUtils.fullTime(warp.updatedAt()))
-                .buttons(
-                        PanelButton.run(Component.translatable("command.warp.button.teleport"), "warp", warp.name()).disabledIf(!this.feature.visible(sender, warp), noPermission),
-                        PanelButton.suggest(Component.translatable("command.warp.button.rename"), "edit_warp", warp.name() + " rename ").disabledIf(!sender.hasPermission(this.permission("rename")), noPermission),
-                        PanelButton.run(Component.translatable("command.warp.button.relocate"), "edit_warp", warp.name() + " relocate")
-                                .disabledIf(!sender.hasPermission(this.permission("relocate")), noPermission)
-                                .disabledIf(!(sender instanceof Player), MessageConstants.COMMAND_PLAYER_REQUIRED),
-                        PanelButton.run(Component.translatable("command.warp.button.delete"), "del_warp", warp.name())
+        Component rename = Component.translatable("command.panel.rename");
+        Component go = Component.translatable("command.panel.go");
+        Component relocate = Component.translatable("command.panel.relocate");
+        Component delete = Component.translatable("command.panel.delete");
+        Component times = Component.translatable("command.panel.audit-times", PanelText.time(warp.createdAt()).getComponent(), PanelText.time(warp.updatedAt()).getComponent());
+        return CommandPanel.card()
+                .title(PanelText.of(Component.translatable("command.edit-warp.panel.title", Component.text(warp.name()))).copy(warp.id().toString()))
+                .titleActions(
+                        PanelButton.run(Component.translatable("command.panel.refresh"), "edit_warp", warp.name()),
+                        PanelButton.run(Component.translatable("command.panel.list"), "warp_list", "1")
                 )
-                .build()
-                .send(sender);
+                .actionColumn("primary", rename, go, relocate, delete)
+                .field(
+                        Component.translatable("command.panel.name"),
+                        PanelText.of(warp.name()).copy(warp.name()),
+                        PanelButton.suggest(rename, "edit_warp", warp.name() + " rename ")
+                                .disabledIf(!sender.hasPermission(this.permission("rename")), noPermission)
+                                .column("primary")
+                )
+                .field(Component.translatable("command.edit-warp.panel.creator"), creator.tone(PanelTone.INFO))
+                .field(
+                        Component.translatable("command.panel.place"),
+                        PanelText.location(warp.server(), location),
+                        PanelButton.run(go, "warp", warp.name())
+                                .disabledIf(!this.feature.visible(sender, warp), noPermission)
+                                .disabledIf(!(sender instanceof Player), MessageConstants.COMMAND_PLAYER_REQUIRED)
+                                .tone(PanelTone.SUCCESS)
+                                .column("primary")
+                )
+                .field(
+                        Component.translatable("command.panel.coordinates"),
+                        PanelText.coordinates(location.x(), location.y(), location.z()),
+                        PanelButton.run(relocate, "edit_warp", warp.name() + " relocate")
+                                .disabledIf(!sender.hasPermission(this.permission("relocate")), noPermission)
+                                .disabledIf(!(sender instanceof Player), MessageConstants.COMMAND_PLAYER_REQUIRED)
+                                .hint(Component.translatable("command.panel.relocate-hint"))
+                                .column("primary")
+                )
+                .field(Component.translatable("command.panel.rotation"), PanelText.rotation(location.yaw(), location.pitch()))
+                .field(Component.translatable("command.panel.time"), PanelText.of(times), PanelButton.run(delete, "del_warp", warp.name()).tone(PanelTone.DANGER).column("primary"))
+                .build();
     }
 
     private void rename(CommandContext<CommandSender> context) {
