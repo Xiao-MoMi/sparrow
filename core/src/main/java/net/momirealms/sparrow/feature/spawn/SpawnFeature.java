@@ -80,6 +80,10 @@ public final class SpawnFeature implements Feature {
         return CompletableFuture.completedFuture(null);
     }
 
+    public synchronized boolean hasDestination() {
+        return this.enabled && this.config.destination() != null;
+    }
+
     @NotNull
     public synchronized CompletableFuture<Void> teleport(@NotNull BukkitSparrowPlayer player) {
         if (!this.enabled) return this.notify(player, MessageConstants.TELEPORT_DISABLED);

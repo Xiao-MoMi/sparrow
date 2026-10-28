@@ -350,7 +350,7 @@ command.suicide.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${pro
 command.heal.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 恢复 <color:#C7BCE7><arg:1></color> 点生命值</color>'
 command.heal.restored-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你恢复 <color:#C7BCE7><arg:1></color> 点生命值</color>'
 command.heal.success: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已治疗 <color:#C7BCE7><arg:0></color></color>'
-command.heal.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你恢复生命值和饥饿值</color>'
+command.heal.success-self: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为你恢复生命值</color>'
 
 # command.feed
 command.feed.restored: '<color:#C8E4E9>>></color> <color:#FFE08A><b>${project_name}</b></color> <color:#C8E4E9>·</color> <color:#C9F2C7>已为 <color:#C7BCE7><arg:0></color> 恢复 <color:#C7BCE7><arg:1></color> 点饥饿值</color>'
